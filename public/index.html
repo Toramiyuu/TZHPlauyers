@@ -521,6 +521,15 @@ async function saveRound(i) {
     };
   }
 
+  // Duplicate player check — same player cannot appear on two courts
+  const allIds = r.courts.flatMap(c => [...c.team1, ...c.team2]);
+  const seen = new Set(), dupes = new Set();
+  allIds.forEach(id => { if (seen.has(id)) dupes.add(id); seen.add(id); });
+  if (dupes.size > 0) {
+    const names = [...dupes].map(id => playerById(id)?.name || id).join(', ');
+    return notify(`⚠ Duplicate: ${names} appears on multiple courts.`);
+  }
+
   await apiPost({ rounds });
   state.rounds = rounds;
   renderRoundList();
@@ -751,8 +760,9 @@ function escHtml(s) {
 function notify(msg) {
   const el = document.getElementById('notif');
   el.textContent = msg;
+  el.style.background = msg.startsWith('⚠') ? '#b45309' : 'var(--green)';
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2200);
+  setTimeout(() => el.classList.remove('show'), 3000);
 }
 
 function copyLink() {
