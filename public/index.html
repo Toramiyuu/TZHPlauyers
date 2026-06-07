@@ -251,12 +251,10 @@ async function poll() {
     state = s;
     renderViewer();
     if (document.getElementById('admin').style.display !== 'none') {
-      // Don't rebuild player cards while user is typing a name
-      if (document.activeElement?.classList.contains('name-input')) {
-        renderRoundList();
-      } else {
-        renderAdmin();
-      }
+      // Never rebuild player cards from the poll — only update lightweight parts.
+      // Player cards are only rebuilt on explicit actions (add/remove/photo upload).
+      renderCourtControls();
+      renderRoundList();
     }
   }
 }
