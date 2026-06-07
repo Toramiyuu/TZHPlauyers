@@ -1,4 +1,22 @@
-const { kv } = require('@vercel/kv');
+const { Redis } = require('@upstash/redis');
+
+// Accepts env vars from Vercel Marketplace (KV_REST_API_URL) or direct Upstash (UPSTASH_REDIS_REST_URL)
+let redis = null;
+try {
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (url && token) redis = new Redis({ url, token });
+} catch (e) {
+  console.warn('Redis init skipped:', e.message);
+}
+
+const kv = {
+  get: async (key) => redis ? redis.get(key) : null,
+  set: async (key, val) => {
+    if (!redis) throw new Error('No Redis configured');
+    return redis.set(key, val);
+  },
+};
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'TZH123';
 const STATE_KEY = 'court-state';
@@ -64,7 +82,7 @@ module.exports = async function handler(req, res) {
       await kv.set(STATE_KEY, state);
     } catch (e) {
       console.error('KV write error:', e.message);
-      return res.status(500).json({ error: 'Storage error. Ensure Vercel KV is linked to this project.' });
+      return res.status(500).json({ error: 'Storage error. Add Upstash Redis from Vercel Marketplace and link it to this project.' });
     }
 
     return res.json({ ok: true });
