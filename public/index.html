@@ -101,6 +101,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .gen-row label{font-size:13px;color:var(--muted)}
 .gen-row input[type=number]{background:var(--dark);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:13px;width:64px;outline:none}
 .gen-row input[type=number]:focus{border-color:var(--green)}
+/* per-court controls */
+.court-ctrl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:12px}
+.court-ctrl-card{background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px}
+.court-ctrl-card .cc-label{font-size:12px;color:var(--green-light);font-weight:600;white-space:nowrap}
+.court-ctrl-card .cc-round{flex:1;text-align:center;font-size:13px;font-weight:600;color:var(--text)}
+.court-ctrl-card .cc-round small{display:block;font-size:10px;color:var(--muted);font-weight:400}
+/* round label inside court card on viewer */
+.court-round-tag{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
 </style>
 </head>
 <body>
@@ -155,6 +163,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <input id="numRoundsInput" type="number" min="1" max="50" value="10">
       <label>rounds</label>
       <button class="btn btn-primary btn-sm" onclick="generateSchedule()">Generate Schedule</button>
+    </div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px">Live Courts</div>
+      <div class="court-ctrl-grid" id="courtCtrlGrid"></div>
     </div>
     <div id="roundList"></div>
     <div style="margin-top:10px">
@@ -238,7 +250,14 @@ async function poll() {
   if (s) {
     state = s;
     renderViewer();
-    if (document.getElementById('admin').style.display !== 'none') renderAdmin();
+    if (document.getElementById('admin').style.display !== 'none') {
+      // Don't rebuild player cards while user is typing a name
+      if (document.activeElement?.classList.contains('name-input')) {
+        renderRoundList();
+      } else {
+        renderAdmin();
+      }
+    }
   }
 }
 
@@ -248,18 +267,34 @@ function startPolling() {
 }
 
 // ── VIEWER ───────────────────────────────────
-function renderViewer() {
-  if (!state) return;
-  const round = state.rounds?.[state.currentRound];
-  document.getElementById('viewerRoundLabel').textContent = round?.label || '';
-  const container = document.getElementById('courtsDisplay');
-  container.innerHTML = '';
-  (round?.courts || []).forEach((court, i) => {
-    container.appendChild(buildCourtCard(i + 1, court));
-  });
+function getCourtRounds() {
+  const numCourts = state.numCourts || 1;
+  const base = state.currentRound || 0;
+  const cr = state.courtRounds;
+  if (Array.isArray(cr) && cr.length >= numCourts) return cr.slice(0, numCourts);
+  return new Array(numCourts).fill(base);
 }
 
-function buildCourtCard(num, court) {
+function renderViewer() {
+  if (!state) return;
+  const courtRounds = getCourtRounds();
+  const numCourts = state.numCourts || 1;
+  const allSame = courtRounds.every(r => r === courtRounds[0]);
+  const globalLabel = allSame ? (state.rounds?.[courtRounds[0]]?.label || '') : 'Live';
+  document.getElementById('viewerRoundLabel').textContent = globalLabel;
+
+  const container = document.getElementById('courtsDisplay');
+  container.innerHTML = '';
+  for (let i = 0; i < numCourts; i++) {
+    const round = state.rounds?.[courtRounds[i]];
+    const court = round?.courts?.[i];
+    if (court) {
+      container.appendChild(buildCourtCard(i + 1, court, allSame ? null : round?.label));
+    }
+  }
+}
+
+function buildCourtCard(num, court, roundLabel) {
   const el = document.createElement('div');
   el.className = 'court-card';
   const t1p1 = playerById(court.team1[0]);
@@ -272,7 +307,7 @@ function buildCourtCard(num, court) {
   }
 
   el.innerHTML = `
-    <div class="court-label">Court ${num}</div>
+    <div class="court-label">Court ${num}${roundLabel ? ` <span class="court-round-tag">· ${roundLabel}</span>` : ''}</div>
     <div class="team-block"><div class="team-players">${slot(t1p1)}${slot(t1p2)}</div></div>
     <div class="vs-badge">VS</div>
     <div class="team-block"><div class="team-players">${slot(t2p1)}${slot(t2p2)}</div></div>
@@ -285,8 +320,39 @@ function renderAdmin() {
   if (!state) return;
   renderPlayerCards();
   document.getElementById('numCourtsInput').value = state.numCourts || 1;
+  renderCourtControls();
   renderRoundList();
   document.getElementById('shareLink').textContent = window.location.origin + '/';
+}
+
+function renderCourtControls() {
+  const grid = document.getElementById('courtCtrlGrid');
+  if (!grid) return;
+  const numCourts = state.numCourts || 1;
+  const courtRounds = getCourtRounds();
+  const totalRounds = (state.rounds || []).length;
+  grid.innerHTML = '';
+  for (let i = 0; i < numCourts; i++) {
+    const ri = courtRounds[i] ?? 0;
+    const label = state.rounds?.[ri]?.label || `Round ${ri + 1}`;
+    const summary = roundCourtSummary(state.rounds?.[ri], i);
+    const card = document.createElement('div');
+    card.className = 'court-ctrl-card';
+    card.innerHTML = `
+      <span class="cc-label">Court ${i + 1}</span>
+      <button class="btn btn-secondary btn-sm" onclick="advanceCourt(${i},-1)" ${ri <= 0 ? 'disabled' : ''}>&#8592;</button>
+      <div class="cc-round">${label}<small>${summary}</small></div>
+      <button class="btn btn-accent btn-sm" onclick="advanceCourt(${i},1)" ${ri >= totalRounds - 1 ? 'disabled' : ''}>&#8594;</button>
+    `;
+    grid.appendChild(card);
+  }
+}
+
+function roundCourtSummary(round, courtIdx) {
+  const court = round?.courts?.[courtIdx];
+  if (!court) return '—';
+  const n = id => playerById(id)?.name?.split(' ')[0] || '?';
+  return `${n(court.team1[0])}&${n(court.team1[1])} vs ${n(court.team2[0])}&${n(court.team2[1])}`;
 }
 
 // ── PLAYER CARDS ─────────────────────────────
@@ -304,7 +370,7 @@ function renderPlayerCards() {
       </div>
       <input class="name-input" type="text" value="${escHtml(p.name)}"
         onchange="updatePlayerName('${p.id}', this.value)"
-        onblur="updatePlayerName('${p.id}', this.value)"
+        onkeydown="if(event.key==='Enter')this.blur()"
         placeholder="Player name">
       <input type="file" id="photo_${p.id}" accept="image/*" style="display:none"
         onchange="handlePhotoUpload('${p.id}', this)">
@@ -406,11 +472,26 @@ async function addEmptyRound() {
   renderRoundList();
 }
 
-async function setCurrentRound(i) {
-  await apiPost({ currentRound: i });
-  state.currentRound = i;
+async function advanceCourt(courtIdx, delta) {
+  const courtRounds = [...getCourtRounds()];
+  const next = Math.max(0, Math.min((state.rounds?.length || 1) - 1, courtRounds[courtIdx] + delta));
+  courtRounds[courtIdx] = next;
+  await apiPost({ courtRounds });
+  state.courtRounds = courtRounds;
+  renderCourtControls();
   renderRoundList();
-  notify('Round set live!');
+  notify(`Court ${courtIdx + 1} → ${state.rounds?.[next]?.label || 'Round ' + (next + 1)}`);
+}
+
+async function setCurrentRound(i) {
+  const numCourts = state.numCourts || 1;
+  const courtRounds = new Array(numCourts).fill(i);
+  await apiPost({ currentRound: i, courtRounds });
+  state.currentRound = i;
+  state.courtRounds = courtRounds;
+  renderCourtControls();
+  renderRoundList();
+  notify('All courts → ' + (state.rounds?.[i]?.label || 'Round ' + (i + 1)));
 }
 
 async function deleteRound(i) {
@@ -463,8 +544,9 @@ function buildPlayerSelect(elId, selectedId) {
 function renderRoundList() {
   const list = document.getElementById('roundList');
   list.innerHTML = '';
+  const activeCourts = getCourtRounds();
   (state.rounds || []).forEach((round, i) => {
-    const isLive = i === state.currentRound;
+    const isLive = activeCourts.includes(i);
     const isExpanded = i === expandedRound;
     const div = document.createElement('div');
     div.className = 'round-row' + (isLive ? ' live' : '') + (isExpanded ? ' expanded' : '');
@@ -494,8 +576,8 @@ function renderRoundList() {
       <div class="round-row-header" onclick="toggleRoundExpand(${i})">
         <div class="round-live-dot"></div>
         <span class="rl">${escHtml(round.label)}</span>
-        <span class="rsummary">${roundSummary(round)}</span>
-        <button class="btn btn-accent btn-sm" style="margin-left:6px;white-space:nowrap" onclick="event.stopPropagation();setCurrentRound(${i})">${isLive ? '● Live' : 'Set Live'}</button>
+        <span class="rsummary">${isLive ? activeCourts.map((r,c)=>r===i?`C${c+1}`:'').filter(Boolean).join(',') + ' live · ' : ''}${roundSummary(round)}</span>
+        <button class="btn btn-accent btn-sm" style="margin-left:6px;white-space:nowrap" onclick="event.stopPropagation();setCurrentRound(${i})">${isLive && activeCourts.every(r=>r===i) ? '● All Live' : 'All Courts'}</button>
         <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteRound(${i})">✕</button>
       </div>
       <div class="round-editor">
