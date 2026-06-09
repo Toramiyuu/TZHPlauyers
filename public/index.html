@@ -139,6 +139,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .divider{height:1px;background:var(--border);margin:14px 0}
 input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
+/* ── ROSTER GRID ─────────────────────────── */
+.roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:10px}
+.rc{background:var(--dark);border:2px solid var(--border);border-radius:10px;padding:10px 8px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;cursor:pointer;transition:border-color .15s,background .15s;user-select:none}
+.rc:hover{border-color:var(--border2)}
+.rc.in-session{border-color:var(--green);background:rgba(26,158,92,.07)}
+.rc-check{position:absolute;top:5px;left:6px;width:16px;height:16px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;opacity:0;pointer-events:none}
+.rc.in-session .rc-check{opacity:1}
+.rc-del{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:transparent;border:none;color:var(--border2);cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .15s}
+.rc:hover .rc-del{opacity:1}
+.rc-del:hover,.rc-del.confirm{background:var(--red);color:#fff;opacity:1}
+.rc-photo{position:relative;pointer-events:none}
+.rc.in-session .rc-photo{pointer-events:auto}
+.rc:hover .rc-photo{pointer-events:auto}
+.rc-photo-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:14px}
+.rc-photo:hover .rc-photo-overlay{display:flex}
+.rc-name{font-size:12px;font-weight:500;text-align:center;word-break:break-word;line-height:1.3;color:var(--text);width:100%;padding:0 2px;border-radius:4px}
+.rc-name:hover{background:rgba(255,255,255,.05)}
+.rc-name-input{background:transparent;border:none;border-bottom:1px solid var(--green);color:var(--text);text-align:center;font-size:12px;font-weight:500;width:100%;outline:none;padding:2px 0}
+.guest-strip{margin-top:6px;padding:10px 12px;background:var(--dark);border:1px solid var(--border);border-radius:8px}
+.guest-strip-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;font-weight:600}
+.guest-chips{display:flex;gap:6px;flex-wrap:wrap}
+.guest-chip{display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border2);border-radius:100px;padding:4px 8px 4px 10px;font-size:12px;color:var(--text)}
+.guest-chip button{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:0 2px}
+.guest-chip button:hover{color:var(--red)}
+
 /* ── HISTORY MODAL ───────────────────────── */
 #historyModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:250;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
 #historyModal.open{display:flex}
@@ -193,12 +218,46 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 <!-- Bulk import modal -->
 <div id="bulkModal">
   <div class="bulk-box">
-    <h2>Add Multiple Players</h2>
-    <p>Enter one name per line. Existing players are kept.</p>
+    <h2>Add Multiple to Roster</h2>
+    <p>Enter one name per line. Adds to the permanent roster.</p>
     <textarea id="bulkInput" placeholder="Thomas&#10;Yugene&#10;Syl&#10;Cy&#10;Jun Xian&#10;..."></textarea>
     <div class="bulk-actions">
       <button class="btn btn-secondary" onclick="closeBulkModal()">Cancel</button>
       <button class="btn btn-primary" onclick="confirmBulkImport()">Add Players</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Roster Modal -->
+<div id="addRosterModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:center;justify-content:center">
+  <div class="bulk-box" style="text-align:center">
+    <h2 style="text-align:left;margin-bottom:16px">Add to Roster</h2>
+    <div onclick="document.getElementById('addRosterPhotoFile').click()" style="cursor:pointer;display:inline-block;margin-bottom:6px">
+      <div id="addRosterPhotoPreview"></div>
+    </div>
+    <input type="file" id="addRosterPhotoFile" accept="image/*" style="display:none" onchange="previewAddRosterPhoto(this)">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Click to upload photo (optional)</div>
+    <input id="addRosterNameInput" type="text" placeholder="Player name"
+      style="width:100%;background:var(--dark);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;outline:none;font-family:inherit"
+      onkeydown="if(event.key==='Enter')confirmAddRoster()">
+    <div class="bulk-actions">
+      <button class="btn btn-secondary" onclick="closeAddRosterModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddRoster()">Add to Roster</button>
+    </div>
+  </div>
+</div>
+
+<!-- Guest Modal -->
+<div id="guestModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:center;justify-content:center">
+  <div class="bulk-box">
+    <h2>Add Guest</h2>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Plays today only — not saved to roster.</p>
+    <input id="guestNameInput" type="text" placeholder="Guest name"
+      style="width:100%;background:var(--dark);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;outline:none;font-family:inherit"
+      onkeydown="if(event.key==='Enter')confirmAddGuest()">
+    <div class="bulk-actions">
+      <button class="btn btn-secondary" onclick="closeGuestModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddGuest()">Add Guest</button>
     </div>
   </div>
 </div>
@@ -264,11 +323,17 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
   <!-- Players -->
   <div class="section">
-    <div class="section-title"><span>👥</span> Players</div>
-    <div id="playerCards"></div>
-    <div class="row">
-      <button class="btn btn-secondary btn-sm" onclick="addPlayer()">+ Add Player</button>
+    <div class="section-title" style="justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:6px"><span>👥</span> Players</div>
+      <div id="sessionCount" style="font-size:12px;color:var(--green-light);font-weight:600;text-transform:none;letter-spacing:0"></div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Tap a player to add/remove from today's session</div>
+    <div class="roster-grid" id="rosterGrid"></div>
+    <div id="guestStrip"></div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn btn-secondary btn-sm" onclick="openAddRosterModal()">+ Add to Roster</button>
       <button class="btn btn-ghost btn-sm" onclick="openBulkModal()">+ Add Multiple</button>
+      <button class="btn btn-ghost btn-sm" onclick="openGuestModal()">+ Add Guest</button>
     </div>
   </div>
 
@@ -485,7 +550,7 @@ function buildCourtCard(num, court, roundLabel) {
 function renderAdmin() {
   if (!state) return;
   renderSessionDateSection();
-  renderPlayerCards();
+  renderPlayersSection();
   document.getElementById('numCourtsInput').value = state.numCourts || 1;
   renderCourtControls();
   renderRoundList();
@@ -589,82 +654,199 @@ async function stepAllCourts(delta) {
   notify(`All courts → ${state.rounds?.[next]?.label || 'Round ' + (next + 1)}`);
 }
 
-// ── PLAYER CARDS ─────────────────────────────
-function renderPlayerCards() {
-  const grid = document.getElementById('playerCards');
+// ── ROSTER & PLAYERS ─────────────────────────
+function renderPlayersSection() {
+  // Migration: existing deployments have players but no roster
+  if (!state.roster) {
+    state.roster = (state.players || []).map(p => ({ id: p.id, name: p.name, photo: p.photo || null }));
+  }
+
+  const sessionIds = new Set((state.players || []).map(p => p.id));
+  const guests = (state.players || []).filter(p => p.guest);
+  const inSessionCount = (state.roster || []).filter(r => sessionIds.has(r.id)).length + guests.length;
+
+  const countEl = document.getElementById('sessionCount');
+  if (countEl) countEl.textContent = inSessionCount ? `${inSessionCount} playing today` : '';
+
+  const grid = document.getElementById('rosterGrid');
+  if (!grid) return;
   grid.innerHTML = '';
-  (state.players || []).forEach(p => {
+
+  if (!state.roster || state.roster.length === 0) {
+    grid.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1;padding:6px 0">No roster players yet.</div>';
+  }
+
+  (state.roster || []).forEach(rp => {
+    const isIn = sessionIds.has(rp.id);
     const card = document.createElement('div');
-    card.className = 'player-card';
+    card.className = 'rc' + (isIn ? ' in-session' : '');
     card.innerHTML = `
-      <button class="delete-btn" onclick="removePlayer('${p.id}')" title="Remove player">×</button>
-      <div class="photo-wrap" onclick="triggerPhotoUpload('${p.id}')">
-        ${avatarHTML(p, 60)}
-        <div class="photo-overlay">📷</div>
+      <div class="rc-check">✓</div>
+      <button class="rc-del" id="rcdel_${rp.id}" onclick="event.stopPropagation();deleteRosterPlayer('${rp.id}',this)" title="Remove from roster">×</button>
+      <div class="rc-photo" onclick="event.stopPropagation();document.getElementById('rcf_${rp.id}').click()">
+        ${avatarHTML(rp, 54)}
+        <div class="rc-photo-overlay">📷</div>
       </div>
-      <div class="name-input-wrap">
-        <input class="name-input" type="text" value="${escHtml(p.name)}"
-          onblur="updatePlayerName('${p.id}', this.value)"
-          onkeydown="if(event.key==='Enter'){this.blur()}"
-          placeholder="Player name">
-        <div class="name-hint">Enter to save</div>
-      </div>
-      <input type="file" id="photo_${p.id}" accept="image/*" style="display:none"
-        onchange="handlePhotoUpload('${p.id}', this)">
+      <div class="rc-name" id="rcn_${rp.id}" onclick="event.stopPropagation();startEditRosterName('${rp.id}')">${escHtml(rp.name)}</div>
+      <input type="file" id="rcf_${rp.id}" accept="image/*" style="display:none" onchange="handleRosterPhoto('${rp.id}',this)">
     `;
+    card.onclick = () => toggleRosterPlayer(rp.id);
     grid.appendChild(card);
   });
+
+  const guestStrip = document.getElementById('guestStrip');
+  if (guestStrip) {
+    if (guests.length) {
+      const chips = guests.map(g => `
+        <div class="guest-chip">
+          <span>${escHtml(g.name)} <span style="font-size:10px;color:var(--muted)">Guest</span></span>
+          <button onclick="removeFromSession('${g.id}')" title="Remove">×</button>
+        </div>`).join('');
+      guestStrip.innerHTML = `<div class="guest-strip"><div class="guest-strip-label">Guests today</div><div class="guest-chips">${chips}</div></div>`;
+    } else {
+      guestStrip.innerHTML = '';
+    }
+  }
 }
 
-function triggerPhotoUpload(id) {
-  document.getElementById('photo_' + id)?.click();
-}
-
-async function handlePhotoUpload(id, input) {
-  const file = input.files[0];
-  if (!file) return;
-  const photo = await compressPhoto(file);
-  const players = state.players.map(p => p.id === id ? { ...p, photo } : p);
+async function toggleRosterPlayer(id) {
+  const inSession = (state.players || []).some(p => p.id === id);
+  let players;
+  if (inSession) {
+    players = (state.players || []).filter(p => p.id !== id);
+  } else {
+    const rp = (state.roster || []).find(r => r.id === id);
+    if (!rp) return;
+    players = [...(state.players || []), { id: rp.id, name: rp.name, photo: rp.photo || null }];
+  }
   await apiPost({ players });
   state.players = players;
-  renderPlayerCards();
-  notify('Photo updated!');
+  renderPlayersSection();
 }
 
-async function updatePlayerName(id, name) {
-  const trimmed = name.trim();
-  if (!trimmed) return;
-  const player = playerById(id);
-  if (player && player.name === trimmed) return; // no change
-  const players = state.players.map(p => p.id === id ? { ...p, name: trimmed } : p);
-  await apiPost({ players });
-  state.players = players;
-  renderRoundList();
-  notify('Name saved.');
-}
-
-async function addPlayer() {
-  const id = 'p' + Date.now();
-  const num = (state.players?.length || 0) + 1;
-  const players = [...(state.players || []), { id, name: `Player ${num}`, photo: null }];
-  await apiPost({ players });
-  state.players = players;
-  renderPlayerCards();
-  // Auto-focus the new player's name input
-  setTimeout(() => {
-    const inputs = document.querySelectorAll('.name-input');
-    const last = inputs[inputs.length - 1];
-    if (last) { last.focus(); last.select(); }
-  }, 50);
-}
-
-async function removePlayer(id) {
+async function removeFromSession(id) {
   const players = (state.players || []).filter(p => p.id !== id);
   await apiPost({ players });
   state.players = players;
-  renderPlayerCards();
-  renderRoundList();
-  notify('Player removed.');
+  renderPlayersSection();
+}
+
+async function deleteRosterPlayer(id, btn) {
+  if (btn.dataset.confirmed !== 'yes') {
+    btn.textContent = '?'; btn.dataset.confirmed = 'yes'; btn.classList.add('confirm');
+    setTimeout(() => { if (btn.dataset.confirmed === 'yes') { btn.textContent = '×'; btn.dataset.confirmed = ''; btn.classList.remove('confirm'); } }, 3000);
+    return;
+  }
+  const roster = (state.roster || []).filter(r => r.id !== id);
+  const players = (state.players || []).filter(p => p.id !== id);
+  await apiPost({ roster, players });
+  state.roster = roster; state.players = players;
+  renderPlayersSection(); renderRoundList();
+  notify('Removed from roster.');
+}
+
+function startEditRosterName(id) {
+  const el = document.getElementById('rcn_' + id);
+  if (!el) return;
+  const rp = (state.roster || []).find(r => r.id === id);
+  if (!rp) return;
+  el.outerHTML = `<input class="rc-name-input" id="rcni_${id}" type="text" value="${escHtml(rp.name)}"
+    onblur="saveRosterName('${id}',this.value)"
+    onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape')renderPlayersSection()">`;
+  setTimeout(() => { const i = document.getElementById('rcni_' + id); if (i) { i.focus(); i.select(); } }, 20);
+}
+
+async function saveRosterName(id, name) {
+  const trimmed = name.trim();
+  if (!trimmed) { renderPlayersSection(); return; }
+  const rp = (state.roster || []).find(r => r.id === id);
+  if (rp && rp.name === trimmed) { renderPlayersSection(); return; }
+  const roster = (state.roster || []).map(r => r.id === id ? { ...r, name: trimmed } : r);
+  const players = (state.players || []).map(p => p.id === id ? { ...p, name: trimmed } : p);
+  await apiPost({ roster, players });
+  state.roster = roster; state.players = players;
+  renderPlayersSection(); renderRoundList();
+  notify('Name saved.');
+}
+
+async function handleRosterPhoto(id, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const photo = await compressPhoto(file);
+  const roster = (state.roster || []).map(r => r.id === id ? { ...r, photo } : r);
+  const players = (state.players || []).map(p => p.id === id ? { ...p, photo } : p);
+  await apiPost({ roster, players });
+  state.roster = roster; state.players = players;
+  renderPlayersSection();
+  notify('Photo updated!');
+}
+
+// Add to Roster modal
+let addRosterPhotoData = null;
+
+function openAddRosterModal() {
+  addRosterPhotoData = null;
+  document.getElementById('addRosterModal').style.display = 'flex';
+  document.getElementById('addRosterNameInput').value = '';
+  renderAddRosterPreview(null);
+  setTimeout(() => document.getElementById('addRosterNameInput').focus(), 50);
+}
+
+function closeAddRosterModal() {
+  document.getElementById('addRosterModal').style.display = 'none';
+}
+
+function renderAddRosterPreview(photo) {
+  const el = document.getElementById('addRosterPhotoPreview');
+  if (!el) return;
+  if (photo) {
+    el.innerHTML = `<img src="${photo}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--green)">`;
+  } else {
+    el.innerHTML = `<div style="width:72px;height:72px;border-radius:50%;background:var(--border);border:3px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--muted)">?</div>`;
+  }
+}
+
+async function previewAddRosterPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  addRosterPhotoData = await compressPhoto(file);
+  renderAddRosterPreview(addRosterPhotoData);
+}
+
+async function confirmAddRoster() {
+  const name = document.getElementById('addRosterNameInput').value.trim();
+  if (!name) return notify('⚠ Enter a player name.');
+  const id = 'r' + Date.now();
+  const roster = [...(state.roster || []), { id, name, photo: addRosterPhotoData || null }];
+  await apiPost({ roster });
+  state.roster = roster;
+  addRosterPhotoData = null;
+  closeAddRosterModal();
+  renderPlayersSection();
+  notify('Added to roster!');
+}
+
+// Guest modal
+function openGuestModal() {
+  document.getElementById('guestModal').style.display = 'flex';
+  document.getElementById('guestNameInput').value = '';
+  setTimeout(() => document.getElementById('guestNameInput').focus(), 50);
+}
+
+function closeGuestModal() {
+  document.getElementById('guestModal').style.display = 'none';
+}
+
+async function confirmAddGuest() {
+  const name = document.getElementById('guestNameInput').value.trim();
+  if (!name) return notify('⚠ Enter a guest name.');
+  const id = 'g' + Date.now();
+  const players = [...(state.players || []), { id, name, photo: null, guest: true }];
+  await apiPost({ players });
+  state.players = players;
+  closeGuestModal();
+  renderPlayersSection();
+  notify('Guest added!');
 }
 
 // ── BULK IMPORT ──────────────────────────────
@@ -686,19 +868,19 @@ async function confirmBulkImport() {
 
   if (!names.length) return notify('No names entered.');
 
-  const existing = new Set((state.players || []).map(p => p.name.toLowerCase()));
+  const existing = new Set((state.roster || []).map(p => p.name.toLowerCase()));
   const newPlayers = names
     .filter(n => !existing.has(n.toLowerCase()))
-    .map(n => ({ id: 'p' + Date.now() + Math.random().toString(36).slice(2), name: n, photo: null }));
+    .map(n => ({ id: 'r' + Date.now() + Math.random().toString(36).slice(2), name: n, photo: null }));
 
-  if (!newPlayers.length) return notify('All names already exist.');
+  if (!newPlayers.length) return notify('All names already in roster.');
 
-  const players = [...(state.players || []), ...newPlayers];
-  await apiPost({ players });
-  state.players = players;
-  renderPlayerCards();
+  const roster = [...(state.roster || []), ...newPlayers];
+  await apiPost({ roster });
+  state.roster = roster;
+  renderPlayersSection();
   closeBulkModal();
-  notify(`Added ${newPlayers.length} player${newPlayers.length > 1 ? 's' : ''}!`);
+  notify(`Added ${newPlayers.length} player${newPlayers.length > 1 ? 's' : ''} to roster!`);
 }
 
 // ── COURTS & ROUNDS ──────────────────────────
