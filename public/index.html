@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TZHP Badminton</title>
+<title>TZH Badminton</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -180,7 +180,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
 <!-- Site gate -->
 <div id="siteGate">
-  <h1>TZHP BADMINTON</h1>
+  <h1>TZH BADMINTON</h1>
   <div class="gate-sub">Enter today's access code</div>
   <input id="gateInput" type="text" placeholder="XXX-XXX" maxlength="7" autocomplete="off" spellcheck="false"
     oninput="formatCodeInput(this)" onkeydown="if(event.key==='Enter')submitSiteCode()">
@@ -191,7 +191,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 <!-- Viewer -->
 <div id="viewer">
   <div class="viewer-header">
-    <h1>TZHP BADMINTON</h1>
+    <h1>TZH BADMINTON</h1>
     <div class="round-badge" id="viewerRoundLabel">Round 1</div>
   </div>
   <div id="courtsDisplay"></div>
@@ -401,7 +401,7 @@ function renderViewer() {
     const round = state.rounds?.[courtRounds[i]];
     const court = round?.courts?.[i];
     if (court) {
-      container.appendChild(buildCourtCard(i + 1, court, allSame ? null : round?.label));
+      container.appendChild(buildCourtCard(i + 1, court, round?.label || null));
     }
   }
 }
@@ -419,8 +419,9 @@ function buildCourtCard(num, court, roundLabel) {
   }
 
   el.innerHTML = `
-    <div class="court-label">Court ${num}${roundLabel ? ` <span class="court-round-tag">· ${roundLabel}</span>` : ''}</div>
+    <div class="court-label">Court ${num}</div>
     <div class="team-block"><div class="team-players">${slot(t1p1)}${slot(t1p2)}</div></div>
+    ${roundLabel ? `<div class="round-badge" style="margin:0">${escHtml(roundLabel)}</div>` : ''}
     <div class="vs-badge">VS</div>
     <div class="team-block"><div class="team-players">${slot(t2p1)}${slot(t2p2)}</div></div>
   `;
