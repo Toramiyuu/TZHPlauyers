@@ -139,6 +139,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .divider{height:1px;background:var(--border);margin:14px 0}
 input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
+/* ── HISTORY MODAL ───────────────────────── */
+#historyModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:250;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+#historyModal.open{display:flex}
+.history-box{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:520px;padding:24px;margin:auto}
+.history-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.history-header h2{font-size:16px;font-weight:700;color:var(--text)}
+.history-close{background:transparent;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:4px}
+.history-close:hover{color:var(--text);background:var(--card2)}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-nav-btn{background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:4px 12px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+.cal-nav-btn:hover{border-color:var(--green);color:var(--green-light)}
+.cal-month{font-size:15px;font-weight:700;color:var(--text)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-head{font-size:10px;color:var(--muted);text-align:center;padding:4px 0;font-weight:700;text-transform:uppercase}
+.cal-day{min-height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;color:var(--text);position:relative;transition:background .1s}
+.cal-day.empty{cursor:default}
+.cal-day:not(.empty):hover{background:var(--card2)}
+.cal-day.today{border:1px solid var(--green);color:var(--green-light)}
+.cal-day.has-session{background:rgba(26,158,92,.18);color:var(--green-light);font-weight:700}
+.cal-day.has-session:hover{background:rgba(26,158,92,.32)}
+.cal-day.selected{background:var(--green) !important;color:#fff !important;font-weight:700}
+.session-detail{margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
+.player-game-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(48,54,61,.6);font-size:13px}
+.game-count{color:var(--green-light);font-size:12px;font-weight:600;background:rgba(26,158,92,.12);padding:2px 8px;border-radius:100px}
+
 /* ── SITE GATE ───────────────────────────── */
 #siteGate{position:fixed;inset:0;background:var(--dark);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
 #siteGate h1{font-size:clamp(22px,5vw,38px);color:var(--green-light);letter-spacing:3px;font-weight:800;margin-bottom:8px}
@@ -178,6 +203,23 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   </div>
 </div>
 
+<!-- History modal -->
+<div id="historyModal">
+  <div class="history-box">
+    <div class="history-header">
+      <h2>Session History</h2>
+      <button class="history-close" onclick="closeHistoryModal()">×</button>
+    </div>
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="calPrev()">◄</button>
+      <span class="cal-month" id="calMonthLabel"></span>
+      <button class="cal-nav-btn" onclick="calNext()">►</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div id="sessionDetail"></div>
+  </div>
+</div>
+
 <!-- Site gate -->
 <div id="siteGate">
   <h1>TZH BADMINTON</h1>
@@ -192,6 +234,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 <div id="viewer">
   <div class="viewer-header">
     <h1>TZH BADMINTON</h1>
+    <div id="viewerDate" style="font-size:clamp(12px,1.8vw,15px);color:var(--muted);margin-top:5px;letter-spacing:.5px"></div>
   </div>
   <div id="courtsDisplay"></div>
   <div class="viewer-footer"><span class="status-dot"></span>Live</div>
@@ -204,6 +247,18 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
     <div style="display:flex;gap:8px">
       <button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>
       <button class="btn btn-secondary" onclick="showViewer()">View Display</button>
+    </div>
+  </div>
+
+  <!-- Session Date -->
+  <div class="section">
+    <div class="section-title"><span>📅</span> Session Date</div>
+    <div id="sessionDateDisplay" style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:12px"></div>
+    <div class="row">
+      <input id="sessionDateInput" type="date"
+        style="background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:6px 10px;border-radius:8px;font-size:13px;outline:none">
+      <button class="btn btn-primary btn-sm" onclick="setSessionDate()">Set Date</button>
+      <button class="btn btn-ghost btn-sm" onclick="openHistoryModal()">View History →</button>
     </div>
   </div>
 
@@ -388,6 +443,8 @@ function getCourtRounds() {
 
 function renderViewer() {
   if (!state) return;
+  const dateEl = document.getElementById('viewerDate');
+  if (dateEl) dateEl.textContent = state.sessionDate ? formatDisplayDate(state.sessionDate) : '';
   const courtRounds = getCourtRounds();
 
   const container = document.getElementById('courtsDisplay');
@@ -427,6 +484,7 @@ function buildCourtCard(num, court, roundLabel) {
 // ── ADMIN ────────────────────────────────────
 function renderAdmin() {
   if (!state) return;
+  renderSessionDateSection();
   renderPlayerCards();
   document.getElementById('numCourtsInput').value = state.numCourts || 1;
   renderCourtControls();
@@ -995,6 +1053,235 @@ async function saveSiteCode() {
   document.getElementById('siteCodeInput').value = '';
   renderSiteCodeSection();
   notify('Access code updated!');
+}
+
+// ── DATE UTILS ───────────────────────────────
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function formatDisplayDate(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  const weekday = dt.toLocaleDateString('en-GB', { weekday: 'long' });
+  const month = dt.toLocaleDateString('en-GB', { month: 'long' });
+  return `${weekday} ${d} ${month} ${y}`;
+}
+
+// ── SESSION DATE ──────────────────────────────
+function renderSessionDateSection() {
+  const display = document.getElementById('sessionDateDisplay');
+  const inp = document.getElementById('sessionDateInput');
+  const date = state.sessionDate || todayISO();
+  if (display) display.textContent = formatDisplayDate(date);
+  if (inp) inp.value = date;
+}
+
+async function setSessionDate() {
+  const newDate = document.getElementById('sessionDateInput')?.value;
+  if (!newDate) return notify('⚠ Select a date first.');
+  if (newDate === state.sessionDate) return notify('Already set to this date.');
+  const result = await apiPost({ sessionDate: newDate });
+  if (!result) return;
+  state.sessionDate = newDate;
+  renderSessionDateSection();
+  renderViewer();
+  notify('Date set — previous session saved to history.');
+}
+
+// ── HISTORY MODAL ─────────────────────────────
+let calYear = 0, calMonth = 0, selectedCalDate = null, historyEditSession = null;
+
+function openHistoryModal() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  selectedCalDate = null;
+  historyEditSession = null;
+  document.getElementById('historyModal').classList.add('open');
+  document.getElementById('sessionDetail').innerHTML = '';
+  renderCalendar();
+}
+
+function closeHistoryModal() {
+  document.getElementById('historyModal').classList.remove('open');
+}
+
+function calPrev() {
+  if (calMonth === 0) { calMonth = 11; calYear--; } else calMonth--;
+  renderCalendar();
+}
+
+function calNext() {
+  if (calMonth === 11) { calMonth = 0; calYear++; } else calMonth++;
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonthLabel').textContent = `${monthNames[calMonth]} ${calYear}`;
+
+  const sessions = state.sessions || {};
+  const todayStr = todayISO();
+  const firstDay = new Date(calYear, calMonth, 1);
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const startOffset = (firstDay.getDay() + 6) % 7; // Mon=0
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  ['Mo','Tu','We','Th','Fr','Sa','Su'].forEach(d => {
+    const h = document.createElement('div');
+    h.className = 'cal-head'; h.textContent = d;
+    grid.appendChild(h);
+  });
+
+  for (let i = 0; i < startOffset; i++) {
+    const e = document.createElement('div'); e.className = 'cal-day empty';
+    grid.appendChild(e);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const iso = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const cell = document.createElement('div');
+    const cls = ['cal-day'];
+    if (iso === todayStr) cls.push('today');
+    if (sessions[iso]) cls.push('has-session');
+    if (iso === selectedCalDate) cls.push('selected');
+    cell.className = cls.join(' ');
+    cell.textContent = d;
+    cell.onclick = () => selectCalDate(iso);
+    grid.appendChild(cell);
+  }
+}
+
+function calcGames(session) {
+  const counts = {};
+  (session.rounds || []).forEach(round => {
+    const seen = new Set();
+    (round.courts || []).forEach(c => {
+      [...(c.team1||[]), ...(c.team2||[])].forEach(id => { if (id) seen.add(id); });
+    });
+    seen.forEach(id => { counts[id] = (counts[id]||0) + 1; });
+  });
+  return counts;
+}
+
+function selectCalDate(iso) {
+  selectedCalDate = iso;
+  historyEditSession = null;
+  renderCalendar();
+  const session = (state.sessions||{})[iso];
+  const detail = document.getElementById('sessionDetail');
+  if (!session) {
+    detail.innerHTML = `<div class="session-detail">
+      <div style="font-size:14px;color:var(--muted);margin-bottom:10px">${formatDisplayDate(iso)}</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">No session recorded for this date.</div>
+      <button class="btn btn-ghost btn-sm" onclick="createHistorySession('${iso}')">+ Create session for this date</button>
+    </div>`;
+    return;
+  }
+  renderSessionDetail(iso, session, false);
+}
+
+function renderSessionDetail(iso, session, editMode) {
+  const detail = document.getElementById('sessionDetail');
+  const games = calcGames(session);
+  const players = session.players || [];
+  const roundCount = (session.rounds||[]).length;
+
+  if (editMode) {
+    const existing = new Set(players.map(p => p.id));
+    const addOpts = (state.players||[]).filter(p => !existing.has(p.id))
+      .map(p => `<option value="${p.id}">${escHtml(p.name)}</option>`).join('');
+    const rows = players.map(p => `
+      <div class="player-game-row">
+        <span>${escHtml(p.name)} <span style="color:var(--muted);font-size:11px">${games[p.id]||0} game${(games[p.id]||0)!==1?'s':''}</span></span>
+        <button class="btn btn-danger" onclick="removeHistoryPlayer('${iso}','${p.id}')">Remove</button>
+      </div>`).join('');
+    detail.innerHTML = `<div class="session-detail">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">${formatDisplayDate(iso)}</div>
+      <div style="font-size:11px;color:var(--accent);padding:4px 8px;background:rgba(240,180,41,.1);border-radius:6px;margin-bottom:10px">⚠ Editing historical session</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">${players.length} players · ${roundCount} rounds</div>
+      <div>${rows||'<div style="color:var(--muted);font-size:13px;padding:6px 0">No players.</div>'}</div>
+      ${addOpts?`<div class="row" style="margin-top:10px;gap:6px">
+        <select id="histAddSel" style="background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:5px 8px;border-radius:6px;font-size:12px;outline:none;flex:1">
+          <option value="">Add player...</option>${addOpts}
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="addHistoryPlayer('${iso}')">Add</button>
+      </div>`:''}
+      <div style="margin-top:14px;display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="saveHistoryEdit('${iso}')">Save Changes</button>
+        <button class="btn btn-ghost btn-sm" onclick="selectCalDate('${iso}')">Cancel</button>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const rows = players.map(p => `
+    <div class="player-game-row">
+      <span>${escHtml(p.name)}</span>
+      <span class="game-count">${games[p.id]||0} game${(games[p.id]||0)!==1?'s':''}</span>
+    </div>`).join('');
+
+  detail.innerHTML = `<div class="session-detail">
+    <div style="font-size:14px;font-weight:600;margin-bottom:4px">${formatDisplayDate(iso)}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">${players.length} players · ${roundCount} rounds</div>
+    <div style="max-height:240px;overflow-y:auto">${rows||'<div style="color:var(--muted);font-size:13px;padding:6px 0">No players recorded.</div>'}</div>
+    <div style="margin-top:14px">
+      <button class="btn btn-ghost btn-sm" id="histEditBtn" onclick="startHistoryEdit('${iso}')">Edit this session</button>
+    </div>
+  </div>`;
+}
+
+function startHistoryEdit(iso) {
+  const btn = document.getElementById('histEditBtn');
+  if (!btn) return;
+  if (btn.dataset.confirmed !== 'yes') {
+    btn.textContent = 'Are you sure?';
+    btn.dataset.confirmed = 'yes';
+    btn.className = 'btn btn-danger btn-sm';
+    return;
+  }
+  historyEditSession = JSON.parse(JSON.stringify((state.sessions||{})[iso]));
+  renderSessionDetail(iso, historyEditSession, true);
+}
+
+function removeHistoryPlayer(iso, id) {
+  if (!historyEditSession) return;
+  historyEditSession.players = historyEditSession.players.filter(p => p.id !== id);
+  renderSessionDetail(iso, historyEditSession, true);
+}
+
+function addHistoryPlayer(iso) {
+  const id = document.getElementById('histAddSel')?.value;
+  if (!id || !historyEditSession) return;
+  const p = (state.players||[]).find(p => p.id === id);
+  if (p) historyEditSession.players.push({ id: p.id, name: p.name });
+  renderSessionDetail(iso, historyEditSession, true);
+}
+
+async function saveHistoryEdit(iso) {
+  if (!historyEditSession) return;
+  const result = await apiPost({ action: 'updateSession', date: iso, session: historyEditSession });
+  if (!result) return;
+  state.sessions = { ...(state.sessions||{}), [iso]: historyEditSession };
+  historyEditSession = null;
+  renderSessionDetail(iso, state.sessions[iso], false);
+  renderCalendar();
+  notify('Session updated!');
+}
+
+async function createHistorySession(iso) {
+  const session = { players: (state.players||[]).map(p=>({id:p.id,name:p.name})), rounds: state.rounds||[], numCourts: state.numCourts||1 };
+  const result = await apiPost({ action: 'updateSession', date: iso, session });
+  if (!result) return;
+  state.sessions = { ...(state.sessions||{}), [iso]: session };
+  historyEditSession = JSON.parse(JSON.stringify(session));
+  renderCalendar();
+  renderSessionDetail(iso, historyEditSession, true);
+  notify('Session created!');
 }
 
 async function removeSiteCode() {

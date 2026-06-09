@@ -21,6 +21,10 @@ const kv = {
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'TZH123';
 const STATE_KEY = 'court-state';
 
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 const DEFAULT_STATE = {
   players: [
     { id: 'p0',  name: 'Thomas',    photo: null },
@@ -44,6 +48,8 @@ const DEFAULT_STATE = {
   numCourts: 2,
   rounds: [],
   currentRound: 0,
+  sessionDate: todayISO(),
+  sessions: {},
 };
 
 module.exports = async function handler(req, res) {
@@ -82,6 +88,31 @@ module.exports = async function handler(req, res) {
       state = (await kv.get(STATE_KEY)) || { ...DEFAULT_STATE };
     } catch (e) {
       state = { ...DEFAULT_STATE };
+    }
+
+    // Handle updateSession action (edit a historical session)
+    if (updates.action === 'updateSession') {
+      const { date, session } = updates;
+      state.sessions = { ...(state.sessions || {}), [date]: session };
+      try { await kv.set(STATE_KEY, state); } catch (e) { return res.status(500).json({ error: 'Storage error' }); }
+      return res.json({ ok: true });
+    }
+
+    // Auto-save current session when date changes
+    if (updates.sessionDate && updates.sessionDate !== state.sessionDate && state.sessionDate) {
+      const snapshot = {
+        players: (state.players || []).map(p => ({ id: p.id, name: p.name })),
+        rounds: state.rounds || [],
+        numCourts: state.numCourts || 1,
+      };
+      state.sessions = { ...(state.sessions || {}), [state.sessionDate]: snapshot };
+      // Prune sessions older than 31 days
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 31);
+      const cutoffStr = cutoff.toISOString().slice(0, 10);
+      for (const d of Object.keys(state.sessions)) {
+        if (d < cutoffStr) delete state.sessions[d];
+      }
     }
 
     state = { ...state, ...updates };
