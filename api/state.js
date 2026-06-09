@@ -23,25 +23,26 @@ const STATE_KEY = 'court-state';
 
 const DEFAULT_STATE = {
   players: [
-    { id: 'p0', name: 'Player 1', photo: null },
-    { id: 'p1', name: 'Player 2', photo: null },
-    { id: 'p2', name: 'Player 3', photo: null },
-    { id: 'p3', name: 'Player 4', photo: null },
-    { id: 'p4', name: 'Player 5', photo: null },
-    { id: 'p5', name: 'Player 6', photo: null },
-    { id: 'p6', name: 'Player 7', photo: null },
-    { id: 'p7', name: 'Player 8', photo: null },
+    { id: 'p0',  name: 'Thomas',    photo: null },
+    { id: 'p1',  name: 'Yugene',    photo: null },
+    { id: 'p2',  name: 'Syl',       photo: null },
+    { id: 'p3',  name: 'Cy',        photo: null },
+    { id: 'p4',  name: 'Jun Xian',  photo: null },
+    { id: 'p5',  name: 'Jun',       photo: null },
+    { id: 'p6',  name: 'Eric',      photo: null },
+    { id: 'p7',  name: 'Wei Chong', photo: null },
+    { id: 'p8',  name: 'Hao',       photo: null },
+    { id: 'p9',  name: 'Zhi Hong',  photo: null },
+    { id: 'p10', name: 'Vun Hao',   photo: null },
+    { id: 'p11', name: 'Ah Chai',   photo: null },
+    { id: 'p12', name: 'Chuin Han', photo: null },
+    { id: 'p13', name: 'KW',        photo: null },
+    { id: 'p14', name: 'YZ',        photo: null },
+    { id: 'p15', name: 'Desmond',   photo: null },
+    { id: 'p16', name: 'Joe',       photo: null },
   ],
   numCourts: 2,
-  rounds: [
-    {
-      label: 'Round 1',
-      courts: [
-        { team1: ['p0', 'p1'], team2: ['p2', 'p3'] },
-        { team1: ['p4', 'p5'], team2: ['p6', 'p7'] },
-      ],
-    },
-  ],
+  rounds: [],
   currentRound: 0,
 };
 
@@ -55,7 +56,14 @@ module.exports = async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       const state = await kv.get(STATE_KEY);
-      return res.json(state || DEFAULT_STATE);
+      const current = state || DEFAULT_STATE;
+      if (current.siteCode) {
+        const provided = (req.query && req.query.code) ? req.query.code : '';
+        if (provided !== current.siteCode) {
+          return res.status(200).json({ locked: true });
+        }
+      }
+      return res.json(current);
     } catch (e) {
       console.error('KV read error:', e.message);
       return res.json(DEFAULT_STATE);

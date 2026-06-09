@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Court Display</title>
+<title>TZHP Badminton</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --green:#1a9e5c;--green-light:#22c66e;--dark:#0d1117;--card:#161b22;
-  --border:#30363d;--text:#e6edf3;--muted:#8b949e;--accent:#f0b429;
+  --card2:#1c2128;--border:#30363d;--border2:#3d444d;--text:#e6edf3;
+  --muted:#8b949e;--accent:#f0b429;--red:#da3633;--blue:#388bfd;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--dark);color:var(--text);min-height:100vh}
 
@@ -32,58 +33,100 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* ── ADMIN ──────────────────────────────── */
-#admin{display:none;max-width:960px;margin:0 auto;padding:24px;gap:20px;flex-direction:column}
+#admin{display:none;max-width:980px;margin:0 auto;padding:24px;gap:20px;flex-direction:column}
 .admin-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:14px}
-.admin-header h1{font-size:20px;color:var(--green-light)}
+.admin-header h1{font-size:20px;color:var(--green-light);font-weight:700}
 .btn{padding:7px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
 .btn-primary{background:var(--green);color:#fff}.btn-primary:hover{background:var(--green-light)}
-.btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{border-color:var(--green)}
+.btn-secondary{background:var(--card2);color:var(--text);border:1px solid var(--border2)}.btn-secondary:hover{border-color:var(--green);color:var(--green-light)}
 .btn-accent{background:var(--accent);color:#000}.btn-accent:hover{background:#e6a020}
-.btn-danger{background:#da3633;color:#fff;font-size:12px;padding:4px 10px}.btn-danger:hover{background:#f14a44}
+.btn-danger{background:var(--red);color:#fff;font-size:12px;padding:4px 10px}.btn-danger:hover{background:#f14a44}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{color:var(--text);border-color:var(--border2)}
 .btn-sm{padding:4px 11px;font-size:12px}
-.section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px}
-.section h2{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:14px}
+.section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.section-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:16px;font-weight:600;display:flex;align-items:center;gap:6px}
+.section-title span{font-size:16px}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 
-/* Player cards grid */
-#playerCards{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:12px}
-.player-card{background:var(--dark);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
-.player-card .delete-btn{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:#30363d;border:none;color:var(--muted);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
-.player-card .delete-btn:hover{background:#da3633;color:#fff}
+/* ── PLAYER GRID ─────────────────────────── */
+#playerCards{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.player-card{background:var(--dark);border:1px solid var(--border);border-radius:10px;padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;transition:border-color .2s}
+.player-card:hover{border-color:var(--border2)}
+.player-card .delete-btn{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:transparent;border:none;color:var(--border2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;opacity:0}
+.player-card:hover .delete-btn{opacity:1}
+.player-card .delete-btn:hover{background:var(--red);color:#fff}
 .photo-wrap{position:relative;cursor:pointer}
 .photo-wrap:hover .photo-overlay{display:flex}
 .photo-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:18px}
-.name-input{background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);text-align:center;font-size:13px;width:100%;outline:none;padding:2px 0}
-.name-input:focus{border-bottom-color:var(--green)}
+.name-input-wrap{width:100%;position:relative}
+.name-input{background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);text-align:center;font-size:13px;font-weight:500;width:100%;outline:none;padding:3px 0;transition:border-color .15s;border-radius:0}
+.name-input:hover{border-bottom-color:var(--border2)}
+.name-input:focus{border-bottom-color:var(--green);background:rgba(26,158,92,.06);border-radius:4px 4px 0 0;padding:3px 4px}
+.name-hint{font-size:10px;color:var(--muted);text-align:center;opacity:0;transition:opacity .15s;height:14px}
+.name-input:focus ~ .name-hint{opacity:1}
 
-/* Rounds table */
-#roundList{margin-top:12px;display:flex;flex-direction:column;gap:4px}
-.round-row{background:var(--dark);border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.round-row-header{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;user-select:none}
+/* ── QUICK NAV ───────────────────────────── */
+.quick-nav{display:flex;align-items:center;justify-content:space-between;background:var(--dark);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:14px;gap:10px;flex-wrap:wrap}
+.quick-nav-label{font-size:13px;color:var(--muted)}
+.quick-nav-center{display:flex;align-items:center;gap:8px;flex:1;justify-content:center}
+.current-round-pill{background:var(--green);color:#fff;padding:5px 16px;border-radius:100px;font-size:13px;font-weight:700;letter-spacing:.5px;white-space:nowrap}
+.nav-btn{background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
+.nav-btn:hover:not(:disabled){border-color:var(--green);color:var(--green-light)}
+.nav-btn:disabled{opacity:.3;cursor:not-allowed}
+
+/* ── ROUNDS LIST ─────────────────────────── */
+#roundList{margin-top:8px;display:flex;flex-direction:column;gap:3px}
+.round-row{background:var(--dark);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color .15s}
+.round-row.live{border-color:var(--green);background:rgba(26,158,92,.04)}
+.round-row-header{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;user-select:none}
 .round-row-header:hover{background:rgba(255,255,255,.02)}
-.round-row.live .round-row-header{border-left:3px solid var(--green)}
-.round-live-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.round-live-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0}
 .round-row.live .round-live-dot{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 1.5s infinite}
-.round-row-header .rl{font-size:13px;font-weight:600;flex:1}
-.round-row-header .rsummary{font-size:12px;color:var(--muted);flex:2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.round-editor{display:none;border-top:1px solid var(--border);padding:14px 12px;background:#0d1117}
+.rl{font-size:13px;font-weight:600;min-width:72px}
+.rsummary{font-size:12px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live-badge{font-size:11px;font-weight:700;color:var(--green);background:rgba(26,158,92,.15);padding:2px 8px;border-radius:100px;white-space:nowrap}
+.round-editor{display:none;border-top:1px solid var(--border);padding:14px 12px;background:#0a0e14}
 .round-row.expanded .round-editor{display:block}
-.court-editor{margin-bottom:12px}
-.court-editor h4{font-size:12px;color:var(--green-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.court-editor{margin-bottom:14px}
+.court-editor h4{font-size:11px;color:var(--green-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:600}
 .selectors-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.selectors-row select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:12px;outline:none;max-width:130px}
+.selectors-row select{background:var(--card);border:1px solid var(--border2);color:var(--text);padding:5px 8px;border-radius:6px;font-size:12px;outline:none;max-width:140px;cursor:pointer}
 .selectors-row select:focus{border-color:var(--green)}
 .vs-small{font-size:11px;color:var(--accent);font-weight:700;padding:0 4px}
 .amp{color:var(--muted);font-size:11px}
 
-/* Link box */
-.link-box{background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:monospace;font-size:12px;color:var(--green-light);word-break:break-all;margin-top:6px}
+/* ── RESTING ─────────────────────────────── */
+.resting-strip{margin-top:10px;padding:8px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted)}
+.resting-strip strong{color:var(--text)}
+.resting-avatars{display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap}
+.rest-chip{display:flex;align-items:center;gap:5px;background:var(--dark);border:1px solid var(--border);border-radius:100px;padding:3px 8px 3px 4px;font-size:11px}
 
-/* Floating admin button */
+/* ── BULK IMPORT ─────────────────────────── */
+#bulkModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:center;justify-content:center}
+#bulkModal.open{display:flex}
+.bulk-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:26px 24px;width:380px;max-width:94vw}
+.bulk-box h2{font-size:16px;margin-bottom:6px}
+.bulk-box p{font-size:12px;color:var(--muted);margin-bottom:12px}
+.bulk-box textarea{width:100%;height:160px;background:var(--dark);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:13px;outline:none;resize:vertical;font-family:inherit;line-height:1.6}
+.bulk-box textarea:focus{border-color:var(--green)}
+.bulk-actions{display:flex;gap:8px;margin-top:12px;justify-content:flex-end}
+
+/* ── COURTS CTRL ─────────────────────────── */
+.court-ctrl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:10px}
+.court-ctrl-card{background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px}
+.cc-label{font-size:12px;color:var(--green-light);font-weight:600;white-space:nowrap}
+.cc-round{flex:1;text-align:center;font-size:13px;font-weight:600;color:var(--text)}
+.cc-round small{display:block;font-size:10px;color:var(--muted);font-weight:400}
+.court-round-tag{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+
+/* ── MISC ────────────────────────────────── */
+.gen-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.gen-row label{font-size:13px;color:var(--muted)}
+.gen-row input[type=number]{background:var(--dark);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:13px;width:64px;outline:none}
+.gen-row input[type=number]:focus{border-color:var(--green)}
+.link-box{background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:monospace;font-size:12px;color:var(--green-light);word-break:break-all;margin-top:6px}
 #adminBtn{position:fixed;bottom:18px;right:18px;background:var(--card);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;transition:all .2s;z-index:100;font-family:inherit}
 #adminBtn:hover{color:var(--text);border-color:var(--green)}
-
-/* Password modal */
 #pwModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:center;justify-content:center}
 .pw-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:30px 28px;width:320px;max-width:92vw}
 .pw-box h2{font-size:17px;margin-bottom:16px;color:var(--text)}
@@ -91,24 +134,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .pw-box input:focus{border-color:var(--green)}
 .pw-error{color:#f85149;font-size:12px;margin-top:6px;display:none}
 .pw-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
-
-/* Notification */
-#notif{position:fixed;top:18px;right:18px;background:var(--green);color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;z-index:400}
+#notif{position:fixed;top:18px;right:18px;background:var(--green);color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;z-index:400;pointer-events:none}
 #notif.show{opacity:1}
+.divider{height:1px;background:var(--border);margin:14px 0}
+input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
-/* gen row */
-.gen-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
-.gen-row label{font-size:13px;color:var(--muted)}
-.gen-row input[type=number]{background:var(--dark);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:13px;width:64px;outline:none}
-.gen-row input[type=number]:focus{border-color:var(--green)}
-/* per-court controls */
-.court-ctrl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:12px}
-.court-ctrl-card{background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px}
-.court-ctrl-card .cc-label{font-size:12px;color:var(--green-light);font-weight:600;white-space:nowrap}
-.court-ctrl-card .cc-round{flex:1;text-align:center;font-size:13px;font-weight:600;color:var(--text)}
-.court-ctrl-card .cc-round small{display:block;font-size:10px;color:var(--muted);font-weight:400}
-/* round label inside court card on viewer */
-.court-round-tag{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+/* ── SITE GATE ───────────────────────────── */
+#siteGate{position:fixed;inset:0;background:var(--dark);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+#siteGate h1{font-size:clamp(22px,5vw,38px);color:var(--green-light);letter-spacing:3px;font-weight:800;margin-bottom:8px}
+.gate-sub{font-size:14px;color:var(--muted);margin-bottom:32px;letter-spacing:.5px}
+#gateInput{background:var(--card);border:2px solid var(--border2);color:var(--text);padding:14px 20px;border-radius:10px;font-size:28px;font-family:monospace;letter-spacing:6px;width:210px;text-align:center;outline:none}
+#gateInput:focus{border-color:var(--green)}
+.gate-error{color:#f85149;font-size:13px;margin-top:10px;margin-bottom:4px;display:none;min-height:18px}
+.gate-enter-btn{margin-top:12px;background:var(--green);color:#fff;border:none;padding:11px 40px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s}
+.gate-enter-btn:hover{background:var(--green-light)}
 </style>
 </head>
 <body>
@@ -118,7 +157,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="pw-box">
     <h2>Admin Access</h2>
     <input id="pwInput" type="password" placeholder="Enter password" autocomplete="current-password">
-    <div class="pw-error" id="pwError">Incorrect password. Try again.</div>
+    <div class="pw-error" id="pwError">Incorrect password.</div>
     <div class="pw-actions">
       <button class="btn btn-secondary" onclick="closePwModal()">Cancel</button>
       <button class="btn btn-primary" onclick="submitPassword()">Enter</button>
@@ -126,10 +165,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<!-- Bulk import modal -->
+<div id="bulkModal">
+  <div class="bulk-box">
+    <h2>Add Multiple Players</h2>
+    <p>Enter one name per line. Existing players are kept.</p>
+    <textarea id="bulkInput" placeholder="Thomas&#10;Yugene&#10;Syl&#10;Cy&#10;Jun Xian&#10;..."></textarea>
+    <div class="bulk-actions">
+      <button class="btn btn-secondary" onclick="closeBulkModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmBulkImport()">Add Players</button>
+    </div>
+  </div>
+</div>
+
+<!-- Site gate -->
+<div id="siteGate">
+  <h1>TZHP BADMINTON</h1>
+  <div class="gate-sub">Enter today's access code</div>
+  <input id="gateInput" type="text" placeholder="XXX-XXX" maxlength="7" autocomplete="off" spellcheck="false"
+    oninput="formatCodeInput(this)" onkeydown="if(event.key==='Enter')submitSiteCode()">
+  <div class="gate-error" id="gateError">Incorrect code. Try again.</div>
+  <button class="gate-enter-btn" onclick="submitSiteCode()">Enter</button>
+</div>
+
 <!-- Viewer -->
 <div id="viewer">
   <div class="viewer-header">
-    <h1>TZH BADMINTON</h1>
+    <h1>TZHP BADMINTON</h1>
     <div class="round-badge" id="viewerRoundLabel">Round 1</div>
   </div>
   <div id="courtsDisplay"></div>
@@ -140,47 +202,89 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="admin">
   <div class="admin-header">
     <h1>Admin Panel</h1>
-    <button class="btn btn-secondary" onclick="showViewer()">View Display</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>
+      <button class="btn btn-secondary" onclick="showViewer()">View Display</button>
+    </div>
   </div>
 
   <!-- Players -->
   <div class="section">
-    <h2>Players</h2>
+    <div class="section-title"><span>👥</span> Players</div>
     <div id="playerCards"></div>
-    <button class="btn btn-secondary btn-sm" onclick="addPlayer()">+ Add Player</button>
+    <div class="row">
+      <button class="btn btn-secondary btn-sm" onclick="addPlayer()">+ Add Player</button>
+      <button class="btn btn-ghost btn-sm" onclick="openBulkModal()">+ Add Multiple</button>
+    </div>
   </div>
 
   <!-- Courts & Schedule -->
   <div class="section">
-    <h2>Courts &amp; Schedule</h2>
+    <div class="section-title"><span>🏸</span> Courts &amp; Schedule</div>
+
+    <!-- Settings row -->
     <div class="row">
-      <label style="font-size:13px;color:var(--muted)">Number of courts:</label>
-      <input id="numCourtsInput" type="number" min="1" max="8" style="background:var(--dark);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:13px;width:60px;outline:none">
+      <label style="font-size:13px;color:var(--muted)">Courts:</label>
+      <input id="numCourtsInput" type="number" min="1" max="8" style="background:var(--dark);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:13px;width:56px;outline:none">
       <button class="btn btn-secondary btn-sm" onclick="saveNumCourts()">Save</button>
     </div>
+
+    <!-- Quick round nav -->
+    <div class="quick-nav" style="margin-top:12px">
+      <button class="nav-btn" id="prevRoundBtn" onclick="stepAllCourts(-1)">← Prev</button>
+      <div class="quick-nav-center">
+        <div class="current-round-pill" id="currentRoundPill">Round 1</div>
+      </div>
+      <button class="nav-btn" id="nextRoundBtn" onclick="stepAllCourts(1)">Next →</button>
+    </div>
+
+    <!-- Per-court controls -->
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-top:14px;margin-bottom:4px">Individual Court Control</div>
+    <div class="court-ctrl-grid" id="courtCtrlGrid"></div>
+
+    <!-- Resting players -->
+    <div id="restingStrip"></div>
+
+    <div class="divider"></div>
+
+    <!-- Generate -->
     <div class="gen-row">
       <label>Auto-generate</label>
       <input id="numRoundsInput" type="number" min="1" max="50" value="10">
       <label>rounds</label>
-      <button class="btn btn-primary btn-sm" onclick="generateSchedule()">Generate Schedule</button>
+      <button class="btn btn-primary btn-sm" id="generateBtn" onclick="handleGenerate()">Generate Schedule</button>
     </div>
-    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
-      <div style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:6px">Live Courts</div>
-      <div class="court-ctrl-grid" id="courtCtrlGrid"></div>
-    </div>
+
+    <!-- Round list -->
     <div id="roundList"></div>
     <div style="margin-top:10px">
-      <button class="btn btn-secondary btn-sm" onclick="addEmptyRound()">+ Add Round Manually</button>
+      <button class="btn btn-ghost btn-sm" onclick="addEmptyRound()">+ Add Round Manually</button>
     </div>
   </div>
 
   <!-- Share -->
   <div class="section">
-    <h2>Share Viewer Link</h2>
+    <div class="section-title"><span>🔗</span> Share Viewer Link</div>
     <p style="font-size:12px;color:var(--muted)">Send this to players — opens live court display:</p>
     <div class="link-box" id="shareLink"></div>
     <div class="row" style="margin-top:8px">
       <button class="btn btn-secondary btn-sm" onclick="copyLink()">Copy Link</button>
+    </div>
+  </div>
+
+  <!-- Site Access Code -->
+  <div class="section">
+    <div class="section-title"><span>🔐</span> Site Access Code</div>
+    <div id="siteCodeDisplay"></div>
+    <div class="row" style="margin-top:12px;gap:8px">
+      <input id="siteCodeInput" type="text" placeholder="e.g. 5H2-6GS" maxlength="7"
+        style="background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:7px 12px;border-radius:8px;font-size:16px;font-family:monospace;letter-spacing:4px;width:136px;outline:none"
+        oninput="formatCodeInput(this)" onkeydown="if(event.key==='Enter')saveSiteCode()">
+      <button class="btn btn-ghost btn-sm" onclick="generateSiteCode()">Generate</button>
+      <button class="btn btn-primary btn-sm" onclick="saveSiteCode()">Save</button>
+    </div>
+    <div style="margin-top:8px">
+      <button class="btn btn-ghost btn-sm" style="font-size:11px;color:var(--muted)" onclick="removeSiteCode()">Remove code (open site to all)</button>
     </div>
   </div>
 </div>
@@ -192,7 +296,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 // ── STATE ────────────────────────────────────
 let state = null;
 let pollTimer = null;
-let expandedRound = null; // index of expanded round in admin
+let expandedRound = null;
+let generatePending = false; // confirm-to-generate state
 
 // ── AVATAR COLORS ────────────────────────────
 const COLORS = ['#1a9e5c','#2563eb','#dc2626','#7c3aed','#ea580c','#0891b2','#65a30d','#c026d3','#b45309','#0f766e'];
@@ -224,7 +329,9 @@ function getAdminPwd() { return sessionStorage.getItem('adminPwd') || ''; }
 
 async function apiFetch() {
   try {
-    const r = await fetch('/api/state');
+    const code = localStorage.getItem('siteCode') || '';
+    const url = code ? `/api/state?code=${encodeURIComponent(code)}` : '/api/state';
+    const r = await fetch(url);
     return await r.json();
   } catch { return null; }
 }
@@ -245,14 +352,21 @@ async function apiPost(updates) {
 }
 
 // ── POLLING ──────────────────────────────────
+function isEditing() {
+  const el = document.activeElement;
+  if (!el) return false;
+  return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT';
+}
+
 async function poll() {
   const s = await apiFetch();
-  if (s) {
-    state = s;
-    renderViewer();
-    if (document.getElementById('admin').style.display !== 'none') {
-      // Never rebuild player cards from the poll — only update lightweight parts.
-      // Player cards are only rebuilt on explicit actions (add/remove/photo upload).
+  if (!s) return;
+  if (s.locked) { showSiteGate(); return; }
+  if (document.getElementById('siteGate').style.display !== 'none') hideSiteGate();
+  state = s;
+  renderViewer();
+  if (document.getElementById('admin').style.display !== 'none') {
+    if (!isEditing()) {
       renderCourtControls();
       renderRoundList();
     }
@@ -276,13 +390,13 @@ function getCourtRounds() {
 function renderViewer() {
   if (!state) return;
   const courtRounds = getCourtRounds();
-  const numCourts = state.numCourts || 1;
   const allSame = courtRounds.every(r => r === courtRounds[0]);
   const globalLabel = allSame ? (state.rounds?.[courtRounds[0]]?.label || '') : 'Live';
   document.getElementById('viewerRoundLabel').textContent = globalLabel;
 
   const container = document.getElementById('courtsDisplay');
   container.innerHTML = '';
+  const numCourts = state.numCourts || 1;
   for (let i = 0; i < numCourts; i++) {
     const round = state.rounds?.[courtRounds[i]];
     const court = round?.courts?.[i];
@@ -321,6 +435,7 @@ function renderAdmin() {
   renderCourtControls();
   renderRoundList();
   document.getElementById('shareLink').textContent = window.location.origin + '/';
+  renderSiteCodeSection();
 }
 
 function renderCourtControls() {
@@ -337,20 +452,86 @@ function renderCourtControls() {
     const card = document.createElement('div');
     card.className = 'court-ctrl-card';
     card.innerHTML = `
-      <span class="cc-label">Court ${i + 1}</span>
-      <button class="btn btn-secondary btn-sm" onclick="advanceCourt(${i},-1)" ${ri <= 0 ? 'disabled' : ''}>&#8592;</button>
+      <span class="cc-label">C${i + 1}</span>
+      <button class="btn btn-ghost btn-sm" onclick="advanceCourt(${i},-1)" ${ri <= 0 ? 'disabled' : ''}>←</button>
       <div class="cc-round">${label}<small>${summary}</small></div>
-      <button class="btn btn-accent btn-sm" onclick="advanceCourt(${i},1)" ${ri >= totalRounds - 1 ? 'disabled' : ''}>&#8594;</button>
+      <button class="btn btn-accent btn-sm" onclick="advanceCourt(${i},1)" ${ri >= totalRounds - 1 ? 'disabled' : ''}>→</button>
     `;
     grid.appendChild(card);
   }
+
+  // Update quick nav
+  const courtRoundsAll = getCourtRounds();
+  const allSame = courtRoundsAll.every(r => r === courtRoundsAll[0]);
+  const pill = document.getElementById('currentRoundPill');
+  if (pill) {
+    const idx = courtRoundsAll[0] ?? 0;
+    pill.textContent = allSame ? (state.rounds?.[idx]?.label || `Round ${idx + 1}`) : 'Mixed';
+  }
+  const prevBtn = document.getElementById('prevRoundBtn');
+  const nextBtn = document.getElementById('nextRoundBtn');
+  if (prevBtn && nextBtn) {
+    const minIdx = Math.min(...courtRoundsAll);
+    const maxIdx = Math.max(...courtRoundsAll);
+    prevBtn.disabled = minIdx <= 0;
+    nextBtn.disabled = maxIdx >= totalRounds - 1;
+  }
+
+  // Resting players strip
+  renderRestingPlayers(courtRoundsAll);
 }
 
 function roundCourtSummary(round, courtIdx) {
   const court = round?.courts?.[courtIdx];
   if (!court) return '—';
-  const n = id => playerById(id)?.name?.split(' ')[0] || '?';
-  return `${n(court.team1[0])}&${n(court.team1[1])} vs ${n(court.team2[0])}&${n(court.team2[1])}`;
+  const n = id => playerById(id)?.name || '?';
+  return `${n(court.team1[0])} & ${n(court.team1[1])} vs ${n(court.team2[0])} & ${n(court.team2[1])}`;
+}
+
+function renderRestingPlayers(courtRounds) {
+  const strip = document.getElementById('restingStrip');
+  if (!strip || !state?.rounds?.length) { if (strip) strip.innerHTML = ''; return; }
+
+  const activePlayers = new Set();
+  const numCourts = state.numCourts || 1;
+  for (let i = 0; i < numCourts; i++) {
+    const round = state.rounds?.[courtRounds[i]];
+    const court = round?.courts?.[i];
+    if (court) {
+      [...court.team1, ...court.team2].forEach(id => activePlayers.add(id));
+    }
+  }
+
+  const resting = (state.players || []).filter(p => !activePlayers.has(p.id));
+  if (!resting.length) { strip.innerHTML = ''; return; }
+
+  const chips = resting.map(p =>
+    `<div class="rest-chip">${avatarHTML(p, 20)}<span>${escHtml(p.name)}</span></div>`
+  ).join('');
+
+  strip.innerHTML = `
+    <div class="resting-strip">
+      <strong>Resting this round:</strong>
+      <div class="resting-avatars">${chips}</div>
+    </div>
+  `;
+}
+
+// ── QUICK ROUND NAV ───────────────────────────
+async function stepAllCourts(delta) {
+  const numCourts = state.numCourts || 1;
+  const courtRounds = getCourtRounds();
+  const totalRounds = (state.rounds || []).length;
+  const cur = courtRounds[0] ?? 0;
+  const next = Math.max(0, Math.min(totalRounds - 1, cur + delta));
+  if (next === cur) return;
+  const newCourtRounds = new Array(numCourts).fill(next);
+  await apiPost({ currentRound: next, courtRounds: newCourtRounds });
+  state.currentRound = next;
+  state.courtRounds = newCourtRounds;
+  renderCourtControls();
+  renderRoundList();
+  notify(`All courts → ${state.rounds?.[next]?.label || 'Round ' + (next + 1)}`);
 }
 
 // ── PLAYER CARDS ─────────────────────────────
@@ -363,13 +544,16 @@ function renderPlayerCards() {
     card.innerHTML = `
       <button class="delete-btn" onclick="removePlayer('${p.id}')" title="Remove player">×</button>
       <div class="photo-wrap" onclick="triggerPhotoUpload('${p.id}')">
-        ${avatarHTML(p, 64)}
+        ${avatarHTML(p, 60)}
         <div class="photo-overlay">📷</div>
       </div>
-      <input class="name-input" type="text" value="${escHtml(p.name)}"
-        onchange="updatePlayerName('${p.id}', this.value)"
-        onkeydown="if(event.key==='Enter')this.blur()"
-        placeholder="Player name">
+      <div class="name-input-wrap">
+        <input class="name-input" type="text" value="${escHtml(p.name)}"
+          onblur="updatePlayerName('${p.id}', this.value)"
+          onkeydown="if(event.key==='Enter'){this.blur()}"
+          placeholder="Player name">
+        <div class="name-hint">Enter to save</div>
+      </div>
       <input type="file" id="photo_${p.id}" accept="image/*" style="display:none"
         onchange="handlePhotoUpload('${p.id}', this)">
     `;
@@ -393,11 +577,15 @@ async function handlePhotoUpload(id, input) {
 }
 
 async function updatePlayerName(id, name) {
-  if (!name.trim()) return;
-  const players = state.players.map(p => p.id === id ? { ...p, name: name.trim() } : p);
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  const player = playerById(id);
+  if (player && player.name === trimmed) return; // no change
+  const players = state.players.map(p => p.id === id ? { ...p, name: trimmed } : p);
   await apiPost({ players });
   state.players = players;
-  renderRoundList(); // names in summary update
+  renderRoundList();
+  notify('Name saved.');
 }
 
 async function addPlayer() {
@@ -407,7 +595,12 @@ async function addPlayer() {
   await apiPost({ players });
   state.players = players;
   renderPlayerCards();
-  notify('Player added!');
+  // Auto-focus the new player's name input
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.name-input');
+    const last = inputs[inputs.length - 1];
+    if (last) { last.focus(); last.select(); }
+  }, 50);
 }
 
 async function removePlayer(id) {
@@ -419,6 +612,40 @@ async function removePlayer(id) {
   notify('Player removed.');
 }
 
+// ── BULK IMPORT ──────────────────────────────
+function openBulkModal() {
+  document.getElementById('bulkModal').classList.add('open');
+  document.getElementById('bulkInput').value = '';
+  setTimeout(() => document.getElementById('bulkInput').focus(), 50);
+}
+
+function closeBulkModal() {
+  document.getElementById('bulkModal').classList.remove('open');
+}
+
+async function confirmBulkImport() {
+  const raw = document.getElementById('bulkInput').value;
+  const names = raw.split('\n')
+    .map(n => n.trim())
+    .filter(n => n.length > 0);
+
+  if (!names.length) return notify('No names entered.');
+
+  const existing = new Set((state.players || []).map(p => p.name.toLowerCase()));
+  const newPlayers = names
+    .filter(n => !existing.has(n.toLowerCase()))
+    .map(n => ({ id: 'p' + Date.now() + Math.random().toString(36).slice(2), name: n, photo: null }));
+
+  if (!newPlayers.length) return notify('All names already exist.');
+
+  const players = [...(state.players || []), ...newPlayers];
+  await apiPost({ players });
+  state.players = players;
+  renderPlayerCards();
+  closeBulkModal();
+  notify(`Added ${newPlayers.length} player${newPlayers.length > 1 ? 's' : ''}!`);
+}
+
 // ── COURTS & ROUNDS ──────────────────────────
 async function saveNumCourts() {
   const n = parseInt(document.getElementById('numCourtsInput').value) || 1;
@@ -428,41 +655,59 @@ async function saveNumCourts() {
   notify(`Courts set to ${numCourts}`);
 }
 
+// Inline generate confirmation
+function handleGenerate() {
+  const btn = document.getElementById('generateBtn');
+  if (!state?.rounds?.length || generatePending) {
+    generatePending = false;
+    btn.textContent = 'Generate Schedule';
+    btn.className = 'btn btn-primary btn-sm';
+    generateSchedule();
+  } else {
+    generatePending = true;
+    btn.textContent = '⚠ Confirm Replace';
+    btn.className = 'btn btn-danger btn-sm';
+    setTimeout(() => {
+      if (generatePending) {
+        generatePending = false;
+        btn.textContent = 'Generate Schedule';
+        btn.className = 'btn btn-primary btn-sm';
+      }
+    }, 4000);
+  }
+}
+
 async function generateSchedule() {
   const numRounds = parseInt(document.getElementById('numRoundsInput').value) || 10;
   const players = state.players || [];
   const numCourts = state.numCourts || 1;
   const perRound = numCourts * 4;
 
-  if (players.length < 4) {
-    return notify('Need at least 4 players to generate a schedule.');
-  }
-  if (players.length < perRound) {
-    return notify(`Need at least ${perRound} players for ${numCourts} court(s). Add more players or reduce courts.`);
-  }
+  if (players.length < 4) return notify('Need at least 4 players.');
+  if (players.length < perRound) return notify(`Need at least ${perRound} players for ${numCourts} court(s).`);
 
   const rounds = smartSchedule(players, numCourts, numRounds);
   const currentRound = 0;
-  await apiPost({ rounds, currentRound });
+  const courtRounds = new Array(numCourts).fill(0);
+  await apiPost({ rounds, currentRound, courtRounds });
   state.rounds = rounds;
   state.currentRound = 0;
+  state.courtRounds = courtRounds;
   expandedRound = null;
+  renderCourtControls();
   renderRoundList();
-  notify('Schedule generated!');
+  notify(`${rounds.length} rounds generated!`);
 }
 
 async function addEmptyRound() {
   const rounds = [...(state.rounds || [])];
   const n = rounds.length + 1;
-  const courts = [];
   const numCourts = state.numCourts || 1;
   const pids = (state.players || []).map(p => p.id);
-  for (let c = 0; c < numCourts; c++) {
-    courts.push({
-      team1: [pids[0] || '', pids[1] || ''],
-      team2: [pids[2] || '', pids[3] || '']
-    });
-  }
+  const courts = Array.from({ length: numCourts }, (_, c) => ({
+    team1: [pids[c * 4] || '', pids[c * 4 + 1] || ''],
+    team2: [pids[c * 4 + 2] || '', pids[c * 4 + 3] || '']
+  }));
   rounds.push({ label: `Round ${n}`, courts });
   await apiPost({ rounds });
   state.rounds = rounds;
@@ -500,11 +745,11 @@ async function deleteRound(i) {
   state.currentRound = currentRound;
   if (expandedRound === i) expandedRound = null;
   else if (expandedRound > i) expandedRound--;
+  renderCourtControls();
   renderRoundList();
 }
 
 async function saveRound(i) {
-  // Collect edited data from the round editor
   const rounds = JSON.parse(JSON.stringify(state.rounds));
   const r = rounds[i];
   const labelInput = document.getElementById(`rl_label_${i}`);
@@ -519,13 +764,12 @@ async function saveRound(i) {
     };
   }
 
-  // Duplicate player check — same player cannot appear on two courts
   const allIds = r.courts.flatMap(c => [...c.team1, ...c.team2]);
   const seen = new Set(), dupes = new Set();
   allIds.forEach(id => { if (seen.has(id)) dupes.add(id); seen.add(id); });
   if (dupes.size > 0) {
     const names = [...dupes].map(id => playerById(id)?.name || id).join(', ');
-    return notify(`⚠ Duplicate: ${names} appears on multiple courts.`);
+    return notify(`⚠ Duplicate: ${names}`);
   }
 
   await apiPost({ rounds });
@@ -536,9 +780,9 @@ async function saveRound(i) {
 
 function roundSummary(round) {
   return (round.courts || []).map((c, i) => {
-    const n = (id) => playerById(id)?.name?.split(' ')[0] || '?';
-    return `C${i+1}: ${n(c.team1[0])}&${n(c.team1[1])} vs ${n(c.team2[0])}&${n(c.team2[1])}`;
-  }).join(' | ');
+    const n = id => playerById(id)?.name || '?';
+    return `C${i+1}: ${n(c.team1[0])} & ${n(c.team1[1])} vs ${n(c.team2[0])} & ${n(c.team2[1])}`;
+  }).join('  ·  ');
 }
 
 function buildPlayerSelect(elId, selectedId) {
@@ -550,6 +794,7 @@ function buildPlayerSelect(elId, selectedId) {
 
 function renderRoundList() {
   const list = document.getElementById('roundList');
+  if (!list) return;
   list.innerHTML = '';
   const activeCourts = getCourtRounds();
   (state.rounds || []).forEach((round, i) => {
@@ -558,7 +803,6 @@ function renderRoundList() {
     const div = document.createElement('div');
     div.className = 'round-row' + (isLive ? ' live' : '') + (isExpanded ? ' expanded' : '');
 
-    // Build court editors
     let courtEditorsHTML = '';
     (round.courts || []).forEach((court, c) => {
       courtEditorsHTML += `
@@ -579,18 +823,25 @@ function renderRoundList() {
       `;
     });
 
+    const liveLabel = isLive
+      ? `<span class="live-badge">● Live</span>`
+      : '';
+
     div.innerHTML = `
       <div class="round-row-header" onclick="toggleRoundExpand(${i})">
         <div class="round-live-dot"></div>
         <span class="rl">${escHtml(round.label)}</span>
-        <span class="rsummary">${isLive ? activeCourts.map((r,c)=>r===i?`C${c+1}`:'').filter(Boolean).join(',') + ' live · ' : ''}${roundSummary(round)}</span>
-        <button class="btn btn-accent btn-sm" style="margin-left:6px;white-space:nowrap" onclick="event.stopPropagation();setCurrentRound(${i})">${isLive && activeCourts.every(r=>r===i) ? '● All Live' : 'All Courts'}</button>
-        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteRound(${i})">✕</button>
+        <span class="rsummary">${roundSummary(round)}</span>
+        ${liveLabel}
+        <button class="btn btn-accent btn-sm" style="white-space:nowrap;margin-left:4px" onclick="event.stopPropagation();setCurrentRound(${i})">${isLive ? 'All Live ✓' : 'Set Live'}</button>
+        <button class="btn btn-ghost btn-sm" style="padding:4px 8px;font-size:14px;line-height:1" onclick="event.stopPropagation();deleteRound(${i})" title="Delete round">✕</button>
       </div>
       <div class="round-editor">
         <div class="row" style="margin-bottom:12px">
           <label style="font-size:13px;color:var(--muted)">Label:</label>
-          <input id="rl_label_${i}" type="text" value="${escHtml(round.label)}" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;font-size:13px;outline:none;flex:1">
+          <input id="rl_label_${i}" type="text" value="${escHtml(round.label)}"
+            style="background:var(--card);border:1px solid var(--border2);color:var(--text);padding:5px 10px;border-radius:6px;font-size:13px;outline:none;flex:1"
+            onkeydown="if(event.key==='Enter')saveRound(${i})">
         </div>
         ${courtEditorsHTML}
         <button class="btn btn-primary btn-sm" onclick="saveRound(${i})">Save Round</button>
@@ -605,32 +856,26 @@ function toggleRoundExpand(i) {
   renderRoundList();
 }
 
-// ── SMART SCHEDULE ALGORITHM ──────────────────
+// ── SMART SCHEDULE ────────────────────────────
 function smartSchedule(players, numCourts, numRounds) {
   const n = players.length;
   const perRound = Math.min(numCourts * 4, Math.floor(n / 4) * 4);
   const activeCourts = perRound / 4;
 
-  // Rest tracking
   const lastPlayed = new Array(n).fill(-999);
   const playCount = new Array(n).fill(0);
   const partnerCount = Array.from({ length: n }, () => new Array(n).fill(0));
-
   const rounds = [];
 
   for (let r = 0; r < numRounds; r++) {
-    // Rank by: most rest → fewest plays → index
     const ranking = Array.from({ length: n }, (_, i) => i).sort((a, b) => {
-      const ra = r - lastPlayed[a];
-      const rb = r - lastPlayed[b];
+      const ra = r - lastPlayed[a], rb = r - lastPlayed[b];
       if (rb !== ra) return rb - ra;
       if (playCount[a] !== playCount[b]) return playCount[a] - playCount[b];
       return a - b;
     });
 
     const selected = ranking.slice(0, perRound);
-
-    // Greedy pairing: minimize repeated partnerships
     const avail = [...selected];
     const pairs = [];
     while (avail.length >= 2) {
@@ -644,15 +889,11 @@ function smartSchedule(players, numCourts, numRounds) {
       pairs.push([p1, best]);
     }
 
-    // Assign pairs to courts
     const courts = [];
     for (let c = 0; c < activeCourts; c++) {
       const [a, b] = pairs[c * 2];
       const [d, e] = pairs[c * 2 + 1];
-      courts.push({
-        team1: [players[a].id, players[b].id],
-        team2: [players[d].id, players[e].id],
-      });
+      courts.push({ team1: [players[a].id, players[b].id], team2: [players[d].id, players[e].id] });
       partnerCount[a][b]++; partnerCount[b][a]++;
       partnerCount[d][e]++; partnerCount[e][d]++;
     }
@@ -676,9 +917,7 @@ function compressPhoto(file) {
         canvas.width = size; canvas.height = size;
         const ctx = canvas.getContext('2d');
         const sq = Math.min(img.width, img.height);
-        const sx = (img.width - sq) / 2;
-        const sy = (img.height - sq) / 2;
-        ctx.drawImage(img, sx, sy, sq, sq, 0, 0, size, size);
+        ctx.drawImage(img, (img.width - sq) / 2, (img.height - sq) / 2, sq, sq, 0, 0, size, size);
         resolve(canvas.toDataURL('image/jpeg', 0.82));
       };
       img.src = e.target.result;
@@ -687,13 +926,92 @@ function compressPhoto(file) {
   });
 }
 
+// ── SITE GATE ─────────────────────────────────
+function showSiteGate() {
+  document.getElementById('siteGate').style.display = 'flex';
+  document.getElementById('viewer').style.display = 'none';
+  document.getElementById('admin').style.display = 'none';
+  document.getElementById('adminBtn').style.display = 'none';
+  setTimeout(() => document.getElementById('gateInput').focus(), 50);
+}
+
+function hideSiteGate() {
+  document.getElementById('siteGate').style.display = 'none';
+  if (sessionStorage.getItem('adminPwd') && state) showAdmin();
+  else showViewer();
+}
+
+function formatCodeInput(input) {
+  let raw = input.value.replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 6);
+  input.value = raw.length > 3 ? raw.slice(0, 3) + '-' + raw.slice(3) : raw;
+}
+
+async function submitSiteCode() {
+  const raw = document.getElementById('gateInput').value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+  const err = document.getElementById('gateError');
+  if (raw.length !== 6) { err.style.display = 'block'; return; }
+  const code = raw.slice(0, 3) + '-' + raw.slice(3);
+  localStorage.setItem('siteCode', code);
+  const s = await apiFetch();
+  if (!s || s.locked) {
+    localStorage.removeItem('siteCode');
+    err.style.display = 'block';
+    document.getElementById('gateInput').value = '';
+    setTimeout(() => document.getElementById('gateInput').focus(), 50);
+    return;
+  }
+  state = s;
+  err.style.display = 'none';
+  hideSiteGate();
+  renderViewer();
+}
+
+// ── SITE CODE MANAGEMENT ──────────────────────
+function renderSiteCodeSection() {
+  const display = document.getElementById('siteCodeDisplay');
+  if (!display) return;
+  const code = state.siteCode;
+  if (code) {
+    display.innerHTML = `
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Active code — share with players:</div>
+      <div style="font-size:32px;font-family:monospace;font-weight:700;color:var(--green-light);letter-spacing:8px;background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:12px 24px;display:inline-block">${escHtml(code)}</div>`;
+  } else {
+    display.innerHTML = `<div style="font-size:13px;color:var(--muted)">No code set — site is open to everyone.</div>`;
+  }
+}
+
+function generateSiteCode() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let raw = '';
+  for (let i = 0; i < 6; i++) raw += chars[Math.floor(Math.random() * chars.length)];
+  document.getElementById('siteCodeInput').value = raw.slice(0, 3) + '-' + raw.slice(3);
+}
+
+async function saveSiteCode() {
+  const raw = document.getElementById('siteCodeInput').value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+  if (raw.length !== 6) return notify('⚠ Code must be 6 characters (e.g. 5H2-6GS).');
+  const code = raw.slice(0, 3) + '-' + raw.slice(3);
+  const result = await apiPost({ siteCode: code });
+  if (!result) return;
+  state.siteCode = code;
+  localStorage.setItem('siteCode', code);
+  document.getElementById('siteCodeInput').value = '';
+  renderSiteCodeSection();
+  notify('Access code updated!');
+}
+
+async function removeSiteCode() {
+  const result = await apiPost({ siteCode: null });
+  if (!result) return;
+  state.siteCode = null;
+  renderSiteCodeSection();
+  notify('Code removed. Site is now open to all.');
+}
+
 // ── ADMIN AUTH ───────────────────────────────
 function requestAdmin() {
-  if (sessionStorage.getItem('adminPwd')) {
-    showAdmin();
-  } else {
-    openPwModal();
-  }
+  if (sessionStorage.getItem('adminPwd')) showAdmin();
+  else openPwModal();
 }
 
 function openPwModal() {
@@ -709,32 +1027,33 @@ function closePwModal() {
 
 function submitPassword() {
   const pwd = document.getElementById('pwInput').value;
-  // Quick client-side check — server also validates every POST
-  if (pwd === 'TZH123' || pwd) {
-    // Try a test POST to verify server-side
-    fetch('/api/state', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: pwd })
-    }).then(r => {
-      if (r.ok) {
-        sessionStorage.setItem('adminPwd', pwd);
-        closePwModal();
-        showAdmin();
-      } else {
-        document.getElementById('pwError').style.display = 'block';
-      }
-    }).catch(() => {
+  if (!pwd) { document.getElementById('pwError').style.display = 'block'; return; }
+  fetch('/api/state', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: pwd })
+  }).then(r => {
+    if (r.ok) {
+      sessionStorage.setItem('adminPwd', pwd);
+      closePwModal();
+      showAdmin();
+    } else {
       document.getElementById('pwError').style.display = 'block';
-    });
-  } else {
+    }
+  }).catch(() => {
     document.getElementById('pwError').style.display = 'block';
-  }
+  });
 }
 
 document.getElementById('pwInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') submitPassword();
 });
+
+function logout() {
+  sessionStorage.removeItem('adminPwd');
+  showViewer();
+  notify('Logged out.');
+}
 
 // ── NAVIGATION ───────────────────────────────
 function showAdmin() {
@@ -760,7 +1079,7 @@ function notify(msg) {
   el.textContent = msg;
   el.style.background = msg.startsWith('⚠') ? '#b45309' : 'var(--green)';
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 3000);
+  setTimeout(() => el.classList.remove('show'), 2500);
 }
 
 function copyLink() {
