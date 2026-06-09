@@ -192,7 +192,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 <div id="viewer">
   <div class="viewer-header">
     <h1>TZH BADMINTON</h1>
-    <div class="round-badge" id="viewerRoundLabel">Round 1</div>
   </div>
   <div id="courtsDisplay"></div>
   <div class="viewer-footer"><span class="status-dot"></span>Live</div>
@@ -390,9 +389,6 @@ function getCourtRounds() {
 function renderViewer() {
   if (!state) return;
   const courtRounds = getCourtRounds();
-  const allSame = courtRounds.every(r => r === courtRounds[0]);
-  const globalLabel = allSame ? (state.rounds?.[courtRounds[0]]?.label || '') : 'Live';
-  document.getElementById('viewerRoundLabel').textContent = globalLabel;
 
   const container = document.getElementById('courtsDisplay');
   container.innerHTML = '';
