@@ -70,6 +70,7 @@ module.exports = async function handler(req, res) {
       const state = await kv.get(STATE_KEY);
       const current = state || DEFAULT_STATE;
       if (!current.luckyDraw) current.luckyDraw = { entries: [], spin: null };
+      if (!current.roster) current.roster = DEFAULT_ROSTER;
       if (current.roster) current.roster = current.roster.map(r => r.points !== undefined ? r : { ...r, points: 0 });
       if (current.siteCode) {
         const provided = (req.query && req.query.code) ? req.query.code : '';
