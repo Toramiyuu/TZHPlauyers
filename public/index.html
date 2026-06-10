@@ -315,6 +315,35 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .gate-tagline{font-size:clamp(9px,1.3vw,12px);font-family:monospace;font-weight:300;text-transform:uppercase;letter-spacing:.22em;color:var(--text);opacity:.65}
 .gate-divider{width:56px;height:1px;margin:12px auto;background:linear-gradient(to right,transparent,rgba(34,198,110,.35),transparent)}
 #siteGate .gate-content{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center}
+
+/* ── LEADERBOARD ─────────────────────────── */
+.lb-section{padding:4px 0 8px}
+.lb-header{font-size:clamp(14px,2.5vw,20px);font-weight:800;color:var(--text);letter-spacing:1px;margin-bottom:12px;text-align:center}
+.lb-list{display:flex;flex-direction:column;gap:6px;max-width:600px;margin:0 auto}
+.lb-row{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;transition:border-color .15s}
+.lb-row:hover{border-color:var(--border2)}
+.lb-name{flex:1;font-size:14px;font-weight:600;color:var(--text)}
+.lb-tier-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;letter-spacing:.5px;white-space:nowrap}
+.lb-pts{font-size:13px;font-weight:700;color:var(--green-light);white-space:nowrap}
+/* ── ROSTER POINTS ────────────────────────── */
+.rc-points{display:flex;align-items:center;gap:3px;justify-content:center;margin-top:5px}
+.rc-points-btn{width:20px;height:20px;border-radius:50%;background:var(--card2);border:1px solid var(--border2);color:var(--text);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;flex-shrink:0;transition:all .15s}
+.rc-points-btn:hover{background:var(--green);border-color:var(--green);color:#fff}
+.rc-points-input{width:46px;text-align:center;background:var(--dark);border:1px solid var(--border2);color:var(--text);border-radius:6px;font-size:11px;padding:2px 2px;outline:none}
+.rc-sessions-ref{font-size:9px;color:var(--muted);text-align:center;margin-top:2px;letter-spacing:.3px}
+/* ── DRAW POOL ────────────────────────────── */
+.draw-pool{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 12px;min-height:32px}
+.draw-chip{background:var(--card2);border:1px solid var(--border2);border-radius:100px;padding:4px 6px 4px 12px;font-size:12px;color:var(--text);display:flex;align-items:center;gap:5px}
+.draw-chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:0;transition:color .1s}
+.draw-chip button:hover{color:var(--red)}
+/* ── WHEEL OVERLAY ────────────────────────── */
+#wheelOverlay{position:fixed;inset:0;background:rgba(5,8,15,.97);z-index:450;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+#wheelOverlay.active{display:flex}
+#wheelTitle{font-size:clamp(16px,3vw,24px);font-weight:800;color:var(--text);letter-spacing:3px;text-transform:uppercase;opacity:.7}
+#wheelCanvas{max-width:min(82vw,480px);max-height:min(82vw,480px);width:480px;height:480px}
+#wheelWinnerBanner{font-size:clamp(22px,5vw,42px);font-weight:900;color:var(--green-light);text-align:center;display:none;padding:10px 24px;background:rgba(26,158,92,.12);border:2px solid rgba(26,158,92,.3);border-radius:16px;animation:word-appear .5s ease-out forwards}
+#wheelCloseBtn{position:absolute;top:18px;right:18px;background:var(--card);border:1px solid var(--border2);color:var(--muted);font-size:18px;padding:4px 12px;border-radius:8px;cursor:pointer;transition:all .15s}
+#wheelCloseBtn:hover{color:var(--text);border-color:var(--border2)}
 </style>
 </head>
 <body>
@@ -589,7 +618,19 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
     <button id="membersBtn" onclick="openMembersModal()">&#x1F3C6; TZH Members</button>
   </div>
   <div id="courtsDisplay"></div>
+  <div class="lb-section" id="leaderboardSection">
+    <div class="lb-header">&#x1F3C6; Leaderboard</div>
+    <div class="lb-list" id="leaderboardList"></div>
+  </div>
   <div class="viewer-footer"><span class="status-dot"></span>Live</div>
+</div>
+
+<!-- Lucky Draw Wheel Overlay -->
+<div id="wheelOverlay">
+  <button id="wheelCloseBtn" onclick="hideWheelOverlay()">&#x2715;</button>
+  <div id="wheelTitle">&#x1F3A1; Lucky Draw</div>
+  <canvas id="wheelCanvas" width="480" height="480"></canvas>
+  <div id="wheelWinnerBanner"></div>
 </div>
 
 <!-- Admin -->
@@ -672,6 +713,24 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
     <div style="margin-top:10px">
       <button class="btn btn-ghost btn-sm" onclick="addEmptyRound()">+ Add Round Manually</button>
     </div>
+  </div>
+
+  <!-- Lucky Draw -->
+  <div class="section">
+    <div class="section-title"><span>&#x1F3A1;</span> Lucky Draw</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Build a pool and spin the wheel live on the viewer screen.</div>
+    <div class="draw-pool" id="drawPool"></div>
+    <div class="row" style="margin-bottom:10px;flex-wrap:wrap;gap:6px">
+      <button class="btn btn-secondary btn-sm" onclick="loadSessionIntoPool()">Pull today&#x2019;s session</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearDrawPool()">Clear pool</button>
+    </div>
+    <div class="row" style="margin-bottom:12px;gap:6px">
+      <input id="drawNameInput" type="text" placeholder="Add name manually..."
+        style="flex:1;background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:7px 10px;border-radius:8px;font-size:13px;outline:none;font-family:inherit"
+        onkeydown="if(event.key===&#x27;Enter&#x27;)addDrawName()">
+      <button class="btn btn-secondary btn-sm" onclick="addDrawName()">Add</button>
+    </div>
+    <button class="btn btn-accent" style="width:100%;font-size:15px;padding:11px" onclick="spinWheel()">&#x1F3A1; Spin the Wheel!</button>
   </div>
 
   <!-- Share -->
@@ -777,10 +836,12 @@ async function poll() {
   if (document.getElementById('siteGate').style.display !== 'none') hideSiteGate();
   state = s;
   renderViewer();
+  checkForNewSpin(state.luckyDraw);
   if (document.getElementById('admin').style.display !== 'none') {
     if (!isEditing()) {
       renderCourtControls();
       renderRoundList();
+      renderDrawPool();
     }
   }
 }
@@ -815,6 +876,7 @@ function renderViewer() {
       container.appendChild(buildCourtCard(i + 1, court, round?.label || null));
     }
   }
+  renderLeaderboard();
 }
 
 function buildCourtCard(num, court, roundLabel) {
@@ -847,6 +909,7 @@ function renderAdmin() {
   document.getElementById('numCourtsInput').value = state.numCourts || 1;
   renderCourtControls();
   renderRoundList();
+  renderDrawPool();
   document.getElementById('shareLink').textContent = window.location.origin + '/';
   renderSiteCodeSection();
 }
@@ -982,6 +1045,14 @@ function renderPlayersSection() {
       </div>
       <div class="rc-name" id="rcn_${rp.id}" onclick="event.stopPropagation();startEditRosterName('${rp.id}')">${escHtml(rp.name)}</div>
       <input type="file" id="rcf_${rp.id}" accept="image/*" style="display:none" onchange="handleRosterPhoto('${rp.id}',this)">
+      <div class="rc-points" onclick="event.stopPropagation()">
+        <button class="rc-points-btn" onclick="event.stopPropagation();adjustPoints('${rp.id}',-1)">&#x2212;</button>
+        <input class="rc-points-input" type="number" min="0" value="${rp.points||0}"
+          onclick="event.stopPropagation()" onblur="setPoints('${rp.id}',this.value)"
+          onkeydown="if(event.key==='Enter')this.blur();event.stopPropagation()">
+        <button class="rc-points-btn" onclick="event.stopPropagation();adjustPoints('${rp.id}',1)">+</button>
+      </div>
+      <div class="rc-sessions-ref">&#x1F4CA; ${sessionsAttended(rp.id)} sessions</div>
     `;
     card.onclick = () => toggleRosterPlayer(rp.id);
     grid.appendChild(card);
@@ -1921,6 +1992,251 @@ function closeMembersModal() {
 if (window.location.search.includes('admin') || window.location.hash === '#admin') {
   if (sessionStorage.getItem('adminPwd')) showAdmin();
   else openPwModal();
+}
+
+
+// ── TIER HELPER ──────────────────────────────
+function tierForPoints(pts) {
+  pts = pts || 0;
+  if (pts >= 3000) return { name: 'VIP',      color: '#8957e5', tc: '#bc8cff' };
+  if (pts >= 1800) return { name: 'Platinum', color: '#388bfd', tc: '#58a6ff' };
+  if (pts >= 900)  return { name: 'Gold',     color: '#f0b429', tc: '#f0b429' };
+  if (pts >= 300)  return { name: 'Silver',   color: '#7d8590', tc: '#c9d1d9' };
+  if (pts >= 50)   return { name: 'Bronze',   color: '#b87333', tc: '#e8a87c' };
+  return                  { name: 'Visitor',  color: '#555e6b', tc: '#8b949e' };
+}
+
+function sessionsAttended(playerId) {
+  return Object.values(state.sessions || {}).filter(s =>
+    (s.players || []).some(p => p.id === playerId)
+  ).length;
+}
+
+// ── POINTS EDITING ───────────────────────────
+async function adjustPoints(id, delta) {
+  const roster = (state.roster || []).map(r =>
+    r.id === id ? { ...r, points: Math.max(0, (r.points || 0) + delta) } : r
+  );
+  await apiPost({ roster });
+  state.roster = roster;
+  renderPlayersSection();
+  renderLeaderboard();
+}
+
+async function setPoints(id, val) {
+  const n = Math.max(0, parseInt(val) || 0);
+  const cur = (state.roster || []).find(r => r.id === id);
+  if (cur && (cur.points || 0) === n) return;
+  const roster = (state.roster || []).map(r => r.id === id ? { ...r, points: n } : r);
+  await apiPost({ roster });
+  state.roster = roster;
+  renderLeaderboard();
+}
+
+// ── LEADERBOARD ───────────────────────────────
+function renderLeaderboard() {
+  const list = document.getElementById('leaderboardList');
+  if (!list) return;
+  const players = [...(state.roster || [])].sort((a, b) =>
+    (b.points || 0) - (a.points || 0) || a.name.localeCompare(b.name)
+  );
+  if (!players.length) {
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">No players yet.</div>';
+    return;
+  }
+  list.innerHTML = players.map(p => {
+    const pts = p.points || 0;
+    const tier = tierForPoints(pts);
+    return `<div class="lb-row">
+      ${avatarHTML(p, 36)}
+      <div class="lb-name">${escHtml(p.name)}</div>
+      <span class="lb-tier-badge" style="background:${tier.color}22;color:${tier.tc};border:1px solid ${tier.color}55">${tier.name}</span>
+      <div class="lb-pts">${pts.toLocaleString()} pts</div>
+    </div>`;
+  }).join('');
+}
+
+// ── LUCKY DRAW ────────────────────────────────
+function renderDrawPool() {
+  const pool = document.getElementById('drawPool');
+  if (!pool) return;
+  const entries = ((state.luckyDraw || {}).entries || []);
+  if (!entries.length) {
+    pool.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:4px 0">Pool is empty — pull from session or add names manually.</div>';
+    return;
+  }
+  pool.innerHTML = entries.map((name, i) =>
+    `<div class="draw-chip"><span>${escHtml(name)}</span><button onclick="removeDrawEntry(${i})" title="Remove">&#x00D7;</button></div>`
+  ).join('');
+}
+
+async function loadSessionIntoPool() {
+  const players = state.players || [];
+  if (!players.filter(p => !p.guest).length) { notify("No players in today's session."); return; }
+  const entries = players.filter(p => !p.guest).map(p => p.name);
+  const luckyDraw = { ...(state.luckyDraw || {}), entries };
+  await apiPost({ luckyDraw });
+  state.luckyDraw = luckyDraw;
+  renderDrawPool();
+  notify(`Loaded ${entries.length} players into draw pool.`);
+}
+
+async function addDrawName() {
+  const input = document.getElementById('drawNameInput');
+  const name = (input ? input.value : '').trim();
+  if (!name) return;
+  const entries = [...((state.luckyDraw || {}).entries || []), name];
+  const luckyDraw = { ...(state.luckyDraw || {}), entries };
+  await apiPost({ luckyDraw });
+  state.luckyDraw = luckyDraw;
+  if (input) input.value = '';
+  renderDrawPool();
+}
+
+async function removeDrawEntry(idx) {
+  const entries = ((state.luckyDraw || {}).entries || []).filter((_, i) => i !== idx);
+  const luckyDraw = { ...(state.luckyDraw || {}), entries };
+  await apiPost({ luckyDraw });
+  state.luckyDraw = luckyDraw;
+  renderDrawPool();
+}
+
+async function clearDrawPool() {
+  const luckyDraw = { ...(state.luckyDraw || {}), entries: [] };
+  await apiPost({ luckyDraw });
+  state.luckyDraw = luckyDraw;
+  renderDrawPool();
+}
+
+async function spinWheel() {
+  const entries = ((state.luckyDraw || {}).entries || []);
+  if (entries.length < 2) { notify('Need at least 2 entries to spin.'); return; }
+  const winnerIndex = Math.floor(Math.random() * entries.length);
+  const spin = {
+    id: Date.now(),
+    entries: [...entries],
+    winnerIndex,
+    startAt: Date.now() + 700,
+    durationMs: 6000
+  };
+  const luckyDraw = { ...(state.luckyDraw || {}), spin };
+  await apiPost({ luckyDraw });
+  state.luckyDraw = luckyDraw;
+  checkForNewSpin(luckyDraw);
+}
+
+// ── WHEEL ANIMATION ───────────────────────────
+let lastSpinId = null;
+let wheelRaf = null;
+
+function checkForNewSpin(ld) {
+  if (!ld || !ld.spin) return;
+  const spin = ld.spin;
+  if (spin.id === lastSpinId) return;
+  lastSpinId = spin.id;
+  if (wheelRaf) { cancelAnimationFrame(wheelRaf); wheelRaf = null; }
+  const now = Date.now();
+  if (now >= spin.startAt + spin.durationMs) {
+    // Already finished — show result only
+    showWheelOverlay();
+    drawWheelAtAngle(spin, computeFinalAngle(spin));
+    displayWheelWinner(spin.entries[spin.winnerIndex]);
+    return;
+  }
+  showWheelOverlay();
+  animateWheel(spin);
+}
+
+function computeFinalAngle(spin) {
+  const N = spin.entries.length;
+  return 2 * Math.PI * (5 + Math.floor(N / 4)) - (spin.winnerIndex + 0.5) * (2 * Math.PI / N);
+}
+
+function showWheelOverlay() {
+  document.getElementById('wheelOverlay').classList.add('active');
+  const banner = document.getElementById('wheelWinnerBanner');
+  banner.style.display = 'none';
+  banner.textContent = '';
+}
+
+function hideWheelOverlay() {
+  document.getElementById('wheelOverlay').classList.remove('active');
+  if (wheelRaf) { cancelAnimationFrame(wheelRaf); wheelRaf = null; }
+}
+
+function wheelSegColors(n) {
+  const p = ['#1a9e5c','#388bfd','#f0b429','#8957e5','#b87333','#e05c5c',
+             '#22c66e','#58a6ff','#c8910a','#bc8cff','#e8a87c','#ff7070',
+             '#0d7a3e','#1a68d1','#d4920a','#6b3fba','#8a5a25','#b02020'];
+  return Array.from({length: n}, (_, i) => p[i % p.length]);
+}
+
+function drawWheelAtAngle(spin, angle) {
+  const canvas = document.getElementById('wheelCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  const R = Math.min(W, H) / 2 - 14;
+  const N = spin.entries.length;
+  const seg = (2 * Math.PI) / N;
+  const colors = wheelSegColors(N);
+
+  ctx.clearRect(0, 0, W, H);
+
+  for (let i = 0; i < N; i++) {
+    const sa = angle + i * seg - Math.PI / 2;
+    const ea = sa + seg;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, sa, ea); ctx.closePath();
+    ctx.fillStyle = colors[i]; ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1.5; ctx.stroke();
+
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(sa + seg / 2);
+    const maxL = N > 14 ? 5 : N > 9 ? 9 : 13;
+    const lbl = spin.entries[i].length > maxL ? spin.entries[i].slice(0, maxL - 1) + '…' : spin.entries[i];
+    const fs = N > 18 ? 8 : N > 12 ? 10 : N > 8 ? 12 : 14;
+    ctx.font = `bold ${fs}px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif`;
+    ctx.textAlign = 'right'; ctx.fillStyle = '#fff';
+    ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = 3;
+    ctx.fillText(lbl, R - 10, fs / 3);
+    ctx.restore();
+  }
+
+  // Center hub
+  ctx.beginPath(); ctx.arc(cx, cy, 16, 0, 2 * Math.PI);
+  ctx.fillStyle = '#0d1117'; ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.lineWidth = 2; ctx.stroke();
+
+  // Pointer triangle at top
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - R + 2);
+  ctx.lineTo(cx - 11, cy - R - 16);
+  ctx.lineTo(cx + 11, cy - R - 16);
+  ctx.closePath();
+  ctx.fillStyle = '#e6edf3'; ctx.fill();
+  ctx.strokeStyle = '#0d1117'; ctx.lineWidth = 2; ctx.stroke();
+}
+
+function animateWheel(spin) {
+  const finalAngle = computeFinalAngle(spin);
+  function tick() {
+    const now = Date.now();
+    const elapsed = now - spin.startAt;
+    if (elapsed < 0) { drawWheelAtAngle(spin, 0); wheelRaf = requestAnimationFrame(tick); return; }
+    const rawT = Math.min(elapsed / spin.durationMs, 1);
+    const eased = 1 - Math.pow(1 - rawT, 3); // cubic ease-out
+    drawWheelAtAngle(spin, finalAngle * eased);
+    if (rawT >= 1) { displayWheelWinner(spin.entries[spin.winnerIndex]); return; }
+    wheelRaf = requestAnimationFrame(tick);
+  }
+  wheelRaf = requestAnimationFrame(tick);
+}
+
+function displayWheelWinner(name) {
+  const banner = document.getElementById('wheelWinnerBanner');
+  banner.textContent = '\uD83C\uDF89 ' + name + ' \uD83C\uDF89';
+  banner.style.display = 'block';
+  setTimeout(() => hideWheelOverlay(), 3000);
 }
 
 startPolling();

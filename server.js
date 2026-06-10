@@ -9,6 +9,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'TZH123';
 
 const DEFAULT_STATE = {
+  roster: [
+    { id: 'p0', name: 'Thomas',     photo: null, points: 0 },
+    { id: 'p1', name: 'Desmond',    photo: null, points: 0 },
+    { id: 'p2', name: 'Celine',     photo: null, points: 0 },
+    { id: 'p3', name: 'Sharmin',    photo: null, points: 0 },
+    { id: 'p4', name: 'Terence',    photo: null, points: 0 },
+    { id: 'p5', name: 'Alex',       photo: null, points: 0 },
+    { id: 'p6', name: 'Kokyan',     photo: null, points: 0 },
+    { id: 'p7', name: 'Yit Fung',   photo: null, points: 0 },
+  ],
   players: [
     { id: 'p0', name: 'Player 1', photo: null },
     { id: 'p1', name: 'Player 2', photo: null },
@@ -30,6 +40,7 @@ const DEFAULT_STATE = {
     },
   ],
   currentRound: 0,
+  luckyDraw: { entries: [], spin: null },
 };
 
 let state = JSON.parse(JSON.stringify(DEFAULT_STATE));

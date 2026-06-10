@@ -26,25 +26,25 @@ function todayISO() {
 }
 
 const DEFAULT_ROSTER = [
-  { id: 'p0',  name: 'Thomas',     photo: null },
-  { id: 'p1',  name: 'Desmond',    photo: null },
-  { id: 'p2',  name: 'Celine 🌸',  photo: null },
-  { id: 'p3',  name: 'Sharmin',    photo: null },
-  { id: 'p4',  name: 'Terence',    photo: null },
-  { id: 'p5',  name: 'Alex',       photo: null },
-  { id: 'p6',  name: 'Kokyan',     photo: null },
-  { id: 'p7',  name: 'Yit Fung',   photo: null },
-  { id: 'p8',  name: 'Ong Yi',     photo: null },
-  { id: 'p9',  name: 'Shane',      photo: null },
-  { id: 'p10', name: 'Kenn',        photo: null },
-  { id: 'p11', name: 'Boon Chuan', photo: null },
-  { id: 'p12', name: 'Seng',       photo: null },
-  { id: 'p13', name: 'Gp',         photo: null },
-  { id: 'p14', name: 'Wei Hao',    photo: null },
-  { id: 'p15', name: 'Yao',        photo: null },
-  { id: 'p16', name: 'uncle Tan',  photo: null },
-  { id: 'p17', name: 'jian',       photo: null },
-  { id: 'p18', name: 'dean',       photo: null },
+  { id: 'p0',  name: 'Thomas',     photo: null, points: 0 },
+  { id: 'p1',  name: 'Desmond',    photo: null, points: 0 },
+  { id: 'p2',  name: 'Celine 🌸',  photo: null, points: 0 },
+  { id: 'p3',  name: 'Sharmin',    photo: null, points: 0 },
+  { id: 'p4',  name: 'Terence',    photo: null, points: 0 },
+  { id: 'p5',  name: 'Alex',       photo: null, points: 0 },
+  { id: 'p6',  name: 'Kokyan',     photo: null, points: 0 },
+  { id: 'p7',  name: 'Yit Fung',   photo: null, points: 0 },
+  { id: 'p8',  name: 'Ong Yi',     photo: null, points: 0 },
+  { id: 'p9',  name: 'Shane',      photo: null, points: 0 },
+  { id: 'p10', name: 'Kenn',        photo: null, points: 0 },
+  { id: 'p11', name: 'Boon Chuan', photo: null, points: 0 },
+  { id: 'p12', name: 'Seng',       photo: null, points: 0 },
+  { id: 'p13', name: 'Gp',         photo: null, points: 0 },
+  { id: 'p14', name: 'Wei Hao',    photo: null, points: 0 },
+  { id: 'p15', name: 'Yao',        photo: null, points: 0 },
+  { id: 'p16', name: 'uncle Tan',  photo: null, points: 0 },
+  { id: 'p17', name: 'jian',       photo: null, points: 0 },
+  { id: 'p18', name: 'dean',       photo: null, points: 0 },
 ];
 
 const DEFAULT_STATE = {
@@ -55,6 +55,7 @@ const DEFAULT_STATE = {
   currentRound: 0,
   sessionDate: todayISO(),
   sessions: {},
+  luckyDraw: { entries: [], spin: null },
 };
 
 module.exports = async function handler(req, res) {
@@ -68,6 +69,8 @@ module.exports = async function handler(req, res) {
     try {
       const state = await kv.get(STATE_KEY);
       const current = state || DEFAULT_STATE;
+      if (!current.luckyDraw) current.luckyDraw = { entries: [], spin: null };
+      if (current.roster) current.roster = current.roster.map(r => r.points !== undefined ? r : { ...r, points: 0 });
       if (current.siteCode) {
         const provided = (req.query && req.query.code) ? req.query.code : '';
         if (provided !== current.siteCode) {
