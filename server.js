@@ -19,16 +19,7 @@ const DEFAULT_STATE = {
     { id: 'p6', name: 'Kokyan',     photo: null, points: 0 },
     { id: 'p7', name: 'Yit Fung',   photo: null, points: 0 },
   ],
-  players: [
-    { id: 'p0', name: 'Player 1', photo: null },
-    { id: 'p1', name: 'Player 2', photo: null },
-    { id: 'p2', name: 'Player 3', photo: null },
-    { id: 'p3', name: 'Player 4', photo: null },
-    { id: 'p4', name: 'Player 5', photo: null },
-    { id: 'p5', name: 'Player 6', photo: null },
-    { id: 'p6', name: 'Player 7', photo: null },
-    { id: 'p7', name: 'Player 8', photo: null },
-  ],
+  players: [],
   numCourts: 2,
   rounds: [
     {
