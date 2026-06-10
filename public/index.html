@@ -1257,12 +1257,13 @@ function renderSessionDateSection() {
   const inp = document.getElementById('sessionDateInput');
   const date = state.sessionDate || todayISO();
   if (display) display.textContent = formatDisplayDate(date);
-  if (inp) inp.value = date;
+  if (inp) { inp.value = date; inp.max = todayISO(); }
 }
 
 async function setSessionDate() {
   const newDate = document.getElementById('sessionDateInput')?.value;
   if (!newDate) return notify('⚠ Select a date first.');
+  if (newDate > todayISO()) return notify('⚠ Cannot set a future date.');
   if (newDate === state.sessionDate) return notify('Already set to this date.');
   const result = await apiPost({ sessionDate: newDate });
   if (!result) return;
@@ -1357,10 +1358,11 @@ function selectCalDate(iso) {
   const session = (state.sessions||{})[iso];
   const detail = document.getElementById('sessionDetail');
   if (!session) {
+    const isFuture = iso > todayISO();
     detail.innerHTML = `<div class="session-detail">
       <div style="font-size:14px;color:var(--muted);margin-bottom:10px">${formatDisplayDate(iso)}</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:12px">No session recorded for this date.</div>
-      <button class="btn btn-ghost btn-sm" onclick="createHistorySession('${iso}')">+ Create session for this date</button>
+      ${isFuture ? '' : `<button class="btn btn-ghost btn-sm" onclick="createHistorySession('${iso}')">+ Create session for this date</button>`}
     </div>`;
     return;
   }

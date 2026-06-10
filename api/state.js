@@ -98,9 +98,15 @@ module.exports = async function handler(req, res) {
     // Handle updateSession action (edit a historical session)
     if (updates.action === 'updateSession') {
       const { date, session } = updates;
+      if (date > todayISO()) return res.status(400).json({ error: 'Cannot create a session for a future date.' });
       state.sessions = { ...(state.sessions || {}), [date]: session };
       try { await kv.set(STATE_KEY, state); } catch (e) { return res.status(500).json({ error: 'Storage error' }); }
       return res.json({ ok: true });
+    }
+
+    // Reject future session dates
+    if (updates.sessionDate && updates.sessionDate > todayISO()) {
+      return res.status(400).json({ error: 'Cannot set a future date.' });
     }
 
     // Auto-save current session when date changes
