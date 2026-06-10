@@ -198,6 +198,50 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .gate-error{color:#f85149;font-size:13px;margin-top:10px;margin-bottom:4px;display:none;min-height:18px}
 .gate-enter-btn{margin-top:12px;background:var(--green);color:#fff;border:none;padding:11px 40px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s}
 .gate-enter-btn:hover{background:var(--green-light)}
+
+/* ── MEMBERS MODAL ───────────────────────── */
+#membersModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:350;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+#membersModal.open{display:flex}
+.members-box{background:#080c14;border:1px solid #1e2535;border-radius:18px;width:100%;max-width:960px;padding:28px 24px 24px;margin:auto}
+.members-close{float:right;background:rgba(13,17,23,.9);border:1px solid #30363d;color:#8b949e;font-size:18px;padding:3px 10px;border-radius:8px;cursor:pointer;transition:all .15s;font-family:inherit;line-height:1.4}
+.members-close:hover{color:var(--text);border-color:var(--border2)}
+.members-eyebrow{text-align:center;font-size:clamp(10px,1.2vw,12px);text-transform:uppercase;letter-spacing:3px;color:#8b949e;font-weight:700;margin-bottom:4px}
+.members-headline{text-align:center;font-size:clamp(18px,3.5vw,30px);font-weight:900;color:#f0b429;letter-spacing:1px;margin-bottom:22px;line-height:1.1}
+.tier-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px;margin-bottom:24px}
+.tier-card{border-radius:12px;padding:14px 10px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;border:2px solid transparent;background:#0d1117}
+.tier-icon{font-size:28px;line-height:1}
+.tier-name{font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.tier-range{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;text-align:center;line-height:1.3}
+.tier-range small{display:block;font-size:9px;font-weight:600;letter-spacing:1px;opacity:.75;margin-top:1px}
+.tier-perks{width:100%;margin-top:6px;display:flex;flex-direction:column;gap:0}
+.tier-perk{font-size:10px;color:#8b949e;text-align:center;line-height:1.4;padding:4px 2px;border-top:1px solid rgba(255,255,255,.05)}
+.tier-visitor{border-color:#444c56}.tier-visitor .tier-name{color:#8b949e}.tier-visitor .tier-range{background:#21262d;color:#adb5bd}
+.tier-bronze{border-color:#b87333}.tier-bronze .tier-name{color:#cd7f32}.tier-bronze .tier-range{background:#3d1f0a;color:#e8a87c}
+.tier-silver{border-color:#6e7681}.tier-silver .tier-name{color:#c9d1d9}.tier-silver .tier-range{background:#21262d;color:#e6edf3}
+.tier-gold{border-color:#f0b429}.tier-gold .tier-name{color:#f0b429}.tier-gold .tier-range{background:#3a2800;color:#ffd060}
+.tier-platinum{border-color:#388bfd}.tier-platinum .tier-name{color:#58a6ff}.tier-platinum .tier-range{background:#051d3a;color:#79b8ff}
+.tier-vip{border-color:#8957e5}.tier-vip .tier-name{color:#bc8cff}.tier-vip .tier-range{background:#1f0d4a;color:#d2a8ff}
+.earn-section{background:#0d1117;border:1px solid #21262d;border-radius:12px;padding:16px 18px;margin-bottom:22px}
+.earn-title{text-align:center;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8b949e;margin-bottom:12px}
+.earn-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px 20px}
+.earn-item{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:64px}
+.earn-item .ei{font-size:20px}
+.earn-item small{font-size:10px;color:#8b949e;text-align:center;line-height:1.3}
+.earn-rate{font-size:18px;font-weight:900;color:#f0b429;padding:8px 14px;background:#1a1200;border-radius:10px;border:1px solid #3a2e00;text-align:center;white-space:nowrap}
+.earn-rate small{display:block;font-size:10px;color:#8b949e;font-weight:600}
+.benefits-section{margin-bottom:4px}
+.benefits-title{text-align:center;font-size:clamp(13px,2vw,17px);font-weight:800;letter-spacing:1px;color:var(--text);margin-bottom:14px}
+.btable{width:100%;border-collapse:collapse;font-size:11.5px}
+.btable th{padding:8px 8px;font-weight:700;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;text-align:center;border-bottom:1px solid #21262d}
+.btable td{padding:7px 8px;border-top:1px solid #161b22;text-align:center;color:#8b949e}
+.btable td:first-child{text-align:left;color:#c9d1d9;font-size:11px}
+.btable tr:hover td{background:rgba(255,255,255,.015)}
+.th-b{color:#cd7f32}.th-s{color:#c9d1d9}.th-g{color:#f0b429}.th-p{color:#58a6ff}.th-v{color:#bc8cff}
+.ck{color:#3fb950;font-weight:700;font-size:14px}.da{color:#30363d;font-size:16px}
+.vr5{color:#f0b429;font-weight:700}.vr10{color:#58a6ff;font-weight:700}.vbest{color:#bc8cff;font-weight:700}
+.members-footer{text-align:center;margin-top:18px;padding:10px 16px;background:#0f0c00;border:1px solid #2a2200;border-radius:8px;font-size:11px;color:#f0b429;font-weight:600;letter-spacing:.5px}
+#membersBtn{margin-top:10px;padding:7px 18px;border-radius:100px;border:1px solid rgba(240,180,41,.5);background:rgba(240,180,41,.08);color:#f0b429;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all .2s;font-family:inherit}
+#membersBtn:hover{background:rgba(240,180,41,.18);border-color:#f0b429}
 </style>
 </head>
 <body>
@@ -289,11 +333,125 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   <button class="gate-enter-btn" onclick="submitSiteCode()">Enter</button>
 </div>
 
+<!-- Members modal -->
+<div id="membersModal">
+  <div class="members-box">
+    <button class="members-close" onclick="closeMembersModal()">&#x2715;</button>
+    <div class="members-eyebrow">TZH Sports Club</div>
+    <div class="members-headline">Membership Tier System</div>
+
+    <div class="tier-grid">
+      <div class="tier-card tier-visitor">
+        <div class="tier-icon">&#x1F464;</div>
+        <div class="tier-name">Visitor</div>
+        <div class="tier-range">0 &ndash; 49<small>POINTS</small></div>
+        <div class="tier-perks">
+          <div class="tier-perk">Start earning points with every purchase</div>
+          <div class="tier-perk">Upgrade to Bronze at <strong style="color:#cd7f32">50 pts</strong></div>
+        </div>
+      </div>
+      <div class="tier-card tier-bronze">
+        <div class="tier-icon">&#x1F3C5;</div>
+        <div class="tier-name">Bronze</div>
+        <div class="tier-range">50 &ndash; 299<small>POINTS</small></div>
+        <div class="tier-perks">
+          <div class="tier-perk">Quarterly Bronze Lucky Draw</div>
+          <div class="tier-perk">Points Redemption Program</div>
+          <div class="tier-perk">Member Exclusive Promotions</div>
+        </div>
+      </div>
+      <div class="tier-card tier-silver">
+        <div class="tier-icon">&#x2B50;</div>
+        <div class="tier-name">Silver</div>
+        <div class="tier-range">300 &ndash; 899<small>POINTS</small></div>
+        <div class="tier-perks">
+          <div class="tier-perk">All Bronze Benefits</div>
+          <div class="tier-perk">Free Grip With Every Stringing</div>
+          <div class="tier-perk">Quarterly Silver Lucky Draw</div>
+        </div>
+      </div>
+      <div class="tier-card tier-gold">
+        <div class="tier-icon">&#x1F31F;</div>
+        <div class="tier-name">Gold</div>
+        <div class="tier-range">900 &ndash; 1799<small>POINTS</small></div>
+        <div class="tier-perks">
+          <div class="tier-perk">All Silver Benefits</div>
+          <div class="tier-perk" style="color:#f0b429">RM5 Stringing Discount</div>
+          <div class="tier-perk">Free Grip With Every Stringing</div>
+          <div class="tier-perk">Quarterly Gold Lucky Draw</div>
+        </div>
+      </div>
+      <div class="tier-card tier-platinum">
+        <div class="tier-icon">&#x1F48E;</div>
+        <div class="tier-name">Platinum</div>
+        <div class="tier-range">1800 &ndash; 2999<small>POINTS</small></div>
+        <div class="tier-perks">
+          <div class="tier-perk">All Gold Benefits</div>
+          <div class="tier-perk" style="color:#58a6ff">RM10 Stringing Discount</div>
+          <div class="tier-perk">Free Grip With Every Stringing</div>
+          <div class="tier-perk">Quarterly Platinum Lucky Draw</div>
+        </div>
+      </div>
+      <div class="tier-card tier-vip">
+        <div class="tier-icon">&#x1F451;</div>
+        <div class="tier-name">VIP</div>
+        <div class="tier-range">3000+<small>POINTS</small></div>
+        <div class="tier-perks">
+          <div class="tier-perk">All Platinum Benefits</div>
+          <div class="tier-perk" style="color:#bc8cff">Highest Stringing Privileges</div>
+          <div class="tier-perk">Exclusive VIP Rewards</div>
+          <div class="tier-perk">Quarterly VIP Lucky Draw</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="earn-section">
+      <div class="earn-title">How to Earn Points?</div>
+      <div class="earn-row">
+        <div class="earn-item"><span class="ei">&#x1F3F8;</span><small>Shuttlecock<br>Purchase</small></div>
+        <div class="earn-item"><span class="ei">&#x2702;&#xFE0F;</span><small>Stringing<br>Service</small></div>
+        <div class="earn-item"><span class="ei">&#x1F6CD;&#xFE0F;</span><small>Sports<br>Products</small></div>
+        <div class="earn-item"><span class="ei">&#x1F3CB;&#xFE0F;</span><small>Coaching<br>Programs</small></div>
+        <div class="earn-item"><span class="ei">&#x1F3D9;&#xFE0F;</span><small>Badminton<br>Sessions</small></div>
+        <div class="earn-rate">RM1<small>= 1 POINT</small></div>
+      </div>
+    </div>
+
+    <div class="benefits-section">
+      <div class="benefits-title">Member Benefits Overview</div>
+      <table class="btable">
+        <thead>
+          <tr>
+            <th style="text-align:left;color:#8b949e">Benefits</th>
+            <th class="th-b">Bronze</th>
+            <th class="th-s">Silver</th>
+            <th class="th-g">Gold</th>
+            <th class="th-p">Platinum</th>
+            <th class="th-v">VIP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>&#x1F381; Quarterly Lucky Draw</td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td></tr>
+          <tr><td>&#x1F4B0; Points Redemption Program</td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td></tr>
+          <tr><td>&#x1F3F7;&#xFE0F; Member Exclusive Promotions</td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td></tr>
+          <tr><td>&#x1F3F8; Free Grip With Every Stringing</td><td><span class="da">&ndash;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td></tr>
+          <tr><td>&#x2702;&#xFE0F; Stringing Discount</td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="vr5">RM5</span></td><td><span class="vr10">RM10</span></td><td><span class="vbest">BEST</span></td></tr>
+          <tr><td>&#x1F451; Higher Stringing Privileges</td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td></tr>
+          <tr><td>&#x1F381; Exclusive Rewards</td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="ck">&#x2713;</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="members-footer">&#x1F3C6; The more you play, the more you earn! &nbsp;|&nbsp; Thank you for being part of TZH Sports Club family!</div>
+  </div>
+</div>
+
 <!-- Viewer -->
 <div id="viewer">
   <div class="viewer-header">
     <h1>TZH BADMINTON</h1>
     <div id="viewerDate" style="font-size:clamp(12px,1.8vw,15px);color:var(--muted);margin-top:5px;letter-spacing:.5px"></div>
+    <button id="membersBtn" onclick="openMembersModal()">&#x1F3C6; TZH Members</button>
   </div>
   <div id="courtsDisplay"></div>
   <div class="viewer-footer"><span class="status-dot"></span>Live</div>
@@ -1573,6 +1731,16 @@ function notify(msg) {
 
 function copyLink() {
   navigator.clipboard.writeText(window.location.origin + '/').then(() => notify('Link copied!'));
+}
+
+// ── MEMBERS MODAL ────────────────────────────
+function openMembersModal() {
+  document.getElementById('membersModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeMembersModal() {
+  document.getElementById('membersModal').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 // ── INIT ─────────────────────────────────────
