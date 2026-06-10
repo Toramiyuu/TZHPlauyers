@@ -816,7 +816,12 @@ function avatarHTML(player, size = 72) {
 }
 
 function playerById(id) {
-  return (state?.players || []).find(p => p.id === id) || null;
+  const fromPlayers = (state?.players || []).find(p => p.id === id) || null;
+  const fromRoster = (state?.roster || []).find(r => r.id === id) || null;
+  if (!fromPlayers) return fromRoster;
+  if (!fromRoster) return fromPlayers;
+  // Prefer roster name/photo (always up-to-date), keep players entry as base
+  return { ...fromPlayers, name: fromRoster.name, photo: fromRoster.photo || fromPlayers.photo };
 }
 
 // ── API ──────────────────────────────────────
