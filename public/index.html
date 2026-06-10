@@ -1413,10 +1413,31 @@ function renderSessionDetail(iso, session, editMode) {
     <div style="font-size:14px;font-weight:600;margin-bottom:4px">${formatDisplayDate(iso)}</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:10px">${players.length} players · ${roundCount} rounds</div>
     <div style="max-height:240px;overflow-y:auto">${rows||'<div style="color:var(--muted);font-size:13px;padding:6px 0">No players recorded.</div>'}</div>
-    <div style="margin-top:14px">
+    <div style="margin-top:14px;display:flex;gap:8px">
       <button class="btn btn-ghost btn-sm" id="histEditBtn" onclick="startHistoryEdit('${iso}')">Edit this session</button>
+      <button class="btn btn-danger btn-sm" id="histClearBtn" onclick="clearHistorySession('${iso}')">Clear history</button>
     </div>
   </div>`;
+}
+
+async function clearHistorySession(iso) {
+  const btn = document.getElementById('histClearBtn');
+  if (!btn) return;
+  if (btn.dataset.confirmed !== 'yes') {
+    btn.textContent = 'Are you sure?';
+    btn.dataset.confirmed = 'yes';
+    setTimeout(() => { if (btn.dataset.confirmed === 'yes') { btn.textContent = 'Clear history'; btn.dataset.confirmed = ''; } }, 3000);
+    return;
+  }
+  const result = await apiPost({ action: 'deleteSession', date: iso });
+  if (!result) return;
+  const sessions = { ...(state.sessions || {}) };
+  delete sessions[iso];
+  state.sessions = sessions;
+  selectedCalDate = null;
+  renderCalendar();
+  document.getElementById('sessionDetail').innerHTML = '';
+  notify('History cleared.');
 }
 
 function startHistoryEdit(iso) {

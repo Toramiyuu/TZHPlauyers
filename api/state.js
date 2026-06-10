@@ -95,6 +95,14 @@ module.exports = async function handler(req, res) {
       state = { ...DEFAULT_STATE };
     }
 
+    // Handle deleteSession action
+    if (updates.action === 'deleteSession') {
+      const { date } = updates;
+      if (state.sessions) delete state.sessions[date];
+      try { await kv.set(STATE_KEY, state); } catch (e) { return res.status(500).json({ error: 'Storage error' }); }
+      return res.json({ ok: true });
+    }
+
     // Handle updateSession action (edit a historical session)
     if (updates.action === 'updateSession') {
       const { date, session } = updates;
