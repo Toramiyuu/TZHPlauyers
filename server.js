@@ -34,8 +34,14 @@ const DEFAULT_STATE = {
 
 let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
 
-// GET state — public
+// GET state — public (with siteCode gate)
 app.get('/api/state', (req, res) => {
+  if (state.siteCode) {
+    const provided = req.query.code || '';
+    if (provided !== state.siteCode) {
+      return res.json({ locked: true });
+    }
+  }
   res.json(state);
 });
 

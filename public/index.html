@@ -270,6 +270,28 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   .members-footer{font-size:9.5px;padding:8px 10px;line-height:1.6;letter-spacing:0}
   #membersBtn{font-size:11px;padding:6px 14px}
 }
+
+/* ── HERO GATE ──────────────────────────── */
+@keyframes word-appear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse-glow{0%{transform:translate(-50%,-50%) scale(1);opacity:.6}100%{transform:translate(-50%,-50%) scale(40);opacity:0}}
+@keyframes gate-line-draw{from{opacity:0}to{opacity:1}}
+@keyframes gate-dot-appear{from{opacity:0;transform:scale(0)}to{opacity:.5;transform:scale(1)}}
+@keyframes gate-float{0%,100%{transform:translateY(0) rotate(0deg)}33%{transform:translateY(-8px) rotate(1deg)}66%{transform:translateY(4px) rotate(-1deg)}}
+@keyframes gate-corner-in{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+.hero-word{opacity:0;display:inline-block;margin:0 .12em}
+.gate-grid-line{stroke:rgba(26,158,92,0.1);stroke-width:.5;opacity:0;animation:gate-line-draw 1s ease-out forwards}
+.gate-detail-dot{fill:rgba(34,198,110,.45);opacity:0;animation:gate-dot-appear .5s ease-out forwards}
+.gate-corner{position:absolute;width:28px;height:28px;opacity:0;animation:gate-corner-in .5s ease-out forwards}
+.gate-corner::before,.gate-corner::after{content:'';position:absolute;background:rgba(34,198,110,.35)}
+.gate-corner.tl{top:24px;left:24px;animation-delay:3s}.gate-corner.tl::before{top:0;left:0;width:100%;height:1px}.gate-corner.tl::after{top:0;left:0;width:1px;height:100%}
+.gate-corner.tr{top:24px;right:24px;animation-delay:3.2s}.gate-corner.tr::before{top:0;right:0;width:100%;height:1px}.gate-corner.tr::after{top:0;right:0;width:1px;height:100%}
+.gate-corner.bl{bottom:24px;left:24px;animation-delay:3.4s}.gate-corner.bl::before{bottom:0;left:0;width:100%;height:1px}.gate-corner.bl::after{bottom:0;left:0;width:1px;height:100%}
+.gate-corner.br{bottom:24px;right:24px;animation-delay:3.6s}.gate-corner.br::before{bottom:0;right:0;width:100%;height:1px}.gate-corner.br::after{bottom:0;right:0;width:1px;height:100%}
+.gate-float{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(26,158,92,.35);animation:gate-float 7s ease-in-out infinite paused}
+#gateMouseGradient{position:fixed;pointer-events:none;width:384px;height:384px;border-radius:50%;filter:blur(80px);transition:left .4s ease-out,top .4s ease-out,opacity .4s;opacity:0;background:radial-gradient(circle,rgba(26,158,92,.07) 0%,transparent 100%);z-index:1}
+.gate-tagline{font-size:clamp(9px,1.3vw,12px);font-family:monospace;font-weight:300;text-transform:uppercase;letter-spacing:.22em;color:var(--text);opacity:.65}
+.gate-divider{width:56px;height:1px;margin:12px auto;background:linear-gradient(to right,transparent,rgba(34,198,110,.35),transparent)}
+#siteGate .gate-content{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center}
 </style>
 </head>
 <body>
@@ -353,12 +375,64 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
 <!-- Site gate -->
 <div id="siteGate">
-  <h1>TZH BADMINTON</h1>
-  <div class="gate-sub">Enter today's access code</div>
-  <input id="gateInput" type="text" placeholder="XXX-XXX" maxlength="7" autocomplete="off" spellcheck="false"
-    oninput="formatCodeInput(this)" onkeydown="if(event.key==='Enter')submitSiteCode()">
-  <div class="gate-error" id="gateError">Incorrect code. Try again.</div>
-  <button class="gate-enter-btn" onclick="submitSiteCode()">Enter</button>
+  <!-- SVG grid background -->
+  <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="gate-grid" width="60" height="60" patternUnits="userSpaceOnUse">
+        <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(26,158,92,0.06)" stroke-width="0.5"/>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#gate-grid)"/>
+    <line x1="0" y1="20%" x2="100%" y2="20%" class="gate-grid-line" style="animation-delay:.5s"/>
+    <line x1="0" y1="80%" x2="100%" y2="80%" class="gate-grid-line" style="animation-delay:1s"/>
+    <line x1="20%" y1="0" x2="20%" y2="100%" class="gate-grid-line" style="animation-delay:1.5s"/>
+    <line x1="80%" y1="0" x2="80%" y2="100%" class="gate-grid-line" style="animation-delay:2s"/>
+    <circle cx="20%" cy="20%" r="2" class="gate-detail-dot" style="animation-delay:2.5s"/>
+    <circle cx="80%" cy="20%" r="2" class="gate-detail-dot" style="animation-delay:2.7s"/>
+    <circle cx="20%" cy="80%" r="2" class="gate-detail-dot" style="animation-delay:2.9s"/>
+    <circle cx="80%" cy="80%" r="2" class="gate-detail-dot" style="animation-delay:3.1s"/>
+  </svg>
+  <!-- Corner brackets -->
+  <div class="gate-corner tl"></div>
+  <div class="gate-corner tr"></div>
+  <div class="gate-corner bl"></div>
+  <div class="gate-corner br"></div>
+  <!-- Floating dots -->
+  <div class="gate-float" style="top:22%;left:14%;animation-delay:0s"></div>
+  <div class="gate-float" style="top:62%;left:84%;animation-delay:.8s"></div>
+  <div class="gate-float" style="top:72%;left:18%;animation-delay:1.6s"></div>
+  <div class="gate-float" style="top:32%;left:82%;animation-delay:2.4s"></div>
+  <!-- Mouse gradient -->
+  <div id="gateMouseGradient"></div>
+  <!-- Content -->
+  <div class="gate-content">
+    <div style="text-align:center;margin-bottom:36px">
+      <div class="gate-tagline">
+        <span class="hero-word" data-gate-delay="0">TZH</span>
+        <span class="hero-word" data-gate-delay="150">BADMINTON</span>
+        <span class="hero-word" data-gate-delay="300">&middot;</span>
+        <span class="hero-word" data-gate-delay="450">COURT</span>
+        <span class="hero-word" data-gate-delay="600">MANAGEMENT</span>
+      </div>
+      <div class="gate-divider"></div>
+    </div>
+    <h1 style="font-size:clamp(26px,5.5vw,50px);font-weight:200;letter-spacing:.18em;color:var(--text);margin:0 0 6px;text-align:center;line-height:1.2;opacity:0;animation:none" id="gateWelcome">WELCOME</h1>
+    <div class="gate-sub" style="opacity:0;animation:none" id="gateSub">Enter today's access code</div>
+    <input id="gateInput" type="text" placeholder="XXX-XXX" maxlength="7" autocomplete="off" spellcheck="false"
+      oninput="formatCodeInput(this)" onkeydown="if(event.key==='Enter')submitSiteCode()">
+    <div class="gate-error" id="gateError">Incorrect code. Try again.</div>
+    <button class="gate-enter-btn" onclick="submitSiteCode()">Enter</button>
+    <div style="margin-top:36px;text-align:center">
+      <div class="gate-divider"></div>
+      <div class="gate-tagline" style="margin-top:8px;font-size:10px;opacity:.35">
+        <span class="hero-word" data-gate-delay="1200">MEMBERS</span>
+        <span class="hero-word" data-gate-delay="1350">ONLY</span>
+        <span class="hero-word" data-gate-delay="1500">&middot;</span>
+        <span class="hero-word" data-gate-delay="1650">AUTHORISED</span>
+        <span class="hero-word" data-gate-delay="1800">ACCESS</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Members modal -->
@@ -1350,11 +1424,33 @@ function compressPhoto(file) {
 }
 
 // ── SITE GATE ─────────────────────────────────
+function initHeroGate() {
+  // Reset & animate hero words
+  const words = document.querySelectorAll('#siteGate .hero-word');
+  words.forEach(w => { w.style.opacity = '0'; w.style.animation = 'none'; });
+  words.forEach(w => {
+    const delay = parseInt(w.getAttribute('data-gate-delay') || '0', 10);
+    setTimeout(() => { w.style.animation = 'word-appear 0.8s ease-out forwards'; }, delay + 100);
+  });
+  // Animate welcome + subtitle
+  const welcome = document.getElementById('gateWelcome');
+  const sub = document.getElementById('gateSub');
+  if (welcome) { welcome.style.opacity='0'; welcome.style.animation='none'; setTimeout(()=>{ welcome.style.animation='word-appear 0.9s ease-out forwards'; }, 800); }
+  if (sub) { sub.style.opacity='0'; sub.style.animation='none'; setTimeout(()=>{ sub.style.animation='word-appear 0.8s ease-out forwards'; }, 1050); }
+  // Start floating dots
+  setTimeout(() => {
+    document.querySelectorAll('#siteGate .gate-float').forEach(el => { el.style.animationPlayState = 'running'; });
+  }, 1500);
+}
+
 function showSiteGate() {
-  document.getElementById('siteGate').style.display = 'flex';
+  const gate = document.getElementById('siteGate');
+  const alreadyOpen = gate.style.display === 'flex';
+  gate.style.display = 'flex';
   document.getElementById('viewer').style.display = 'none';
   document.getElementById('admin').style.display = 'none';
   document.getElementById('adminBtn').style.display = 'none';
+  if (!alreadyOpen) initHeroGate();
   setTimeout(() => document.getElementById('gateInput').focus(), 50);
 }
 
@@ -1778,6 +1874,33 @@ if (window.location.search.includes('admin') || window.location.hash === '#admin
 }
 
 startPolling();
+</script>
+
+<script>
+// Gate mouse gradient
+(function(){
+  var grad = document.getElementById('gateMouseGradient');
+  document.addEventListener('mousemove', function(e){
+    var gate = document.getElementById('siteGate');
+    if(gate && gate.style.display !== 'none' && grad){
+      grad.style.left = (e.clientX - 192) + 'px';
+      grad.style.top = (e.clientY - 192) + 'px';
+      grad.style.opacity = '1';
+    }
+  });
+  document.addEventListener('mouseleave', function(){
+    if(grad) grad.style.opacity = '0';
+  });
+  // Click ripple
+  document.addEventListener('click', function(e){
+    var gate = document.getElementById('siteGate');
+    if(!gate || gate.style.display === 'none') return;
+    var r = document.createElement('div');
+    r.style.cssText = 'position:fixed;left:'+e.clientX+'px;top:'+e.clientY+'px;width:4px;height:4px;background:rgba(26,158,92,.45);border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;animation:pulse-glow 1s ease-out forwards;z-index:600';
+    document.body.appendChild(r);
+    setTimeout(function(){ r.remove(); }, 1000);
+  });
+})();
 </script>
 </body>
 </html>
