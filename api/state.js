@@ -118,6 +118,11 @@ module.exports = async function handler(req, res) {
       for (const d of Object.keys(state.sessions)) {
         if (d < cutoffStr) delete state.sessions[d];
       }
+      // Reset session-specific data for the new date
+      state.players = [];
+      state.rounds = [];
+      state.currentRound = 0;
+      state.courtRounds = [];
     }
 
     state = { ...state, ...updates };
