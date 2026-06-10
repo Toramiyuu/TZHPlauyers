@@ -54,6 +54,7 @@ const DEFAULT_STATE = {
   rounds: [],
   currentRound: 0,
   sessionDate: todayISO(),
+  sessions: {},
 };
 
 module.exports = async function handler(req, res) {
@@ -94,13 +95,30 @@ module.exports = async function handler(req, res) {
       state = { ...DEFAULT_STATE };
     }
 
-    // Reject future dates
-    if (updates.sessionDate && updates.sessionDate > todayISO()) {
-      return res.status(400).json({ error: 'Cannot set a future date.' });
+    // Handle updateSession action (edit a historical session)
+    if (updates.action === 'updateSession') {
+      const { date, session } = updates;
+      state.sessions = { ...(state.sessions || {}), [date]: session };
+      try { await kv.set(STATE_KEY, state); } catch (e) { return res.status(500).json({ error: 'Storage error' }); }
+      return res.json({ ok: true });
     }
 
-    // Reset session-specific data when date changes
-    if (updates.sessionDate && updates.sessionDate !== state.sessionDate) {
+    // Auto-save current session when date changes
+    if (updates.sessionDate && updates.sessionDate !== state.sessionDate && state.sessionDate) {
+      const snapshot = {
+        players: (state.players || []).map(p => ({ id: p.id, name: p.name })),
+        rounds: state.rounds || [],
+        numCourts: state.numCourts || 1,
+      };
+      state.sessions = { ...(state.sessions || {}), [state.sessionDate]: snapshot };
+      // Prune sessions older than 31 days
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 31);
+      const cutoffStr = cutoff.toISOString().slice(0, 10);
+      for (const d of Object.keys(state.sessions)) {
+        if (d < cutoffStr) delete state.sessions[d];
+      }
+      // Reset session-specific data for the new date
       state.players = [];
       state.rounds = [];
       state.currentRound = 0;
