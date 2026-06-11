@@ -25,6 +25,11 @@
   --fs-xs:12px;--fs-sm:13px;--fs-base:14px;--fs-md:16px;--fs-lg:19px;--fs-xl:23px;--fs-2xl:32px;
   --transition:background-color .18s ease,border-color .18s ease,color .18s ease,opacity .18s ease,transform .18s ease,box-shadow .18s ease;
   --admin-bg:#0d1a12;
+  /* ── tier / medal palette (membership system) — exact existing hex ─── */
+  --bronze:#cd7f32;--bronze-line:#b87333;--silver:#7d8590;--gold:var(--accent);
+  --platinum:#58a6ff;--platinum-line:#388bfd;--diamond:#bc8cff;--diamond-line:#8957e5;--visitor:#555e6b;
+  /* ── interactive state shades ─── */
+  --accent-hover:#e6a020;--accent-active:#c88a10;--red-hover:#f14a44;--red-active:#b02020;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;font-size:var(--fs-base);background:var(--dark);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;letter-spacing:-.01em;line-height:1.5}
 /* clean inline icons */
@@ -62,13 +67,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .btn-primary:active{background:var(--green-dark)}
 .btn-secondary{background:var(--card2);color:var(--text);border:1px solid var(--border2)}
 .btn-secondary:hover{border-color:var(--green);color:var(--green-light)}
-.btn-secondary:active{background:#111619}
+.btn-secondary:active{background:var(--card)}
 .btn-accent{background:var(--accent);color:#000}
-.btn-accent:hover{background:#e6a020}
-.btn-accent:active{background:#c88a10}
+.btn-accent:hover{background:var(--accent-hover)}
+.btn-accent:active{background:var(--accent-active)}
 .btn-danger{background:var(--red);color:#fff;font-size:var(--fs-sm);padding:5px 11px}
-.btn-danger:hover{background:#f14a44}
-.btn-danger:active{background:#b02020}
+.btn-danger:hover{background:var(--red-hover)}
+.btn-danger:active{background:var(--red-active)}
 .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
 .btn-ghost:hover{color:var(--text);border-color:var(--border2);background:var(--card2)}
 .btn-ghost:active{background:var(--card)}
@@ -91,7 +96,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .name-input-wrap{width:100%;position:relative}
 .name-input{background:transparent;border:none;border-bottom:1px solid transparent;color:var(--text);text-align:center;font-size:13px;font-weight:500;width:100%;outline:none;padding:3px 0;transition:border-color .15s;border-radius:0}
 .name-input:hover{border-bottom-color:var(--border2)}
-.name-input:focus{border-bottom-color:var(--green);background:rgba(26,158,92,.06);border-radius:4px 4px 0 0;padding:3px 4px}
+.name-input:focus{border-bottom-color:var(--green);background:rgba(22,165,90,.06);border-radius:4px 4px 0 0;padding:3px 4px}
 .name-hint{font-size:10px;color:var(--muted);text-align:center;opacity:0;transition:opacity .15s;height:14px}
 .name-input:focus ~ .name-hint{opacity:1}
 
@@ -112,20 +117,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 #roundList{display:flex;flex-direction:column}
 .round-row{background:var(--dark);border:none;border-bottom:1px solid var(--border);border-left:3px solid transparent;overflow:hidden;transition:border-left-color .15s,background .15s}
 .round-row:last-child{border-bottom:none}
-.round-row.live{border-left-color:var(--green);background:rgba(26,158,92,.04)}
+.round-row.live{border-left-color:var(--green);background:rgba(22,165,90,.04)}
 .round-row-header{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;user-select:none}
 .round-row-header:hover{background:rgba(255,255,255,.03)}
 .round-live-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0}
 .round-row.live .round-live-dot{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 1.5s infinite}
 .rl{font-size:var(--fs-base);font-weight:600;min-width:73px;flex-shrink:0}
-.rsummary{font-size:var(--fs-sm);color:#c9d1d9;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.live-badge{font-size:var(--fs-xs);font-weight:700;color:var(--green);background:rgba(26,158,92,.15);padding:2px 8px;border-radius:100px;white-space:nowrap;flex-shrink:0}
-.round-editor{display:none;border-top:1px solid var(--border);padding:14px 12px;background:#0a0e14}
+.rsummary{font-size:var(--fs-sm);color:var(--text-2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live-badge{font-size:var(--fs-xs);font-weight:700;color:var(--green);background:rgba(22,165,90,.15);padding:2px 8px;border-radius:100px;white-space:nowrap;flex-shrink:0}
+.round-editor{display:none;border-top:1px solid var(--border);padding:14px 12px;background:var(--dark)}
 .round-row.expanded .round-editor{display:block}
 /* Demote "Set Live" to quiet outline in round rows; accent only on the live row */
 .round-row-header .rl-set-live{background:transparent;color:var(--muted);border:1px solid var(--border);font-size:var(--fs-xs)}
 .round-row-header .rl-set-live:hover{color:var(--text);border-color:var(--border2);background:var(--card2)}
-.round-row.live .round-row-header .rl-set-live{color:var(--green-light);border-color:rgba(26,158,92,.35);background:rgba(26,158,92,.08)}
+.round-row.live .round-row-header .rl-set-live{color:var(--green-light);border-color:rgba(22,165,90,.35);background:rgba(22,165,90,.08)}
 .court-editor{margin-bottom:14px}
 .court-editor h4{font-size:var(--fs-xs);color:var(--green-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:600}
 .selectors-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -233,10 +238,10 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .cal-strip-btn.s-has:not(.s-sel) .cal-strip-dot{background:var(--green-light)}
 .cal-strip-btn.s-sel .cal-strip-dot{background:rgba(255,255,255,.7)}
 .cal-divider{height:1px;background:rgba(255,255,255,.08);margin:18px 0 14px}
-.game-count{color:var(--green-light);font-size:12px;font-weight:600;background:rgba(26,158,92,.12);padding:2px 8px;border-radius:100px}
+.game-count{color:var(--green-light);font-size:12px;font-weight:600;background:rgba(22,165,90,.12);padding:2px 8px;border-radius:100px}
 .session-detail{margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
 .player-game-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(48,54,61,.6);font-size:13px}
-.game-count{color:var(--green-light);font-size:12px;font-weight:600;background:rgba(26,158,92,.12);padding:2px 8px;border-radius:100px}
+.game-count{color:var(--green-light);font-size:12px;font-weight:600;background:rgba(22,165,90,.12);padding:2px 8px;border-radius:100px}
 
 /* ── SITE GATE ───────────────────────────── */
 #siteGate{position:fixed;inset:0;background:radial-gradient(120% 80% at 50% -10%,rgba(22,165,90,.10),transparent 60%),var(--dark);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
@@ -263,23 +268,18 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .members-headline{text-align:center;font-size:clamp(22px,3.5vw,32px);font-weight:700;color:var(--text);letter-spacing:-.02em;margin-bottom:26px;line-height:1.1}
 .tier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
 .tier-card{border-radius:var(--radius-lg);padding:24px 20px;display:flex;flex-direction:column;gap:12px;background:var(--card2);border:1px solid var(--border);transition:var(--transition);position:relative}
-.tier-card::before{content:'';position:absolute;top:0;left:20px;right:20px;height:2px;background:var(--tc,#444c56);border-radius:2px;opacity:.8}
+.tier-card::before{content:'';position:absolute;top:0;left:20px;right:20px;height:2px;background:var(--tc,var(--border2));border-radius:2px;opacity:.8}
 .tier-card:hover{background:var(--elev);border-color:var(--tc,var(--border2));transform:translateY(-2px)}
-.tier-icon{width:46px;height:46px;border-radius:var(--radius-md);border:1px solid var(--tc,#444c56);background:var(--card);background:color-mix(in srgb,var(--tc,#444c56) 12%,transparent);display:flex;align-items:center;justify-content:center;color:var(--tc,#8b949e);flex-shrink:0}
+.tier-icon{width:46px;height:46px;border-radius:var(--radius-md);border:1px solid var(--tc,var(--border2));background:var(--card);background:color-mix(in srgb,var(--tc,var(--border2)) 12%,transparent);display:flex;align-items:center;justify-content:center;color:var(--tc,var(--muted));flex-shrink:0}
 .tier-icon .ic{width:22px;height:22px}
 .tier-name{font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.01em}
-.tier-range{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;text-align:center;line-height:1.3;display:inline-block}
+.tier-range{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;text-align:center;line-height:1.3;display:inline-block;background:color-mix(in srgb,var(--tc,var(--border2)) 20%,var(--dark));color:color-mix(in srgb,var(--tc,var(--text-2)) 55%,var(--text))}
 .tier-range small{display:block;font-size:9px;font-weight:600;letter-spacing:1px;opacity:.75;margin-top:1px}
 .tier-perks{width:100%;display:flex;flex-direction:column;gap:6px;margin-top:2px}
 .tier-perk{font-size:var(--fs-sm);color:var(--text);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
-.tier-perk::before{content:'✓';display:flex;align-items:center;justify-content:center;min-width:17px;height:17px;border-radius:50%;border:1.5px solid var(--tc,#444c56);font-size:9px;color:var(--tc,#444c56);font-weight:900;margin-top:2px;flex-shrink:0}
+.tier-perk::before{content:'✓';display:flex;align-items:center;justify-content:center;min-width:17px;height:17px;border-radius:50%;border:1.5px solid var(--tc,var(--border2));font-size:9px;color:var(--tc,var(--border2));font-weight:900;margin-top:2px;flex-shrink:0}
 .tier-popular-badge{position:absolute;top:-9px;right:14px;background:var(--accent);color:#1a1205;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 10px;border-radius:100px;white-space:nowrap;box-shadow:var(--shadow-sm)}
-.tier-visitor{--tc:#555e6b}.tier-visitor .tier-range{background:#21262d;color:#adb5bd}
-.tier-bronze{--tc:#b87333}.tier-bronze .tier-range{background:#3d1f0a;color:#e8a87c}
-.tier-silver{--tc:#7d8590}.tier-silver .tier-range{background:#21262d;color:#e6edf3}
-.tier-gold{--tc:#f0b429}.tier-gold .tier-range{background:#3a2800;color:#ffd060}
-.tier-platinum{--tc:#388bfd}.tier-platinum .tier-range{background:#051d3a;color:#79b8ff}
-.tier-vip{--tc:#8957e5}.tier-vip .tier-range{background:#1f0d4a;color:#d2a8ff}
+.tier-visitor{--tc:var(--visitor)}.tier-bronze{--tc:var(--bronze-line)}.tier-silver{--tc:var(--silver)}.tier-gold{--tc:var(--gold)}.tier-platinum{--tc:var(--platinum-line)}.tier-vip{--tc:var(--diamond-line)}
 .earn-section{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;margin-bottom:24px}
 .earn-title{text-align:center;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
 .earn-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 14px}
@@ -295,12 +295,12 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .benefits-title{text-align:center;font-size:clamp(15px,2vw,19px);font-weight:700;color:var(--text);letter-spacing:-.01em;margin-bottom:16px;padding:0 14px}
 .btable{width:100%;border-collapse:collapse;font-size:var(--fs-xs)}
 .btable th{padding:8px 8px;font-weight:700;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;text-align:center;border-bottom:2px solid}
-.btable td{padding:7px 8px;border-top:1px solid #161b22;text-align:center;color:#adb5bd}
-.btable td:first-child{text-align:left;color:#c9d1d9;font-size:11px}
+.btable td{padding:7px 8px;border-top:1px solid var(--border);text-align:center;color:var(--muted)}
+.btable td:first-child{text-align:left;color:var(--text-2);font-size:11px}
 .btable tr:hover td{background:rgba(255,255,255,.02)}
-.th-b{color:#cd7f32;border-bottom-color:#b87333}.th-s{color:#c9d1d9;border-bottom-color:#7d8590}.th-g{color:#f0b429;border-bottom-color:#f0b429}.th-p{color:#58a6ff;border-bottom-color:#388bfd}.th-v{color:#bc8cff;border-bottom-color:#8957e5}
-.ck{color:#3fb950;font-weight:700;font-size:14px}.da{color:var(--muted);font-size:16px}
-.vr5{color:#f0b429;font-weight:700}.vr10{color:#58a6ff;font-weight:700}.vbest{color:#bc8cff;font-weight:700}
+.th-b{color:var(--bronze);border-bottom-color:var(--bronze-line)}.th-s{color:var(--text-2);border-bottom-color:var(--silver)}.th-g{color:var(--gold);border-bottom-color:var(--gold)}.th-p{color:var(--platinum);border-bottom-color:var(--platinum-line)}.th-v{color:var(--diamond);border-bottom-color:var(--diamond-line)}
+.ck{color:var(--green-light);font-weight:700;font-size:14px}.da{color:var(--muted);font-size:16px}
+.vr5{color:var(--gold);font-weight:700}.vr10{color:var(--platinum);font-weight:700}.vbest{color:var(--diamond);font-weight:700}
 .members-footer{text-align:center;margin-top:20px;padding:12px 16px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);font-size:var(--fs-xs);color:var(--muted);font-weight:500;letter-spacing:0}
 #membersBtn,#lbBtn{padding:9px 18px;border-radius:100px;border:1px solid var(--border2);background:var(--card2);font-size:var(--fs-sm);font-weight:600;cursor:pointer;transition:var(--transition);font-family:inherit;min-height:38px;display:inline-flex;align-items:center;gap:7px;letter-spacing:-.005em}
 #membersBtn{color:var(--accent)}
@@ -309,7 +309,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 #lbBtn{color:var(--green-light)}
 #lbBtn:hover{background:var(--elev);border-color:var(--green-line)}
 .btable-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px}
-.btable-wrap::-webkit-scrollbar{height:4px}.btable-wrap::-webkit-scrollbar-track{background:#0d1117}.btable-wrap::-webkit-scrollbar-thumb{background:#30363d;border-radius:2px}
+.btable-wrap::-webkit-scrollbar{height:4px}.btable-wrap::-webkit-scrollbar-track{background:var(--dark)}.btable-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 @media(max-width:600px){
   #membersModal{padding:10px 8px}
   .members-box{padding:16px 12px 14px;border-radius:14px}
@@ -374,7 +374,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .draw-pool{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px;min-height:32px}
 .draw-empty{color:var(--muted);font-size:var(--fs-sm);padding:10px 0}
 .draw-pool-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
-.draw-pool-count{font-size:var(--fs-xs);font-weight:700;color:var(--green-light);background:rgba(26,158,92,.12);padding:2px 8px;border-radius:100px}
+.draw-pool-count{font-size:var(--fs-xs);font-weight:700;color:var(--green-light);background:rgba(22,165,90,.12);padding:2px 8px;border-radius:100px}
 .draw-chip{background:var(--card2);border:1px solid var(--border2);border-radius:100px;padding:4px 8px 4px 10px;font-size:var(--fs-sm);color:var(--text);display:flex;align-items:center;gap:5px}
 .draw-chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:0;transition:color .1s}
 .draw-chip button:hover{color:var(--red)}
@@ -618,7 +618,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <div class="tier-range">0 &ndash; 49<small>POINTS</small></div>
         <div class="tier-perks">
           <div class="tier-perk">Start earning points with every purchase</div>
-          <div class="tier-perk">Upgrade to Bronze at <strong style="color:#cd7f32">50 pts</strong></div>
+          <div class="tier-perk">Upgrade to Bronze at <strong style="color:var(--bronze)">50 pts</strong></div>
         </div>
       </div>
       <div class="tier-card tier-bronze">
@@ -648,7 +648,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <div class="tier-range">900 &ndash; 1799<small>POINTS</small></div>
         <div class="tier-perks">
           <div class="tier-perk">All Silver Benefits</div>
-          <div class="tier-perk" style="color:#f0b429">RM5 Stringing Discount</div>
+          <div class="tier-perk" style="color:var(--gold)">RM5 Stringing Discount</div>
           <div class="tier-perk">Free Grip With Every Stringing</div>
           <div class="tier-perk">Quarterly Gold Lucky Draw</div>
         </div>
@@ -659,7 +659,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <div class="tier-range">1800 &ndash; 2999<small>POINTS</small></div>
         <div class="tier-perks">
           <div class="tier-perk">All Gold Benefits</div>
-          <div class="tier-perk" style="color:#58a6ff">RM10 Stringing Discount</div>
+          <div class="tier-perk" style="color:var(--platinum)">RM10 Stringing Discount</div>
           <div class="tier-perk">Free Grip With Every Stringing</div>
           <div class="tier-perk">Quarterly Platinum Lucky Draw</div>
         </div>
@@ -670,7 +670,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <div class="tier-range">3000+<small>POINTS</small></div>
         <div class="tier-perks">
           <div class="tier-perk">All Platinum Benefits</div>
-          <div class="tier-perk" style="color:#bc8cff">Highest Stringing Privileges</div>
+          <div class="tier-perk" style="color:var(--diamond)">Highest Stringing Privileges</div>
           <div class="tier-perk">Exclusive VIP Rewards</div>
           <div class="tier-perk">Quarterly VIP Lucky Draw</div>
         </div>
@@ -694,7 +694,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <div class="btable-wrap"><table class="btable">
         <thead>
           <tr>
-            <th style="text-align:left;color:#8b949e">Benefits</th>
+            <th style="text-align:left;color:var(--muted)">Benefits</th>
             <th class="th-b">Bronze</th>
             <th class="th-s">Silver</th>
             <th class="th-g">Gold</th>
@@ -943,7 +943,7 @@ let expandedRound = null;
 let generatePending = false; // confirm-to-generate state
 
 // ── AVATAR COLORS ────────────────────────────
-const COLORS = ['#1a9e5c','#2563eb','#dc2626','#7c3aed','#ea580c','#0891b2','#65a30d','#c026d3','#b45309','#0f766e'];
+const COLORS = ['#16a55a','#2563eb','#dc2626','#7c3aed','#ea580c','#0891b2','#65a30d','#c026d3','#b45309','#0f766e'];
 
 function getColor(id) {
   let h = 0;
@@ -2570,7 +2570,7 @@ function handleOverlayClick(e) {
 }
 
 function wheelSegColors(n) {
-  const p = ['#1a9e5c','#388bfd','#f0b429','#8957e5','#b87333','#e05c5c',
+  const p = ['#16a55a','#388bfd','#f0b429','#8957e5','#b87333','#e05c5c',
              '#22c66e','#58a6ff','#c8910a','#bc8cff','#e8a87c','#ff7070',
              '#0d7a3e','#1a68d1','#d4920a','#6b3fba','#8a5a25','#b02020'];
   return Array.from({length: n}, (_, i) => p[i % p.length]);
@@ -2612,10 +2612,10 @@ function drawWheelAtAngle(spin, angle) {
   ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 3; ctx.stroke();
   // Center hub
   ctx.beginPath(); ctx.arc(cx, cy, 22, 0, 2 * Math.PI);
-  ctx.fillStyle = '#0d1117'; ctx.fill();
+  ctx.fillStyle = '#0a0c0f'; ctx.fill();
   ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 3; ctx.stroke();
   ctx.beginPath(); ctx.arc(cx, cy, 10, 0, 2 * Math.PI);
-  ctx.fillStyle = '#1a9e5c'; ctx.fill();
+  ctx.fillStyle = '#16a55a'; ctx.fill();
   // Pointer at top
   const pY = cy - R - 4;
   ctx.beginPath();
@@ -2624,7 +2624,7 @@ function drawWheelAtAngle(spin, angle) {
   ctx.lineTo(cx + 11, pY - 16);
   ctx.closePath();
   ctx.fillStyle = '#e6edf3'; ctx.fill();
-  ctx.strokeStyle = '#0d1117'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.strokeStyle = '#0a0c0f'; ctx.lineWidth = 2; ctx.stroke();
 }
 
 function launchConfetti() {
@@ -2632,7 +2632,7 @@ function launchConfetti() {
   const container = document.getElementById('confettiContainer');
   if (!container) return;
   container.innerHTML = '';
-  const colors = ['#f0b429','#1a9e5c','#388bfd','#8957e5','#e05c5c','#22c66e','#58a6ff'];
+  const colors = ['#f0b429','#16a55a','#388bfd','#8957e5','#e05c5c','#22c66e','#58a6ff'];
   for (let i = 0; i < 55; i++) {
     const el = document.createElement('div');
     el.className = 'confetti-piece';

@@ -4,7 +4,8 @@
   "description": "Live badminton court display system",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node scripts/verify-redesign.js"
   },
   "dependencies": {
     "@upstash/redis": "^1.34.9",
