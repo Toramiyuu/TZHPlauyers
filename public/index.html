@@ -302,12 +302,14 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .ck{color:var(--green-light);font-weight:700;font-size:14px}.da{color:var(--muted);font-size:16px}
 .vr5{color:var(--gold);font-weight:700}.vr10{color:var(--platinum);font-weight:700}.vbest{color:var(--diamond);font-weight:700}
 .members-footer{text-align:center;margin-top:20px;padding:12px 16px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);font-size:var(--fs-xs);color:var(--muted);font-weight:500;letter-spacing:0}
-#membersBtn,#lbBtn{padding:9px 18px;border-radius:100px;border:1px solid var(--border2);background:var(--card2);font-size:var(--fs-sm);font-weight:600;cursor:pointer;transition:var(--transition);font-family:inherit;min-height:38px;display:inline-flex;align-items:center;gap:7px;letter-spacing:-.005em}
+#membersBtn,#lbBtn,#mdBoardBtn{padding:9px 18px;border-radius:100px;border:1px solid var(--border2);background:var(--card2);font-size:var(--fs-sm);font-weight:600;cursor:pointer;transition:var(--transition);font-family:inherit;min-height:38px;display:inline-flex;align-items:center;gap:7px;letter-spacing:-.005em}
 #membersBtn{color:var(--accent)}
 #membersBtn:hover{background:var(--elev);border-color:var(--accent-line)}
-#membersBtn .ic,#lbBtn .ic{width:15px;height:15px}
+#membersBtn .ic,#lbBtn .ic,#mdBoardBtn .ic{width:15px;height:15px}
 #lbBtn{color:var(--green-light)}
 #lbBtn:hover{background:var(--elev);border-color:var(--green-line)}
+#mdBoardBtn{color:var(--diamond)}
+#mdBoardBtn:hover{background:var(--elev);border-color:var(--diamond-line)}
 .btable-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px}
 .btable-wrap::-webkit-scrollbar{height:4px}.btable-wrap::-webkit-scrollbar-track{background:var(--dark)}.btable-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 @media(max-width:600px){
@@ -334,7 +336,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   .btable td{padding:6px 5px}
   .btable td:first-child{font-size:10px}
   .members-footer{font-size:9.5px;padding:8px 10px;line-height:1.6;letter-spacing:0}
-  #membersBtn,#lbBtn{font-size:var(--fs-sm);padding:9px 16px}
+  #membersBtn,#lbBtn,#mdBoardBtn{font-size:var(--fs-sm);padding:9px 16px}
 }
 
 /* ── HERO GATE (kept minimal) ──────────── */
@@ -399,6 +401,70 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .confetti-piece{position:absolute;width:8px;height:8px;border-radius:2px;opacity:0;animation:confetti-fall 2.2s ease-out forwards}
 @keyframes confetti-fall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
 @media(prefers-reduced-motion:reduce){.confetti-piece{display:none}}
+
+/* ── MONTHLY LUCKY DRAW ───────────────────── */
+.md-summary{font-size:var(--fs-xs);font-weight:600;color:var(--green-light);background:var(--green-tint);border:1px solid var(--green-line);padding:2px 8px;border-radius:100px;margin-left:6px}
+.md-prizes{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.md-prize-row{display:flex;align-items:center;gap:10px}
+.md-prize-rank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;border:1px solid}
+.md-rank-1{color:var(--gold);border-color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,transparent)}
+.md-rank-2{color:var(--silver);border-color:var(--silver);background:color-mix(in srgb,var(--silver) 16%,transparent)}
+.md-rank-3{color:var(--bronze);border-color:var(--bronze);background:color-mix(in srgb,var(--bronze) 14%,transparent)}
+.md-customers{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.md-cust{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md)}
+.md-cust-main{flex:1;min-width:0}
+.md-cust-name{font-size:var(--fs-base);font-weight:600;color:var(--text);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.md-cust-phone{font-size:var(--fs-xs);color:var(--muted)}
+.md-tokens{font-size:var(--fs-xs);font-weight:700;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);border:1px solid var(--accent-line);padding:2px 8px;border-radius:100px;white-space:nowrap}
+.md-leftover{font-size:10px;color:var(--muted);white-space:nowrap}
+.md-tube-step{display:flex;align-items:center;gap:4px}
+.md-tube-step button{width:26px;height:26px;border-radius:6px;border:1px solid var(--border2);background:var(--card);color:var(--text);font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.md-tube-step button:hover{border-color:var(--green);color:var(--green-light)}
+.md-tube-step input{width:44px;text-align:center;background:var(--dark);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:4px;font-size:var(--fs-sm);font-family:inherit}
+.md-cust-del{background:none;border:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0}
+.md-cust-del:hover,.md-cust-del.confirm{color:var(--red)}
+.md-winner{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);margin-top:8px}
+.md-winner-name{font-size:var(--fs-md);font-weight:700;color:var(--text)}
+.md-winner-prize{font-size:var(--fs-sm);color:var(--text-2)}
+.md-history-row{display:flex;flex-direction:column;gap:2px;padding:8px 0;border-bottom:1px solid var(--border)}
+.md-history-row:last-child{border-bottom:none}
+.md-history-month{font-size:var(--fs-sm);font-weight:700;color:var(--green-light)}
+.md-history-winners{font-size:var(--fs-xs);color:var(--muted)}
+.md-empty{color:var(--muted);font-size:var(--fs-sm);padding:8px 0}
+.md-cust{flex-wrap:wrap}
+.md-odds-input{max-width:74px;text-align:center}
+.md-odds-pct{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap}
+.md-cust-wins{display:flex;gap:4px;margin-top:3px;flex-basis:100%}
+.md-win-badge{font-size:10px;font-weight:800;padding:1px 7px;border-radius:100px;border:1px solid}
+.md-spin-btn:disabled{opacity:.4;cursor:not-allowed}
+.md-lastspin{margin-top:10px;padding:10px 14px;border-radius:var(--radius-md);background:var(--card2);border:1px solid var(--border);font-size:var(--fs-base);color:var(--text-2)}
+.md-lastspin.win{border-color:var(--green-line);background:var(--green-tint);color:var(--text)}
+/* prize-draw board (viewer) */
+#mdBoardModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:350;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+#mdBoardModal.open{display:flex}
+.mdb-sub{text-align:center;color:var(--muted);font-size:var(--fs-xs);margin-bottom:14px;letter-spacing:.04em}
+.mdb-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:6px}
+.mdb-name{flex:1;font-weight:600;color:var(--text);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mdb-wins{display:flex;gap:4px;flex-shrink:0}
+.mdb-spins{font-size:var(--fs-xs);font-weight:700;color:var(--green-light);background:var(--green-tint);border:1px solid var(--green-line);padding:2px 8px;border-radius:100px;white-space:nowrap}
+.mdb-empty{color:var(--muted);font-size:var(--fs-sm);text-align:center;padding:14px 0}
+/* slot-machine spin overlay (viewer) */
+#mdSpinOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:360;align-items:center;justify-content:center;padding:24px}
+#mdSpinOverlay.active{display:flex}
+.md-spin-card{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);padding:clamp(24px,4vw,40px);max-width:520px;width:100%;text-align:center;position:relative;overflow:hidden}
+.md-spin-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--green-light))}
+.md-spin-name{font-size:clamp(20px,3vw,30px);font-weight:700;color:var(--text);letter-spacing:-.01em}
+.md-spin-sub{font-size:var(--fs-xs);color:var(--muted);margin-bottom:20px;text-transform:uppercase;letter-spacing:.16em}
+.md-reels{display:flex;justify-content:center;gap:10px;margin:0 auto 18px}
+.md-reel{width:76px;height:76px;border-radius:var(--radius-md);background:var(--dark);border:1px solid var(--border2);overflow:hidden;position:relative}
+.md-reel-inner{display:flex;flex-direction:column;will-change:transform}
+.md-reel-cell{height:76px;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:800;flex-shrink:0}
+.md-reel::after{content:'';position:absolute;inset:0;box-shadow:inset 0 10px 12px -8px rgba(0,0,0,.85),inset 0 -10px 12px -8px rgba(0,0,0,.85);pointer-events:none}
+.md-cell-1{color:var(--gold)}.md-cell-2{color:var(--silver)}.md-cell-3{color:var(--bronze)}.md-cell-0{color:var(--muted)}
+.md-spin-result{font-size:clamp(16px,2.4vw,22px);font-weight:700;min-height:26px;color:var(--text-2)}
+.md-spin-result.win{color:var(--green-light)}
+.md-spin-prize{font-size:var(--fs-md);color:var(--text-2);font-weight:600;margin-top:4px}
+.md-spin-dismiss{margin-top:18px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);opacity:.55}
 #wheelTitle{font-size:clamp(12px,2vw,16px);font-weight:600;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
 #wheelCanvas{max-width:min(78vw,460px);max-height:min(78vw,460px);width:460px;height:460px}
 #wheelWinnerBanner{text-align:center;display:none;padding:18px 28px;background:rgba(22,27,34,.95);border:1px solid var(--border2);border-radius:var(--radius-lg);animation:word-appear .4s ease-out forwards;max-width:min(88vw,440px)}
@@ -726,6 +792,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px">
       <button id="membersBtn" onclick="openMembersModal()"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6M10 20l.5-4M14 20l-.5-4"/></svg> TZH Members</button>
       <button id="lbBtn" onclick="openLbModal()"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M8.5 12 7 21l5-2.8 5 2.8-1.5-9"/></svg> Leaderboard</button>
+      <button id="mdBoardBtn" onclick="openMdBoard()"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg> Prize Draw</button>
     </div>
     <div id="viewerLastWinner" style="display:none;margin-top:8px"></div>
   </div>
@@ -751,6 +818,27 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <div id="wheelWinnerBanner" aria-live="polite" role="status"></div>
 </div>
 
+<!-- Monthly Prize Draw Board -->
+<div id="mdBoardModal">
+  <div class="lb-box">
+    <button class="lb-close" onclick="closeMdBoard()" aria-label="Close prize draw board">&#x2715;</button>
+    <div class="lb-header">Monthly Prize Draw</div>
+    <div id="mdBoardBody"></div>
+  </div>
+</div>
+
+<!-- Monthly Draw Spin Overlay -->
+<div id="mdSpinOverlay" role="dialog" aria-modal="true" onclick="if(event.target===this)hideMonthlySpin()">
+  <div class="confetti-container" id="mdConfetti"></div>
+  <div class="md-spin-card">
+    <div class="md-spin-name" id="mdSpinName"></div>
+    <div class="md-spin-sub" id="mdSpinSub">Lucky Draw spin</div>
+    <div class="md-reels" id="mdReels"></div>
+    <div class="md-spin-result" id="mdSpinResult" aria-live="polite"></div>
+    <div class="md-spin-dismiss">Tap anywhere to close</div>
+  </div>
+</div>
+
 <!-- Admin -->
 <div id="admin">
 
@@ -771,6 +859,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <button class="admin-tab-btn" data-tab="session" onclick="setAdminTab('session')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg></span><span class="tab-label">Session</span></button>
     <button class="admin-tab-btn" data-tab="courts" onclick="setAdminTab('courts')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg></span><span class="tab-label">Courts</span></button>
     <button class="admin-tab-btn" data-tab="engagement" onclick="setAdminTab('engagement')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg></span><span class="tab-label">Engagement</span></button>
+    <button class="admin-tab-btn" data-tab="monthly" onclick="setAdminTab('monthly')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span><span class="tab-label">Monthly Draw</span></button>
     <button class="admin-tab-btn" data-tab="settings" onclick="setAdminTab('settings')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 2h-4l-.5 2.4a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 22h4l.5-2.4a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg></span><span class="tab-label">Settings</span></button>
   </div>
 
@@ -899,6 +988,39 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
   </div><!-- /engagement tab -->
 
+  <!-- ── MONTHLY LUCKY DRAW TAB ──────────────── -->
+  <div class="admin-tab-panel" data-tab="monthly">
+
+  <!-- Prizes -->
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span> Monthly Lucky Draw</div>
+    <div class="admin-helper-text">Customers earn 1 token per 4 tubes. Each month, draw 3 weighted winners.</div>
+    <div class="md-prizes" id="mdPrizes"></div>
+  </div>
+
+  <!-- Customers -->
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M16 19a4 4 0 0 0-8 0M12 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M5 20a3 3 0 0 1 3-3M19 20a3 3 0 0 0-3-3"/></svg></span> Shop Customers <span class="md-summary" id="mdPoolSummary"></span></div>
+    <div class="admin-btn-row admin-mt">
+      <input id="mdAddName" class="admin-form-input admin-flex" type="text" placeholder="Customer name..." onkeydown="if(event.key===&#x27;Enter&#x27;)addShopCustomer()">
+      <input id="mdAddPhone" class="admin-form-input" type="text" placeholder="Phone (optional)" style="max-width:130px">
+      <button class="btn btn-secondary btn-sm" onclick="addShopCustomer()">Add</button>
+    </div>
+    <div class="md-customers" id="mdCustomers"></div>
+  </div>
+
+  <!-- Draw -->
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> Draw</div>
+    <div class="admin-helper-text">Spin per customer above &mdash; each spin uses 1 token, rolls the odds, and streams live to the viewer.</div>
+    <div id="mdResult"></div>
+    <div class="admin-btn-row admin-mt"><button class="btn btn-ghost btn-sm" onclick="closeMonth()">Close month &amp; reset</button></div>
+    <div class="divider"></div>
+    <div id="mdHistory"></div>
+  </div>
+
+  </div><!-- /monthly tab -->
+
   <!-- ── SETTINGS TAB ───────────────────────── -->
   <div class="admin-tab-panel" data-tab="settings">
 
@@ -935,6 +1057,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 <button id="adminBtn" onclick="requestAdmin()" aria-label="Open admin panel">Admin</button>
 <div id="notif"></div>
 
+<script src="monthly-draw.js"></script>
 <script>
 // ── STATE ────────────────────────────────────
 let state = null;
@@ -1022,6 +1145,7 @@ async function poll() {
   state = s;
   renderViewer();
   checkForNewSpin(state.luckyDraw);
+  checkForNewMonthlySpin(state.monthlySpin);
   if (adminOpen) {
     renderSessionDateSection();
     renderPlayersSection(); // B5: keep the admin player list fresh across devices
@@ -1029,6 +1153,7 @@ async function poll() {
     renderRoundList();
     renderDrawPool();
     renderDrawResult();
+    renderMonthlyTab();
   }
 }
 
@@ -1106,6 +1231,7 @@ function renderAdmin() {
   renderCourtControls();
   renderRoundList();
   renderDrawPool();
+  renderMonthlyTab();
   document.getElementById('shareLink').textContent = window.location.origin + '/';
   renderSiteCodeSection();
 }
@@ -2171,6 +2297,312 @@ function logout() {
 // ── ADMIN TABS ────────────────────────────────
 let currentAdminTab = localStorage.getItem('adminTab') || 'session';
 
+// ── MONTHLY LUCKY DRAW ────────────────────────
+function mdTokens(t) { return window.MonthlyDraw ? MonthlyDraw.drawTokens(t) : Math.floor(Math.max(0, t || 0) / 4); }
+function mdRemaining(c) { c = c || {}; return window.MonthlyDraw ? MonthlyDraw.tokensRemaining(c) : mdTokens(c.tubes); }
+function mdRankLbl(r) { return r === 1 ? '1st' : r === 2 ? '2nd' : '3rd'; }
+
+function renderMonthlyTab() {
+  if (!state) return;
+  const custs = state.shopCustomers || [];
+  const prizes = state.drawPrizes || [];
+  const odds = state.drawOdds || {};
+  const oddsPct = [odds.first, odds.second, odds.third].map(v => +(((+v || 0) * 100).toFixed(2)));
+
+  const pe = document.getElementById('mdPrizes');
+  if (pe) pe.innerHTML = [0, 1, 2].map(i => `
+      <div class="md-prize-row">
+        <span class="md-prize-rank md-rank-${i + 1}">${i + 1}</span>
+        <input class="admin-form-input admin-flex" id="mdPrize${i}" type="text" value="${escHtml(prizes[i] || '')}" placeholder="Prize ${i + 1}">
+        <input class="admin-form-input md-odds-input" id="mdOdds${i}" type="number" min="0" max="100" step="0.1" value="${oddsPct[i]}" aria-label="Win chance percent for prize ${i + 1}">
+        <span class="md-odds-pct">% win</span>
+      </div>`).join('') +
+    `<div class="admin-btn-row admin-mt"><button class="btn btn-secondary btn-sm" onclick="saveDrawPrizes()">Save prizes &amp; odds</button></div>`;
+
+  const totalRemaining = custs.reduce((s, c) => s + mdRemaining(c), 0);
+  const sum = document.getElementById('mdPoolSummary');
+  if (sum) sum.textContent = custs.length ? `${custs.length} · ${totalRemaining} spins left` : '';
+
+  const ce = document.getElementById('mdCustomers');
+  if (ce) {
+    if (!custs.length) {
+      ce.innerHTML = '<div class="md-empty">No customers yet. Add one above.</div>';
+    } else {
+      ce.innerHTML = custs.map(c => {
+        const rem = mdRemaining(c);
+        const wins = (c.wins || []).map(w => `<span class="md-win-badge md-rank-${w.rank}" title="${escHtml(w.prize || '')}">${mdRankLbl(w.rank)}</span>`).join('');
+        return `<div class="md-cust">
+          <div class="md-cust-main">
+            <div class="md-cust-name" id="mdname_${c.id}" onclick="editShopCustomerName('${c.id}')">${escHtml(c.name)}</div>
+            ${c.phone ? `<div class="md-cust-phone">${escHtml(c.phone)}</div>` : ''}
+            ${wins ? `<div class="md-cust-wins">${wins}</div>` : ''}
+          </div>
+          <span class="md-tokens">${rem} spin${rem === 1 ? '' : 's'}</span>
+          <div class="md-tube-step">
+            <button onclick="adjustCustomerTubes('${c.id}',-1)" aria-label="Fewer tubes">&#x2212;</button>
+            <input type="number" min="0" value="${c.tubes || 0}" onblur="setCustomerTubes('${c.id}',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
+            <button onclick="adjustCustomerTubes('${c.id}',1)" aria-label="More tubes">+</button>
+          </div>
+          <button class="btn btn-primary btn-sm md-spin-btn" ${rem <= 0 ? 'disabled' : ''} onclick="spinCustomer('${c.id}')">Spin</button>
+          <button class="md-cust-del" id="mddel_${c.id}" onclick="removeShopCustomer('${c.id}',this)" title="Remove" aria-label="Remove ${escHtml(c.name)}">×</button>
+        </div>`;
+      }).join('');
+    }
+  }
+  renderMonthlyResult();
+  renderMonthlyHistory();
+}
+
+function renderMonthlyResult() {
+  const el = document.getElementById('mdResult');
+  if (!el) return;
+  const sp = state.monthlySpin;
+  if (!sp) { el.innerHTML = ''; return; }
+  const won = sp.outcome && sp.outcome !== 'none';
+  el.innerHTML = `<div class="md-lastspin ${won ? 'win' : ''}">
+    <strong>${escHtml(sp.customerName || '')}</strong> ${won
+      ? `won <span class="md-win-badge md-rank-${sp.rank}">${mdRankLbl(sp.rank)}</span> ${escHtml(sp.prize || '')}`
+      : '&mdash; no win this spin'}
+  </div>`;
+}
+
+function renderMonthlyHistory() {
+  const el = document.getElementById('mdHistory');
+  if (!el) return;
+  const hist = state.monthlyDraws || [];
+  if (!hist.length) { el.innerHTML = '<div class="md-empty">No past months yet.</div>'; return; }
+  el.innerHTML = '<div class="admin-form-label">Past months</div>' + hist.map(d => {
+    const winners = (d.results || []).flatMap(r => (r.wins || []).map(w => `${escHtml(r.name)} (${mdRankLbl(w.rank)})`));
+    return `<div class="md-history-row">
+      <div class="md-history-month">${escHtml(d.label || d.month || '')}</div>
+      <div class="md-history-winners">${winners.length ? winners.join('  ·  ') : 'No winners'}</div>
+    </div>`;
+  }).join('');
+}
+
+async function addShopCustomer() {
+  const ni = document.getElementById('mdAddName'), pi = document.getElementById('mdAddPhone');
+  const name = (ni ? ni.value : '').trim();
+  const phone = (pi ? pi.value : '').trim();
+  if (!name) return notify('Enter a customer name.', 'warn');
+  await refreshState();
+  const id = 'cust_' + clockNow().toString(36) + Math.floor(Math.random() * 1000).toString(36);
+  const shopCustomers = [...(state.shopCustomers || []), { id, name, phone, tubes: 0 }];
+  await apiPost({ shopCustomers });
+  state.shopCustomers = shopCustomers;
+  if (ni) ni.value = '';
+  if (pi) pi.value = '';
+  renderMonthlyTab();
+}
+
+async function adjustCustomerTubes(id, delta) {
+  await refreshState();
+  const shopCustomers = (state.shopCustomers || []).map(c => c.id === id ? { ...c, tubes: Math.max(0, (c.tubes || 0) + delta) } : c);
+  await apiPost({ shopCustomers });
+  state.shopCustomers = shopCustomers;
+  renderMonthlyTab();
+}
+
+async function setCustomerTubes(id, val) {
+  const n = Math.max(0, parseInt(val, 10) || 0);
+  await refreshState();
+  const shopCustomers = (state.shopCustomers || []).map(c => c.id === id ? { ...c, tubes: n } : c);
+  await apiPost({ shopCustomers });
+  state.shopCustomers = shopCustomers;
+  renderMonthlyTab();
+}
+
+function editShopCustomerName(id) {
+  const c = (state.shopCustomers || []).find(x => x.id === id);
+  const el = document.getElementById('mdname_' + id);
+  if (!c || !el) return;
+  el.outerHTML = `<input class="admin-form-input" id="mdnameinput_${id}" type="text" style="max-width:150px" value="${escHtml(c.name)}"
+    onblur="saveShopCustomerName('${id}',this.value)" onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape')renderMonthlyTab()">`;
+  setTimeout(() => { const i = document.getElementById('mdnameinput_' + id); if (i) { i.focus(); i.select(); } }, 20);
+}
+
+async function saveShopCustomerName(id, name) {
+  name = (name || '').trim();
+  if (!name) { renderMonthlyTab(); return; }
+  await refreshState();
+  const shopCustomers = (state.shopCustomers || []).map(c => c.id === id ? { ...c, name } : c);
+  await apiPost({ shopCustomers });
+  state.shopCustomers = shopCustomers;
+  renderMonthlyTab();
+}
+
+async function removeShopCustomer(id, btn) {
+  if (btn.dataset.confirmed !== 'yes') {
+    btn.textContent = '?'; btn.dataset.confirmed = 'yes'; btn.classList.add('confirm');
+    setTimeout(() => { if (btn.dataset.confirmed === 'yes') { btn.textContent = '×'; btn.dataset.confirmed = ''; btn.classList.remove('confirm'); } }, 3000);
+    return;
+  }
+  await refreshState();
+  const shopCustomers = (state.shopCustomers || []).filter(c => c.id !== id);
+  await apiPost({ shopCustomers });
+  state.shopCustomers = shopCustomers;
+  renderMonthlyTab();
+}
+
+async function saveDrawPrizes() {
+  const drawPrizes = [0, 1, 2].map(i => { const el = document.getElementById('mdPrize' + i); return el ? el.value.trim() : ''; });
+  const pct = i => { const el = document.getElementById('mdOdds' + i); const n = el ? parseFloat(el.value) : 0; return Number.isFinite(n) && n > 0 ? Math.min(100, n) / 100 : 0; };
+  const drawOdds = { first: pct(0), second: pct(1), third: pct(2) };
+  if (drawOdds.first + drawOdds.second + drawOdds.third > 1) return notify('Win chances add up to more than 100%.', 'warn');
+  await refreshState();
+  await apiPost({ drawPrizes, drawOdds });
+  state.drawPrizes = drawPrizes;
+  state.drawOdds = drawOdds;
+  renderMonthlyTab();
+  notify('Prizes & odds saved.');
+}
+
+async function spinCustomer(id) {
+  await refreshState();
+  const c = (state.shopCustomers || []).find(x => x.id === id);
+  if (!c) return;
+  if (mdRemaining(c) <= 0) return notify('No spins left for this customer.', 'warn');
+  const RANK = { first: 1, second: 2, third: 3 };
+  const prizes = state.drawPrizes || [];
+  const outcome = window.MonthlyDraw ? MonthlyDraw.spinOutcome(state.drawOdds || {}) : 'none';
+  const win = outcome !== 'none' ? { rank: RANK[outcome], prize: prizes[RANK[outcome] - 1] || '', at: clockNow() } : null;
+  const shopCustomers = (state.shopCustomers || []).map(x => x.id === id
+    ? { ...x, tubes: Math.max(0, (x.tubes || 0) - 4), wins: win ? [...(x.wins || []), win] : (x.wins || []) }
+    : x);
+  const monthlySpin = {
+    id: clockNow() + '_' + Math.floor(Math.random() * 1e6).toString(36),
+    customerName: c.name,
+    outcome,
+    rank: win ? win.rank : 0,
+    prize: win ? win.prize : '',
+    startAt: clockNow() + 600,
+    durationMs: 3800,
+  };
+  await apiPost({ shopCustomers, monthlySpin });
+  state.shopCustomers = shopCustomers;
+  state.monthlySpin = monthlySpin;
+  renderMonthlyTab();
+  if (typeof checkForNewMonthlySpin === 'function') checkForNewMonthlySpin(monthlySpin);
+}
+
+async function closeMonth() {
+  await refreshState();
+  const custs = state.shopCustomers || [];
+  const results = custs.filter(c => (c.wins || []).length).map(c => ({ name: c.name, wins: c.wins }));
+  const d = new Date();
+  const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  const label = d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  const archived = { month, label, at: clockNow(), results };
+  const monthlyDraws = [archived, ...(state.monthlyDraws || [])].slice(0, 24);
+  const shopCustomers = custs.map(c => ({ ...c, wins: [] }));
+  await apiPost({ monthlyDraws, shopCustomers, monthlySpin: null });
+  state.monthlyDraws = monthlyDraws;
+  state.shopCustomers = shopCustomers;
+  state.monthlySpin = null;
+  renderMonthlyTab();
+  notify('Month closed — wins archived. Unused tube balances carry over.');
+}
+
+// ── MONTHLY SPIN ANIMATION (viewer-facing slot machine) ──
+let lastMonthlySpinId = null;
+let mdSpinHideTimer = null, mdSpinRevealTimer = null;
+const MD_SPIN_GRACE_MS = 15000;
+const MD_REEL_SYMBOLS = ['1', '2', '3', '0', '0', '1', '2', '3', '0', '0'];
+const MD_CELL = 76, MD_STRIP = 28;
+
+function mdCellHTML(s) { return `<div class="md-reel-cell md-cell-${s}">${s === '0' ? '&mdash;' : s}</div>`; }
+
+function checkForNewMonthlySpin(sp) {
+  if (!sp || !sp.id) return;
+  if (sp.id === lastMonthlySpinId) return;
+  const now = clockNow();
+  const finishedAt = (sp.startAt || now) + (sp.durationMs || 3800);
+  if (now > finishedAt + MD_SPIN_GRACE_MS) { lastMonthlySpinId = sp.id; return; } // stale — consume silently
+  lastMonthlySpinId = sp.id;
+  showMonthlySpin(sp);
+}
+
+function showMonthlySpin(sp) {
+  const ov = document.getElementById('mdSpinOverlay');
+  if (!ov) return;
+  clearTimeout(mdSpinHideTimer); clearTimeout(mdSpinRevealTimer);
+  const won = sp.outcome && sp.outcome !== 'none';
+  const target = won ? String(sp.rank) : '0';
+  document.getElementById('mdSpinName').textContent = sp.customerName || '';
+  const resEl = document.getElementById('mdSpinResult');
+  resEl.textContent = ''; resEl.className = 'md-spin-result';
+  const conf = document.getElementById('mdConfetti'); if (conf) conf.innerHTML = '';
+  const reelsEl = document.getElementById('mdReels');
+  reelsEl.innerHTML = '';
+  const inners = [0, 1, 2].map(() => {
+    const reel = document.createElement('div'); reel.className = 'md-reel';
+    const inner = document.createElement('div'); inner.className = 'md-reel-inner';
+    let h = '';
+    for (let k = 0; k < MD_STRIP; k++) h += mdCellHTML(MD_REEL_SYMBOLS[Math.floor(Math.random() * MD_REEL_SYMBOLS.length)]);
+    h += mdCellHTML(target);
+    inner.innerHTML = h;
+    reel.appendChild(inner); reelsEl.appendChild(reel);
+    return inner;
+  });
+  ov.classList.add('active');
+
+  const reveal = () => {
+    resEl.className = 'md-spin-result' + (won ? ' win' : '');
+    resEl.innerHTML = won
+      ? `Winner! <span class="md-win-badge md-rank-${sp.rank}">${mdRankLbl(sp.rank)}</span><div class="md-spin-prize">${escHtml(sp.prize || '')}</div>`
+      : 'No win this spin';
+    if (won) launchConfetti('mdConfetti');
+  };
+
+  const now = clockNow();
+  const instant = prefersReducedMotion() || now >= (sp.startAt || now) + (sp.durationMs || 3800);
+  if (instant) {
+    inners.forEach(inner => { inner.style.transform = `translateY(-${MD_STRIP * MD_CELL}px)`; });
+    reveal();
+    mdSpinHideTimer = setTimeout(hideMonthlySpin, 5000);
+  } else {
+    inners.forEach((inner, i) => {
+      inner.style.transition = 'none';
+      inner.style.transform = 'translateY(0)';
+      void inner.offsetWidth; // reflow so the transition runs
+      const dur = 2200 + i * 650;
+      inner.style.transition = `transform ${dur}ms cubic-bezier(.1,.72,.2,1)`;
+      inner.style.transform = `translateY(-${MD_STRIP * MD_CELL}px)`;
+    });
+    const total = 2200 + 2 * 650;
+    mdSpinRevealTimer = setTimeout(reveal, total + 120);
+    mdSpinHideTimer = setTimeout(hideMonthlySpin, total + 6000);
+  }
+}
+
+function hideMonthlySpin() {
+  const ov = document.getElementById('mdSpinOverlay');
+  if (ov) ov.classList.remove('active');
+  clearTimeout(mdSpinHideTimer); clearTimeout(mdSpinRevealTimer);
+  const conf = document.getElementById('mdConfetti'); if (conf) conf.innerHTML = '';
+}
+
+// ── MONTHLY PRIZE DRAW BOARD (viewer-facing) ──
+function openMdBoard() { renderMdBoard(); const m = document.getElementById('mdBoardModal'); if (m) m.classList.add('open'); }
+function closeMdBoard() { const m = document.getElementById('mdBoardModal'); if (m) m.classList.remove('open'); }
+
+function renderMdBoard() {
+  const el = document.getElementById('mdBoardBody');
+  if (!el) return;
+  const custs = (state && state.shopCustomers) || [];
+  if (!custs.length) { el.innerHTML = '<div class="mdb-empty">No entries yet.</div>'; return; }
+  const sorted = [...custs].sort((a, b) => mdRemaining(b) - mdRemaining(a));
+  el.innerHTML = '<div class="mdb-sub">1 spin for every 4 tubes purchased</div>' + sorted.map(c => {
+    const rem = mdRemaining(c);
+    const wins = (c.wins || []).map(w => `<span class="md-win-badge md-rank-${w.rank}" title="${escHtml(w.prize || '')}">${mdRankLbl(w.rank)}</span>`).join('');
+    return `<div class="mdb-row">
+      <span class="mdb-name">${escHtml(c.name)}</span>
+      ${wins ? `<span class="mdb-wins">${wins}</span>` : ''}
+      <span class="mdb-spins">${rem} spin${rem === 1 ? '' : 's'} left</span>
+    </div>`;
+  }).join('');
+}
+
 function setAdminTab(name) {
   currentAdminTab = name;
   localStorage.setItem('adminTab', name);
@@ -2180,6 +2612,7 @@ function setAdminTab(name) {
   document.querySelectorAll('#admin .admin-tab-panel').forEach(panel => {
     panel.classList.toggle('active', panel.dataset.tab === name);
   });
+  if (name === 'monthly') renderMonthlyTab();
 }
 
 // ── NAVIGATION ───────────────────────────────
@@ -2627,9 +3060,9 @@ function drawWheelAtAngle(spin, angle) {
   ctx.strokeStyle = '#0a0c0f'; ctx.lineWidth = 2; ctx.stroke();
 }
 
-function launchConfetti() {
+function launchConfetti(containerId) {
   if (prefersReducedMotion()) return;
-  const container = document.getElementById('confettiContainer');
+  const container = document.getElementById(containerId || 'confettiContainer');
   if (!container) return;
   container.innerHTML = '';
   const colors = ['#f0b429','#16a55a','#388bfd','#8957e5','#e05c5c','#22c66e','#58a6ff'];

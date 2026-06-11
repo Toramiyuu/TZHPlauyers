@@ -60,6 +60,11 @@ const DEFAULT_STATE = {
   sessionDate: todayISO(),
   sessions: {},
   luckyDraw: { entries: [], spin: null, lastWinner: null, history: [] },
+  shopCustomers: [],
+  monthlyDraws: [],
+  drawPrizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'],
+  drawOdds: { first: 0.01, second: 0.03, third: 0.05 },
+  monthlySpin: null,
 };
 
 module.exports = async function handler(req, res) {
@@ -78,6 +83,11 @@ module.exports = async function handler(req, res) {
       if (!current.luckyDraw.history) current.luckyDraw.history = [];
       if (!current.roster) current.roster = DEFAULT_ROSTER;
       if (current.roster) current.roster = current.roster.map(r => r.points !== undefined ? r : { ...r, points: 0 });
+      if (!Array.isArray(current.shopCustomers)) current.shopCustomers = [];
+      if (!Array.isArray(current.monthlyDraws)) current.monthlyDraws = [];
+      if (!Array.isArray(current.drawPrizes)) current.drawPrizes = ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'];
+      if (!current.drawOdds || typeof current.drawOdds !== 'object') current.drawOdds = { first: 0.01, second: 0.03, third: 0.05 };
+      if (current.monthlySpin === undefined) current.monthlySpin = null;
       if (current.siteCode) {
         const provided = (req.query && req.query.code) ? req.query.code : '';
         if (provided !== current.siteCode) {
