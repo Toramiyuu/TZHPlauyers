@@ -7,57 +7,76 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --green:#1a9e5c;--green-light:#22c66e;--dark:#0d1117;--card:#161b22;
-  --card2:#1c2128;--border:#30363d;--border2:#3d444d;--text:#e6edf3;
-  --muted:#8b949e;--accent:#f0b429;--red:#da3633;--blue:#388bfd;
+  /* ── brand ─── */
+  --green:#16a55a;--green-light:#2bc873;--green-dark:#0e7e43;
+  --green-tint:rgba(22,165,90,.10);--green-line:rgba(22,165,90,.28);
+  /* ── neutral surfaces (layered elevation) ─── */
+  --dark:#0a0c0f;--card:#13171d;--card2:#1a1f27;--elev:#222831;
+  --border:#242b34;--border2:#343c47;
+  /* ── text ─── */
+  --text:#f3f6fa;--text-2:#c3ccd6;--muted:#8b95a3;
+  /* ── semantic ─── */
+  --accent:#f0b429;--accent-line:rgba(240,180,41,.3);
+  --red:#e5484d;--blue:#4f97ff;--warn:#cd7d2c;
+  /* ── design tokens ─── */
+  --sp-xs:4px;--sp-sm:8px;--sp-md:16px;--sp-lg:24px;--sp-xl:32px;--sp-2xl:48px;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:18px;--radius-xl:24px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.45);--shadow-md:0 8px 24px rgba(0,0,0,.4);--shadow-lg:0 24px 64px rgba(0,0,0,.6);
+  --fs-xs:12px;--fs-sm:13px;--fs-base:14px;--fs-md:16px;--fs-lg:19px;--fs-xl:23px;--fs-2xl:32px;
+  --transition:background-color .18s ease,border-color .18s ease,color .18s ease,opacity .18s ease,transform .18s ease,box-shadow .18s ease;
+  --admin-bg:#0d1a12;
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--dark);color:var(--text);min-height:100vh}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;font-size:var(--fs-base);background:var(--dark);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;letter-spacing:-.01em;line-height:1.5}
+/* clean inline icons */
+.ic{width:1em;height:1em;display:inline-block;vertical-align:-.125em;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 /* ── VIEWER ─────────────────────────────── */
-#viewer{display:flex;flex-direction:column;min-height:100vh;padding:20px;gap:16px}
-.viewer-header{text-align:center}
-.viewer-header h1{font-size:clamp(18px,4vw,34px);color:var(--green-light);letter-spacing:2px;font-weight:800}
-.round-badge{display:inline-block;margin-top:6px;background:var(--green);color:#fff;padding:4px 20px;border-radius:100px;font-size:clamp(13px,2vw,17px);font-weight:600;letter-spacing:1px}
-#courtsDisplay{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;flex:1}
-.court-card{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:24px 16px;display:flex;flex-direction:column;align-items:center;gap:14px;position:relative;overflow:hidden}
-.court-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--green)}
-.court-label{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:3px;font-weight:600}
-.team-block{width:100%;background:rgba(26,158,92,.08);border:1px solid rgba(26,158,92,.2);border-radius:12px;padding:12px 16px}
-.team-players{display:flex;justify-content:center;gap:20px;align-items:flex-start;flex-wrap:wrap}
-.player-slot{display:flex;flex-direction:column;align-items:center;gap:6px;max-width:110px}
-.avatar{width:72px;height:72px;border-radius:50%;overflow:hidden;border:3px solid var(--green);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0;object-fit:cover}
-.player-slot .pname{font-size:clamp(11px,1.4vw,14px);font-weight:600;text-align:center;word-break:break-word;line-height:1.3}
-.vs-badge{font-size:clamp(16px,2.5vw,26px);font-weight:900;color:var(--accent);letter-spacing:2px}
-.viewer-footer{text-align:center;color:var(--muted);font-size:13px;padding-bottom:4px}
-.status-dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);display:inline-block;animation:pulse 1.5s infinite;margin-right:6px}
+#viewer{display:flex;flex-direction:column;min-height:100vh;padding:clamp(20px,3vw,40px);gap:clamp(18px,2.5vw,32px)}
+.viewer-header{text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.viewer-header h1{font-size:clamp(22px,4vw,40px);color:var(--text);letter-spacing:-.02em;font-weight:700}
+.viewer-header h1 .vh-accent{color:var(--green-light)}
+.round-badge{display:inline-block;background:var(--green-tint);color:var(--green-light);padding:5px 16px;border-radius:100px;font-size:clamp(12px,1.6vw,15px);font-weight:600;letter-spacing:.02em;border:1px solid var(--green-line)}
+#courtsDisplay{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:clamp(16px,2vw,24px);flex:1;max-width:1160px;width:100%;margin:0 auto;align-content:start}
+.court-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:clamp(20px,2.4vw,34px) clamp(16px,2vw,28px);display:flex;flex-direction:column;align-items:center;gap:clamp(12px,1.5vw,20px);position:relative;overflow:hidden;box-shadow:var(--shadow-sm)}
+.court-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--green-light))}
+.court-label{font-size:clamp(10px,1vw,13px);color:var(--muted);text-transform:uppercase;letter-spacing:.18em;font-weight:600}
+.team-block{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px}
+.team-players{display:flex;justify-content:center;gap:clamp(16px,2vw,28px);align-items:flex-start;flex-wrap:wrap}
+.player-slot{display:flex;flex-direction:column;align-items:center;gap:8px;max-width:120px}
+.avatar{width:clamp(72px,7vw,104px);height:clamp(72px,7vw,104px);border-radius:50%;overflow:hidden;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0;object-fit:cover;font-size:clamp(22px,2.1vw,30px);box-shadow:var(--shadow-sm)}
+.player-slot .pname{font-size:clamp(13px,1.5vw,18px);font-weight:600;text-align:center;word-break:break-word;line-height:1.3;letter-spacing:-.01em}
+.vs-badge{font-size:clamp(13px,1.4vw,16px);font-weight:700;color:var(--muted);letter-spacing:.22em}
+.viewer-footer{text-align:center;color:var(--muted);font-size:var(--fs-sm);padding-bottom:4px;display:flex;align-items:center;justify-content:center;gap:6px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green-light);box-shadow:0 0 8px var(--green-light);display:inline-block;animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* ── ADMIN ──────────────────────────────── */
-#admin{display:none;max-width:980px;margin:0 auto;padding:24px;gap:20px;flex-direction:column}
+#admin{display:none;max-width:1400px;margin:0 auto;padding:24px 32px;gap:20px;flex-direction:column}
 .admin-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:14px}
 .admin-header h1{font-size:20px;color:var(--green-light);font-weight:700}
-.btn{padding:7px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s,background-color .15s;transform:scale(1);display:inline-flex;align-items:center;justify-content:center;gap:5px}
-.btn:active{transition:none}
-.btn-primary{background:var(--green);color:#fff;box-shadow:inset 0px -3px 0px 0px #0a5c33,0px 4px 14px 0px rgba(26,158,92,.45),0px 1px 3px rgba(0,0,0,.3)}
-.btn-primary:hover{background:var(--green-light);box-shadow:inset 0px -3px 0px 0px #0a5c33,0px 6px 20px 0px rgba(26,158,92,.6),0px 1px 3px rgba(0,0,0,.3);transform:scale(1.03)}
-.btn-primary:active{background:#0d7a3e;box-shadow:inset 0px -1px 0px 0px #0a5c33,0px 1px 4px rgba(26,158,92,.3);transform:scale(0.97)}
-.btn-secondary{background:var(--card2);color:var(--text);border:1px solid var(--border2);box-shadow:inset 0px -3px 0px 0px rgba(0,0,0,.5),0px 2px 8px rgba(0,0,0,.35)}
-.btn-secondary:hover{border-color:var(--green);color:var(--green-light);box-shadow:inset 0px -3px 0px 0px rgba(0,0,0,.5),0px 4px 12px rgba(0,0,0,.4);transform:scale(1.03)}
-.btn-secondary:active{box-shadow:inset 0px -1px 0px 0px rgba(0,0,0,.5),0px 1px 3px rgba(0,0,0,.3);transform:scale(0.97)}
-.btn-accent{background:var(--accent);color:#000;box-shadow:inset 0px -3px 0px 0px #8c6200,0px 4px 14px rgba(240,180,41,.5),0px 1px 3px rgba(0,0,0,.3)}
-.btn-accent:hover{background:#e6a020;box-shadow:inset 0px -3px 0px 0px #8c6200,0px 6px 20px rgba(240,180,41,.65);transform:scale(1.03)}
-.btn-accent:active{box-shadow:inset 0px -1px 0px 0px #8c6200,0px 1px 4px rgba(240,180,41,.3);transform:scale(0.97)}
-.btn-danger{background:var(--red);color:#fff;font-size:12px;padding:4px 10px;box-shadow:inset 0px -3px 0px 0px #7a1515,0px 4px 14px rgba(218,54,51,.45),0px 1px 3px rgba(0,0,0,.3)}
-.btn-danger:hover{background:#f14a44;box-shadow:inset 0px -3px 0px 0px #7a1515,0px 6px 20px rgba(218,54,51,.6);transform:scale(1.03)}
-.btn-danger:active{background:#b02020;box-shadow:inset 0px -1px 0px 0px #5c0f0f,0px 1px 4px rgba(218,54,51,.3);transform:scale(0.97)}
+.btn{padding:9px 16px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-size:var(--fs-base);font-weight:600;transition:var(--transition);display:inline-flex;align-items:center;justify-content:center;gap:6px;letter-spacing:-.005em;line-height:1}
+.btn .ic{width:15px;height:15px}
+.btn:active{transform:translateY(.5px)}
+.btn-primary{background:var(--green);color:#fff;box-shadow:var(--shadow-sm)}
+.btn-primary:hover{background:var(--green-light)}
+.btn-primary:active{background:var(--green-dark)}
+.btn-secondary{background:var(--card2);color:var(--text);border:1px solid var(--border2)}
+.btn-secondary:hover{border-color:var(--green);color:var(--green-light)}
+.btn-secondary:active{background:#111619}
+.btn-accent{background:var(--accent);color:#000}
+.btn-accent:hover{background:#e6a020}
+.btn-accent:active{background:#c88a10}
+.btn-danger{background:var(--red);color:#fff;font-size:var(--fs-sm);padding:5px 11px}
+.btn-danger:hover{background:#f14a44}
+.btn-danger:active{background:#b02020}
 .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
-.btn-ghost:hover{color:var(--text);border-color:var(--border2);background:var(--card2);box-shadow:inset 0px -2px 0px 0px rgba(0,0,0,.4);transform:scale(1.02)}
-.btn-ghost:active{transform:scale(0.97)}
-.btn-sm{padding:4px 11px;font-size:12px}
-.section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
-.section-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:16px;font-weight:600;display:flex;align-items:center;gap:6px}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2);background:var(--card2)}
+.btn-ghost:active{background:var(--card)}
+.btn-sm{padding:7px 14px;font-size:var(--fs-sm)}
+.section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--sp-md)}
+.section-title{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:var(--sp-md);font-weight:600;display:flex;align-items:center;gap:6px}
 .section-title span{font-size:16px}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row{display:flex;gap:var(--sp-sm);align-items:center;flex-wrap:wrap}
 
 /* ── PLAYER GRID ─────────────────────────── */
 #playerCards{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:14px}
@@ -81,27 +100,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .quick-nav-label{font-size:13px;color:var(--muted)}
 .quick-nav-center{display:flex;align-items:center;gap:8px;flex:1;justify-content:center}
 .current-round-pill{background:var(--green);color:#fff;padding:5px 16px;border-radius:100px;font-size:13px;font-weight:700;letter-spacing:.5px;white-space:nowrap}
-.nav-btn{background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
+.nav-btn{background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:7px 16px;border-radius:8px;cursor:pointer;font-size:var(--fs-base);font-weight:600;transition:var(--transition)}
 .nav-btn:hover:not(:disabled){border-color:var(--green);color:var(--green-light)}
 .nav-btn:disabled{opacity:.3;cursor:not-allowed}
 
-/* ── ROUNDS LIST ─────────────────────────── */
-#roundList{margin-top:8px;display:flex;flex-direction:column;gap:3px}
-.round-row{background:var(--dark);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color .15s}
-.round-row.live{border-color:var(--green);background:rgba(26,158,92,.04)}
-.round-row-header{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;user-select:none}
-.round-row-header:hover{background:rgba(255,255,255,.02)}
-.round-live-dot{width:8px;height:8px;border-radius:50%;background:var(--border2);flex-shrink:0}
+/* ── ROUNDS LIST (table style) ───────────── */
+.round-list-wrap{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:8px}
+.round-list-header{display:flex;align-items:center;padding:6px 12px;background:var(--card2);border-bottom:1px solid var(--border);font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;gap:10px}
+.rl-hdr-round{min-width:83px;flex-shrink:0}
+.rl-hdr-match{flex:1}
+#roundList{display:flex;flex-direction:column}
+.round-row{background:var(--dark);border:none;border-bottom:1px solid var(--border);border-left:3px solid transparent;overflow:hidden;transition:border-left-color .15s,background .15s}
+.round-row:last-child{border-bottom:none}
+.round-row.live{border-left-color:var(--green);background:rgba(26,158,92,.04)}
+.round-row-header{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;user-select:none}
+.round-row-header:hover{background:rgba(255,255,255,.03)}
+.round-live-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0}
 .round-row.live .round-live-dot{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 1.5s infinite}
-.rl{font-size:13px;font-weight:600;min-width:72px}
-.rsummary{font-size:12px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.live-badge{font-size:11px;font-weight:700;color:var(--green);background:rgba(26,158,92,.15);padding:2px 8px;border-radius:100px;white-space:nowrap}
+.rl{font-size:var(--fs-base);font-weight:600;min-width:73px;flex-shrink:0}
+.rsummary{font-size:var(--fs-sm);color:#c9d1d9;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live-badge{font-size:var(--fs-xs);font-weight:700;color:var(--green);background:rgba(26,158,92,.15);padding:2px 8px;border-radius:100px;white-space:nowrap;flex-shrink:0}
 .round-editor{display:none;border-top:1px solid var(--border);padding:14px 12px;background:#0a0e14}
 .round-row.expanded .round-editor{display:block}
+/* Demote "Set Live" to quiet outline in round rows; accent only on the live row */
+.round-row-header .rl-set-live{background:transparent;color:var(--muted);border:1px solid var(--border);font-size:var(--fs-xs)}
+.round-row-header .rl-set-live:hover{color:var(--text);border-color:var(--border2);background:var(--card2)}
+.round-row.live .round-row-header .rl-set-live{color:var(--green-light);border-color:rgba(26,158,92,.35);background:rgba(26,158,92,.08)}
 .court-editor{margin-bottom:14px}
-.court-editor h4{font-size:11px;color:var(--green-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:600}
+.court-editor h4{font-size:var(--fs-xs);color:var(--green-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:600}
 .selectors-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.selectors-row select{background:var(--card);border:1px solid var(--border2);color:var(--text);padding:5px 8px;border-radius:6px;font-size:12px;outline:none;max-width:140px;cursor:pointer}
+.selectors-row select{background:var(--card);border:1px solid var(--border2);color:var(--text);padding:6px 8px;border-radius:var(--radius-sm);font-size:var(--fs-sm);outline:none;max-width:140px;cursor:pointer;font-family:inherit}
 .selectors-row select:focus{border-color:var(--green)}
 .vs-small{font-size:11px;color:var(--accent);font-weight:700;padding:0 4px}
 .amp{color:var(--muted);font-size:11px}
@@ -112,52 +140,58 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .resting-avatars{display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap}
 .rest-chip{display:flex;align-items:center;gap:5px;background:var(--dark);border:1px solid var(--border);border-radius:100px;padding:3px 8px 3px 4px;font-size:11px}
 
-/* ── BULK IMPORT ─────────────────────────── */
-#bulkModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:center;justify-content:center}
-#bulkModal.open{display:flex}
-.bulk-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:26px 24px;width:380px;max-width:94vw}
-.bulk-box h2{font-size:16px;margin-bottom:6px}
-.bulk-box p{font-size:12px;color:var(--muted);margin-bottom:12px}
-.bulk-box textarea{width:100%;height:160px;background:var(--dark);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:13px;outline:none;resize:vertical;font-family:inherit;line-height:1.6}
-.bulk-box textarea:focus{border-color:var(--green)}
-.bulk-actions{display:flex;gap:8px;margin-top:12px;justify-content:flex-end}
+/* ── UNIFIED MODALS ──────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);z-index:300;align-items:center;justify-content:center;padding:var(--sp-md)}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--sp-lg);width:400px;max-width:94vw;box-shadow:var(--shadow-lg)}
+.modal-box h2{font-size:var(--fs-lg);font-weight:700;color:var(--text);margin-bottom:var(--sp-md)}
+.modal-desc{font-size:var(--fs-sm);color:var(--muted);margin-bottom:var(--sp-md)}
+.modal-input{width:100%;background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:10px 12px;border-radius:var(--radius-sm);font-size:var(--fs-md);outline:none;font-family:inherit;transition:border-color .15s;display:block;box-sizing:border-box}
+.modal-input:focus{border-color:var(--green)}
+.modal-textarea{width:100%;height:160px;background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:10px 12px;border-radius:var(--radius-sm);font-size:var(--fs-base);outline:none;resize:vertical;font-family:inherit;line-height:1.6;transition:border-color .15s;box-sizing:border-box}
+.modal-textarea:focus{border-color:var(--green)}
+.modal-actions{display:flex;gap:var(--sp-sm);margin-top:var(--sp-md);justify-content:flex-end}
+.modal-photo-wrap{cursor:pointer;display:inline-block;margin-bottom:var(--sp-xs)}
+.modal-photo-hint{font-size:var(--fs-xs);color:var(--muted);margin-bottom:var(--sp-md);display:block}
+.modal-center{text-align:center}
+.pw-error{color:var(--red);font-size:var(--fs-sm);margin-top:6px;display:none}
+/* History modal nav helpers */
+.hist-nav{display:flex;align-items:center;justify-content:space-between;margin:14px 0 18px}
+.hist-nav-btns{display:flex;gap:8px}
 
 /* ── COURTS CTRL ─────────────────────────── */
 .court-ctrl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:10px}
 .court-ctrl-card{background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px}
-.cc-label{font-size:12px;color:var(--green-light);font-weight:600;white-space:nowrap}
-.cc-round{flex:1;text-align:center;font-size:13px;font-weight:600;color:var(--text)}
-.cc-round small{display:block;font-size:10px;color:var(--muted);font-weight:400}
+.cc-label{font-size:var(--fs-sm);color:var(--green-light);font-weight:600;white-space:nowrap}
+.cc-round{flex:1;text-align:center;font-size:var(--fs-base);font-weight:600;color:var(--text)}
+.cc-round small{display:block;font-size:var(--fs-xs);color:var(--muted);font-weight:400}
 .court-round-tag{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
 
 /* ── MISC ────────────────────────────────── */
 .gen-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
-.gen-row label{font-size:13px;color:var(--muted)}
-.gen-row input[type=number]{background:var(--dark);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:13px;width:64px;outline:none}
+.gen-row label{font-size:var(--fs-base);color:var(--muted)}
+.gen-row input[type=number]{background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:7px 10px;border-radius:var(--radius-sm);font-size:var(--fs-base);width:70px;outline:none;font-family:inherit}
 .gen-row input[type=number]:focus{border-color:var(--green)}
 .link-box{background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:monospace;font-size:12px;color:var(--green-light);word-break:break-all;margin-top:6px}
-#adminBtn{position:fixed;bottom:18px;right:18px;background:var(--card);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;transition:all .2s;z-index:100;font-family:inherit}
-#adminBtn:hover{color:var(--text);border-color:var(--green)}
-#pwModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:center;justify-content:center}
-.pw-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:30px 28px;width:320px;max-width:92vw}
-.pw-box h2{font-size:17px;margin-bottom:16px;color:var(--text)}
-.pw-box input{width:100%;background:var(--dark);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:15px;outline:none;letter-spacing:2px}
-.pw-box input:focus{border-color:var(--green)}
-.pw-error{color:#f85149;font-size:12px;margin-top:6px;display:none}
-.pw-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
-#notif{position:fixed;top:18px;right:18px;background:var(--green);color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;z-index:400;pointer-events:none}
-#notif.show{opacity:1}
+#adminBtn{position:fixed;bottom:18px;right:18px;background:var(--card);border:1px solid var(--border2);color:var(--text);padding:10px 18px;border-radius:var(--radius-md);cursor:pointer;font-size:var(--fs-base);font-weight:600;transition:var(--transition);z-index:100;font-family:inherit;min-height:40px;display:inline-flex;align-items:center}
+#adminBtn:hover{background:var(--card2);border-color:var(--green)}
+#adminBtn:active{background:var(--dark)}
+#pwModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);z-index:300;align-items:center;justify-content:center;padding:var(--sp-md)}
+#pwModal.open{display:flex}
+#notif{position:fixed;top:18px;right:18px;background:var(--green);color:#fff;padding:11px 18px;border-radius:var(--radius-md);font-size:var(--fs-sm);font-weight:600;opacity:0;transform:translateY(-8px);transition:opacity .25s ease,transform .25s ease;z-index:400;pointer-events:none;box-shadow:var(--shadow-md);letter-spacing:-.005em}
+#notif.show{opacity:1;transform:none}
+#notif.notif-warn{background:var(--warn)}
 .divider{height:1px;background:var(--border);margin:14px 0}
 input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
 /* ── ROSTER GRID ─────────────────────────── */
 .roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:10px}
-.rc{background:var(--dark);border:2px solid var(--border);border-radius:10px;padding:10px 8px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;cursor:pointer;transition:border-color .15s,background .15s;user-select:none}
-.rc:hover{border-color:var(--border2)}
-.rc.in-session{border-color:var(--green);background:rgba(26,158,92,.07)}
+.rc{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;cursor:pointer;transition:var(--transition);user-select:none}
+.rc:hover{border-color:var(--border2);background:var(--elev)}
+.rc.in-session{border-color:var(--green-line);background:var(--green-tint)}
 .rc-check{position:absolute;top:5px;left:6px;width:16px;height:16px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;opacity:0;pointer-events:none}
 .rc.in-session .rc-check{opacity:1}
-.rc-del{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:transparent;border:none;color:var(--border2);cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .15s}
+.rc-del{position:absolute;top:2px;right:2px;width:24px;height:24px;border-radius:50%;background:transparent;border:none;color:var(--border2);cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .15s}
 .rc:hover .rc-del{opacity:1}
 .rc-del:hover,.rc-del.confirm{background:var(--red);color:#fff;opacity:1}
 .rc-photo{position:relative;pointer-events:none}
@@ -165,11 +199,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .rc:hover .rc-photo{pointer-events:auto}
 .rc-photo-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:14px}
 .rc-photo:hover .rc-photo-overlay{display:flex}
-.rc-name{font-size:12px;font-weight:500;text-align:center;word-break:break-word;line-height:1.3;color:var(--text);width:100%;padding:0 2px;border-radius:4px}
+.rc-name{font-size:var(--fs-xs);font-weight:500;text-align:center;word-break:break-word;line-height:1.3;color:var(--text);width:100%;padding:0 2px;border-radius:4px}
 .rc-name:hover{background:rgba(255,255,255,.05)}
 .rc-name-input{background:transparent;border:none;border-bottom:1px solid var(--green);color:var(--text);text-align:center;font-size:12px;font-weight:500;width:100%;outline:none;padding:2px 0}
 .guest-strip{margin-top:6px;padding:10px 12px;background:var(--dark);border:1px solid var(--border);border-radius:8px}
-.guest-strip-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;font-weight:600}
+.guest-strip-label{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;font-weight:600}
 .guest-chips{display:flex;gap:6px;flex-wrap:wrap}
 .guest-chip{display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border2);border-radius:100px;padding:4px 8px 4px 10px;font-size:12px;color:var(--text)}
 .guest-chip button{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:0 2px}
@@ -178,22 +212,22 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 /* ── HISTORY MODAL ───────────────────────── */
 #historyModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:250;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
 #historyModal.open{display:flex}
-.history-box{background:linear-gradient(135deg,rgba(26,158,92,0.07) 0%,rgba(8,12,20,0.82) 60%);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid rgba(255,255,255,0.1);box-shadow:0 8px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,0.07);border-radius:24px;width:100%;max-width:480px;padding:24px;margin:auto}
+.history-box{background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-lg);border-radius:var(--radius-xl);width:100%;max-width:480px;padding:24px;margin:auto}
 .history-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.history-header h2{font-size:14px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-.history-close{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:3px 9px;border-radius:8px;transition:all .15s}
-.history-close:hover{color:var(--text);background:rgba(255,255,255,.12)}
-.cal-month-big{font-size:clamp(28px,6vw,38px);font-weight:700;letter-spacing:-.02em;color:var(--text)}
-.cal-chevron{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:var(--text);width:30px;height:30px;border-radius:50%;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;line-height:1}
-.cal-chevron:hover{background:rgba(255,255,255,.15)}
+.history-header h2{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
+.history-close{background:var(--card2);border:1px solid var(--border2);color:var(--muted);font-size:15px;cursor:pointer;line-height:1;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;transition:var(--transition)}
+.history-close:hover{color:var(--text);background:var(--elev)}
+.cal-month-big{font-size:clamp(24px,6vw,32px);font-weight:700;letter-spacing:-.02em;color:var(--text)}
+.cal-chevron{background:var(--card2);border:1px solid var(--border2);color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:16px;transition:var(--transition);line-height:1}
+.cal-chevron:hover{background:var(--elev);border-color:var(--green-line)}
 .cal-strip-wrap{overflow-x:auto;margin:0 -24px;padding:0 24px 4px;scrollbar-width:none}
 .cal-strip-wrap::-webkit-scrollbar{display:none}
 .cal-strip{display:flex;gap:12px;padding-bottom:2px}
 .cal-strip-col{display:flex;flex-direction:column;align-items:center;gap:7px;flex-shrink:0}
-.cal-strip-name{font-size:10px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.05em}
-.cal-strip-btn{width:34px;height:34px;border-radius:50%;border:none;background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;position:relative;flex-direction:column}
+.cal-strip-name{font-size:11px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.05em}
+.cal-strip-btn{width:40px;height:40px;border-radius:50%;border:none;background:transparent;color:var(--text);font-size:var(--fs-sm);font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;position:relative;flex-direction:column}
 .cal-strip-btn:hover:not(.s-sel){background:rgba(255,255,255,.1)}
-.cal-strip-btn.s-sel{background:linear-gradient(135deg,var(--green),var(--green-light));box-shadow:0 4px 14px rgba(26,158,92,.45);color:#fff}
+.cal-strip-btn.s-sel{background:var(--green);color:#fff}
 .cal-strip-dot{width:4px;height:4px;border-radius:50%;position:absolute;bottom:2px;left:50%;transform:translateX(-50%)}
 .cal-strip-btn.s-today:not(.s-sel) .cal-strip-dot{background:var(--green-light)}
 .cal-strip-btn.s-has:not(.s-sel) .cal-strip-dot{background:var(--green-light)}
@@ -205,68 +239,75 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .game-count{color:var(--green-light);font-size:12px;font-weight:600;background:rgba(26,158,92,.12);padding:2px 8px;border-radius:100px}
 
 /* ── SITE GATE ───────────────────────────── */
-#siteGate{position:fixed;inset:0;background:var(--dark);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
-#siteGate h1{font-size:clamp(22px,5vw,38px);color:var(--green-light);letter-spacing:3px;font-weight:800;margin-bottom:8px}
-.gate-sub{font-size:14px;color:var(--muted);margin-bottom:32px;letter-spacing:.5px}
-#gateInput{background:var(--card);border:2px solid var(--border2);color:var(--text);padding:14px 20px;border-radius:10px;font-size:28px;font-family:monospace;letter-spacing:6px;width:210px;text-align:center;outline:none}
-#gateInput:focus{border-color:var(--green)}
-.gate-error{color:#f85149;font-size:13px;margin-top:10px;margin-bottom:4px;display:none;min-height:18px}
-.gate-enter-btn{margin-top:12px;background:var(--green);color:#fff;border:none;padding:11px 40px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s,background-color .15s;box-shadow:inset 0px -3px 0px 0px #0d7a3e,0px 1.5px 8px 0px rgba(26,158,92,.55);transform:scale(1)}
-.gate-enter-btn:hover{background:var(--green-light);box-shadow:inset 0px -3.5px 0px 0px #0d7a3e,0px 2px 10px 0px rgba(26,158,92,.65);transform:scale(1.03)}
-.gate-enter-btn:active{background:#127a45;box-shadow:inset 0px -1px 0px 0px #0a5c33;transform:scale(0.97);transition:none}
+#siteGate{position:fixed;inset:0;background:radial-gradient(120% 80% at 50% -10%,rgba(22,165,90,.10),transparent 60%),var(--dark);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+#siteGate h1{font-size:clamp(26px,5vw,44px);color:var(--text);letter-spacing:-.02em;font-weight:700;margin-bottom:8px}
+.gate-sub{font-size:var(--fs-base);color:var(--muted);margin-bottom:28px;letter-spacing:0}
+.gate-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xl);padding:clamp(28px,4vw,44px);box-shadow:var(--shadow-lg);display:flex;flex-direction:column;align-items:center;max-width:380px;width:100%;animation:gate-in .5s ease-out both}
+@keyframes gate-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.gate-mark{font-size:11px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--green-light);margin-bottom:20px}
+#gateInput{background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:14px 18px;border-radius:var(--radius-md);font-size:26px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.4em;width:220px;text-align:center;outline:none;transition:border-color .15s,box-shadow .15s}
+#gateInput:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--green-tint)}
+.gate-error{color:#ff6b6b;font-size:var(--fs-sm);margin-top:10px;margin-bottom:2px;display:none;min-height:18px}
+.gate-enter-btn{margin-top:14px;width:100%;background:var(--green);color:#fff;border:none;padding:13px 40px;border-radius:var(--radius-md);font-size:var(--fs-md);font-weight:600;cursor:pointer;transition:var(--transition);font-family:inherit;box-shadow:var(--shadow-sm)}
+.gate-enter-btn:hover{background:var(--green-light)}
+.gate-enter-btn:active{background:var(--green-dark);transform:translateY(.5px)}
+.gate-foot{margin-top:24px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);opacity:.6}
 
 /* ── MEMBERS MODAL ───────────────────────── */
 #membersModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:350;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
 #membersModal.open{display:flex}
-.members-box{background:#080c14;border:1px solid #1e2535;border-radius:18px;width:100%;max-width:960px;padding:28px 24px 24px;margin:auto}
-.members-close{float:right;background:rgba(13,17,23,.9);border:1px solid #30363d;color:#8b949e;font-size:18px;padding:3px 10px;border-radius:8px;cursor:pointer;transition:all .15s;font-family:inherit;line-height:1.4}
-.members-close:hover{color:var(--text);border-color:var(--border2)}
-.members-eyebrow{text-align:center;font-size:clamp(10px,1.2vw,12px);text-transform:uppercase;letter-spacing:3px;color:#8b949e;font-weight:700;margin-bottom:4px}
-.members-headline{text-align:center;font-size:clamp(18px,3.5vw,30px);font-weight:900;color:#f0b429;letter-spacing:1px;margin-bottom:22px;line-height:1.1}
-.tier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-bottom:32px}
-.tier-card{border-radius:12px;padding:28px 22px 24px;display:flex;flex-direction:column;gap:12px;background:#0d1117;border:2px solid var(--tc,#444c56);box-shadow:4px 4px 0 0 var(--tc,#444c56);transition:all .25s;position:relative}
-.tier-grid .tier-card:nth-child(1){transform:rotate(-1deg)}.tier-grid .tier-card:nth-child(2){transform:rotate(1deg)}.tier-grid .tier-card:nth-child(3){transform:rotate(-1.5deg)}.tier-grid .tier-card:nth-child(4){transform:rotate(.5deg)}.tier-grid .tier-card:nth-child(5){transform:rotate(-1deg)}.tier-grid .tier-card:nth-child(6){transform:rotate(1.5deg)}
-.tier-card:hover{transform:translate(-4px,-4px) rotate(0deg) !important;box-shadow:8px 8px 0 0 var(--tc,#444c56)}
-.tier-icon{width:52px;height:52px;border-radius:50%;border:2px solid var(--tc,#444c56);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
-.tier-name{font-size:20px;font-weight:700;color:var(--tc,#8b949e)}
+.members-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xl);width:100%;max-width:980px;padding:32px 28px 28px;margin:auto;box-shadow:var(--shadow-lg)}
+.members-close{float:right;background:var(--card2);border:1px solid var(--border2);color:var(--muted);font-size:16px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;cursor:pointer;transition:var(--transition);font-family:inherit}
+.members-close:hover{color:var(--text);background:var(--elev);border-color:var(--border2)}
+.members-eyebrow{text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.24em;color:var(--green-light);font-weight:700;margin-bottom:6px}
+.members-headline{text-align:center;font-size:clamp(22px,3.5vw,32px);font-weight:700;color:var(--text);letter-spacing:-.02em;margin-bottom:26px;line-height:1.1}
+.tier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px}
+.tier-card{border-radius:var(--radius-lg);padding:24px 20px;display:flex;flex-direction:column;gap:12px;background:var(--card2);border:1px solid var(--border);transition:var(--transition);position:relative}
+.tier-card::before{content:'';position:absolute;top:0;left:20px;right:20px;height:2px;background:var(--tc,#444c56);border-radius:2px;opacity:.8}
+.tier-card:hover{background:var(--elev);border-color:var(--tc,var(--border2));transform:translateY(-2px)}
+.tier-icon{width:46px;height:46px;border-radius:var(--radius-md);border:1px solid var(--tc,#444c56);background:var(--card);background:color-mix(in srgb,var(--tc,#444c56) 12%,transparent);display:flex;align-items:center;justify-content:center;color:var(--tc,#8b949e);flex-shrink:0}
+.tier-icon .ic{width:22px;height:22px}
+.tier-name{font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.01em}
 .tier-range{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;text-align:center;line-height:1.3;display:inline-block}
 .tier-range small{display:block;font-size:9px;font-weight:600;letter-spacing:1px;opacity:.75;margin-top:1px}
 .tier-perks{width:100%;display:flex;flex-direction:column;gap:6px;margin-top:2px}
-.tier-perk{font-size:13px;color:var(--text);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.tier-perk{font-size:var(--fs-sm);color:var(--text);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
 .tier-perk::before{content:'✓';display:flex;align-items:center;justify-content:center;min-width:17px;height:17px;border-radius:50%;border:1.5px solid var(--tc,#444c56);font-size:9px;color:var(--tc,#444c56);font-weight:900;margin-top:2px;flex-shrink:0}
-.tier-popular-badge{position:absolute;top:-10px;right:-8px;background:#f0b429;color:#0d1117;font-size:12px;font-weight:700;padding:2px 9px;border-radius:100px;border:2px solid #0d1117;transform:rotate(10deg);white-space:nowrap}
+.tier-popular-badge{position:absolute;top:-9px;right:14px;background:var(--accent);color:#1a1205;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 10px;border-radius:100px;white-space:nowrap;box-shadow:var(--shadow-sm)}
 .tier-visitor{--tc:#555e6b}.tier-visitor .tier-range{background:#21262d;color:#adb5bd}
 .tier-bronze{--tc:#b87333}.tier-bronze .tier-range{background:#3d1f0a;color:#e8a87c}
 .tier-silver{--tc:#7d8590}.tier-silver .tier-range{background:#21262d;color:#e6edf3}
 .tier-gold{--tc:#f0b429}.tier-gold .tier-range{background:#3a2800;color:#ffd060}
 .tier-platinum{--tc:#388bfd}.tier-platinum .tier-range{background:#051d3a;color:#79b8ff}
 .tier-vip{--tc:#8957e5}.tier-vip .tier-range{background:#1f0d4a;color:#d2a8ff}
-.earn-section{background:#080c12;border:2px solid rgba(240,180,41,.28);border-radius:14px;padding:20px 18px;margin-bottom:24px;box-shadow:4px 4px 0 0 rgba(240,180,41,.18)}
-.earn-title{text-align:center;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#8b949e;margin-bottom:16px}
+.earn-section{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px;margin-bottom:24px}
+.earn-title{text-align:center;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
 .earn-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 14px}
-.earn-item{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:68px;background:#0d1117;border:2px solid rgba(240,180,41,.22);border-radius:10px;padding:10px 8px;box-shadow:3px 3px 0 0 rgba(240,180,41,.18);transition:all .22s;cursor:default}
-.earn-row .earn-item:nth-child(1){transform:rotate(-1deg)}.earn-row .earn-item:nth-child(2){transform:rotate(1deg)}.earn-row .earn-item:nth-child(3){transform:rotate(-1.5deg)}.earn-row .earn-item:nth-child(4){transform:rotate(.5deg)}.earn-row .earn-item:nth-child(5){transform:rotate(-1deg)}
-.earn-item:hover{transform:translate(-2px,-2px) rotate(0deg) !important;box-shadow:5px 5px 0 0 rgba(240,180,41,.3)}
-.earn-item .ei{font-size:22px}
-.earn-item small{font-size:11px;color:#8b949e;text-align:center;line-height:1.3}
-.earn-rate{font-size:20px;font-weight:800;color:#f0b429;padding:10px 16px;background:#0d1117;border-radius:10px;border:2px solid #f0b429;box-shadow:4px 4px 0 0 #f0b429;text-align:center;white-space:nowrap;transition:all .22s;cursor:default;transform:rotate(2deg)}
-.earn-rate:hover{transform:translate(-2px,-2px) rotate(0deg);box-shadow:6px 6px 0 0 #f0b429}
-.earn-rate small{display:block;font-size:10px;color:#8b949e;font-weight:600}
-.benefits-section{margin-bottom:4px;background:#080c12;border:2px solid rgba(255,255,255,.07);border-radius:14px;padding:18px 2px 6px;box-shadow:4px 4px 0 0 rgba(255,255,255,.04)}
-.benefits-title{text-align:center;font-size:clamp(15px,2vw,20px);font-weight:800;color:var(--text);margin-bottom:14px;padding:0 14px}
-.btable{width:100%;border-collapse:collapse;font-size:11.5px}
+.earn-item{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:74px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 10px;transition:var(--transition);cursor:default}
+.earn-item:hover{border-color:var(--border2);background:var(--elev)}
+.earn-item .ei{color:var(--green-light);display:flex}
+.earn-item .ei .ic{width:22px;height:22px}
+.earn-item small{font-size:var(--fs-xs);color:var(--text-2);text-align:center;line-height:1.3}
+.earn-rate{font-size:20px;font-weight:800;color:var(--accent);padding:12px 18px;background:var(--card);border-radius:var(--radius-md);border:1px solid var(--accent-line);text-align:center;white-space:nowrap;transition:var(--transition);cursor:default}
+.earn-rate:hover{border-color:var(--accent)}
+.earn-rate small{display:block;font-size:var(--fs-xs);color:var(--muted);font-weight:600;letter-spacing:.04em}
+.benefits-section{margin-bottom:4px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 6px 8px}
+.benefits-title{text-align:center;font-size:clamp(15px,2vw,19px);font-weight:700;color:var(--text);letter-spacing:-.01em;margin-bottom:16px;padding:0 14px}
+.btable{width:100%;border-collapse:collapse;font-size:var(--fs-xs)}
 .btable th{padding:8px 8px;font-weight:700;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;text-align:center;border-bottom:2px solid}
-.btable td{padding:7px 8px;border-top:1px solid #161b22;text-align:center;color:#8b949e}
+.btable td{padding:7px 8px;border-top:1px solid #161b22;text-align:center;color:#adb5bd}
 .btable td:first-child{text-align:left;color:#c9d1d9;font-size:11px}
 .btable tr:hover td{background:rgba(255,255,255,.02)}
 .th-b{color:#cd7f32;border-bottom-color:#b87333}.th-s{color:#c9d1d9;border-bottom-color:#7d8590}.th-g{color:#f0b429;border-bottom-color:#f0b429}.th-p{color:#58a6ff;border-bottom-color:#388bfd}.th-v{color:#bc8cff;border-bottom-color:#8957e5}
-.ck{color:#3fb950;font-weight:700;font-size:14px}.da{color:#30363d;font-size:16px}
+.ck{color:#3fb950;font-weight:700;font-size:14px}.da{color:var(--muted);font-size:16px}
 .vr5{color:#f0b429;font-weight:700}.vr10{color:#58a6ff;font-weight:700}.vbest{color:#bc8cff;font-weight:700}
-.members-footer{text-align:center;margin-top:18px;padding:10px 16px;background:#0f0c00;border:1px solid #2a2200;border-radius:8px;font-size:11px;color:#f0b429;font-weight:600;letter-spacing:.5px}
-#membersBtn{margin-top:10px;padding:7px 18px;border-radius:100px;border:1px solid rgba(240,180,41,.5);background:rgba(240,180,41,.08);color:#f0b429;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all .2s;font-family:inherit}
-#membersBtn:hover{background:rgba(240,180,41,.18);border-color:#f0b429}
-#lbBtn{margin-top:10px;padding:7px 18px;border-radius:100px;border:1px solid rgba(26,158,92,.5);background:rgba(26,158,92,.08);color:var(--green-light);font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all .2s;font-family:inherit}
-#lbBtn:hover{background:rgba(26,158,92,.18);border-color:var(--green-light)}
+.members-footer{text-align:center;margin-top:20px;padding:12px 16px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);font-size:var(--fs-xs);color:var(--muted);font-weight:500;letter-spacing:0}
+#membersBtn,#lbBtn{padding:9px 18px;border-radius:100px;border:1px solid var(--border2);background:var(--card2);font-size:var(--fs-sm);font-weight:600;cursor:pointer;transition:var(--transition);font-family:inherit;min-height:38px;display:inline-flex;align-items:center;gap:7px;letter-spacing:-.005em}
+#membersBtn{color:var(--accent)}
+#membersBtn:hover{background:var(--elev);border-color:var(--accent-line)}
+#membersBtn .ic,#lbBtn .ic{width:15px;height:15px}
+#lbBtn{color:var(--green-light)}
+#lbBtn:hover{background:var(--elev);border-color:var(--green-line)}
 .btable-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px}
 .btable-wrap::-webkit-scrollbar{height:4px}.btable-wrap::-webkit-scrollbar-track{background:#0d1117}.btable-wrap::-webkit-scrollbar-thumb{background:#30363d;border-radius:2px}
 @media(max-width:600px){
@@ -293,42 +334,24 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   .btable td{padding:6px 5px}
   .btable td:first-child{font-size:10px}
   .members-footer{font-size:9.5px;padding:8px 10px;line-height:1.6;letter-spacing:0}
-  #membersBtn,#lbBtn{font-size:11px;padding:6px 14px}
+  #membersBtn,#lbBtn{font-size:var(--fs-sm);padding:9px 16px}
 }
 
-/* ── HERO GATE ──────────────────────────── */
+/* ── HERO GATE (kept minimal) ──────────── */
 @keyframes word-appear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse-glow{0%{transform:translate(-50%,-50%) scale(1);opacity:.6}100%{transform:translate(-50%,-50%) scale(40);opacity:0}}
-@keyframes gate-line-draw{from{opacity:0}to{opacity:1}}
-@keyframes gate-dot-appear{from{opacity:0;transform:scale(0)}to{opacity:.5;transform:scale(1)}}
-@keyframes gate-float{0%,100%{transform:translateY(0) rotate(0deg)}33%{transform:translateY(-8px) rotate(1deg)}66%{transform:translateY(4px) rotate(-1deg)}}
-@keyframes gate-corner-in{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
-.hero-word{opacity:0;display:inline-block;margin:0 .12em}
-.gate-grid-line{stroke:rgba(26,158,92,0.1);stroke-width:.5;opacity:0;animation:gate-line-draw 1s ease-out forwards}
-.gate-detail-dot{fill:rgba(34,198,110,.45);opacity:0;animation:gate-dot-appear .5s ease-out forwards}
-.gate-corner{position:absolute;width:28px;height:28px;opacity:0;animation:gate-corner-in .5s ease-out forwards}
-.gate-corner::before,.gate-corner::after{content:'';position:absolute;background:rgba(34,198,110,.35)}
-.gate-corner.tl{top:24px;left:24px;animation-delay:3s}.gate-corner.tl::before{top:0;left:0;width:100%;height:1px}.gate-corner.tl::after{top:0;left:0;width:1px;height:100%}
-.gate-corner.tr{top:24px;right:24px;animation-delay:3.2s}.gate-corner.tr::before{top:0;right:0;width:100%;height:1px}.gate-corner.tr::after{top:0;right:0;width:1px;height:100%}
-.gate-corner.bl{bottom:24px;left:24px;animation-delay:3.4s}.gate-corner.bl::before{bottom:0;left:0;width:100%;height:1px}.gate-corner.bl::after{bottom:0;left:0;width:1px;height:100%}
-.gate-corner.br{bottom:24px;right:24px;animation-delay:3.6s}.gate-corner.br::before{bottom:0;right:0;width:100%;height:1px}.gate-corner.br::after{bottom:0;right:0;width:1px;height:100%}
-.gate-float{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(26,158,92,.35);animation:gate-float 7s ease-in-out infinite paused}
-#gateMouseGradient{position:fixed;pointer-events:none;width:384px;height:384px;border-radius:50%;filter:blur(80px);transition:left .4s ease-out,top .4s ease-out,opacity .4s;opacity:0;background:radial-gradient(circle,rgba(26,158,92,.07) 0%,transparent 100%);z-index:1}
-.gate-tagline{font-size:clamp(9px,1.3vw,12px);font-family:monospace;font-weight:300;text-transform:uppercase;letter-spacing:.22em;color:var(--text);opacity:.65}
-.gate-divider{width:56px;height:1px;margin:12px auto;background:linear-gradient(to right,transparent,rgba(34,198,110,.35),transparent)}
 #siteGate .gate-content{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center}
 
 /* ── LEADERBOARD ─────────────────────────── */
 #lbModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:350;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
 #lbModal.open{display:flex}
-.lb-box{background:#080c14;border:1px solid #1e2535;border-radius:18px;width:100%;max-width:520px;padding:28px 24px 24px;margin:auto;position:relative}
+.lb-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);width:100%;max-width:520px;padding:28px 24px 24px;margin:auto;position:relative}
 .lb-close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 8px;border-radius:6px;transition:color .15s}
 .lb-close:hover{color:var(--text)}
 .lb-header{font-size:clamp(14px,2.5vw,20px);font-weight:800;color:var(--text);letter-spacing:1px;margin-bottom:16px;text-align:center}
 .lb-list{display:flex;flex-direction:column;gap:6px;max-width:600px;margin:0 auto}
 .lb-podium{display:flex;align-items:flex-end;justify-content:center;gap:6px;margin-bottom:20px}
 .lb-podium-spot{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;max-width:130px}
-.lb-podium-medal{font-size:22px;line-height:1;margin-bottom:2px}
+.lb-podium-medal{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;line-height:1;margin-bottom:4px}
 .lb-podium-name{font-size:11px;font-weight:700;color:var(--text);text-align:center;word-break:break-word;line-height:1.3;max-width:110px}
 .lb-podium-pts{font-size:10px;font-weight:600;color:var(--green-light)}
 .lb-podium-block{width:100%;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;margin-top:6px}
@@ -338,39 +361,160 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .lb-podium-divider{height:1px;background:var(--border);margin:4px 0 12px}
 .lb-row{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;transition:border-color .15s}
 .lb-row:hover{border-color:var(--border2)}
-.lb-name{flex:1;font-size:14px;font-weight:600;color:var(--text)}
+.lb-name{flex:1;font-size:var(--fs-base);font-weight:600;color:var(--text)}
 .lb-tier-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;letter-spacing:.5px;white-space:nowrap}
 .lb-pts{font-size:13px;font-weight:700;color:var(--green-light);white-space:nowrap}
 /* ── ROSTER POINTS ────────────────────────── */
 .rc-points{display:flex;align-items:center;gap:3px;justify-content:center;margin-top:5px}
-.rc-points-btn{width:20px;height:20px;border-radius:50%;background:var(--card2);border:1px solid var(--border2);color:var(--text);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;flex-shrink:0;transition:all .15s}
+.rc-points-btn{width:28px;height:28px;border-radius:50%;background:var(--card2);border:1px solid var(--border2);color:var(--text);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;flex-shrink:0;transition:all .15s}
 .rc-points-btn:hover{background:var(--green);border-color:var(--green);color:#fff}
 .rc-points-input{width:46px;text-align:center;background:var(--dark);border:1px solid var(--border2);color:var(--text);border-radius:6px;font-size:11px;padding:2px 2px;outline:none}
 .rc-sessions-ref{font-size:9px;color:var(--muted);text-align:center;margin-top:2px;letter-spacing:.3px}
 /* ── DRAW POOL ────────────────────────────── */
-.draw-pool{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 12px;min-height:32px}
-.draw-chip{background:var(--card2);border:1px solid var(--border2);border-radius:100px;padding:4px 6px 4px 12px;font-size:12px;color:var(--text);display:flex;align-items:center;gap:5px}
+.draw-pool{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px;min-height:32px}
+.draw-empty{color:var(--muted);font-size:var(--fs-sm);padding:10px 0}
+.draw-pool-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.draw-pool-count{font-size:var(--fs-xs);font-weight:700;color:var(--green-light);background:rgba(26,158,92,.12);padding:2px 8px;border-radius:100px}
+.draw-chip{background:var(--card2);border:1px solid var(--border2);border-radius:100px;padding:4px 8px 4px 10px;font-size:var(--fs-sm);color:var(--text);display:flex;align-items:center;gap:5px}
 .draw-chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:0;transition:color .1s}
 .draw-chip button:hover{color:var(--red)}
+.draw-chip-avatar{width:22px;height:22px;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff}
+/* Draw result panel */
+.draw-result{background:var(--dark);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--sp-md);margin-top:var(--sp-md)}
+.draw-result-label{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:var(--sp-sm);font-weight:600}
+.draw-winner-row{display:flex;align-items:center;gap:var(--sp-sm)}
+.draw-winner-name{font-size:var(--fs-lg);font-weight:700;color:var(--text)}
+.draw-winner-time{font-size:var(--fs-xs);color:var(--muted);margin-top:2px}
+.draw-history-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:8px 0;user-select:none;border-top:1px solid var(--border);margin-top:var(--sp-sm)}
+.draw-history-toggle-label{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:600}
+.draw-history-list{display:flex;flex-direction:column}
+.draw-history-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:var(--fs-sm)}
+.draw-history-row:last-child{border-bottom:none}
+.draw-history-name{font-weight:600;color:var(--text)}
+.draw-history-time{color:var(--muted);font-size:var(--fs-xs)}
 /* ── WHEEL OVERLAY ────────────────────────── */
-#wheelOverlay{position:fixed;inset:0;background:rgba(5,8,15,.97);z-index:450;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+#wheelOverlay{position:fixed;inset:0;background:rgba(5,8,15,.97);z-index:450;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px}
 #wheelOverlay.active{display:flex}
-#wheelTitle{font-size:clamp(16px,3vw,24px);font-weight:800;color:var(--text);letter-spacing:3px;text-transform:uppercase;opacity:.7}
-#wheelCanvas{max-width:min(82vw,480px);max-height:min(82vw,480px);width:480px;height:480px}
-#wheelWinnerBanner{font-size:clamp(22px,5vw,42px);font-weight:900;color:var(--green-light);text-align:center;display:none;padding:10px 24px;background:rgba(26,158,92,.12);border:2px solid rgba(26,158,92,.3);border-radius:16px;animation:word-appear .5s ease-out forwards}
-#wheelCloseBtn{position:absolute;top:18px;right:18px;background:var(--card);border:1px solid var(--border2);color:var(--muted);font-size:18px;padding:4px 12px;border-radius:8px;cursor:pointer;transition:all .15s}
+.confetti-container{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confetti-piece{position:absolute;width:8px;height:8px;border-radius:2px;opacity:0;animation:confetti-fall 2.2s ease-out forwards}
+@keyframes confetti-fall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+@media(prefers-reduced-motion:reduce){.confetti-piece{display:none}}
+#wheelTitle{font-size:clamp(12px,2vw,16px);font-weight:600;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+#wheelCanvas{max-width:min(78vw,460px);max-height:min(78vw,460px);width:460px;height:460px}
+#wheelWinnerBanner{text-align:center;display:none;padding:18px 28px;background:rgba(22,27,34,.95);border:1px solid var(--border2);border-radius:var(--radius-lg);animation:word-appear .4s ease-out forwards;max-width:min(88vw,440px)}
+#wheelWinnerBanner .winner-name-big{display:block;font-size:clamp(26px,5vw,44px);font-weight:900;color:var(--text);margin-top:6px;letter-spacing:-.5px}
+.winner-avatar-wrap{display:flex;justify-content:center;margin-bottom:8px}
+#wheelCloseBtn{position:absolute;top:18px;right:18px;background:var(--card);border:1px solid var(--border2);color:var(--muted);font-size:18px;padding:4px 12px;border-radius:8px;cursor:pointer;transition:var(--transition)}
 #wheelCloseBtn:hover{color:var(--text);border-color:var(--border2)}
+/* Viewer last-winner badge */
+.viewer-last-winner{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:100px;border:1px solid rgba(240,180,41,.3);background:rgba(240,180,41,.07);font-size:var(--fs-sm);color:var(--accent);font-weight:600}
+
+/* ── ADMIN DASHBOARD ──────────────────────── */
+/* Persistent header */
+.admin-hdr{display:flex;align-items:center;justify-content:space-between;padding:var(--sp-md) 0 var(--sp-sm);gap:var(--sp-md);position:sticky;top:0;z-index:10;background:var(--dark);border-bottom:1px solid var(--border)}
+.admin-hdr-left{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.admin-hdr-brand{font-size:var(--fs-xl);font-weight:700;color:var(--text);letter-spacing:-.02em;line-height:1.2}
+.admin-hdr-date{font-size:var(--fs-sm);color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-hdr-actions{display:flex;gap:var(--sp-sm);flex-shrink:0;align-items:center}
+
+/* Tab bar — desktop default */
+.admin-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.admin-tabs::-webkit-scrollbar{display:none}
+.admin-tab-btn{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:10px var(--sp-md);cursor:pointer;font-size:var(--fs-base);font-weight:600;transition:color .15s,border-color .15s;display:flex;align-items:center;gap:6px;white-space:nowrap;font-family:inherit;margin-bottom:-1px;flex:1;justify-content:center}
+.admin-tab-btn:hover{color:var(--text)}
+.admin-tab-btn.active{color:var(--green-light);border-bottom-color:var(--green)}
+.tab-icon{font-size:15px;line-height:1}
+.tab-label{font-size:var(--fs-base)}
+
+/* Tab panels */
+.admin-tab-panel{display:none;flex-direction:column;gap:var(--sp-md)}
+.admin-tab-panel.active{display:flex}
+
+/* Admin card — dashboard section card */
+.admin-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--sp-md) var(--sp-md)}
+.admin-card-title{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:var(--sp-md);font-weight:600;display:flex;align-items:center;gap:7px}
+.admin-card-title span{font-size:16px;display:inline-flex;align-items:center}
+.admin-card-title .ic,.section-title .ic{width:16px;height:16px;color:var(--green-light)}
+
+/* Form utilities */
+.admin-form-input{background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:7px 10px;border-radius:var(--radius-sm);font-size:var(--fs-base);outline:none;font-family:inherit;transition:border-color .15s}
+.admin-form-input:focus{border-color:var(--green)}
+.admin-form-label{font-size:var(--fs-base);color:var(--muted);font-weight:500}
+.admin-helper-text{font-size:var(--fs-xs);color:var(--muted);margin-bottom:var(--sp-sm)}
+.admin-btn-row{display:flex;gap:var(--sp-sm);align-items:center;flex-wrap:wrap}
+
+/* Session tab */
+.admin-date-display{font-size:var(--fs-md);font-weight:600;color:var(--text);margin-bottom:var(--sp-sm)}
+.admin-card-title-row{justify-content:space-between}
+.admin-session-count{font-size:var(--fs-sm);color:var(--green-light);font-weight:600;text-transform:none;letter-spacing:0}
+/* Spacing utilities */
+.admin-mt{margin-top:var(--sp-sm)}
+.admin-mb{margin-bottom:var(--sp-sm)}
+.admin-flex{flex:1}
+/* Courts tab */
+.admin-subsection-label{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-top:var(--sp-md);margin-bottom:var(--sp-xs);font-weight:600}
+.rl-team-label{font-size:var(--fs-sm);color:var(--muted)}
+.rl-label-row{margin-bottom:var(--sp-sm)}
+.rl-label-input{background:var(--card);border:1px solid var(--border2);color:var(--text);padding:5px 10px;border-radius:var(--radius-sm);font-size:var(--fs-base);outline:none;flex:1;font-family:inherit}
+.rl-set-live{white-space:nowrap;margin-left:4px}
+.rl-delete{padding:4px 8px;font-size:14px;line-height:1}
+/* Engagement tab */
+.admin-spin-btn{width:100%;font-size:var(--fs-md);padding:11px}
+/* Settings tab */
+.admin-code-input{font-size:16px;font-family:monospace;letter-spacing:4px;width:136px}
+.admin-remove-btn{font-size:var(--fs-xs);color:var(--muted)}
+.site-code-active-label{font-size:var(--fs-xs);color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px}
+.site-code-value{font-size:32px;font-family:monospace;font-weight:700;color:var(--green-light);letter-spacing:8px;background:var(--dark);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 24px;display:inline-block}
+.site-code-none{font-size:var(--fs-base);color:var(--muted)}
+
+/* Mobile bottom tab bar */
+@media(max-width:640px){
+  #admin{padding:16px 16px 72px !important}
+  .admin-hdr{padding-top:var(--sp-sm)}
+  .admin-tabs{position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--card);border-top:1px solid var(--border2);border-bottom:none;margin-bottom:0;padding:0 env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
+  .admin-tab-btn{flex-direction:column;gap:2px;padding:8px 4px 10px;min-height:56px;border-bottom:none;border-top:2px solid transparent;margin-bottom:0;font-size:var(--fs-xs)}
+  .admin-tab-btn.active{border-bottom:none;border-top-color:var(--green)}
+  .tab-icon{font-size:18px}
+  .tab-label{font-size:10px;font-weight:600;letter-spacing:.3px}
+}
+/* Desktop multi-column helpers */
+@media(min-width:640px){
+  .admin-2col{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-md)}
+  .admin-3col{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-md)}
+}
+
+/* ── FOCUS VISIBILITY ──────────────────── */
+.btn:focus-visible,.nav-btn:focus-visible,.admin-tab-btn:focus-visible,
+#membersBtn:focus-visible,#lbBtn:focus-visible,#adminBtn:focus-visible,
+.cal-chevron:focus-visible,.cal-strip-btn:focus-visible,
+.history-close:focus-visible,.members-close:focus-visible,
+.lb-close:focus-visible,#wheelCloseBtn:focus-visible,
+.gate-enter-btn:focus-visible,.rc:focus-visible,
+.rc-del:focus-visible,.rc-points-btn:focus-visible,
+.draw-chip button:focus-visible,.guest-chip button:focus-visible{
+  outline:2px solid var(--green);outline-offset:2px
+}
+input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--green);outline-offset:1px
+}
+
+/* ── REDUCED MOTION ─────────────────────── */
+@media(prefers-reduced-motion:reduce){
+  .status-dot,.round-row.live .round-live-dot{animation:none}
+  .gate-card{animation:none}
+  *{scroll-behavior:auto!important}
+}
 </style>
 </head>
 <body>
 
 <!-- Password modal -->
 <div id="pwModal">
-  <div class="pw-box">
+  <div class="modal-box">
     <h2>Admin Access</h2>
-    <input id="pwInput" type="password" placeholder="Enter password" autocomplete="current-password">
+    <input id="pwInput" class="modal-input" type="password" placeholder="Enter password" autocomplete="current-password">
     <div class="pw-error" id="pwError">Incorrect password.</div>
-    <div class="pw-actions">
+    <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closePwModal()">Cancel</button>
       <button class="btn btn-primary" onclick="submitPassword()">Enter</button>
     </div>
@@ -378,12 +522,12 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 </div>
 
 <!-- Bulk import modal -->
-<div id="bulkModal">
-  <div class="bulk-box">
+<div id="bulkModal" class="modal-overlay">
+  <div class="modal-box">
     <h2>Add Multiple to Roster</h2>
-    <p>Enter one name per line. Adds to the permanent roster.</p>
-    <textarea id="bulkInput" placeholder="Thomas&#10;Yugene&#10;Syl&#10;Cy&#10;Jun Xian&#10;..."></textarea>
-    <div class="bulk-actions">
+    <p class="modal-desc">Enter one name per line. Adds to the permanent roster.</p>
+    <textarea id="bulkInput" class="modal-textarea" placeholder="Thomas&#10;Yugene&#10;Syl&#10;Cy&#10;Jun Xian&#10;..."></textarea>
+    <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeBulkModal()">Cancel</button>
       <button class="btn btn-primary" onclick="confirmBulkImport()">Add Players</button>
     </div>
@@ -391,18 +535,17 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 </div>
 
 <!-- Add Roster Modal -->
-<div id="addRosterModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:center;justify-content:center">
-  <div class="bulk-box" style="text-align:center">
-    <h2 style="text-align:left;margin-bottom:16px">Add to Roster</h2>
-    <div onclick="document.getElementById('addRosterPhotoFile').click()" style="cursor:pointer;display:inline-block;margin-bottom:6px">
+<div id="addRosterModal" class="modal-overlay">
+  <div class="modal-box modal-center">
+    <h2 style="text-align:left">Add to Roster</h2>
+    <div class="modal-photo-wrap" onclick="document.getElementById('addRosterPhotoFile').click()">
       <div id="addRosterPhotoPreview"></div>
     </div>
     <input type="file" id="addRosterPhotoFile" accept="image/*" style="display:none" onchange="previewAddRosterPhoto(this)">
-    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Click to upload photo (optional)</div>
-    <input id="addRosterNameInput" type="text" placeholder="Player name"
-      style="width:100%;background:var(--dark);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;outline:none;font-family:inherit"
+    <span class="modal-photo-hint">Click to upload photo (optional)</span>
+    <input id="addRosterNameInput" class="modal-input" type="text" placeholder="Player name"
       onkeydown="if(event.key==='Enter')confirmAddRoster()">
-    <div class="bulk-actions">
+    <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeAddRosterModal()">Cancel</button>
       <button class="btn btn-primary" onclick="confirmAddRoster()">Add to Roster</button>
     </div>
@@ -410,14 +553,13 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 </div>
 
 <!-- Guest Modal -->
-<div id="guestModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;align-items:center;justify-content:center">
-  <div class="bulk-box">
+<div id="guestModal" class="modal-overlay">
+  <div class="modal-box">
     <h2>Add Guest</h2>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Plays today only — not saved to roster.</p>
-    <input id="guestNameInput" type="text" placeholder="Guest name"
-      style="width:100%;background:var(--dark);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;outline:none;font-family:inherit"
+    <p class="modal-desc">Plays today only — not saved to roster.</p>
+    <input id="guestNameInput" class="modal-input" type="text" placeholder="Guest name"
       onkeydown="if(event.key==='Enter')confirmAddGuest()">
-    <div class="bulk-actions">
+    <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeGuestModal()">Cancel</button>
       <button class="btn btn-primary" onclick="confirmAddGuest()">Add Guest</button>
     </div>
@@ -429,11 +571,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   <div class="history-box">
     <div class="history-header">
       <h2>Session History</h2>
-      <button class="history-close" onclick="closeHistoryModal()">×</button>
+      <button class="history-close" onclick="closeHistoryModal()" aria-label="Close history">×</button>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 18px">
+    <div class="hist-nav">
       <span class="cal-month-big" id="calMonthLabel"></span>
-      <div style="display:flex;gap:8px">
+      <div class="hist-nav-btns">
         <button class="cal-chevron" onclick="calPrev()">&#8249;</button>
         <button class="cal-chevron" onclick="calNext()">&#8250;</button>
       </div>
@@ -448,80 +590,30 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
 <!-- Site gate -->
 <div id="siteGate">
-  <!-- SVG grid background -->
-  <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <pattern id="gate-grid" width="60" height="60" patternUnits="userSpaceOnUse">
-        <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(26,158,92,0.06)" stroke-width="0.5"/>
-      </pattern>
-    </defs>
-    <rect width="100%" height="100%" fill="url(#gate-grid)"/>
-    <line x1="0" y1="20%" x2="100%" y2="20%" class="gate-grid-line" style="animation-delay:.5s"/>
-    <line x1="0" y1="80%" x2="100%" y2="80%" class="gate-grid-line" style="animation-delay:1s"/>
-    <line x1="20%" y1="0" x2="20%" y2="100%" class="gate-grid-line" style="animation-delay:1.5s"/>
-    <line x1="80%" y1="0" x2="80%" y2="100%" class="gate-grid-line" style="animation-delay:2s"/>
-    <circle cx="20%" cy="20%" r="2" class="gate-detail-dot" style="animation-delay:2.5s"/>
-    <circle cx="80%" cy="20%" r="2" class="gate-detail-dot" style="animation-delay:2.7s"/>
-    <circle cx="20%" cy="80%" r="2" class="gate-detail-dot" style="animation-delay:2.9s"/>
-    <circle cx="80%" cy="80%" r="2" class="gate-detail-dot" style="animation-delay:3.1s"/>
-  </svg>
-  <!-- Corner brackets -->
-  <div class="gate-corner tl"></div>
-  <div class="gate-corner tr"></div>
-  <div class="gate-corner bl"></div>
-  <div class="gate-corner br"></div>
-  <!-- Floating dots -->
-  <div class="gate-float" style="top:22%;left:14%;animation-delay:0s"></div>
-  <div class="gate-float" style="top:62%;left:84%;animation-delay:.8s"></div>
-  <div class="gate-float" style="top:72%;left:18%;animation-delay:1.6s"></div>
-  <div class="gate-float" style="top:32%;left:82%;animation-delay:2.4s"></div>
-  <!-- Mouse gradient -->
-  <div id="gateMouseGradient"></div>
-  <!-- Content -->
   <div class="gate-content">
-    <div style="text-align:center;margin-bottom:36px">
-      <div class="gate-tagline">
-        <span class="hero-word" data-gate-delay="0">TZH</span>
-        <span class="hero-word" data-gate-delay="150">BADMINTON</span>
-        <span class="hero-word" data-gate-delay="300">&middot;</span>
-        <span class="hero-word" data-gate-delay="450">COURT</span>
-        <span class="hero-word" data-gate-delay="600">MANAGEMENT</span>
-      </div>
-      <div class="gate-divider"></div>
+    <div class="gate-card">
+      <div class="gate-mark">TZH Badminton</div>
+      <h1 id="gateWelcome">Welcome</h1>
+      <div class="gate-sub" id="gateSub">Enter today's access code</div>
+      <input id="gateInput" type="text" placeholder="XXX-XXX" maxlength="7" autocomplete="off" spellcheck="false"
+        oninput="formatCodeInput(this)" onkeydown="if(event.key==='Enter')submitSiteCode()">
+      <div class="gate-error" id="gateError">Incorrect code. Try again.</div>
+      <button class="gate-enter-btn" onclick="submitSiteCode()">Enter</button>
     </div>
-    <h1 style="font-size:clamp(26px,5.5vw,50px);font-weight:200;letter-spacing:.18em;color:var(--text);margin:0 0 6px;text-align:center;line-height:1.2;opacity:0;animation:none" id="gateWelcome">WELCOME</h1>
-    <div class="gate-sub" style="opacity:0;animation:none" id="gateSub">Enter today's access code</div>
-    <input id="gateInput" type="text" placeholder="XXX-XXX" maxlength="7" autocomplete="off" spellcheck="false"
-      oninput="formatCodeInput(this)" onkeydown="if(event.key==='Enter')submitSiteCode()">
-    <div class="gate-error" id="gateError">Incorrect code. Try again.</div>
-    <button class="gate-enter-btn" onclick="submitSiteCode()">Enter</button>
-    <div style="margin-top:36px;text-align:center">
-      <div class="gate-divider"></div>
-      <div class="gate-tagline" style="margin-top:8px;font-size:10px;opacity:.35">
-        <span class="hero-word" data-gate-delay="1200">MEMBERS</span>
-        <span class="hero-word" data-gate-delay="1350">ONLY</span>
-        <span class="hero-word" data-gate-delay="1500">&middot;</span>
-        <span class="hero-word" data-gate-delay="1650">AUTHORISED</span>
-        <span class="hero-word" data-gate-delay="1800">ACCESS</span>
-      </div>
-    </div>
+    <div class="gate-foot">Members only · Authorised access</div>
   </div>
 </div>
 
 <!-- Members modal -->
 <div id="membersModal">
   <div class="members-box">
-    <button class="members-close" onclick="closeMembersModal()">&#x2715;</button>
-    <div class="members-eyebrow" style="font-size:12px;font-weight:700;letter-spacing:2px">TZH Sports Club</div>
-    <div class="members-headline" style="position:relative;display:inline-block">
-      Membership Tier System
-      <span style="position:absolute;top:-4px;right:-28px;font-size:22px;transform:rotate(12deg)">✨</span>
-      <span style="position:absolute;bottom:-4px;left:-24px;font-size:18px;transform:rotate(-12deg)">⭐️</span>
-    </div>
+    <button class="members-close" onclick="closeMembersModal()" aria-label="Close members">&#x2715;</button>
+    <div class="members-eyebrow">TZH Sports Club</div>
+    <div class="members-headline">Membership Tier System</div>
 
     <div class="tier-grid">
       <div class="tier-card tier-visitor">
-        <div class="tier-icon">&#x1F464;</div>
+        <div class="tier-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.5 4-7 8-7s8 2.5 8 7"/></svg></div>
         <div class="tier-name">Visitor</div>
         <div class="tier-range">0 &ndash; 49<small>POINTS</small></div>
         <div class="tier-perks">
@@ -530,7 +622,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
         </div>
       </div>
       <div class="tier-card tier-bronze">
-        <div class="tier-icon">&#x1F3C5;</div>
+        <div class="tier-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5.5"/><path d="M8.5 12.5 7 22l5-2.8 5 2.8-1.5-9.5"/></svg></div>
         <div class="tier-name">Bronze</div>
         <div class="tier-range">50 &ndash; 299<small>POINTS</small></div>
         <div class="tier-perks">
@@ -540,7 +632,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
         </div>
       </div>
       <div class="tier-card tier-silver">
-        <div class="tier-icon">&#x2B50;</div>
+        <div class="tier-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg></div>
         <div class="tier-name">Silver</div>
         <div class="tier-range">300 &ndash; 899<small>POINTS</small></div>
         <div class="tier-perks">
@@ -550,8 +642,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
         </div>
       </div>
       <div class="tier-card tier-gold">
-        <div class="tier-popular-badge">⭐ Popular</div>
-        <div class="tier-icon">&#x1F31F;</div>
+        <div class="tier-popular-badge">Most Popular</div>
+        <div class="tier-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6M10 20l.5-4M14 20l-.5-4"/></svg></div>
         <div class="tier-name">Gold</div>
         <div class="tier-range">900 &ndash; 1799<small>POINTS</small></div>
         <div class="tier-perks">
@@ -562,7 +654,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
         </div>
       </div>
       <div class="tier-card tier-platinum">
-        <div class="tier-icon">&#x1F48E;</div>
+        <div class="tier-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M6 3h12l3 6-9 12L3 9z"/><path d="M3 9h18M9 3 7.5 9 12 21l4.5-12L15 3"/></svg></div>
         <div class="tier-name">Platinum</div>
         <div class="tier-range">1800 &ndash; 2999<small>POINTS</small></div>
         <div class="tier-perks">
@@ -573,7 +665,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
         </div>
       </div>
       <div class="tier-card tier-vip">
-        <div class="tier-icon">&#x1F451;</div>
+        <div class="tier-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M3 7l4.5 4L12 4l4.5 7L21 7l-1.8 12H4.8z"/><path d="M4.8 19h14.4"/></svg></div>
         <div class="tier-name">VIP</div>
         <div class="tier-range">3000+<small>POINTS</small></div>
         <div class="tier-perks">
@@ -588,11 +680,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
     <div class="earn-section">
       <div class="earn-title">How to Earn Points?</div>
       <div class="earn-row">
-        <div class="earn-item"><span class="ei">&#x1F3F8;</span><small>Shuttlecock<br>Purchase</small></div>
-        <div class="earn-item"><span class="ei">&#x2702;&#xFE0F;</span><small>Stringing<br>Service</small></div>
-        <div class="earn-item"><span class="ei">&#x1F6CD;&#xFE0F;</span><small>Sports<br>Products</small></div>
-        <div class="earn-item"><span class="ei">&#x1F3CB;&#xFE0F;</span><small>Coaching<br>Programs</small></div>
-        <div class="earn-item"><span class="ei">&#x1F3D9;&#xFE0F;</span><small>Badminton<br>Sessions</small></div>
+        <div class="earn-item"><span class="ei"><svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.6 12.5h11L21 7H6.2"/></svg></span><small>Shuttlecock<br>Purchase</small></div>
+        <div class="earn-item"><span class="ei"><svg class="ic" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="M8.2 7.5 20 16M8.2 16.5 20 8"/></svg></span><small>Stringing<br>Service</small></div>
+        <div class="earn-item"><span class="ei"><svg class="ic" viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span><small>Sports<br>Products</small></div>
+        <div class="earn-item"><span class="ei"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM8.5 11h7M8.5 15h5"/></svg></span><small>Coaching<br>Programs</small></div>
+        <div class="earn-item"><span class="ei"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg></span><small>Badminton<br>Sessions</small></div>
         <div class="earn-rate">RM1<small>= 1 POINT</small></div>
       </div>
     </div>
@@ -611,30 +703,31 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
           </tr>
         </thead>
         <tbody>
-          <tr><td>&#x1F381; Quarterly Lucky Draw</td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td></tr>
-          <tr><td>&#x1F4B0; Points Redemption Program</td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td></tr>
-          <tr><td>&#x1F3F7;&#xFE0F; Member Exclusive Promotions</td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td></tr>
-          <tr><td>&#x1F3F8; Free Grip With Every Stringing</td><td><span class="da">&ndash;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td></tr>
-          <tr><td>&#x2702;&#xFE0F; Stringing Discount</td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="vr5">RM5</span></td><td><span class="vr10">RM10</span></td><td><span class="vbest">BEST</span></td></tr>
-          <tr><td>&#x1F451; Higher Stringing Privileges</td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td></tr>
-          <tr><td>&#x1F381; Exclusive Rewards</td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="ck">&#x2713;</span></td></tr>
+          <tr><td>Quarterly Lucky Draw</td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td></tr>
+          <tr><td>Points Redemption Program</td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td></tr>
+          <tr><td>Member Exclusive Promotions</td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td></tr>
+          <tr><td>Free Grip With Every Stringing</td><td><span class="da">&ndash;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td></tr>
+          <tr><td>Stringing Discount</td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="vr5">RM5</span></td><td><span class="vr10">RM10</span></td><td><span class="vbest">BEST</span></td></tr>
+          <tr><td>Higher Stringing Privileges</td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="ck">&#x2713;</span></td><td><span class="ck">&#x2713;</span></td></tr>
+          <tr><td>Exclusive Rewards</td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="da">&ndash;</span></td><td><span class="ck">&#x2713;</span></td></tr>
         </tbody>
       </table></div>
     </div>
 
-    <div class="members-footer">&#x1F3C6; The more you play, the more you earn! &nbsp;|&nbsp; Thank you for being part of TZH Sports Club family!</div>
+    <div class="members-footer">The more you play, the more you earn — thank you for being part of the TZH Sports Club family.</div>
   </div>
 </div>
 
 <!-- Viewer -->
 <div id="viewer">
   <div class="viewer-header">
-    <h1>TZH BADMINTON</h1>
-    <div id="viewerDate" style="font-size:clamp(12px,1.8vw,15px);color:var(--muted);margin-top:5px;letter-spacing:.5px"></div>
-    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-      <button id="membersBtn" onclick="openMembersModal()">&#x1F3C6; TZH Members</button>
-      <button id="lbBtn" onclick="openLbModal()">&#x1F3C5; Leaderboard</button>
+    <h1>TZH <span class="vh-accent">Badminton</span></h1>
+    <div id="viewerDate" style="font-size:clamp(12px,1.8vw,15px);color:var(--muted)"></div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px">
+      <button id="membersBtn" onclick="openMembersModal()"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6M10 20l.5-4M14 20l-.5-4"/></svg> TZH Members</button>
+      <button id="lbBtn" onclick="openLbModal()"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M8.5 12 7 21l5-2.8 5 2.8-1.5-9"/></svg> Leaderboard</button>
     </div>
+    <div id="viewerLastWinner" style="display:none;margin-top:8px"></div>
   </div>
   <div id="courtsDisplay"></div>
   <div class="viewer-footer"><span class="status-dot"></span>Live</div>
@@ -643,71 +736,92 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 <!-- Leaderboard Modal -->
 <div id="lbModal">
   <div class="lb-box">
-    <button class="lb-close" onclick="closeLbModal()">&#x2715;</button>
-    <div class="lb-header">&#x1F3C5; Leaderboard</div>
+    <button class="lb-close" onclick="closeLbModal()" aria-label="Close leaderboard">&#x2715;</button>
+    <div class="lb-header">Leaderboard</div>
     <div class="lb-list" id="leaderboardList"></div>
   </div>
 </div>
 
 <!-- Lucky Draw Wheel Overlay -->
-<div id="wheelOverlay">
-  <button id="wheelCloseBtn" onclick="hideWheelOverlay()">&#x2715;</button>
-  <div id="wheelTitle">&#x1F3A1; Lucky Draw</div>
-  <canvas id="wheelCanvas" width="480" height="480"></canvas>
-  <div id="wheelWinnerBanner"></div>
+<div id="wheelOverlay" role="dialog" aria-modal="true" aria-labelledby="wheelTitle" onclick="handleOverlayClick(event)">
+  <div class="confetti-container" id="confettiContainer"></div>
+  <button id="wheelCloseBtn" onclick="hideWheelOverlay()" aria-label="Close lucky draw">&#x2715;</button>
+  <div id="wheelTitle">Lucky Draw</div>
+  <canvas id="wheelCanvas" width="460" height="460" aria-label="Lucky draw wheel" role="img"></canvas>
+  <div id="wheelWinnerBanner" aria-live="polite" role="status"></div>
 </div>
 
 <!-- Admin -->
 <div id="admin">
-  <div class="admin-header">
-    <h1>Admin Panel</h1>
-    <div style="display:flex;gap:8px">
+
+  <!-- Persistent header -->
+  <div class="admin-hdr">
+    <div class="admin-hdr-left">
+      <div class="admin-hdr-brand">Admin Panel</div>
+      <div class="admin-hdr-date" id="headerDate"></div>
+    </div>
+    <div class="admin-hdr-actions">
       <button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>
-      <button class="btn btn-secondary" onclick="showViewer()">View Display</button>
+      <button class="btn btn-secondary btn-sm" onclick="showViewer()">View Display</button>
     </div>
   </div>
 
+  <!-- Tab bar -->
+  <div class="admin-tabs" id="adminTabs">
+    <button class="admin-tab-btn" data-tab="session" onclick="setAdminTab('session')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg></span><span class="tab-label">Session</span></button>
+    <button class="admin-tab-btn" data-tab="courts" onclick="setAdminTab('courts')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg></span><span class="tab-label">Courts</span></button>
+    <button class="admin-tab-btn" data-tab="engagement" onclick="setAdminTab('engagement')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg></span><span class="tab-label">Engagement</span></button>
+    <button class="admin-tab-btn" data-tab="settings" onclick="setAdminTab('settings')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 2h-4l-.5 2.4a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 22h4l.5-2.4a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg></span><span class="tab-label">Settings</span></button>
+  </div>
+
+  <!-- ── SESSION TAB ─────────────────────────── -->
+  <div class="admin-tab-panel" data-tab="session">
+
   <!-- Session Date -->
-  <div class="section">
-    <div class="section-title"><span>📅</span> Session Date</div>
-    <div id="sessionDateDisplay" style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:12px"></div>
-    <div class="row">
-      <input id="sessionDateInput" type="date"
-        style="background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:6px 10px;border-radius:8px;font-size:13px;outline:none">
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg></span> Session Date</div>
+    <div id="sessionDateDisplay" class="admin-date-display"></div>
+    <div class="admin-btn-row">
+      <input id="sessionDateInput" type="date" class="admin-form-input">
       <button class="btn btn-primary btn-sm" onclick="setSessionDate()">Set Date</button>
       <button class="btn btn-ghost btn-sm" onclick="openHistoryModal()">View History →</button>
     </div>
   </div>
 
   <!-- Players -->
-  <div class="section">
-    <div class="section-title" style="justify-content:space-between">
-      <div style="display:flex;align-items:center;gap:6px"><span>👥</span> Players</div>
-      <div id="sessionCount" style="font-size:12px;color:var(--green-light);font-weight:600;text-transform:none;letter-spacing:0"></div>
+  <div class="admin-card">
+    <div class="admin-card-title admin-card-title-row">
+      <span><span><svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 14.6c2 .7 3.5 2.3 3.5 4.4"/></svg></span> Players</span>
+      <span id="sessionCount" class="admin-session-count"></span>
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Tap a player to add/remove from today's session</div>
+    <div class="admin-helper-text">Tap a player to add/remove from today's session</div>
     <div class="roster-grid" id="rosterGrid"></div>
     <div id="guestStrip"></div>
-    <div class="row" style="margin-top:8px">
+    <div class="admin-btn-row admin-mt">
       <button class="btn btn-secondary btn-sm" onclick="openAddRosterModal()">+ Add to Roster</button>
       <button class="btn btn-ghost btn-sm" onclick="openBulkModal()">+ Add Multiple</button>
       <button class="btn btn-ghost btn-sm" onclick="openGuestModal()">+ Add Guest</button>
     </div>
   </div>
 
+  </div><!-- /session tab -->
+
+  <!-- ── COURTS TAB ──────────────────────────── -->
+  <div class="admin-tab-panel" data-tab="courts">
+
   <!-- Courts & Schedule -->
-  <div class="section">
-    <div class="section-title"><span>🏸</span> Courts &amp; Schedule</div>
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg></span> Courts &amp; Schedule</div>
 
     <!-- Settings row -->
-    <div class="row">
-      <label style="font-size:13px;color:var(--muted)">Courts:</label>
-      <input id="numCourtsInput" type="number" min="1" max="8" style="background:var(--dark);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:13px;width:56px;outline:none">
+    <div class="admin-btn-row">
+      <label class="admin-form-label">Courts:</label>
+      <input id="numCourtsInput" type="number" min="1" max="8" class="admin-form-input" style="width:56px">
       <button class="btn btn-secondary btn-sm" onclick="saveNumCourts()">Save</button>
     </div>
 
     <!-- Quick round nav -->
-    <div class="quick-nav" style="margin-top:12px">
+    <div class="quick-nav admin-mt">
       <button class="nav-btn" id="prevRoundBtn" onclick="stepAllCourts(-1)">← Prev</button>
       <div class="quick-nav-center">
         <div class="current-round-pill" id="currentRoundPill">Round 1</div>
@@ -716,7 +830,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
     </div>
 
     <!-- Per-court controls -->
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-top:14px;margin-bottom:4px">Individual Court Control</div>
+    <div class="admin-subsection-label">Individual Court Control</div>
     <div class="court-ctrl-grid" id="courtCtrlGrid"></div>
 
     <!-- Resting players -->
@@ -733,58 +847,92 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
     </div>
 
     <!-- Round list -->
-    <div id="roundList"></div>
-    <div style="margin-top:10px">
+    <div class="round-list-wrap" id="roundListWrap" style="display:none">
+      <div class="round-list-header">
+        <div class="rl-hdr-round">Round</div>
+        <div class="rl-hdr-match">Match</div>
+      </div>
+      <div id="roundList"></div>
+    </div>
+    <div class="admin-mt">
       <button class="btn btn-ghost btn-sm" onclick="addEmptyRound()">+ Add Round Manually</button>
     </div>
   </div>
 
+  </div><!-- /courts tab -->
+
+  <!-- ── ENGAGEMENT TAB ─────────────────────── -->
+  <div class="admin-tab-panel" data-tab="engagement">
+
   <!-- Lucky Draw -->
-  <div class="section">
-    <div class="section-title"><span>&#x1F3A1;</span> Lucky Draw</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Build a pool and spin the wheel live on the viewer screen.</div>
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg></span> Lucky Draw</div>
+    <div class="admin-helper-text">Build a pool and spin the wheel live on the viewer screen.</div>
+
+    <!-- Pool -->
+    <div class="draw-pool-header admin-mt">
+      <span class="admin-form-label">Pool</span>
+      <span class="draw-pool-count" id="drawPoolCount" style="display:none"></span>
+    </div>
     <div class="draw-pool" id="drawPool"></div>
-    <div class="row" style="margin-bottom:10px;flex-wrap:wrap;gap:6px">
+
+    <!-- Pool controls -->
+    <div class="admin-btn-row admin-mt">
       <button class="btn btn-secondary btn-sm" onclick="loadSessionIntoPool()">Pull today&#x2019;s session</button>
       <button class="btn btn-ghost btn-sm" onclick="clearDrawPool()">Clear pool</button>
     </div>
-    <div class="row" style="margin-bottom:12px;gap:6px">
+    <div class="admin-btn-row admin-mt">
       <input id="drawNameInput" type="text" placeholder="Add name manually..."
-        style="flex:1;background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:7px 10px;border-radius:8px;font-size:13px;outline:none;font-family:inherit"
+        class="admin-form-input admin-flex"
         onkeydown="if(event.key===&#x27;Enter&#x27;)addDrawName()">
       <button class="btn btn-secondary btn-sm" onclick="addDrawName()">Add</button>
     </div>
-    <button class="btn btn-accent" style="width:100%;font-size:15px;padding:11px" onclick="spinWheel()">&#x1F3A1; Spin the Wheel!</button>
+
+    <div class="divider"></div>
+
+    <!-- Spin -->
+    <button class="btn btn-primary admin-spin-btn" id="spinBtn" onclick="spinWheel()"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg> Spin the Wheel</button>
+
+    <!-- Last winner + draw history -->
+    <div id="drawResult"></div>
   </div>
 
+  </div><!-- /engagement tab -->
+
+  <!-- ── SETTINGS TAB ───────────────────────── -->
+  <div class="admin-tab-panel" data-tab="settings">
+
   <!-- Share -->
-  <div class="section">
-    <div class="section-title"><span>🔗</span> Share Viewer Link</div>
-    <p style="font-size:12px;color:var(--muted)">Send this to players — opens live court display:</p>
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M9 15l6-6M10.5 6.5l1.2-1.2a4 4 0 0 1 5.7 5.7l-1.2 1.2M13.5 17.5l-1.2 1.2a4 4 0 0 1-5.7-5.7l1.2-1.2"/></svg></span> Share Viewer Link</div>
+    <p class="admin-helper-text">Send this to players — opens live court display:</p>
     <div class="link-box" id="shareLink"></div>
-    <div class="row" style="margin-top:8px">
+    <div class="admin-btn-row admin-mt">
       <button class="btn btn-secondary btn-sm" onclick="copyLink()">Copy Link</button>
     </div>
   </div>
 
   <!-- Site Access Code -->
-  <div class="section">
-    <div class="section-title"><span>🔐</span> Site Access Code</div>
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3M12 15v2"/></svg></span> Site Access Code</div>
     <div id="siteCodeDisplay"></div>
-    <div class="row" style="margin-top:12px;gap:8px">
+    <div class="admin-btn-row admin-mt">
       <input id="siteCodeInput" type="text" placeholder="e.g. 5H2-6GS" maxlength="7"
-        style="background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:7px 12px;border-radius:8px;font-size:16px;font-family:monospace;letter-spacing:4px;width:136px;outline:none"
+        class="admin-form-input admin-code-input"
         oninput="formatCodeInput(this)" onkeydown="if(event.key==='Enter')saveSiteCode()">
       <button class="btn btn-ghost btn-sm" onclick="generateSiteCode()">Generate</button>
       <button class="btn btn-primary btn-sm" onclick="saveSiteCode()">Save</button>
     </div>
-    <div style="margin-top:8px">
-      <button class="btn btn-ghost btn-sm" style="font-size:11px;color:var(--muted)" onclick="removeSiteCode()">Remove code (open site to all)</button>
+    <div class="admin-mt">
+      <button class="btn btn-ghost btn-sm admin-remove-btn" onclick="removeSiteCode()">Remove code (open site to all)</button>
     </div>
   </div>
+
+  </div><!-- /settings tab -->
+
 </div>
 
-<button id="adminBtn" onclick="requestAdmin()">Admin</button>
+<button id="adminBtn" onclick="requestAdmin()" aria-label="Open admin panel">Admin</button>
 <div id="notif"></div>
 
 <script>
@@ -807,12 +955,14 @@ function getInitials(name) {
   return (name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
 }
 
-function avatarHTML(player, size = 72) {
-  if (!player) return `<div class="avatar" style="width:${size}px;height:${size}px;background:#333;font-size:${size*.3}px">?</div>`;
+function avatarHTML(player, size = null) {
+  const sz = size != null ? `width:${size}px;height:${size}px;` : '';
+  const fs = size != null ? `font-size:${Math.round(size*.3)}px;` : '';
+  if (!player) return `<div class="avatar" style="${sz}background:#333;${fs}">?</div>`;
   if (player.photo) {
-    return `<img class="avatar" src="${player.photo}" style="width:${size}px;height:${size}px" alt="${player.name}">`;
+    return `<img class="avatar" src="${player.photo}" style="${sz}" alt="${player.name}">`;
   }
-  return `<div class="avatar" style="width:${size}px;height:${size}px;background:${getColor(player.id)};font-size:${size*.3}px">${getInitials(player.name)}</div>`;
+  return `<div class="avatar" style="${sz}background:${getColor(player.id)};${fs}">${getInitials(player.name)}</div>`;
 }
 
 function playerById(id) {
@@ -832,7 +982,9 @@ async function apiFetch() {
     const code = localStorage.getItem('siteCode') || '';
     const url = code ? `/api/state?code=${encodeURIComponent(code)}` : '/api/state';
     const r = await fetch(url);
-    return await r.json();
+    const data = await r.json();
+    if (data && data.serverTime) clockOffset = data.serverTime - Date.now();
+    return data;
   } catch { return null; }
 }
 
@@ -863,16 +1015,30 @@ async function poll() {
   if (!s) return;
   if (s.locked) { showSiteGate(); return; }
   if (document.getElementById('siteGate').style.display !== 'none') hideSiteGate();
+  const adminOpen = document.getElementById('admin').style.display !== 'none';
+  // B1: never overwrite local state while the admin is mid-edit, otherwise an
+  // in-progress edit is silently rebased onto newly-synced server data.
+  if (adminOpen && isEditing()) return;
   state = s;
   renderViewer();
   checkForNewSpin(state.luckyDraw);
-  if (document.getElementById('admin').style.display !== 'none') {
-    if (!isEditing()) {
-      renderCourtControls();
-      renderRoundList();
-      renderDrawPool();
-    }
+  if (adminOpen) {
+    renderSessionDateSection();
+    renderPlayersSection(); // B5: keep the admin player list fresh across devices
+    renderCourtControls();
+    renderRoundList();
+    renderDrawPool();
+    renderDrawResult();
   }
+}
+
+// B4: pull the authoritative server state immediately before a read-modify-write
+// so a stale local copy can't clobber a concurrent change. Shrinks the race
+// window from seconds (user interaction time) to one network round-trip.
+async function refreshState() {
+  const s = await apiFetch();
+  if (s && !s.locked) state = s;
+  return state;
 }
 
 function startPolling() {
@@ -906,6 +1072,7 @@ function renderViewer() {
     }
   }
   renderLeaderboard();
+  renderViewerLastWinner();
 }
 
 function buildCourtCard(num, court, roundLabel) {
@@ -917,7 +1084,7 @@ function buildCourtCard(num, court, roundLabel) {
   const t2p2 = playerById(court.team2[1]);
 
   function slot(p) {
-    return `<div class="player-slot">${avatarHTML(p, 72)}<span class="pname">${p?.name || '—'}</span></div>`;
+    return `<div class="player-slot">${avatarHTML(p)}<span class="pname">${p?.name || '—'}</span></div>`;
   }
 
   el.innerHTML = `
@@ -1067,21 +1234,21 @@ function renderPlayersSection() {
     card.className = 'rc' + (isIn ? ' in-session' : '');
     card.innerHTML = `
       <div class="rc-check">✓</div>
-      <button class="rc-del" id="rcdel_${rp.id}" onclick="event.stopPropagation();deleteRosterPlayer('${rp.id}',this)" title="Remove from roster">×</button>
+      <button class="rc-del" id="rcdel_${rp.id}" onclick="event.stopPropagation();deleteRosterPlayer('${rp.id}',this)" title="Remove from roster" aria-label="Remove ${rp.name} from roster">×</button>
       <div class="rc-photo" onclick="event.stopPropagation();document.getElementById('rcf_${rp.id}').click()">
         ${avatarHTML(rp, 54)}
-        <div class="rc-photo-overlay">📷</div>
+        <div class="rc-photo-overlay"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg></div>
       </div>
       <div class="rc-name" id="rcn_${rp.id}" onclick="event.stopPropagation();startEditRosterName('${rp.id}')">${escHtml(rp.name)}</div>
       <input type="file" id="rcf_${rp.id}" accept="image/*" style="display:none" onchange="handleRosterPhoto('${rp.id}',this)">
       <div class="rc-points" onclick="event.stopPropagation()">
-        <button class="rc-points-btn" onclick="event.stopPropagation();adjustPoints('${rp.id}',-1)">&#x2212;</button>
+        <button class="rc-points-btn" onclick="event.stopPropagation();adjustPoints('${rp.id}',-1)" aria-label="Decrease points">&#x2212;</button>
         <input class="rc-points-input" type="number" min="0" value="${rp.points||0}"
           onclick="event.stopPropagation()" onblur="setPoints('${rp.id}',this.value)"
           onkeydown="if(event.key==='Enter')this.blur();event.stopPropagation()">
-        <button class="rc-points-btn" onclick="event.stopPropagation();adjustPoints('${rp.id}',1)">+</button>
+        <button class="rc-points-btn" onclick="event.stopPropagation();adjustPoints('${rp.id}',1)" aria-label="Increase points">+</button>
       </div>
-      <div class="rc-sessions-ref">&#x1F4CA; ${sessionsAttended(rp.id)} sessions</div>
+      <div class="rc-sessions-ref">${sessionsAttended(rp.id)} sessions</div>
     `;
     card.onclick = () => toggleRosterPlayer(rp.id);
     grid.appendChild(card);
@@ -1093,7 +1260,7 @@ function renderPlayersSection() {
       const chips = guests.map(g => `
         <div class="guest-chip">
           <span>${escHtml(g.name)} <span style="font-size:10px;color:var(--muted)">Guest</span></span>
-          <button onclick="removeFromSession('${g.id}')" title="Remove">×</button>
+          <button onclick="removeFromSession('${g.id}')" title="Remove" aria-label="Remove ${g.name}">×</button>
         </div>`).join('');
       guestStrip.innerHTML = `<div class="guest-strip"><div class="guest-strip-label">Guests today</div><div class="guest-chips">${chips}</div></div>`;
     } else {
@@ -1103,6 +1270,7 @@ function renderPlayersSection() {
 }
 
 async function toggleRosterPlayer(id) {
+  await refreshState();
   const inSession = (state.players || []).some(p => p.id === id);
   let players;
   if (inSession) {
@@ -1118,6 +1286,7 @@ async function toggleRosterPlayer(id) {
 }
 
 async function removeFromSession(id) {
+  await refreshState();
   const players = (state.players || []).filter(p => p.id !== id);
   await apiPost({ players });
   state.players = players;
@@ -1130,10 +1299,23 @@ async function deleteRosterPlayer(id, btn) {
     setTimeout(() => { if (btn.dataset.confirmed === 'yes') { btn.textContent = '×'; btn.dataset.confirmed = ''; btn.classList.remove('confirm'); } }, 3000);
     return;
   }
+  await refreshState();
   const roster = (state.roster || []).filter(r => r.id !== id);
   const players = (state.players || []).filter(p => p.id !== id);
-  await apiPost({ roster, players });
+  // B7: also strip the player out of stored session snapshots so history and
+  // the "sessions attended" count stay consistent after a removal.
+  const sessions = {};
+  let sessionsChanged = false;
+  for (const [date, sess] of Object.entries(state.sessions || {})) {
+    const filtered = (sess.players || []).filter(p => p.id !== id);
+    if (filtered.length !== (sess.players || []).length) sessionsChanged = true;
+    sessions[date] = { ...sess, players: filtered };
+  }
+  const updates = { roster, players };
+  if (sessionsChanged) updates.sessions = sessions;
+  await apiPost(updates);
   state.roster = roster; state.players = players;
+  if (sessionsChanged) state.sessions = sessions;
   renderPlayersSection(); renderRoundList();
   notify('Removed from roster.');
 }
@@ -1152,6 +1334,7 @@ function startEditRosterName(id) {
 async function saveRosterName(id, name) {
   const trimmed = name.trim();
   if (!trimmed) { renderPlayersSection(); return; }
+  await refreshState();
   const rp = (state.roster || []).find(r => r.id === id);
   if (rp && rp.name === trimmed) { renderPlayersSection(); return; }
   const roster = (state.roster || []).map(r => r.id === id ? { ...r, name: trimmed } : r);
@@ -1166,6 +1349,7 @@ async function handleRosterPhoto(id, input) {
   const file = input.files[0];
   if (!file) return;
   const photo = await compressPhoto(file);
+  await refreshState();
   const roster = (state.roster || []).map(r => r.id === id ? { ...r, photo } : r);
   const players = (state.players || []).map(p => p.id === id ? { ...p, photo } : p);
   await apiPost({ roster, players });
@@ -1179,14 +1363,14 @@ let addRosterPhotoData = null;
 
 function openAddRosterModal() {
   addRosterPhotoData = null;
-  document.getElementById('addRosterModal').style.display = 'flex';
+  document.getElementById('addRosterModal').classList.add('open');
   document.getElementById('addRosterNameInput').value = '';
   renderAddRosterPreview(null);
   setTimeout(() => document.getElementById('addRosterNameInput').focus(), 50);
 }
 
 function closeAddRosterModal() {
-  document.getElementById('addRosterModal').style.display = 'none';
+  document.getElementById('addRosterModal').classList.remove('open');
 }
 
 function renderAddRosterPreview(photo) {
@@ -1208,7 +1392,8 @@ async function previewAddRosterPhoto(input) {
 
 async function confirmAddRoster() {
   const name = document.getElementById('addRosterNameInput').value.trim();
-  if (!name) return notify('⚠ Enter a player name.');
+  if (!name) return notify('Enter a player name.', 'warn');
+  await refreshState();
   const id = 'r' + Date.now();
   const roster = [...(state.roster || []), { id, name, photo: addRosterPhotoData || null }];
   await apiPost({ roster });
@@ -1221,18 +1406,19 @@ async function confirmAddRoster() {
 
 // Guest modal
 function openGuestModal() {
-  document.getElementById('guestModal').style.display = 'flex';
+  document.getElementById('guestModal').classList.add('open');
   document.getElementById('guestNameInput').value = '';
   setTimeout(() => document.getElementById('guestNameInput').focus(), 50);
 }
 
 function closeGuestModal() {
-  document.getElementById('guestModal').style.display = 'none';
+  document.getElementById('guestModal').classList.remove('open');
 }
 
 async function confirmAddGuest() {
   const name = document.getElementById('guestNameInput').value.trim();
-  if (!name) return notify('⚠ Enter a guest name.');
+  if (!name) return notify('Enter a guest name.', 'warn');
+  await refreshState();
   const id = 'g' + Date.now();
   const players = [...(state.players || []), { id, name, photo: null, guest: true }];
   await apiPost({ players });
@@ -1259,8 +1445,9 @@ async function confirmBulkImport() {
     .map(n => n.trim())
     .filter(n => n.length > 0);
 
-  if (!names.length) return notify('No names entered.');
+  if (!names.length) return notify('No names entered.', 'warn');
 
+  await refreshState();
   const existing = new Set((state.roster || []).map(p => p.name.toLowerCase()));
   const newPlayers = names
     .filter(n => !existing.has(n.toLowerCase()))
@@ -1295,7 +1482,7 @@ function handleGenerate() {
     generateSchedule();
   } else {
     generatePending = true;
-    btn.textContent = '⚠ Confirm Replace';
+    btn.textContent = 'Confirm replace';
     btn.className = 'btn btn-danger btn-sm';
     setTimeout(() => {
       if (generatePending) {
@@ -1399,7 +1586,7 @@ async function saveRound(i) {
   allIds.forEach(id => { if (seen.has(id)) dupes.add(id); seen.add(id); });
   if (dupes.size > 0) {
     const names = [...dupes].map(id => playerById(id)?.name || id).join(', ');
-    return notify(`⚠ Duplicate: ${names}`);
+    return notify(`Duplicate player: ${names}`, 'warn');
   }
 
   await apiPost({ rounds });
@@ -1426,6 +1613,8 @@ function renderRoundList() {
   const list = document.getElementById('roundList');
   if (!list) return;
   list.innerHTML = '';
+  const wrap = document.getElementById('roundListWrap');
+  if (wrap) wrap.style.display = (state.rounds || []).length ? '' : 'none';
   const activeCourts = getCourtRounds();
   (state.rounds || []).forEach((round, i) => {
     const isLive = activeCourts.includes(i);
@@ -1439,12 +1628,12 @@ function renderRoundList() {
         <div class="court-editor">
           <h4>Court ${c + 1}</h4>
           <div class="selectors-row">
-            <span style="font-size:12px;color:var(--muted)">Team A:</span>
+            <span class="rl-team-label">Team A:</span>
             ${buildPlayerSelect(`rl_${i}_c${c}_t1p1`, court.team1[0])}
             <span class="amp">&amp;</span>
             ${buildPlayerSelect(`rl_${i}_c${c}_t1p2`, court.team1[1])}
             <span class="vs-small">VS</span>
-            <span style="font-size:12px;color:var(--muted)">Team B:</span>
+            <span class="rl-team-label">Team B:</span>
             ${buildPlayerSelect(`rl_${i}_c${c}_t2p1`, court.team2[0])}
             <span class="amp">&amp;</span>
             ${buildPlayerSelect(`rl_${i}_c${c}_t2p2`, court.team2[1])}
@@ -1463,14 +1652,14 @@ function renderRoundList() {
         <span class="rl">${escHtml(round.label)}</span>
         <span class="rsummary">${roundSummary(round)}</span>
         ${liveLabel}
-        <button class="btn btn-accent btn-sm" style="white-space:nowrap;margin-left:4px" onclick="event.stopPropagation();setCurrentRound(${i})">${isLive ? 'All Live ✓' : 'Set Live'}</button>
-        <button class="btn btn-ghost btn-sm" style="padding:4px 8px;font-size:14px;line-height:1" onclick="event.stopPropagation();deleteRound(${i})" title="Delete round">✕</button>
+        <button class="btn btn-accent btn-sm rl-set-live" onclick="event.stopPropagation();setCurrentRound(${i})">${isLive ? 'All Live ✓' : 'Set Live'}</button>
+        <button class="btn btn-ghost btn-sm rl-delete" onclick="event.stopPropagation();deleteRound(${i})" title="Delete round">✕</button>
       </div>
       <div class="round-editor">
-        <div class="row" style="margin-bottom:12px">
-          <label style="font-size:13px;color:var(--muted)">Label:</label>
+        <div class="row rl-label-row">
+          <label class="admin-form-label">Label:</label>
           <input id="rl_label_${i}" type="text" value="${escHtml(round.label)}"
-            style="background:var(--card);border:1px solid var(--border2);color:var(--text);padding:5px 10px;border-radius:6px;font-size:13px;outline:none;flex:1"
+            class="rl-label-input"
             onkeydown="if(event.key==='Enter')saveRound(${i})">
         </div>
         ${courtEditorsHTML}
@@ -1558,22 +1747,9 @@ function compressPhoto(file) {
 
 // ── SITE GATE ─────────────────────────────────
 function initHeroGate() {
-  // Reset & animate hero words
-  const words = document.querySelectorAll('#siteGate .hero-word');
-  words.forEach(w => { w.style.opacity = '0'; w.style.animation = 'none'; });
-  words.forEach(w => {
-    const delay = parseInt(w.getAttribute('data-gate-delay') || '0', 10);
-    setTimeout(() => { w.style.animation = 'word-appear 0.8s ease-out forwards'; }, delay + 100);
-  });
-  // Animate welcome + subtitle
-  const welcome = document.getElementById('gateWelcome');
-  const sub = document.getElementById('gateSub');
-  if (welcome) { welcome.style.opacity='0'; welcome.style.animation='none'; setTimeout(()=>{ welcome.style.animation='word-appear 0.9s ease-out forwards'; }, 800); }
-  if (sub) { sub.style.opacity='0'; sub.style.animation='none'; setTimeout(()=>{ sub.style.animation='word-appear 0.8s ease-out forwards'; }, 1050); }
-  // Start floating dots
-  setTimeout(() => {
-    document.querySelectorAll('#siteGate .gate-float').forEach(el => { el.style.animationPlayState = 'running'; });
-  }, 1500);
+  // Clean gate: the card fades in via CSS. Just retrigger the entrance.
+  const card = document.querySelector('#siteGate .gate-card');
+  if (card) { card.style.animation = 'none'; void card.offsetWidth; card.style.animation = ''; }
 }
 
 function showSiteGate() {
@@ -1625,10 +1801,10 @@ function renderSiteCodeSection() {
   const code = state.siteCode;
   if (code) {
     display.innerHTML = `
-      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Active code — share with players:</div>
-      <div style="font-size:32px;font-family:monospace;font-weight:700;color:var(--green-light);letter-spacing:8px;background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:12px 24px;display:inline-block">${escHtml(code)}</div>`;
+      <div class="site-code-active-label">Active code — share with players:</div>
+      <div class="site-code-value">${escHtml(code)}</div>`;
   } else {
-    display.innerHTML = `<div style="font-size:13px;color:var(--muted)">No code set — site is open to everyone.</div>`;
+    display.innerHTML = `<div class="site-code-none">No code set — site is open to everyone.</div>`;
   }
 }
 
@@ -1641,7 +1817,7 @@ function generateSiteCode() {
 
 async function saveSiteCode() {
   const raw = document.getElementById('siteCodeInput').value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
-  if (raw.length !== 6) return notify('⚠ Code must be 6 characters (e.g. 5H2-6GS).');
+  if (raw.length !== 6) return notify('Code must be 6 characters (e.g. 5H2-6GS).', 'warn');
   const code = raw.slice(0, 3) + '-' + raw.slice(3);
   const result = await apiPost({ siteCode: code });
   if (!result) return;
@@ -1654,7 +1830,9 @@ async function saveSiteCode() {
 
 // ── DATE UTILS ───────────────────────────────
 function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  // Local date (not UTC) so the day boundary matches the user's clock (B8).
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function formatDisplayDate(iso) {
@@ -1670,15 +1848,17 @@ function formatDisplayDate(iso) {
 function renderSessionDateSection() {
   const display = document.getElementById('sessionDateDisplay');
   const inp = document.getElementById('sessionDateInput');
+  const headerDate = document.getElementById('headerDate');
   const date = state.sessionDate || todayISO();
   if (display) display.textContent = formatDisplayDate(date);
   if (inp) { inp.value = date; inp.max = todayISO(); }
+  if (headerDate) headerDate.textContent = formatDisplayDate(date);
 }
 
 async function setSessionDate() {
   const newDate = document.getElementById('sessionDateInput')?.value;
-  if (!newDate) return notify('⚠ Select a date first.');
-  if (newDate > todayISO()) return notify('⚠ Cannot set a future date.');
+  if (!newDate) return notify('Select a date first.', 'warn');
+  if (newDate > todayISO()) return notify('Cannot set a future date.', 'warn');
   if (newDate === state.sessionDate) return notify('Already set to this date.');
   const result = await apiPost({ sessionDate: newDate });
   if (!result) return;
@@ -1809,7 +1989,9 @@ function renderSessionDetail(iso, session, editMode) {
 
   if (editMode) {
     const existing = new Set(players.map(p => p.id));
-    const addOpts = (state.players||[]).filter(p => !existing.has(p.id))
+    // B2: offer the full permanent roster (not just today's checked-in players)
+    // so any roster member can be added to a historical session.
+    const addOpts = (state.roster||[]).filter(p => !existing.has(p.id))
       .map(p => `<option value="${p.id}">${escHtml(p.name)}</option>`).join('');
     const rows = players.map(p => `
       <div class="player-game-row">
@@ -1818,7 +2000,7 @@ function renderSessionDetail(iso, session, editMode) {
       </div>`).join('');
     detail.innerHTML = `<div class="session-detail">
       <div style="font-size:14px;font-weight:600;margin-bottom:4px">${formatDisplayDate(iso)}</div>
-      <div style="font-size:11px;color:var(--accent);padding:4px 8px;background:rgba(240,180,41,.1);border-radius:6px;margin-bottom:10px">⚠ Editing historical session</div>
+      <div style="font-size:11px;color:var(--accent);padding:5px 10px;background:var(--card2);border:1px solid var(--accent-line);border-radius:6px;margin-bottom:10px;font-weight:600;letter-spacing:.02em">Editing historical session</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:10px">${players.length} players · ${roundCount} rounds</div>
       <div>${rows||'<div style="color:var(--muted);font-size:13px;padding:6px 0">No players.</div>'}</div>
       ${addOpts?`<div class="row" style="margin-top:10px;gap:6px">
@@ -1879,6 +2061,14 @@ function startHistoryEdit(iso) {
     btn.textContent = 'Are you sure?';
     btn.dataset.confirmed = 'yes';
     btn.className = 'btn btn-danger btn-sm';
+    // B6: reset the confirmation state after 3s like the other confirm buttons.
+    setTimeout(() => {
+      if (btn.dataset.confirmed === 'yes') {
+        btn.textContent = 'Edit this session';
+        btn.dataset.confirmed = '';
+        btn.className = 'btn btn-ghost btn-sm';
+      }
+    }, 3000);
     return;
   }
   historyEditSession = JSON.parse(JSON.stringify((state.sessions||{})[iso]));
@@ -1894,7 +2084,7 @@ function removeHistoryPlayer(iso, id) {
 function addHistoryPlayer(iso) {
   const id = document.getElementById('histAddSel')?.value;
   if (!id || !historyEditSession) return;
-  const p = (state.players||[]).find(p => p.id === id);
+  const p = (state.roster||[]).find(p => p.id === id) || (state.players||[]).find(p => p.id === id);
   if (p) historyEditSession.players.push({ id: p.id, name: p.name });
   renderSessionDetail(iso, historyEditSession, true);
 }
@@ -1911,7 +2101,9 @@ async function saveHistoryEdit(iso) {
 }
 
 async function createHistorySession(iso) {
-  const session = { players: (state.players||[]).map(p=>({id:p.id,name:p.name})), rounds: state.rounds||[], numCourts: state.numCourts||1 };
+  // B3: start a back-dated session empty rather than seeding it with today's
+  // rounds, which have nothing to do with the chosen date.
+  const session = { players: (state.players||[]).map(p=>({id:p.id,name:p.name})), rounds: [], numCourts: state.numCourts||1, courtRounds: [] };
   const result = await apiPost({ action: 'updateSession', date: iso, session });
   if (!result) return;
   state.sessions = { ...(state.sessions||{}), [iso]: session };
@@ -1936,14 +2128,14 @@ function requestAdmin() {
 }
 
 function openPwModal() {
-  document.getElementById('pwModal').style.display = 'flex';
+  document.getElementById('pwModal').classList.add('open');
   document.getElementById('pwInput').value = '';
   document.getElementById('pwError').style.display = 'none';
   setTimeout(() => document.getElementById('pwInput').focus(), 50);
 }
 
 function closePwModal() {
-  document.getElementById('pwModal').style.display = 'none';
+  document.getElementById('pwModal').classList.remove('open');
 }
 
 function submitPassword() {
@@ -1976,12 +2168,27 @@ function logout() {
   notify('Logged out.');
 }
 
+// ── ADMIN TABS ────────────────────────────────
+let currentAdminTab = localStorage.getItem('adminTab') || 'session';
+
+function setAdminTab(name) {
+  currentAdminTab = name;
+  localStorage.setItem('adminTab', name);
+  document.querySelectorAll('#adminTabs .admin-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === name);
+  });
+  document.querySelectorAll('#admin .admin-tab-panel').forEach(panel => {
+    panel.classList.toggle('active', panel.dataset.tab === name);
+  });
+}
+
 // ── NAVIGATION ───────────────────────────────
 function showAdmin() {
   document.getElementById('viewer').style.display = 'none';
   document.getElementById('admin').style.display = 'flex';
   document.getElementById('adminBtn').style.display = 'none';
   if (state) renderAdmin();
+  setAdminTab(currentAdminTab);
 }
 
 function showViewer() {
@@ -1995,10 +2202,11 @@ function escHtml(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function notify(msg) {
+function notify(msg, type) {
   const el = document.getElementById('notif');
   el.textContent = msg;
-  el.style.background = msg.startsWith('⚠') ? '#b45309' : 'var(--green)';
+  const warn = type === 'warn' || type === 'error';
+  el.classList.toggle('notif-warn', warn);
   el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 2500);
 }
@@ -2051,6 +2259,7 @@ function sessionsAttended(playerId) {
 
 // ── POINTS EDITING ───────────────────────────
 async function adjustPoints(id, delta) {
+  await refreshState();
   const roster = (state.roster || []).map(r =>
     r.id === id ? { ...r, points: Math.max(0, (r.points || 0) + delta) } : r
   );
@@ -2062,6 +2271,7 @@ async function adjustPoints(id, delta) {
 
 async function setPoints(id, val) {
   const n = Math.max(0, parseInt(val) || 0);
+  await refreshState();
   const cur = (state.roster || []).find(r => r.id === id);
   if (cur && (cur.points || 0) === n) return;
   const roster = (state.roster || []).map(r => r.id === id ? { ...r, points: n } : r);
@@ -2086,7 +2296,7 @@ function renderLeaderboard() {
 
   // Podium for top 3 (show in 2-1-3 order)
   if (players.length >= 2) {
-    const medals = ['🥇','🥈','🥉'];
+    const medalColors = ['#f5cf5b', '#cdd3da', '#e0975a'];
     const podiumOrder = players.length >= 3
       ? [players[1], players[0], players[2]]
       : [null, players[0], players[1]];
@@ -2097,7 +2307,7 @@ function renderLeaderboard() {
       const realRank = players.indexOf(p); // 0-based
       const pts = p.points || 0;
       html += `<div class="lb-podium-spot">
-        <div class="lb-podium-medal">${medals[realRank]}</div>
+        <div class="lb-podium-medal" style="background:${medalColors[realRank]}22;color:${medalColors[realRank]};border:1px solid ${medalColors[realRank]}66">${realRank + 1}</div>
         ${avatarHTML(p, 44)}
         <div class="lb-podium-name">${escHtml(p.name)}</div>
         <div class="lb-podium-pts">${pts.toLocaleString()} pts</div>
@@ -2124,18 +2334,122 @@ function renderLeaderboard() {
   list.innerHTML = html;
 }
 
+// ── CLOCK OFFSET (Bug 3) ──────────────────────
+let clockOffset = 0;
+function clockNow() { return Date.now() + clockOffset; }
+function prefersReducedMotion() { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+function formatTimeAgo(ts) {
+  const d = Date.now() - ts;
+  if (d < 60000) return 'just now';
+  if (d < 3600000) return Math.floor(d / 60000) + 'm ago';
+  if (d < 86400000) return Math.floor(d / 3600000) + 'h ago';
+  return Math.floor(d / 86400000) + 'd ago';
+}
+
 // ── LUCKY DRAW ────────────────────────────────
+let drawHistoryOpen = false;
+
+function setSpinBtnEnabled(enabled) {
+  const btn = document.getElementById('spinBtn');
+  if (!btn) return;
+  btn.disabled = !enabled;
+  btn.style.opacity = enabled ? '' : '0.5';
+  btn.style.cursor = enabled ? '' : 'not-allowed';
+}
+
 function renderDrawPool() {
   const pool = document.getElementById('drawPool');
+  const countEl = document.getElementById('drawPoolCount');
   if (!pool) return;
   const entries = ((state.luckyDraw || {}).entries || []);
+  if (countEl) {
+    if (entries.length) { countEl.textContent = entries.length + ' in pool'; countEl.style.display = ''; }
+    else countEl.style.display = 'none';
+  }
   if (!entries.length) {
-    pool.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:4px 0">Pool is empty — pull from session or add names manually.</div>';
+    pool.innerHTML = '<div class="draw-empty">Pool is empty — pull from session or add names manually.</div>';
     return;
   }
-  pool.innerHTML = entries.map((name, i) =>
-    `<div class="draw-chip"><span>${escHtml(name)}</span><button onclick="removeDrawEntry(${i})" title="Remove">&#x00D7;</button></div>`
-  ).join('');
+  pool.innerHTML = entries.map((name, i) => {
+    const rp = (state.roster || []).find(r => r.name === name);
+    let av = '';
+    if (rp) {
+      if (rp.photo) av = `<img class="draw-chip-avatar" src="${rp.photo}" alt="" style="object-fit:cover">`;
+      else av = `<span class="draw-chip-avatar" style="background:${getColor(rp.id)}">${getInitials(name)}</span>`;
+    }
+    return `<div class="draw-chip">${av}<span>${escHtml(name)}</span><button onclick="removeDrawEntry(${i})" title="Remove">&#x00D7;</button></div>`;
+  }).join('');
+}
+
+function renderDrawResult() {
+  const el = document.getElementById('drawResult');
+  if (!el) return;
+  const ld = state.luckyDraw || {};
+  const now = clockNow();
+  let html = '';
+  const lw = ld.lastWinner;
+  if (lw && now >= lw.at) {
+    const rp = (state.roster || []).find(r => r.name === lw.name);
+    const av = rp ? avatarHTML(rp, 36) : '';
+    html += `<div class="draw-result">
+      <div class="draw-result-label">Last Winner</div>
+      <div class="draw-winner-row">${av}<div>
+        <div class="draw-winner-name">${escHtml(lw.name)}</div>
+        <div class="draw-winner-time">${formatTimeAgo(lw.at)}</div>
+      </div></div>
+      <div class="admin-btn-row admin-mt">
+        <button class="btn btn-ghost btn-sm" onclick="removeWinnerFromPool()">Remove from pool</button>
+      </div>`;
+    const history = (ld.history || []).filter(h => now >= h.at);
+    if (history.length > 1) {
+      html += `<div class="draw-history-toggle" onclick="toggleDrawHistory()">
+        <span class="draw-history-toggle-label">Draw History (${history.length})</span>
+        <span style="color:var(--muted);font-size:12px">${drawHistoryOpen ? '▲' : '▼'}</span>
+      </div>`;
+      if (drawHistoryOpen) {
+        html += `<div class="draw-history-list">${history.map(h =>
+          `<div class="draw-history-row"><span class="draw-history-name">${escHtml(h.name)}</span><span class="draw-history-time">${formatTimeAgo(h.at)}</span></div>`
+        ).join('')}</div>
+        <div class="admin-mt"><button class="btn btn-ghost btn-sm" onclick="clearDrawHistory()">Clear history</button></div>`;
+      }
+    }
+    html += `</div>`;
+  }
+  el.innerHTML = html;
+}
+
+function toggleDrawHistory() { drawHistoryOpen = !drawHistoryOpen; renderDrawResult(); }
+
+async function clearDrawHistory() {
+  const luckyDraw = { ...(state.luckyDraw || {}), history: [], lastWinner: null };
+  await apiPost({ luckyDraw });
+  state.luckyDraw = luckyDraw;
+  renderDrawResult();
+}
+
+async function removeWinnerFromPool() {
+  const lw = (state.luckyDraw || {}).lastWinner;
+  if (!lw) return;
+  let removed = false;
+  const entries = ((state.luckyDraw || {}).entries || []).filter(n => {
+    if (!removed && n === lw.name) { removed = true; return false; }
+    return true;
+  });
+  const luckyDraw = { ...(state.luckyDraw || {}), entries };
+  await apiPost({ luckyDraw });
+  state.luckyDraw = luckyDraw;
+  renderDrawPool();
+  renderDrawResult();
+  notify(`Removed ${lw.name} from pool.`);
+}
+
+function renderViewerLastWinner() {
+  const el = document.getElementById('viewerLastWinner');
+  if (!el) return;
+  const lw = (state.luckyDraw || {}).lastWinner;
+  if (!lw || clockNow() < lw.at) { el.style.display = 'none'; return; }
+  el.style.display = '';
+  el.innerHTML = `<span class="viewer-last-winner"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg> Last winner: <strong>${escHtml(lw.name)}</strong></span>`;
 }
 
 async function loadSessionIntoPool() {
@@ -2182,33 +2496,46 @@ async function clearDrawPool() {
 async function spinWheel() {
   const entries = ((state.luckyDraw || {}).entries || []);
   if (entries.length < 2) { notify('Need at least 2 entries to spin.'); return; }
+  // Bug 5: double-spin guard
+  const live = (state.luckyDraw || {}).spin;
+  if (live && clockNow() < live.startAt + live.durationMs) { notify('A draw is already in progress.'); return; }
   const winnerIndex = Math.floor(Math.random() * entries.length);
-  const spin = {
-    id: Date.now(),
-    entries: [...entries],
-    winnerIndex,
-    startAt: Date.now() + 700,
-    durationMs: 6000
-  };
-  const luckyDraw = { ...(state.luckyDraw || {}), spin };
+  const startAt = clockNow() + 800;
+  const durationMs = 6000;
+  const spin = { id: Date.now(), entries: [...entries], winnerIndex, startAt, durationMs };
+  const winner = { name: entries[winnerIndex], at: startAt + durationMs, spinId: spin.id };
+  const history = [{ name: winner.name, at: winner.at }, ...(((state.luckyDraw || {}).history) || [])].slice(0, 25);
+  const luckyDraw = { ...(state.luckyDraw || {}), spin, lastWinner: winner, history };
+  setSpinBtnEnabled(false);
   await apiPost({ luckyDraw });
   state.luckyDraw = luckyDraw;
   checkForNewSpin(luckyDraw);
+  renderDrawResult();
 }
 
 // ── WHEEL ANIMATION ───────────────────────────
 let lastSpinId = null;
 let wheelRaf = null;
+let wheelAutoHideTimer = null;
+const SPIN_GRACE_MS = 12000;
 
 function checkForNewSpin(ld) {
   if (!ld || !ld.spin) return;
   const spin = ld.spin;
   if (spin.id === lastSpinId) return;
+  const now = clockNow();
+  const finishedAt = spin.startAt + spin.durationMs;
+  // Bug 1: stale spin — silently consume, never show
+  if (now > finishedAt + SPIN_GRACE_MS) { lastSpinId = spin.id; return; }
   lastSpinId = spin.id;
   if (wheelRaf) { cancelAnimationFrame(wheelRaf); wheelRaf = null; }
-  const now = Date.now();
-  if (now >= spin.startAt + spin.durationMs) {
-    // Already finished — show result only
+  if (prefersReducedMotion()) {
+    showWheelOverlay();
+    drawWheelAtAngle(spin, computeFinalAngle(spin));
+    displayWheelWinner(spin.entries[spin.winnerIndex]);
+    return;
+  }
+  if (now >= finishedAt) {
     showWheelOverlay();
     drawWheelAtAngle(spin, computeFinalAngle(spin));
     displayWheelWinner(spin.entries[spin.winnerIndex]);
@@ -2227,12 +2554,19 @@ function showWheelOverlay() {
   document.getElementById('wheelOverlay').classList.add('active');
   const banner = document.getElementById('wheelWinnerBanner');
   banner.style.display = 'none';
-  banner.textContent = '';
+  banner.innerHTML = '';
 }
 
 function hideWheelOverlay() {
   document.getElementById('wheelOverlay').classList.remove('active');
   if (wheelRaf) { cancelAnimationFrame(wheelRaf); wheelRaf = null; }
+  clearTimeout(wheelAutoHideTimer);
+  const cc = document.getElementById('confettiContainer');
+  if (cc) cc.innerHTML = '';
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('wheelOverlay')) hideWheelOverlay();
 }
 
 function wheelSegColors(n) {
@@ -2248,54 +2582,77 @@ function drawWheelAtAngle(spin, angle) {
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
   const cx = W / 2, cy = H / 2;
-  const R = Math.min(W, H) / 2 - 14;
+  const R = Math.min(W, H) / 2 - 18;
   const N = spin.entries.length;
   const seg = (2 * Math.PI) / N;
   const colors = wheelSegColors(N);
-
   ctx.clearRect(0, 0, W, H);
-
+  // Outer shadow ring
+  ctx.beginPath(); ctx.arc(cx, cy, R + 4, 0, 2 * Math.PI);
+  ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fill();
+  // Segments
   for (let i = 0; i < N; i++) {
     const sa = angle + i * seg - Math.PI / 2;
     const ea = sa + seg;
     ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, sa, ea); ctx.closePath();
     ctx.fillStyle = colors[i]; ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 1.5; ctx.stroke();
-
+    ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = 1.5; ctx.stroke();
     ctx.save(); ctx.translate(cx, cy); ctx.rotate(sa + seg / 2);
-    const maxL = N > 14 ? 5 : N > 9 ? 9 : 13;
+    const maxL = N > 16 ? 4 : N > 10 ? 7 : N > 6 ? 10 : 14;
     const lbl = spin.entries[i].length > maxL ? spin.entries[i].slice(0, maxL - 1) + '…' : spin.entries[i];
-    const fs = N > 18 ? 8 : N > 12 ? 10 : N > 8 ? 12 : 14;
-    ctx.font = `bold ${fs}px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif`;
+    const fs = N > 18 ? 8 : N > 14 ? 9 : N > 10 ? 11 : N > 6 ? 13 : 15;
+    ctx.font = `600 ${fs}px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif`;
     ctx.textAlign = 'right'; ctx.fillStyle = '#fff';
-    ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = 3;
-    ctx.fillText(lbl, R - 10, fs / 3);
+    ctx.shadowColor = 'rgba(0,0,0,.7)'; ctx.shadowBlur = 4;
+    ctx.fillText(lbl, R - 12, fs / 3);
     ctx.restore();
   }
-
+  // Outer border ring
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 3; ctx.stroke();
   // Center hub
-  ctx.beginPath(); ctx.arc(cx, cy, 16, 0, 2 * Math.PI);
+  ctx.beginPath(); ctx.arc(cx, cy, 22, 0, 2 * Math.PI);
   ctx.fillStyle = '#0d1117'; ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,.2)'; ctx.lineWidth = 2; ctx.stroke();
-
-  // Pointer triangle at top
+  ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 3; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, 10, 0, 2 * Math.PI);
+  ctx.fillStyle = '#1a9e5c'; ctx.fill();
+  // Pointer at top
+  const pY = cy - R - 4;
   ctx.beginPath();
-  ctx.moveTo(cx, cy - R + 2);
-  ctx.lineTo(cx - 11, cy - R - 16);
-  ctx.lineTo(cx + 11, cy - R - 16);
+  ctx.moveTo(cx, pY + 6);
+  ctx.lineTo(cx - 11, pY - 16);
+  ctx.lineTo(cx + 11, pY - 16);
   ctx.closePath();
   ctx.fillStyle = '#e6edf3'; ctx.fill();
   ctx.strokeStyle = '#0d1117'; ctx.lineWidth = 2; ctx.stroke();
 }
 
+function launchConfetti() {
+  if (prefersReducedMotion()) return;
+  const container = document.getElementById('confettiContainer');
+  if (!container) return;
+  container.innerHTML = '';
+  const colors = ['#f0b429','#1a9e5c','#388bfd','#8957e5','#e05c5c','#22c66e','#58a6ff'];
+  for (let i = 0; i < 55; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + '%';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDelay = (Math.random() * 0.6) + 's';
+    el.style.animationDuration = (1.6 + Math.random() * 1.4) + 's';
+    el.style.width = el.style.height = (6 + Math.floor(Math.random() * 6)) + 'px';
+    container.appendChild(el);
+  }
+}
+
 function animateWheel(spin) {
   const finalAngle = computeFinalAngle(spin);
   function tick() {
-    const now = Date.now();
+    const now = clockNow();
     const elapsed = now - spin.startAt;
     if (elapsed < 0) { drawWheelAtAngle(spin, 0); wheelRaf = requestAnimationFrame(tick); return; }
     const rawT = Math.min(elapsed / spin.durationMs, 1);
-    const eased = 1 - Math.pow(1 - rawT, 3); // cubic ease-out
+    const eased = 1 - Math.pow(1 - rawT, 3);
     drawWheelAtAngle(spin, finalAngle * eased);
     if (rawT >= 1) { displayWheelWinner(spin.entries[spin.winnerIndex]); return; }
     wheelRaf = requestAnimationFrame(tick);
@@ -2305,39 +2662,26 @@ function animateWheel(spin) {
 
 function displayWheelWinner(name) {
   const banner = document.getElementById('wheelWinnerBanner');
-  banner.textContent = '\uD83C\uDF89 ' + name + ' \uD83C\uDF89';
+  const rp = (state.roster || []).find(r => r.name === name);
+  const av = rp ? avatarHTML(rp, 64) : '';
+  banner.innerHTML = (av ? `<div class="winner-avatar-wrap">${av}</div>` : `<div class="winner-avatar-wrap"><svg class="ic" viewBox="0 0 24 24" style="width:48px;height:48px;color:var(--accent)"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6M10 20l.5-4M14 20l-.5-4"/></svg></div>`)
+    + `<span class="winner-name-big">${escHtml(name)}</span>`;
   banner.style.display = 'block';
-  setTimeout(() => hideWheelOverlay(), 3000);
+  launchConfetti();
+  setSpinBtnEnabled(true);
+  clearTimeout(wheelAutoHideTimer);
+  wheelAutoHideTimer = setTimeout(() => hideWheelOverlay(), 8000);
 }
 
-startPolling();
-</script>
+// Keyboard dismiss for wheel overlay
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const ov = document.getElementById('wheelOverlay');
+    if (ov && ov.classList.contains('active')) hideWheelOverlay();
+  }
+});
 
-<script>
-// Gate mouse gradient
-(function(){
-  var grad = document.getElementById('gateMouseGradient');
-  document.addEventListener('mousemove', function(e){
-    var gate = document.getElementById('siteGate');
-    if(gate && gate.style.display !== 'none' && grad){
-      grad.style.left = (e.clientX - 192) + 'px';
-      grad.style.top = (e.clientY - 192) + 'px';
-      grad.style.opacity = '1';
-    }
-  });
-  document.addEventListener('mouseleave', function(){
-    if(grad) grad.style.opacity = '0';
-  });
-  // Click ripple
-  document.addEventListener('click', function(e){
-    var gate = document.getElementById('siteGate');
-    if(!gate || gate.style.display === 'none') return;
-    var r = document.createElement('div');
-    r.style.cssText = 'position:fixed;left:'+e.clientX+'px;top:'+e.clientY+'px;width:4px;height:4px;background:rgba(26,158,92,.45);border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;animation:pulse-glow 1s ease-out forwards;z-index:600';
-    document.body.appendChild(r);
-    setTimeout(function(){ r.remove(); }, 1000);
-  });
-})();
+startPolling();
 </script>
 </body>
 </html>

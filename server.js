@@ -31,7 +31,7 @@ const DEFAULT_STATE = {
     },
   ],
   currentRound: 0,
-  luckyDraw: { entries: [], spin: null },
+  luckyDraw: { entries: [], spin: null, lastWinner: null, history: [] },
 };
 
 let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -44,7 +44,7 @@ app.get('/api/state', (req, res) => {
       return res.json({ locked: true });
     }
   }
-  res.json(state);
+  res.json({ ...state, serverTime: Date.now() });
 });
 
 // POST state — admin only, merges updates

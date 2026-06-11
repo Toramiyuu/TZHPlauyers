@@ -21,8 +21,12 @@ const kv = {
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'TZH123';
 const STATE_KEY = 'court-state';
 
+// Local "today" for the club. Vercel runs in UTC, so without an offset the
+// date flips at the wrong moment for non-UTC users (B8). Defaults to UTC+8.
 function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  const offsetHours = parseFloat(process.env.TZ_OFFSET_HOURS || '8');
+  const d = new Date(Date.now() + offsetHours * 3600 * 1000);
+  return d.toISOString().slice(0, 10);
 }
 
 const DEFAULT_ROSTER = [
@@ -55,7 +59,7 @@ const DEFAULT_STATE = {
   currentRound: 0,
   sessionDate: todayISO(),
   sessions: {},
-  luckyDraw: { entries: [], spin: null },
+  luckyDraw: { entries: [], spin: null, lastWinner: null, history: [] },
 };
 
 module.exports = async function handler(req, res) {
@@ -69,7 +73,9 @@ module.exports = async function handler(req, res) {
     try {
       const state = await kv.get(STATE_KEY);
       const current = state || DEFAULT_STATE;
-      if (!current.luckyDraw) current.luckyDraw = { entries: [], spin: null };
+      if (!current.luckyDraw) current.luckyDraw = { entries: [], spin: null, lastWinner: null, history: [] };
+      if (current.luckyDraw.lastWinner === undefined) current.luckyDraw.lastWinner = null;
+      if (!current.luckyDraw.history) current.luckyDraw.history = [];
       if (!current.roster) current.roster = DEFAULT_ROSTER;
       if (current.roster) current.roster = current.roster.map(r => r.points !== undefined ? r : { ...r, points: 0 });
       if (current.siteCode) {
@@ -78,10 +84,10 @@ module.exports = async function handler(req, res) {
           return res.status(200).json({ locked: true });
         }
       }
-      return res.json(current);
+      return res.json({ ...current, serverTime: Date.now() });
     } catch (e) {
       console.error('KV read error:', e.message);
-      return res.json(DEFAULT_STATE);
+      return res.json({ ...DEFAULT_STATE, serverTime: Date.now() });
     }
   }
 
@@ -127,6 +133,7 @@ module.exports = async function handler(req, res) {
         players: (state.players || []).map(p => ({ id: p.id, name: p.name })),
         rounds: state.rounds || [],
         numCourts: state.numCourts || 1,
+        courtRounds: state.courtRounds || [],
       };
       state.sessions = { ...(state.sessions || {}), [state.sessionDate]: snapshot };
       // Prune sessions older than 31 days
