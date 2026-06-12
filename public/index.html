@@ -2338,7 +2338,7 @@ function renderMonthlyTab() {
   // Participants summary + list
   const totalTickets = parts.reduce((s, p) => s + (p.tokens || 0), 0);
   const sum = document.getElementById('mdPoolSummary');
-  if (sum) sum.textContent = parts.length ? `${parts.length} · ${totalTickets} tickets` : '';
+  if (sum) sum.textContent = parts.length ? `${parts.length} · ${totalTickets} tokens` : '';
 
   const pl = document.getElementById('mdParticipants');
   if (pl) {
@@ -2456,7 +2456,7 @@ function importDrawCsv(input) {
     await apiPost({ monthlyDraw });
     state.monthlyDraw = monthlyDraw;
     const total = participants.reduce((s, p) => s + p.tokens, 0);
-    setImportNote(`Imported ${participants.length} participants (${total} tickets)${parsed.skipped ? `, skipped ${parsed.skipped} with 0 tokens` : ''}.`, false);
+    setImportNote(`Imported ${participants.length} participants (${total} tokens)${parsed.skipped ? `, skipped ${parsed.skipped} with 0 tokens` : ''}.`, false);
     renderMonthlyTab();
     notify('Participants imported.');
   };
@@ -2545,13 +2545,13 @@ function renderMdBoard() {
   if (!parts.length) { el.innerHTML = html || '<div class="mdb-empty">No entries yet.</div>'; return; }
   const wonIds = results.map(r => r.id);
   const sorted = [...parts].sort((a, b) => (b.tokens || 0) - (a.tokens || 0));
-  html += '<div class="mdb-sub">1 ticket for every 4 tubes purchased</div>' + sorted.map(c => {
+  html += '<div class="mdb-sub">1 token for every 4 tubes purchased</div>' + sorted.map(c => {
     const r = results.find(x => x.id === c.id);
     const wb = r ? `<span class="md-win-badge md-rank-${r.rank}">${mdRankLbl(r.rank)}</span>` : '';
     return `<div class="mdb-row">
       <span class="mdb-name">${escHtml(c.name)}</span>
       ${wb ? `<span class="mdb-wins">${wb}</span>` : ''}
-      <span class="mdb-spins">${c.tokens} ticket${c.tokens === 1 ? '' : 's'}</span>
+      <span class="mdb-spins">${c.tokens} token${c.tokens === 1 ? '' : 's'}</span>
     </div>`;
   }).join('');
   el.innerHTML = html;

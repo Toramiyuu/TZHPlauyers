@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+@page { size: A4; margin: 0; }
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --ink:#0b0d11;--panel:#13171d;--panel2:#1a1f27;--elev:#222934;
+  --line:#2a313b;--line2:#3a434f;
+  --gold:#e7b53b;--gold-d:#c8961f;--gold-soft:rgba(231,181,59,.12);--gold-line:rgba(231,181,59,.32);
+  --green:#1ba65d;--green-l:#2bd075;--green-soft:rgba(27,166,93,.12);--green-line:rgba(27,166,93,.34);
+  --text:#f3f6fa;--text2:#c4ccd6;--muted:#97a1ad;
+  --disp:"URW Gothic","Nimbus Sans","DejaVu Sans","Droid Sans Fallback",sans-serif;
+  --body:"DejaVu Sans","Droid Sans Fallback",sans-serif;
+}
+html{font-family:var(--body);color:var(--text);font-size:11pt}
+.cjk{font-family:var(--body)}
+.page{position:relative;width:210mm;height:297mm;background:var(--ink);overflow:hidden;page-break-after:always;padding:16mm 15mm 13mm}
+.page:last-child{page-break-after:auto}
+.page::before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--green),var(--gold))}
+.eyebrow{font-family:var(--disp);font-size:9.5pt;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.pg-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:8mm;margin-bottom:9mm}
+.pg-title{font-family:var(--disp);font-weight:700;font-size:27pt;letter-spacing:.01em;line-height:1.02;color:var(--text)}
+.pg-title .zh{display:block;font-size:15pt;color:var(--gold);margin-top:3mm;letter-spacing:.06em;font-weight:700}
+.pg-kicker{font-size:9pt;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);margin-bottom:3mm}
+.pg-no{font-family:var(--disp);font-size:10pt;color:var(--muted);letter-spacing:.2em;text-align:right;white-space:nowrap;padding-top:4mm}
+.foot{position:absolute;left:15mm;right:15mm;bottom:8mm;display:flex;justify-content:space-between;font-size:8pt;letter-spacing:.16em;text-transform:uppercase;color:#5b646f}
+
+/* ---------- COVER ---------- */
+.cover{display:flex;flex-direction:column;justify-content:space-between;padding:18mm 16mm 14mm}
+.cover::after{content:"";position:absolute;right:-60mm;top:-60mm;width:150mm;height:150mm;border-radius:50%;background:radial-gradient(circle,rgba(231,181,59,.10),transparent 62%)}
+.cover-top{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:2}
+.brandmark{display:flex;align-items:center;gap:4mm}
+.brand-dot{width:11mm;height:11mm;border-radius:3mm;background:linear-gradient(135deg,var(--green),var(--gold));display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-weight:700;color:#0b0d11;font-size:13pt}
+.brand-name{font-family:var(--disp);font-weight:700;letter-spacing:.05em;font-size:12pt}
+.brand-name .zh{color:var(--muted);font-weight:400;font-size:9.5pt;letter-spacing:.2em;display:block;margin-top:.5mm}
+.cover-badge{font-size:8.5pt;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold-line);padding:2mm 4mm;border-radius:30px}
+.cover-mid{position:relative;z-index:2}
+.cover-kick{font-family:var(--disp);font-size:11pt;letter-spacing:.4em;color:var(--gold);text-transform:uppercase;font-weight:700;margin-bottom:6mm}
+.cover-h1{font-family:var(--disp);font-weight:700;font-size:58pt;line-height:.94;letter-spacing:-.01em;text-transform:uppercase}
+.cover-h1 .l2{color:var(--gold)}
+.cover-zh{font-size:22pt;letter-spacing:.14em;color:var(--text);margin-top:7mm;font-weight:700}
+.cover-tag{font-size:12pt;color:var(--text2);margin-top:6mm;letter-spacing:.02em}
+.cover-rule{width:46mm;height:2px;background:linear-gradient(90deg,var(--gold),transparent);margin:9mm 0 0}
+.toc{position:relative;z-index:2;border-top:1px solid var(--line);padding-top:7mm;display:grid;grid-template-columns:1fr 1fr;gap:3.5mm 10mm}
+.toc-item{display:flex;align-items:baseline;gap:4mm;font-size:10.5pt}
+.toc-n{font-family:var(--disp);color:var(--gold);font-weight:700;font-size:11pt;width:7mm}
+.toc-en{color:var(--text);font-weight:700}
+.toc-zh{color:var(--muted)}
+.swap-note{margin-top:6mm;font-size:8pt;color:#5b646f;letter-spacing:.05em}
+
+/* ---------- generic content ---------- */
+.lead{font-size:11pt;color:var(--text2);line-height:1.6;max-width:150mm}
+.lead .zh{color:var(--muted);display:block;margin-top:2mm}
+
+/* ---------- price table ---------- */
+.grp-label{font-family:var(--disp);font-size:9.5pt;letter-spacing:.26em;text-transform:uppercase;color:var(--green-l);margin:6mm 0 3mm}
+table.price{width:100%;border-collapse:collapse}
+table.price td{padding:4.6mm 4mm;border-bottom:1px solid var(--line);vertical-align:middle}
+table.price tr:last-child td{border-bottom:none}
+.pm{font-family:var(--disp);font-weight:700;font-size:14pt;letter-spacing:.01em;color:var(--text)}
+.pm small{display:block;font-family:var(--body);font-weight:400;font-size:8.5pt;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;margin-top:1mm}
+.price-val{text-align:right;font-family:var(--disp);font-weight:700;font-size:17pt;color:var(--gold);white-space:nowrap}
+.price-val small{font-size:9pt;color:var(--muted);font-weight:400}
+.tag{display:inline-block;font-size:7.5pt;letter-spacing:.14em;text-transform:uppercase;color:var(--green-l);border:1px solid var(--green-line);border-radius:20px;padding:1mm 3mm;margin-right:3mm;vertical-align:middle}
+.note-strip{margin-top:8mm;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:3mm;padding:5mm 6mm;font-size:9.5pt;color:var(--text2)}
+.note-strip .zh{color:var(--muted);display:block;margin-top:1.5mm}
+
+/* ---------- loyalty tiers ---------- */
+.tier{display:flex;align-items:stretch;gap:6mm;background:var(--panel);border:1px solid var(--line);border-radius:4mm;padding:5.5mm 6mm;margin-bottom:3.6mm}
+.tier-badge{flex:0 0 30mm;border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.tier-num{font-family:var(--disp);font-weight:700;font-size:30pt;line-height:.9;color:var(--gold)}
+.tier-unit{font-family:var(--disp);font-size:10pt;letter-spacing:.18em;text-transform:uppercase;color:var(--text);margin-top:1mm}
+.tier-zh{font-size:8.5pt;color:var(--muted);margin-top:1mm}
+.tier-body{flex:1;display:flex;flex-direction:column;justify-content:center}
+.tier-en{font-size:10.5pt;font-weight:700;color:var(--text);line-height:1.5}
+.tier-en .free{color:var(--green-l)}
+.tier-cn{font-size:9pt;color:var(--muted);margin-top:3mm;line-height:1.55}
+.tier.flag{border-color:var(--gold-line);background:linear-gradient(180deg,var(--gold-soft),var(--panel))}
+.pill-top{position:relative}
+.pill-top .pp{position:absolute;top:-3mm;right:4mm;background:var(--gold);color:#0b0d11;font-family:var(--disp);font-weight:700;font-size:7.5pt;letter-spacing:.1em;text-transform:uppercase;padding:1mm 3mm;border-radius:20px}
+
+/* ---------- membership tiers ---------- */
+.earn{display:flex;align-items:center;gap:5mm;background:var(--panel);border:1px solid var(--line);border-radius:3mm;padding:4mm 6mm;margin-bottom:7mm}
+.earn-rate{font-family:var(--disp);font-weight:700;font-size:16pt;color:var(--gold);white-space:nowrap}
+.earn-txt{font-size:9.5pt;color:var(--text2)}
+.earn-txt .zh{color:var(--muted);display:block;margin-top:1mm}
+.mtier{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:3mm;margin-bottom:3mm;overflow:hidden}
+.mt-side{flex:0 0 40mm;padding:3.6mm 4mm;display:flex;flex-direction:column;justify-content:center;border-left:3px solid var(--tc,#5b646f);background:var(--panel)}
+.mt-name{font-family:var(--disp);font-weight:700;font-size:12pt;color:var(--tc,#c4ccd6);letter-spacing:.02em}
+.mt-name .zh{font-family:var(--body);font-size:9pt;color:var(--muted);font-weight:400;margin-left:2mm}
+.mt-range{font-size:8pt;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:1mm}
+.mt-perk{flex:1;padding:3.6mm 5mm;font-size:9pt;color:var(--text2);display:flex;flex-direction:column;justify-content:center;line-height:1.5}
+.mt-perk .zh{color:var(--muted);margin-top:1mm}
+.m-visitor{--tc:#7c8794}.m-bronze{--tc:#c8884e}.m-silver{--tc:#c2cad4}.m-gold{--tc:#e7b53b}.m-plat{--tc:#5aa6ff}.m-vip{--tc:#b98cff}
+.earnways{margin-top:6mm;border-top:1px solid var(--line);padding-top:5mm}
+.earnways-t{font-size:8.5pt;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);margin-bottom:3mm}
+.ways{display:flex;flex-wrap:wrap;gap:3mm}
+.way{font-size:9pt;color:var(--text2);border:1px solid var(--line2);border-radius:30px;padding:2mm 4mm}
+.way .zh{color:var(--muted)}
+
+/* ---------- Thomas ---------- */
+.tw{display:flex;gap:7mm;margin-bottom:8mm}
+.tw-photo{flex:0 0 40mm;height:48mm;border-radius:4mm;background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#5b646f}
+.tw-photo .mono{font-family:var(--disp);font-size:30pt;color:var(--green-l);font-weight:700}
+.tw-photo .ph{font-size:7.5pt;letter-spacing:.1em;margin-top:3mm;color:#5b646f}
+.tw-intro{flex:1;display:flex;flex-direction:column;justify-content:center}
+.tw-name{font-family:var(--disp);font-weight:700;font-size:20pt;color:var(--text)}
+.tw-role{font-size:9.5pt;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin:2mm 0 4mm}
+.tw-desc{font-size:10pt;color:var(--text2);line-height:1.6}
+.tw-desc .zh{color:var(--muted);display:block;margin-top:2mm}
+.assess-t{font-family:var(--disp);font-size:10pt;letter-spacing:.18em;text-transform:uppercase;color:var(--green-l);margin-bottom:4mm}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:4mm}
+.acard{background:var(--panel);border:1px solid var(--line);border-radius:3mm;padding:4.5mm 5mm;border-top:2px solid var(--green-line)}
+.acard h4{font-family:var(--disp);font-size:11pt;color:var(--text);font-weight:700;margin-bottom:1.5mm}
+.acard h4 .zh{font-family:var(--body);font-size:9pt;color:var(--muted);font-weight:400;margin-left:2mm}
+.acard p{font-size:8.7pt;color:var(--muted);line-height:1.5}
+.flow{display:flex;gap:3mm;margin:7mm 0 6mm}
+.step{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:3mm;padding:4mm 3mm;text-align:center}
+.step .sn{font-family:var(--disp);font-weight:700;color:var(--gold);font-size:11pt}
+.step .se{font-size:9pt;color:var(--text);font-weight:700;margin-top:1.5mm}
+.step .sz{font-size:8pt;color:var(--muted);margin-top:.5mm}
+.cta{background:linear-gradient(135deg,var(--green-soft),var(--gold-soft));border:1px solid var(--green-line);border-radius:4mm;padding:6mm;display:flex;justify-content:space-between;align-items:center}
+.cta-en{font-family:var(--disp);font-weight:700;font-size:13pt;color:var(--text)}
+.cta-zh{font-size:9.5pt;color:var(--text2);margin-top:1.5mm}
+.cta-mark{font-size:8pt;letter-spacing:.1em;color:var(--muted);text-align:right}
+</style>
+</head>
+<body>
+
+<!-- ============ PAGE 1 · COVER ============ -->
+<section class="page cover">
+  <div class="cover-top">
+    <div class="brandmark">
+      <div class="brand-dot">T</div>
+      <div class="brand-name">TZH Sports Club<span class="zh cjk">TZH 体育会</span></div>
+    </div>
+    <div class="cover-badge">Members Only · 会员专属</div>
+  </div>
+
+  <div class="cover-mid">
+    <div class="cover-kick">TZH</div>
+    <div class="cover-h1">Loyalty<br><span class="l2">Rewards</span></div>
+    <div class="cover-zh cjk">会员忠诚礼遇</div>
+    <div class="cover-tag">Buy more, get more. &nbsp;·&nbsp; <span class="cjk">买越多，送越多。</span></div>
+    <div class="cover-rule"></div>
+  </div>
+
+  <div>
+    <div class="toc">
+      <div class="toc-item"><span class="toc-n">01</span><span><span class="toc-en">Shuttlecock Price List</span> &nbsp;<span class="toc-zh cjk">羽毛球价目表</span></span></div>
+      <div class="toc-item"><span class="toc-n">02</span><span><span class="toc-en">Loyalty Rewards</span> &nbsp;<span class="toc-zh cjk">忠诚礼遇</span></span></div>
+      <div class="toc-item"><span class="toc-n">03</span><span><span class="toc-en">Membership Tiers</span> &nbsp;<span class="toc-zh cjk">会员等级</span></span></div>
+      <div class="toc-item"><span class="toc-n">04</span><span><span class="toc-en">Meet Thomas · Stringer</span> &nbsp;<span class="toc-zh cjk">专业穿线师</span></span></div>
+    </div>
+    <div class="swap-note">Mockup v1 — cover artwork/photo can be swapped for your supplied image. · 封面图可替换为您提供的图片。</div>
+  </div>
+</section>
+
+<!-- ============ PAGE 2 · PRICE LIST ============ -->
+<section class="page">
+  <div class="pg-head">
+    <div>
+      <div class="pg-kicker">01 — Official Pricing</div>
+      <div class="pg-title">Shuttlecock Price List<span class="zh cjk">羽毛球价目表</span></div>
+    </div>
+    <div class="pg-no">PER TUBE<br>每桶 · 一打</div>
+  </div>
+
+  <div class="grp-label">RCL Series · RCL 系列</div>
+  <table class="price">
+    <tr><td class="pm">RCL No.1<small>Premium Feather</small></td><td class="price-val">RM124<small> /tube</small></td></tr>
+    <tr><td class="pm">RCL Titanium<small>Feather</small></td><td class="price-val">RM117<small> /tube</small></td></tr>
+  </table>
+
+  <div class="grp-label">RSL Series · RSL 系列</div>
+  <table class="price">
+    <tr><td class="pm">RSL Ultimate<small>Top Grade</small></td><td class="price-val">RM130<small> /tube</small></td></tr>
+    <tr><td class="pm">RSL Supreme</td><td class="price-val">RM126<small> /tube</small></td></tr>
+    <tr><td class="pm">RSL Classic</td><td class="price-val">RM120<small> /tube</small></td></tr>
+    <tr><td class="pm">RSL No.1</td><td class="price-val">RM113<small> /tube</small></td></tr>
+    <tr><td class="pm">RSL G2</td><td class="price-val">RM108<small> /tube</small></td></tr>
+    <tr><td class="pm">RSL G3</td><td class="price-val">RM101<small> /tube</small></td></tr>
+  </table>
+
+  <div class="note-strip">
+    We also provide other brands and models — feel free to ask!
+    <span class="zh cjk">我们也提供其他品牌与型号，欢迎咨询！</span>
+  </div>
+  <div class="foot"><span>TZH Sports Club · 体育会</span><span>Loyalty Rewards · 忠诚礼遇</span></div>
+</section>
+
+<!-- ============ PAGE 3 · LOYALTY REWARDS ============ -->
+<section class="page">
+  <div class="pg-head">
+    <div>
+      <div class="pg-kicker">02 — Buy more, get more · 买越多，送越多</div>
+      <div class="pg-title">Loyalty Rewards<span class="zh cjk">忠诚礼遇</span></div>
+    </div>
+    <div class="pg-no">ACCUMULATE<br>累计购买</div>
+  </div>
+
+  <div class="tier">
+    <div class="tier-badge"><div class="tier-num">4</div><div class="tier-unit">Tubes</div><div class="tier-zh cjk">累计 4 桶</div></div>
+    <div class="tier-body">
+      <div class="tier-en">1&times; Grip &nbsp;+&nbsp; RM15 Stringing Discount</div>
+      <div class="tier-cn cjk">1 个手胶 ＋ 穿线服务折扣 RM15</div>
+    </div>
+  </div>
+
+  <div class="tier">
+    <div class="tier-badge"><div class="tier-num">8</div><div class="tier-unit">Tubes</div><div class="tier-zh cjk">累计 8 桶</div></div>
+    <div class="tier-body">
+      <div class="tier-en">1&times; Grip &nbsp;+&nbsp; 1&times; Standard String</div>
+      <div class="tier-cn cjk">1 个手胶 ＋ 1 条标准线</div>
+    </div>
+  </div>
+
+  <div class="tier">
+    <div class="tier-badge"><div class="tier-num">12</div><div class="tier-unit">Tubes</div><div class="tier-zh cjk">累计 12 桶</div></div>
+    <div class="tier-body">
+      <div class="tier-en"><span class="free">FREE</span> Standard String &nbsp;+&nbsp; <span class="free">FREE</span> Stringing Service &nbsp;+&nbsp; 1&times; Grip</div>
+      <div class="tier-cn cjk">免费标准线 ＋ 免费穿线服务 ＋ 1 个手胶</div>
+    </div>
+  </div>
+
+  <div class="tier">
+    <div class="tier-badge"><div class="tier-num">16</div><div class="tier-unit">Tubes</div><div class="tier-zh cjk">累计 16 桶</div></div>
+    <div class="tier-body">
+      <div class="tier-en"><span class="free">FREE</span> Premium String &nbsp;+&nbsp; <span class="free">FREE</span> Stringing &nbsp;+&nbsp; 1&times; Grip &nbsp;+&nbsp; <span class="free">FREE</span> Grommet</div>
+      <div class="tier-cn cjk">免费高级线 ＋ 免费穿线服务 ＋ 1 个手胶 ＋ 免费更换护线管</div>
+    </div>
+  </div>
+
+  <div class="tier flag pill-top">
+    <div class="pp">Best Value · 最超值</div>
+    <div class="tier-badge"><div class="tier-num">20</div><div class="tier-unit">Tubes</div><div class="tier-zh cjk">累计 20 桶</div></div>
+    <div class="tier-body">
+      <div class="tier-en"><span class="free">FREE</span> Premium String <small style="color:var(--muted)">(Top Grade)</small> &nbsp;+&nbsp; <span class="free">FREE</span> Stringing &nbsp;+&nbsp; 2&times; Grips &nbsp;+&nbsp; <span class="free">FREE</span> Grommet</div>
+      <div class="tier-cn cjk">最高等级线 ＋ 免费穿线服务 ＋ 2 个手胶 ＋ 免费更换护线管</div>
+    </div>
+  </div>
+
+  <div class="note-strip">
+    Must be accumulated within the same month · Stringing service must be done at TZH Sports Club · TZH Sports Club reserves the right of final interpretation.
+    <span class="zh cjk">需在同一个月内累计 · 穿线服务须在 TZH 体育会进行 · 活动最终解释权归 TZH 体育会所有。</span>
+  </div>
+  <div class="foot"><span>TZH Sports Club · 体育会</span><span>Loyalty Rewards · 忠诚礼遇</span></div>
+</section>
+
+<!-- ============ PAGE 4 · MEMBERSHIP TIERS ============ -->
+<section class="page">
+  <div class="pg-head">
+    <div>
+      <div class="pg-kicker">03 — The more you play, the more you earn</div>
+      <div class="pg-title">Membership Tiers<span class="zh cjk">会员等级</span></div>
+    </div>
+    <div class="pg-no">BRONZE → VIP<br>铜级 → 至尊</div>
+  </div>
+
+  <div class="earn">
+    <div class="earn-rate">RM1 = 1 pt</div>
+    <div class="earn-txt">Earn one point for every RM1 spent. Points lift you through the tiers and unlock perks.
+      <span class="zh cjk">每消费 RM1 累积 1 积分，积分越多，等级越高，礼遇越丰富。</span>
+    </div>
+  </div>
+
+  <div class="mtier m-visitor">
+    <div class="mt-side"><div class="mt-name">Visitor<span class="zh cjk">访客</span></div><div class="mt-range">0 – 49 pts</div></div>
+    <div class="mt-perk">Start earning points with every purchase.<span class="zh cjk">开始累积积分，迈向铜级会员。</span></div>
+  </div>
+  <div class="mtier m-bronze">
+    <div class="mt-side"><div class="mt-name">Bronze<span class="zh cjk">铜级</span></div><div class="mt-range">50 – 299 pts</div></div>
+    <div class="mt-perk">Quarterly Lucky Draw · Points Redemption · Member Promotions<span class="zh cjk">季度幸运抽奖 · 积分兑换 · 会员专属优惠</span></div>
+  </div>
+  <div class="mtier m-silver">
+    <div class="mt-side"><div class="mt-name">Silver<span class="zh cjk">银级</span></div><div class="mt-range">300 – 899 pts</div></div>
+    <div class="mt-perk">All Bronze perks + Free Grip with every stringing<span class="zh cjk">铜级所有礼遇 ＋ 每次穿线免费手胶</span></div>
+  </div>
+  <div class="mtier m-gold">
+    <div class="mt-side"><div class="mt-name">Gold<span class="zh cjk">金级</span></div><div class="mt-range">900 – 1799 pts</div></div>
+    <div class="mt-perk">All Silver perks + RM5 Stringing Discount<span class="zh cjk">银级所有礼遇 ＋ 穿线折扣 RM5</span></div>
+  </div>
+  <div class="mtier m-plat">
+    <div class="mt-side"><div class="mt-name">Platinum<span class="zh cjk">白金</span></div><div class="mt-range">1800 – 2999 pts</div></div>
+    <div class="mt-perk">All Gold perks + RM10 Stringing Discount<span class="zh cjk">金级所有礼遇 ＋ 穿线折扣 RM10</span></div>
+  </div>
+  <div class="mtier m-vip">
+    <div class="mt-side"><div class="mt-name">VIP<span class="zh cjk">至尊</span></div><div class="mt-range">3000+ pts</div></div>
+    <div class="mt-perk">All Platinum perks + Highest stringing privileges + Exclusive VIP rewards<span class="zh cjk">白金所有礼遇 ＋ 最高穿线优惠 ＋ 至尊专属奖励</span></div>
+  </div>
+
+  <div class="earnways">
+    <div class="earnways-t">Ways to earn points · 积分累积方式</div>
+    <div class="ways">
+      <span class="way">Shuttle purchase <span class="zh cjk">· 羽毛球</span></span>
+      <span class="way">Stringing service <span class="zh cjk">· 穿线服务</span></span>
+      <span class="way">Sports products <span class="zh cjk">· 运动用品</span></span>
+      <span class="way">Coaching programs <span class="zh cjk">· 教练课程</span></span>
+      <span class="way">Badminton sessions <span class="zh cjk">· 打球场次</span></span>
+    </div>
+  </div>
+  <div class="foot"><span>TZH Sports Club · 体育会</span><span>Membership Tiers · 会员等级</span></div>
+</section>
+
+<!-- ============ PAGE 5 · THOMAS ============ -->
+<section class="page">
+  <div class="pg-head">
+    <div>
+      <div class="pg-kicker">04 — Professional Stringing</div>
+      <div class="pg-title">Meet Thomas<span class="zh cjk">认识 Thomas · 专业穿线师</span></div>
+    </div>
+    <div class="pg-no">STRINGING<br>专业穿线</div>
+  </div>
+
+  <div class="tw">
+    <div class="tw-photo"><div class="mono">T</div><div class="ph">[ photo of Thomas<br>to be supplied ]</div></div>
+    <div class="tw-intro">
+      <div class="tw-name">Thomas</div>
+      <div class="tw-role">TZH Resident Stringer · 驻店穿线师</div>
+      <div class="tw-desc">Thomas isn't just pulling strings — he tunes your racket to <em>you</em>. He reads your game and recommends the right string and tension so your racket feels exactly how you want it.
+        <span class="zh cjk">Thomas 不只是穿线，更为你「调校」球拍。他了解你的打法，为你推荐最合适的线材与磅数，让球拍手感正中你心。</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="assess-t">How Thomas recommends · Thomas 如何为你推荐</div>
+  <div class="grid2">
+    <div class="acard"><h4>Your racket <span class="zh cjk">球拍</span></h4><p>Frame stiffness &amp; balance set a safe, ideal tension range. <span class="cjk">拍框软硬与平衡，决定理想且安全的磅数范围。</span></p></div>
+    <div class="acard"><h4>Your style &amp; level <span class="zh cjk">打法与水平</span></h4><p>Power, control or all-round — each wants a different string. <span class="cjk">进攻、控制或全面型，适合不同线材。</span></p></div>
+    <div class="acard"><h4>Your tension <span class="zh cjk">磅数偏好</span></h4><p>The repulsion-vs-control trade-off, dialled to your preferred lbs. <span class="cjk">弹力与控球的取舍，依你偏好的磅数调校。</span></p></div>
+    <div class="acard"><h4>String condition <span class="zh cjk">线况</span></h4><p>Tension loss &amp; wear tell us exactly when to restring. <span class="cjk">掉磅与磨损，判断最佳换线时机。</span></p></div>
+  </div>
+
+  <div class="flow">
+    <div class="step"><div class="sn">1</div><div class="se">Tell</div><div class="sz cjk">说明需求</div></div>
+    <div class="step"><div class="sn">2</div><div class="se">Assess</div><div class="sz cjk">评估球拍</div></div>
+    <div class="step"><div class="sn">3</div><div class="se">Recommend</div><div class="sz cjk">推荐方案</div></div>
+    <div class="step"><div class="sn">4</div><div class="se">String</div><div class="sz cjk">专业穿线</div></div>
+  </div>
+
+  <div class="cta">
+    <div>
+      <div class="cta-en">Ask Thomas for a stringing consultation</div>
+      <div class="cta-zh cjk">向 Thomas 咨询专业穿线建议</div>
+    </div>
+    <div class="cta-mark">[ to confirm: years of experience ·<br>machine model · WhatsApp / contact ]</div>
+  </div>
+  <div class="foot"><span>TZH Sports Club · 体育会</span><span>Meet Thomas · 专业穿线师</span></div>
+</section>
+
+</body>
+</html>
