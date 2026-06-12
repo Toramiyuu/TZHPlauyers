@@ -50,5 +50,68 @@ check('3 tubes -> 0 spins', tokensRemaining({ tubes: 3 }) === 0);
 check('0 tubes -> 0 spins', tokensRemaining({ tubes: 0 }) === 0);
 check('legacy spinsUsed ignored (spins deduct tubes now)', tokensRemaining({ tubes: 8, spinsUsed: 5 }) === 2);
 
+// ── Ballot model: parseDrawCsv / buildBallot / pickWinnerIndex ──
+const { parseDrawCsv, buildBallot, pickWinnerIndex } = require('../public/monthly-draw.js');
+
+// parseDrawCsv — full points-sheet header, token column authoritative
+const sheetCsv = [
+  'Name,Phone number,Points,Purchased Items,Accumulated tubes,Lucky Draw Token,Leftover tubes,Readable purchase summary',
+  'Joo,012 498 9778,1984,RCL No.1,16,4,0,- Purchased RCL No.1 16x',
+  'Ling,013 433 1010,992,RCL No.1,8,2,0,- Purchased RCL No.1 8x',
+  'Harvey,014 306 6392,117,RCL Titanium,1,0,1,- Purchased RCL Titanium 1x',
+  '"Yeoh","016 484 9997",237,"Ling Mei DimGray (1x), Ling Mei Golden (1x)",0,0,0,summary',
+].join('\n');
+const parsed = parseDrawCsv(sheetCsv);
+check('csv: 2 eligible participants', parsed.participants.length === 2);
+check('csv: 2 skipped (0-token)', parsed.skipped === 2);
+check('csv: Joo has 4 tokens', parsed.participants[0].tokens === 4);
+check('csv: Joo name + phone mapped', parsed.participants[0].name === 'Joo' && parsed.participants[0].phone === '012 498 9778');
+check('csv: quoted comma field does not shift columns', parseDrawCsv(sheetCsv).error === '');
+
+// parseDrawCsv — newline embedded in a quoted field (Excel multi-line cell) must not break rows
+const multilineCsv = [
+  'Name,Phone number,Accumulated tubes,Lucky Draw Token,Readable purchase summary',
+  'Yeoh,016 484 9997,0,0,"- Purchased Ling Mei DimGray 1x',
+  '- Purchased Ling Mei Golden 1x"',
+  'Tong Hai,016 489 4043,4,1,- Purchased RSL G2 4x',
+].join('\n');
+const ml = parseDrawCsv(multilineCsv);
+check('csv multiline: row after embedded newline still parsed', !!ml.participants.find(p => p.name === 'Tong Hai' && p.tokens === 1));
+check('csv multiline: only Tong Hai eligible (Yeoh 0-token)', ml.participants.length === 1);
+
+// parseDrawCsv — fallback to tubes/4 when token column missing
+const noTokenCsv = ['Name,Accumulated tubes', 'Claude,12', 'Harvey,4', 'Lee,3'].join('\n');
+const pf = parseDrawCsv(noTokenCsv);
+check('csv fallback: Claude 12 tubes -> 3 tokens', pf.participants.find(p => p.name === 'Claude').tokens === 3);
+check('csv fallback: Harvey 4 tubes -> 1 token', pf.participants.find(p => p.name === 'Harvey').tokens === 1);
+check('csv fallback: Lee 3 tubes -> skipped', !pf.participants.find(p => p.name === 'Lee') && pf.skipped === 1);
+
+// parseDrawCsv — error cases
+check('csv empty -> error', parseDrawCsv('').error === 'empty');
+check('csv no name column -> error', parseDrawCsv('Foo,Bar\n1,2').error === 'no-name-column');
+
+// buildBallot — name repeated per token, excludes winners by id
+const parts = [
+  { id: 'a', name: 'Joo', tokens: 4 },
+  { id: 'b', name: 'Ling', tokens: 2 },
+  { id: 'c', name: 'Peter', tokens: 1 },
+];
+check('ballot: total tickets = sum tokens', buildBallot(parts).length === 7);
+check('ballot: Joo appears 4x', buildBallot(parts).filter(p => p.id === 'a').length === 4);
+check('ballot: excludes winner by id', buildBallot(parts, ['a']).length === 3);
+check('ballot: excluded id absent', !buildBallot(parts, ['a']).some(p => p.id === 'a'));
+check('ballot: empty participants -> []', buildBallot([]).length === 0);
+check('ballot: 0-token participant contributes nothing', buildBallot([{ id: 'z', name: 'Z', tokens: 0 }]).length === 0);
+
+// pickWinnerIndex — deterministic with injected rng, weighted by repetition
+check('pick: rng 0 -> index 0', pickWinnerIndex(7, () => 0) === 0);
+check('pick: rng ~1 -> last index', pickWinnerIndex(7, () => 0.999) === 6);
+check('pick: empty -> -1', pickWinnerIndex(0) === -1);
+{
+  const ballot = buildBallot(parts);
+  const winner = ballot[pickWinnerIndex(ballot.length, () => 0.5)]; // index 3 -> still Joo (0..3)
+  check('pick: weighted ballot resolves to a participant', !!winner && !!winner.name);
+}
+
 console.log(`\nmonthly-draw tests: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

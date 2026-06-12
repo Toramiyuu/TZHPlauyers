@@ -32,11 +32,7 @@ const DEFAULT_STATE = {
   ],
   currentRound: 0,
   luckyDraw: { entries: [], spin: null, lastWinner: null, history: [] },
-  shopCustomers: [],
-  monthlyDraws: [],
-  drawPrizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'],
-  drawOdds: { first: 0.01, second: 0.03, third: 0.05 },
-  monthlySpin: null,
+  monthlyDraw: { prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'], participants: [], results: [], spin: null, history: [] },
 };
 
 let state = JSON.parse(JSON.stringify(DEFAULT_STATE));

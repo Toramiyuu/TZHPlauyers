@@ -436,7 +436,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .md-odds-pct{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap}
 .md-cust-wins{display:flex;gap:4px;margin-top:3px;flex-basis:100%}
 .md-win-badge{font-size:10px;font-weight:800;padding:1px 7px;border-radius:100px;border:1px solid}
-.md-spin-btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:disabled{opacity:.45;cursor:not-allowed}
 .md-lastspin{margin-top:10px;padding:10px 14px;border-radius:var(--radius-md);background:var(--card2);border:1px solid var(--border);font-size:var(--fs-base);color:var(--text-2)}
 .md-lastspin.win{border-color:var(--green-line);background:var(--green-tint);color:var(--text)}
 /* prize-draw board (viewer) */
@@ -448,23 +448,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .mdb-wins{display:flex;gap:4px;flex-shrink:0}
 .mdb-spins{font-size:var(--fs-xs);font-weight:700;color:var(--green-light);background:var(--green-tint);border:1px solid var(--green-line);padding:2px 8px;border-radius:100px;white-space:nowrap}
 .mdb-empty{color:var(--muted);font-size:var(--fs-sm);text-align:center;padding:14px 0}
-/* slot-machine spin overlay (viewer) */
-#mdSpinOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:360;align-items:center;justify-content:center;padding:24px}
-#mdSpinOverlay.active{display:flex}
-.md-spin-card{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);padding:clamp(24px,4vw,40px);max-width:520px;width:100%;text-align:center;position:relative;overflow:hidden}
-.md-spin-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--green-light))}
-.md-spin-name{font-size:clamp(20px,3vw,30px);font-weight:700;color:var(--text);letter-spacing:-.01em}
-.md-spin-sub{font-size:var(--fs-xs);color:var(--muted);margin-bottom:20px;text-transform:uppercase;letter-spacing:.16em}
-.md-reels{display:flex;justify-content:center;gap:10px;margin:0 auto 18px}
-.md-reel{width:76px;height:76px;border-radius:var(--radius-md);background:var(--dark);border:1px solid var(--border2);overflow:hidden;position:relative}
-.md-reel-inner{display:flex;flex-direction:column;will-change:transform}
-.md-reel-cell{height:76px;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:800;flex-shrink:0}
-.md-reel::after{content:'';position:absolute;inset:0;box-shadow:inset 0 10px 12px -8px rgba(0,0,0,.85),inset 0 -10px 12px -8px rgba(0,0,0,.85);pointer-events:none}
-.md-cell-1{color:var(--gold)}.md-cell-2{color:var(--silver)}.md-cell-3{color:var(--bronze)}.md-cell-0{color:var(--muted)}
-.md-spin-result{font-size:clamp(16px,2.4vw,22px);font-weight:700;min-height:26px;color:var(--text-2)}
-.md-spin-result.win{color:var(--green-light)}
-.md-spin-prize{font-size:var(--fs-md);color:var(--text-2);font-weight:600;margin-top:4px}
-.md-spin-dismiss{margin-top:18px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);opacity:.55}
 #wheelTitle{font-size:clamp(12px,2vw,16px);font-weight:600;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
 #wheelCanvas{max-width:min(78vw,460px);max-height:min(78vw,460px);width:460px;height:460px}
 #wheelWinnerBanner{text-align:center;display:none;padding:18px 28px;background:rgba(22,27,34,.95);border:1px solid var(--border2);border-radius:var(--radius-lg);animation:word-appear .4s ease-out forwards;max-width:min(88vw,440px)}
@@ -474,6 +457,37 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 #wheelCloseBtn:hover{color:var(--text);border-color:var(--border2)}
 /* Viewer last-winner badge */
 .viewer-last-winner{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:100px;border:1px solid rgba(240,180,41,.3);background:rgba(240,180,41,.07);font-size:var(--fs-sm);color:var(--accent);font-weight:600}
+
+/* ── MONTHLY DRAW REVEAL OVERLAY ──────────── */
+#pickerOverlay{position:fixed;inset:0;background:rgba(5,8,15,.97);z-index:450;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+#pickerOverlay.active{display:flex}
+#pickerTitle{font-size:clamp(12px,2vw,16px);font-weight:600;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+.picker-stage{position:relative;width:min(88vw,560px);min-height:clamp(150px,28vh,240px);display:flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);overflow:hidden;padding:24px}
+.picker-stage::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--green-light))}
+.picker-name{font-size:clamp(30px,7vw,64px);font-weight:900;color:var(--text);letter-spacing:-.02em;text-align:center;line-height:1.1;max-width:100%;word-break:break-word}
+.picker-name.shuffling{color:var(--text-2)}
+.picker-name.locked{animation:picker-pop .45s cubic-bezier(.2,1.3,.4,1) both;color:var(--green-light)}
+@keyframes picker-pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+.picker-sub{font-size:var(--fs-xs);color:var(--muted);text-transform:uppercase;letter-spacing:.16em;display:flex;align-items:center;gap:6px}
+.picker-sub .ic{width:15px;height:15px;color:var(--accent)}
+#pickerCloseBtn{position:absolute;top:18px;right:18px;background:var(--card);border:1px solid var(--border2);color:var(--muted);font-size:18px;padding:4px 12px;border-radius:8px;cursor:pointer;transition:var(--transition)}
+#pickerCloseBtn:hover{color:var(--text);border-color:var(--border2)}
+@media(prefers-reduced-motion:reduce){.picker-name.locked{animation:none}}
+.picker-prize{display:flex;align-items:center;gap:8px;font-size:clamp(13px,2vw,17px);font-weight:700;color:var(--text);padding:6px 16px;border-radius:100px;border:1px solid var(--border2);background:var(--card)}
+.picker-prize.empty{display:none}
+.picker-prize .rank-medal{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;border:1px solid;flex-shrink:0}
+.picker-prize.rank-1 .rank-medal{color:var(--gold);border-color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,transparent)}
+.picker-prize.rank-2 .rank-medal{color:var(--silver);border-color:var(--silver);background:color-mix(in srgb,var(--silver) 16%,transparent)}
+.picker-prize.rank-3 .rank-medal{color:var(--bronze);border-color:var(--bronze);background:color-mix(in srgb,var(--bronze) 14%,transparent)}
+
+/* ── MONTHLY DRAW — ADMIN ─────────────────── */
+.md-draw-buttons{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.md-draw-row{display:flex;align-items:center;gap:10px}
+.md-draw-row .md-prize-rank{flex-shrink:0}
+.md-draw-row .btn{flex:1;justify-content:center}
+.md-tickets{font-size:var(--fs-xs);font-weight:700;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);border:1px solid var(--accent-line);padding:2px 8px;border-radius:100px;white-space:nowrap}
+.md-import-note{font-size:var(--fs-sm);color:var(--text-2);margin:8px 0 2px}
+.md-import-note.warn{color:var(--accent)}
 
 /* ── ADMIN DASHBOARD ──────────────────────── */
 /* Persistent header */
@@ -818,24 +832,24 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <div id="wheelWinnerBanner" aria-live="polite" role="status"></div>
 </div>
 
+<!-- Monthly Lucky Draw Reveal Overlay -->
+<div id="pickerOverlay" role="dialog" aria-modal="true" aria-labelledby="pickerTitle" onclick="handlePickerOverlayClick(event)">
+  <div class="confetti-container" id="pickerConfetti"></div>
+  <button id="pickerCloseBtn" onclick="hidePickerOverlay()" aria-label="Close draw">&#x2715;</button>
+  <div id="pickerTitle">Monthly Lucky Draw</div>
+  <div id="pickerPrize" class="picker-prize"></div>
+  <div class="picker-stage">
+    <div id="pickerName" class="picker-name" aria-live="polite" role="status">&nbsp;</div>
+  </div>
+  <div id="pickerSub" class="picker-sub"></div>
+</div>
+
 <!-- Monthly Prize Draw Board -->
 <div id="mdBoardModal">
   <div class="lb-box">
     <button class="lb-close" onclick="closeMdBoard()" aria-label="Close prize draw board">&#x2715;</button>
     <div class="lb-header">Monthly Prize Draw</div>
     <div id="mdBoardBody"></div>
-  </div>
-</div>
-
-<!-- Monthly Draw Spin Overlay -->
-<div id="mdSpinOverlay" role="dialog" aria-modal="true" onclick="if(event.target===this)hideMonthlySpin()">
-  <div class="confetti-container" id="mdConfetti"></div>
-  <div class="md-spin-card">
-    <div class="md-spin-name" id="mdSpinName"></div>
-    <div class="md-spin-sub" id="mdSpinSub">Lucky Draw spin</div>
-    <div class="md-reels" id="mdReels"></div>
-    <div class="md-spin-result" id="mdSpinResult" aria-live="polite"></div>
-    <div class="md-spin-dismiss">Tap anywhere to close</div>
   </div>
 </div>
 
@@ -993,28 +1007,31 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
   <!-- Prizes -->
   <div class="admin-card">
-    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span> Monthly Lucky Draw</div>
-    <div class="admin-helper-text">Customers earn 1 token per 4 tubes. Each month, draw 3 weighted winners.</div>
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span> Prizes</div>
+    <div class="admin-helper-text">The three prizes drawn each month, in order.</div>
     <div class="md-prizes" id="mdPrizes"></div>
   </div>
 
-  <!-- Customers -->
+  <!-- Participants (import) -->
   <div class="admin-card">
-    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M16 19a4 4 0 0 0-8 0M12 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M5 20a3 3 0 0 1 3-3M19 20a3 3 0 0 0-3-3"/></svg></span> Shop Customers <span class="md-summary" id="mdPoolSummary"></span></div>
+    <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M16 19a4 4 0 0 0-8 0M12 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M5 20a3 3 0 0 1 3-3M19 20a3 3 0 0 0-3-3"/></svg></span> Participants</span><span class="md-summary" id="mdPoolSummary"></span></div>
+    <div class="admin-helper-text">Import your points sheet (in Excel: File &#x2192; Save As &#x2192; CSV). Each <strong>Lucky Draw Token</strong> = one entry; people with 0 tokens are skipped.</div>
     <div class="admin-btn-row admin-mt">
-      <input id="mdAddName" class="admin-form-input admin-flex" type="text" placeholder="Customer name..." onkeydown="if(event.key===&#x27;Enter&#x27;)addShopCustomer()">
-      <input id="mdAddPhone" class="admin-form-input" type="text" placeholder="Phone (optional)" style="max-width:130px">
-      <button class="btn btn-secondary btn-sm" onclick="addShopCustomer()">Add</button>
+      <label class="btn btn-secondary btn-sm" for="csvFileInput"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg> Import CSV</label>
+      <input id="csvFileInput" type="file" accept=".csv,text/csv" style="display:none" onchange="importDrawCsv(this)">
+      <button class="btn btn-ghost btn-sm" onclick="clearParticipants()">Clear</button>
     </div>
-    <div class="md-customers" id="mdCustomers"></div>
+    <div id="mdImportSummary"></div>
+    <div class="md-customers" id="mdParticipants"></div>
   </div>
 
   <!-- Draw -->
   <div class="admin-card">
-    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> Draw</div>
-    <div class="admin-helper-text">Spin per customer above &mdash; each spin uses 1 token, rolls the odds, and streams live to the viewer.</div>
-    <div id="mdResult"></div>
-    <div class="admin-btn-row admin-mt"><button class="btn btn-ghost btn-sm" onclick="closeMonth()">Close month &amp; reset</button></div>
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> Draw Winners</div>
+    <div class="admin-helper-text">Draw the prizes in order. Each winner is shuffled live on the viewer screen, then removed from the pool so nobody wins twice.</div>
+    <div class="md-draw-buttons" id="mdDrawButtons"></div>
+    <div id="mdResults"></div>
+    <div class="admin-btn-row admin-mt"><button class="btn btn-ghost btn-sm" onclick="resetMonthlyDraw()">Reset for new month</button></div>
     <div class="divider"></div>
     <div id="mdHistory"></div>
   </div>
@@ -1145,7 +1162,7 @@ async function poll() {
   state = s;
   renderViewer();
   checkForNewSpin(state.luckyDraw);
-  checkForNewMonthlySpin(state.monthlySpin);
+  checkForNewMonthlyDraw(state.monthlyDraw);
   if (adminOpen) {
     renderSessionDateSection();
     renderPlayersSection(); // B5: keep the admin player list fresh across devices
@@ -2297,310 +2314,247 @@ function logout() {
 // ── ADMIN TABS ────────────────────────────────
 let currentAdminTab = localStorage.getItem('adminTab') || 'session';
 
-// ── MONTHLY LUCKY DRAW ────────────────────────
-function mdTokens(t) { return window.MonthlyDraw ? MonthlyDraw.drawTokens(t) : Math.floor(Math.max(0, t || 0) / 4); }
-function mdRemaining(c) { c = c || {}; return window.MonthlyDraw ? MonthlyDraw.tokensRemaining(c) : mdTokens(c.tubes); }
+// ── MONTHLY LUCKY DRAW (token ballot) ─────────
+function mdData() { return state.monthlyDraw || {}; }
 function mdRankLbl(r) { return r === 1 ? '1st' : r === 2 ? '2nd' : '3rd'; }
 
 function renderMonthlyTab() {
   if (!state) return;
-  const custs = state.shopCustomers || [];
-  const prizes = state.drawPrizes || [];
-  const odds = state.drawOdds || {};
-  const oddsPct = [odds.first, odds.second, odds.third].map(v => +(((+v || 0) * 100).toFixed(2)));
+  const md = mdData();
+  const prizes = md.prizes || [];
+  const parts = md.participants || [];
+  const results = md.results || [];
+  const wonIds = results.map(r => r.id);
 
+  // Prizes editor (no odds — ballot model)
   const pe = document.getElementById('mdPrizes');
   if (pe) pe.innerHTML = [0, 1, 2].map(i => `
       <div class="md-prize-row">
         <span class="md-prize-rank md-rank-${i + 1}">${i + 1}</span>
         <input class="admin-form-input admin-flex" id="mdPrize${i}" type="text" value="${escHtml(prizes[i] || '')}" placeholder="Prize ${i + 1}">
-        <input class="admin-form-input md-odds-input" id="mdOdds${i}" type="number" min="0" max="100" step="0.1" value="${oddsPct[i]}" aria-label="Win chance percent for prize ${i + 1}">
-        <span class="md-odds-pct">% win</span>
       </div>`).join('') +
-    `<div class="admin-btn-row admin-mt"><button class="btn btn-secondary btn-sm" onclick="saveDrawPrizes()">Save prizes &amp; odds</button></div>`;
+    `<div class="admin-btn-row admin-mt"><button class="btn btn-secondary btn-sm" onclick="saveDrawPrizes()">Save prizes</button></div>`;
 
-  const totalRemaining = custs.reduce((s, c) => s + mdRemaining(c), 0);
+  // Participants summary + list
+  const totalTickets = parts.reduce((s, p) => s + (p.tokens || 0), 0);
   const sum = document.getElementById('mdPoolSummary');
-  if (sum) sum.textContent = custs.length ? `${custs.length} · ${totalRemaining} spins left` : '';
+  if (sum) sum.textContent = parts.length ? `${parts.length} · ${totalTickets} tickets` : '';
 
-  const ce = document.getElementById('mdCustomers');
-  if (ce) {
-    if (!custs.length) {
-      ce.innerHTML = '<div class="md-empty">No customers yet. Add one above.</div>';
+  const pl = document.getElementById('mdParticipants');
+  if (pl) {
+    if (!parts.length) {
+      pl.innerHTML = '<div class="md-empty">No participants yet. Import your CSV above.</div>';
     } else {
-      ce.innerHTML = custs.map(c => {
-        const rem = mdRemaining(c);
-        const wins = (c.wins || []).map(w => `<span class="md-win-badge md-rank-${w.rank}" title="${escHtml(w.prize || '')}">${mdRankLbl(w.rank)}</span>`).join('');
-        return `<div class="md-cust">
+      pl.innerHTML = parts.map(p => {
+        const r = results.find(x => x.id === p.id);
+        const badge = r ? `<span class="md-win-badge md-rank-${r.rank}" title="${escHtml(r.prize || '')}">${mdRankLbl(r.rank)}</span>` : '';
+        return `<div class="md-cust"${r ? ' style="opacity:.55"' : ''}>
           <div class="md-cust-main">
-            <div class="md-cust-name" id="mdname_${c.id}" onclick="editShopCustomerName('${c.id}')">${escHtml(c.name)}</div>
-            ${c.phone ? `<div class="md-cust-phone">${escHtml(c.phone)}</div>` : ''}
-            ${wins ? `<div class="md-cust-wins">${wins}</div>` : ''}
+            <div class="md-cust-name">${escHtml(p.name)} ${badge}</div>
+            ${p.phone ? `<div class="md-cust-phone">${escHtml(p.phone)}</div>` : ''}
           </div>
-          <span class="md-tokens">${rem} spin${rem === 1 ? '' : 's'}</span>
-          <div class="md-tube-step">
-            <button onclick="adjustCustomerTubes('${c.id}',-1)" aria-label="Fewer tubes">&#x2212;</button>
-            <input type="number" min="0" value="${c.tubes || 0}" onblur="setCustomerTubes('${c.id}',this.value)" onkeydown="if(event.key==='Enter')this.blur()">
-            <button onclick="adjustCustomerTubes('${c.id}',1)" aria-label="More tubes">+</button>
-          </div>
-          <button class="btn btn-primary btn-sm md-spin-btn" ${rem <= 0 ? 'disabled' : ''} onclick="spinCustomer('${c.id}')">Spin</button>
-          <button class="md-cust-del" id="mddel_${c.id}" onclick="removeShopCustomer('${c.id}',this)" title="Remove" aria-label="Remove ${escHtml(c.name)}">×</button>
+          <span class="md-tickets">${p.tokens} ticket${p.tokens === 1 ? '' : 's'}</span>
         </div>`;
       }).join('');
     }
   }
-  renderMonthlyResult();
+
+  renderDrawButtons();
+  renderMonthlyResults();
   renderMonthlyHistory();
 }
 
-function renderMonthlyResult() {
-  const el = document.getElementById('mdResult');
+function renderDrawButtons() {
+  const el = document.getElementById('mdDrawButtons');
   if (!el) return;
-  const sp = state.monthlySpin;
-  if (!sp) { el.innerHTML = ''; return; }
-  const won = sp.outcome && sp.outcome !== 'none';
-  el.innerHTML = `<div class="md-lastspin ${won ? 'win' : ''}">
-    <strong>${escHtml(sp.customerName || '')}</strong> ${won
-      ? `won <span class="md-win-badge md-rank-${sp.rank}">${mdRankLbl(sp.rank)}</span> ${escHtml(sp.prize || '')}`
-      : '&mdash; no win this spin'}
-  </div>`;
+  const md = mdData();
+  const prizes = md.prizes || [];
+  const results = md.results || [];
+  const wonIds = results.map(r => r.id);
+  const eligibleLeft = (md.participants || []).filter(p => wonIds.indexOf(p.id) === -1 && (p.tokens || 0) >= 1).length;
+  el.innerHTML = [0, 1, 2].map(i => {
+    const rank = i + 1;
+    const done = results.find(r => r.rank === rank);
+    const label = prizes[i] ? escHtml(prizes[i]) : `Prize ${rank}`;
+    if (done) {
+      return `<div class="md-draw-row">
+        <span class="md-prize-rank md-rank-${rank}">${rank}</span>
+        <button class="btn btn-secondary btn-sm" disabled>${mdRankLbl(rank)}: ${escHtml(done.name)}</button>
+      </div>`;
+    }
+    const isNext = results.length === i;
+    const disabled = !isNext || eligibleLeft < 1;
+    return `<div class="md-draw-row">
+      <span class="md-prize-rank md-rank-${rank}">${rank}</span>
+      <button class="btn btn-primary btn-sm" ${disabled ? 'disabled' : ''} onclick="drawPrize(${rank})">Draw ${mdRankLbl(rank)} &mdash; ${label}</button>
+    </div>`;
+  }).join('');
+  if ((md.participants || []).length && eligibleLeft < 1 && results.length < 3) {
+    el.innerHTML += `<div class="md-import-note warn">No eligible participants left to draw.</div>`;
+  }
+}
+
+function renderMonthlyResults() {
+  const el = document.getElementById('mdResults');
+  if (!el) return;
+  const results = mdData().results || [];
+  if (!results.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div class="admin-subsection-label">Winners</div>' + results.slice().sort((a, b) => a.rank - b.rank).map(r => `
+    <div class="md-winner">
+      <span class="md-prize-rank md-rank-${r.rank}">${r.rank}</span>
+      <div class="md-cust-main">
+        <div class="md-winner-name">${escHtml(r.name)}</div>
+        <div class="md-winner-prize">${escHtml(r.prize || '')}</div>
+      </div>
+      ${r.phone ? `<span class="md-cust-phone">${escHtml(r.phone)}</span>` : ''}
+    </div>`).join('');
 }
 
 function renderMonthlyHistory() {
   const el = document.getElementById('mdHistory');
   if (!el) return;
-  const hist = state.monthlyDraws || [];
+  const hist = mdData().history || [];
   if (!hist.length) { el.innerHTML = '<div class="md-empty">No past months yet.</div>'; return; }
   el.innerHTML = '<div class="admin-form-label">Past months</div>' + hist.map(d => {
-    const winners = (d.results || []).flatMap(r => (r.wins || []).map(w => `${escHtml(r.name)} (${mdRankLbl(w.rank)})`));
+    const winners = (d.winners || []).map(w => `${escHtml(w.name)} (${mdRankLbl(w.rank)})`);
     return `<div class="md-history-row">
-      <div class="md-history-month">${escHtml(d.label || d.month || '')}</div>
+      <div class="md-history-month">${escHtml(d.label || '')}</div>
       <div class="md-history-winners">${winners.length ? winners.join('  ·  ') : 'No winners'}</div>
     </div>`;
   }).join('');
 }
 
-async function addShopCustomer() {
-  const ni = document.getElementById('mdAddName'), pi = document.getElementById('mdAddPhone');
-  const name = (ni ? ni.value : '').trim();
-  const phone = (pi ? pi.value : '').trim();
-  if (!name) return notify('Enter a customer name.', 'warn');
-  await refreshState();
-  const id = 'cust_' + clockNow().toString(36) + Math.floor(Math.random() * 1000).toString(36);
-  const shopCustomers = [...(state.shopCustomers || []), { id, name, phone, tubes: 0 }];
-  await apiPost({ shopCustomers });
-  state.shopCustomers = shopCustomers;
-  if (ni) ni.value = '';
-  if (pi) pi.value = '';
-  renderMonthlyTab();
-}
-
-async function adjustCustomerTubes(id, delta) {
-  await refreshState();
-  const shopCustomers = (state.shopCustomers || []).map(c => c.id === id ? { ...c, tubes: Math.max(0, (c.tubes || 0) + delta) } : c);
-  await apiPost({ shopCustomers });
-  state.shopCustomers = shopCustomers;
-  renderMonthlyTab();
-}
-
-async function setCustomerTubes(id, val) {
-  const n = Math.max(0, parseInt(val, 10) || 0);
-  await refreshState();
-  const shopCustomers = (state.shopCustomers || []).map(c => c.id === id ? { ...c, tubes: n } : c);
-  await apiPost({ shopCustomers });
-  state.shopCustomers = shopCustomers;
-  renderMonthlyTab();
-}
-
-function editShopCustomerName(id) {
-  const c = (state.shopCustomers || []).find(x => x.id === id);
-  const el = document.getElementById('mdname_' + id);
-  if (!c || !el) return;
-  el.outerHTML = `<input class="admin-form-input" id="mdnameinput_${id}" type="text" style="max-width:150px" value="${escHtml(c.name)}"
-    onblur="saveShopCustomerName('${id}',this.value)" onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape')renderMonthlyTab()">`;
-  setTimeout(() => { const i = document.getElementById('mdnameinput_' + id); if (i) { i.focus(); i.select(); } }, 20);
-}
-
-async function saveShopCustomerName(id, name) {
-  name = (name || '').trim();
-  if (!name) { renderMonthlyTab(); return; }
-  await refreshState();
-  const shopCustomers = (state.shopCustomers || []).map(c => c.id === id ? { ...c, name } : c);
-  await apiPost({ shopCustomers });
-  state.shopCustomers = shopCustomers;
-  renderMonthlyTab();
-}
-
-async function removeShopCustomer(id, btn) {
-  if (btn.dataset.confirmed !== 'yes') {
-    btn.textContent = '?'; btn.dataset.confirmed = 'yes'; btn.classList.add('confirm');
-    setTimeout(() => { if (btn.dataset.confirmed === 'yes') { btn.textContent = '×'; btn.dataset.confirmed = ''; btn.classList.remove('confirm'); } }, 3000);
-    return;
-  }
-  await refreshState();
-  const shopCustomers = (state.shopCustomers || []).filter(c => c.id !== id);
-  await apiPost({ shopCustomers });
-  state.shopCustomers = shopCustomers;
-  renderMonthlyTab();
-}
-
 async function saveDrawPrizes() {
-  const drawPrizes = [0, 1, 2].map(i => { const el = document.getElementById('mdPrize' + i); return el ? el.value.trim() : ''; });
-  const pct = i => { const el = document.getElementById('mdOdds' + i); const n = el ? parseFloat(el.value) : 0; return Number.isFinite(n) && n > 0 ? Math.min(100, n) / 100 : 0; };
-  const drawOdds = { first: pct(0), second: pct(1), third: pct(2) };
-  if (drawOdds.first + drawOdds.second + drawOdds.third > 1) return notify('Win chances add up to more than 100%.', 'warn');
+  const prizes = [0, 1, 2].map(i => { const el = document.getElementById('mdPrize' + i); return el ? el.value.trim() : ''; });
   await refreshState();
-  await apiPost({ drawPrizes, drawOdds });
-  state.drawPrizes = drawPrizes;
-  state.drawOdds = drawOdds;
+  const monthlyDraw = { ...mdData(), prizes };
+  await apiPost({ monthlyDraw });
+  state.monthlyDraw = monthlyDraw;
   renderMonthlyTab();
-  notify('Prizes & odds saved.');
+  notify('Prizes saved.');
 }
 
-async function spinCustomer(id) {
-  await refreshState();
-  const c = (state.shopCustomers || []).find(x => x.id === id);
-  if (!c) return;
-  if (mdRemaining(c) <= 0) return notify('No spins left for this customer.', 'warn');
-  const RANK = { first: 1, second: 2, third: 3 };
-  const prizes = state.drawPrizes || [];
-  const outcome = window.MonthlyDraw ? MonthlyDraw.spinOutcome(state.drawOdds || {}) : 'none';
-  const win = outcome !== 'none' ? { rank: RANK[outcome], prize: prizes[RANK[outcome] - 1] || '', at: clockNow() } : null;
-  const shopCustomers = (state.shopCustomers || []).map(x => x.id === id
-    ? { ...x, tubes: Math.max(0, (x.tubes || 0) - 4), wins: win ? [...(x.wins || []), win] : (x.wins || []) }
-    : x);
-  const monthlySpin = {
-    id: clockNow() + '_' + Math.floor(Math.random() * 1e6).toString(36),
-    customerName: c.name,
-    outcome,
-    rank: win ? win.rank : 0,
-    prize: win ? win.prize : '',
-    startAt: clockNow() + 600,
-    durationMs: 3800,
+function setImportNote(msg, warn) {
+  const el = document.getElementById('mdImportSummary');
+  if (el) el.innerHTML = msg ? `<div class="md-import-note ${warn ? 'warn' : ''}">${escHtml(msg)}</div>` : '';
+}
+
+function importDrawCsv(input) {
+  const file = input && input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const lib = window.MonthlyDraw;
+    const parsed = lib ? lib.parseDrawCsv(String(reader.result || '')) : { participants: [], skipped: 0, error: 'no-lib' };
+    input.value = '';
+    if (parsed.error === 'no-name-column') { setImportNote('Could not find a "Name" column in that CSV.', true); return; }
+    if (parsed.error) { setImportNote('That file looks empty.', true); return; }
+    if (!parsed.participants.length) { setImportNote('No eligible participants — everyone had 0 tokens.', true); return; }
+    const participants = parsed.participants.map((p, i) => ({ id: 'mp' + i, name: p.name, phone: p.phone || '', tokens: p.tokens }));
+    await refreshState();
+    const monthlyDraw = { ...mdData(), participants, results: [], spin: null };
+    await apiPost({ monthlyDraw });
+    state.monthlyDraw = monthlyDraw;
+    const total = participants.reduce((s, p) => s + p.tokens, 0);
+    setImportNote(`Imported ${participants.length} participants (${total} tickets)${parsed.skipped ? `, skipped ${parsed.skipped} with 0 tokens` : ''}.`, false);
+    renderMonthlyTab();
+    notify('Participants imported.');
   };
-  await apiPost({ shopCustomers, monthlySpin });
-  state.shopCustomers = shopCustomers;
-  state.monthlySpin = monthlySpin;
-  renderMonthlyTab();
-  if (typeof checkForNewMonthlySpin === 'function') checkForNewMonthlySpin(monthlySpin);
+  reader.onerror = () => setImportNote('Could not read that file.', true);
+  reader.readAsText(file);
 }
 
-async function closeMonth() {
+async function clearParticipants() {
   await refreshState();
-  const custs = state.shopCustomers || [];
-  const results = custs.filter(c => (c.wins || []).length).map(c => ({ name: c.name, wins: c.wins }));
-  const d = new Date();
-  const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  const label = d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-  const archived = { month, label, at: clockNow(), results };
-  const monthlyDraws = [archived, ...(state.monthlyDraws || [])].slice(0, 24);
-  const shopCustomers = custs.map(c => ({ ...c, wins: [] }));
-  await apiPost({ monthlyDraws, shopCustomers, monthlySpin: null });
-  state.monthlyDraws = monthlyDraws;
-  state.shopCustomers = shopCustomers;
-  state.monthlySpin = null;
+  const monthlyDraw = { ...mdData(), participants: [], results: [], spin: null };
+  await apiPost({ monthlyDraw });
+  state.monthlyDraw = monthlyDraw;
+  setImportNote('', false);
   renderMonthlyTab();
-  notify('Month closed — wins archived. Unused tube balances carry over.');
 }
 
-// ── MONTHLY SPIN ANIMATION (viewer-facing slot machine) ──
-let lastMonthlySpinId = null;
-let mdSpinHideTimer = null, mdSpinRevealTimer = null;
-const MD_SPIN_GRACE_MS = 15000;
-const MD_REEL_SYMBOLS = ['1', '2', '3', '0', '0', '1', '2', '3', '0', '0'];
-const MD_CELL = 76, MD_STRIP = 28;
-
-function mdCellHTML(s) { return `<div class="md-reel-cell md-cell-${s}">${s === '0' ? '&mdash;' : s}</div>`; }
-
-function checkForNewMonthlySpin(sp) {
-  if (!sp || !sp.id) return;
-  if (sp.id === lastMonthlySpinId) return;
-  const now = clockNow();
-  const finishedAt = (sp.startAt || now) + (sp.durationMs || 3800);
-  if (now > finishedAt + MD_SPIN_GRACE_MS) { lastMonthlySpinId = sp.id; return; } // stale — consume silently
-  lastMonthlySpinId = sp.id;
-  showMonthlySpin(sp);
-}
-
-function showMonthlySpin(sp) {
-  const ov = document.getElementById('mdSpinOverlay');
-  if (!ov) return;
-  clearTimeout(mdSpinHideTimer); clearTimeout(mdSpinRevealTimer);
-  const won = sp.outcome && sp.outcome !== 'none';
-  const target = won ? String(sp.rank) : '0';
-  document.getElementById('mdSpinName').textContent = sp.customerName || '';
-  const resEl = document.getElementById('mdSpinResult');
-  resEl.textContent = ''; resEl.className = 'md-spin-result';
-  const conf = document.getElementById('mdConfetti'); if (conf) conf.innerHTML = '';
-  const reelsEl = document.getElementById('mdReels');
-  reelsEl.innerHTML = '';
-  const inners = [0, 1, 2].map(() => {
-    const reel = document.createElement('div'); reel.className = 'md-reel';
-    const inner = document.createElement('div'); inner.className = 'md-reel-inner';
-    let h = '';
-    for (let k = 0; k < MD_STRIP; k++) h += mdCellHTML(MD_REEL_SYMBOLS[Math.floor(Math.random() * MD_REEL_SYMBOLS.length)]);
-    h += mdCellHTML(target);
-    inner.innerHTML = h;
-    reel.appendChild(inner); reelsEl.appendChild(reel);
-    return inner;
-  });
-  ov.classList.add('active');
-
-  const reveal = () => {
-    resEl.className = 'md-spin-result' + (won ? ' win' : '');
-    resEl.innerHTML = won
-      ? `Winner! <span class="md-win-badge md-rank-${sp.rank}">${mdRankLbl(sp.rank)}</span><div class="md-spin-prize">${escHtml(sp.prize || '')}</div>`
-      : 'No win this spin';
-    if (won) launchConfetti('mdConfetti');
+async function drawPrize(rank) {
+  const lib = window.MonthlyDraw;
+  if (!lib) return notify('Draw logic not loaded.', 'warn');
+  await refreshState();
+  const md = mdData();
+  const results = md.results || [];
+  if (results.find(r => r.rank === rank)) return notify('That prize is already drawn.', 'warn');
+  if (results.length !== rank - 1) return notify('Draw the prizes in order.', 'warn');
+  const live = md.spin;
+  if (live && clockNow() < live.startAt + live.durationMs) return notify('A draw is already in progress.', 'warn');
+  const wonIds = results.map(r => r.id);
+  const ballot = lib.buildBallot(md.participants || [], wonIds);
+  if (!ballot.length) return notify('No eligible participants left to draw.', 'warn');
+  const winnerIndex = lib.pickWinnerIndex(ballot.length, Math.random);
+  const winner = ballot[winnerIndex];
+  const prize = (md.prizes || [])[rank - 1] || '';
+  const startAt = clockNow() + 800;
+  const durationMs = 4500;
+  const spin = {
+    id: Date.now(), rank, prize,
+    entries: ballot.map(p => p.name), winnerIndex,
+    winnerId: winner.id, winnerName: winner.name,
+    startAt, durationMs,
   };
+  const result = { rank, id: winner.id, name: winner.name, phone: winner.phone || '', prize, at: startAt + durationMs };
+  const monthlyDraw = { ...md, spin, results: [...results, result] };
+  await apiPost({ monthlyDraw });
+  state.monthlyDraw = monthlyDraw;
+  checkForNewMonthlyDraw(monthlyDraw);
+  renderMonthlyTab();
+}
 
-  const now = clockNow();
-  const instant = prefersReducedMotion() || now >= (sp.startAt || now) + (sp.durationMs || 3800);
-  if (instant) {
-    inners.forEach(inner => { inner.style.transform = `translateY(-${MD_STRIP * MD_CELL}px)`; });
-    reveal();
-    mdSpinHideTimer = setTimeout(hideMonthlySpin, 5000);
-  } else {
-    inners.forEach((inner, i) => {
-      inner.style.transition = 'none';
-      inner.style.transform = 'translateY(0)';
-      void inner.offsetWidth; // reflow so the transition runs
-      const dur = 2200 + i * 650;
-      inner.style.transition = `transform ${dur}ms cubic-bezier(.1,.72,.2,1)`;
-      inner.style.transform = `translateY(-${MD_STRIP * MD_CELL}px)`;
-    });
-    const total = 2200 + 2 * 650;
-    mdSpinRevealTimer = setTimeout(reveal, total + 120);
-    mdSpinHideTimer = setTimeout(hideMonthlySpin, total + 6000);
+async function resetMonthlyDraw() {
+  await refreshState();
+  const md = mdData();
+  const results = md.results || [];
+  let history = md.history || [];
+  if (results.length) {
+    const d = new Date();
+    const label = d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    const winners = results.slice().sort((a, b) => a.rank - b.rank).map(r => ({ rank: r.rank, name: r.name, prize: r.prize }));
+    history = [{ label, at: clockNow(), winners }, ...history].slice(0, 24);
   }
+  const monthlyDraw = { ...md, participants: [], results: [], spin: null, history };
+  await apiPost({ monthlyDraw });
+  state.monthlyDraw = monthlyDraw;
+  setImportNote('', false);
+  renderMonthlyTab();
+  notify('Reset for a new month.');
 }
 
-function hideMonthlySpin() {
-  const ov = document.getElementById('mdSpinOverlay');
-  if (ov) ov.classList.remove('active');
-  clearTimeout(mdSpinHideTimer); clearTimeout(mdSpinRevealTimer);
-  const conf = document.getElementById('mdConfetti'); if (conf) conf.innerHTML = '';
-}
-
-// ── MONTHLY PRIZE DRAW BOARD (viewer-facing) ──
+// ── MONTHLY DRAW BOARD (viewer-facing) ──
 function openMdBoard() { renderMdBoard(); const m = document.getElementById('mdBoardModal'); if (m) m.classList.add('open'); }
 function closeMdBoard() { const m = document.getElementById('mdBoardModal'); if (m) m.classList.remove('open'); }
 
 function renderMdBoard() {
   const el = document.getElementById('mdBoardBody');
   if (!el) return;
-  const custs = (state && state.shopCustomers) || [];
-  if (!custs.length) { el.innerHTML = '<div class="mdb-empty">No entries yet.</div>'; return; }
-  const sorted = [...custs].sort((a, b) => mdRemaining(b) - mdRemaining(a));
-  el.innerHTML = '<div class="mdb-sub">1 spin for every 4 tubes purchased</div>' + sorted.map(c => {
-    const rem = mdRemaining(c);
-    const wins = (c.wins || []).map(w => `<span class="md-win-badge md-rank-${w.rank}" title="${escHtml(w.prize || '')}">${mdRankLbl(w.rank)}</span>`).join('');
+  const md = (state && state.monthlyDraw) || {};
+  const parts = md.participants || [];
+  const results = md.results || [];
+  let html = '';
+  if (results.length) {
+    html += '<div class="mdb-sub">This month&#x2019;s winners</div>' + results.slice().sort((a, b) => a.rank - b.rank).map(r => `
+      <div class="mdb-row">
+        <span class="md-prize-rank md-rank-${r.rank}">${r.rank}</span>
+        <span class="mdb-name">${escHtml(r.name)} &mdash; ${escHtml(r.prize || '')}</span>
+      </div>`).join('');
+  }
+  if (!parts.length) { el.innerHTML = html || '<div class="mdb-empty">No entries yet.</div>'; return; }
+  const wonIds = results.map(r => r.id);
+  const sorted = [...parts].sort((a, b) => (b.tokens || 0) - (a.tokens || 0));
+  html += '<div class="mdb-sub">1 ticket for every 4 tubes purchased</div>' + sorted.map(c => {
+    const r = results.find(x => x.id === c.id);
+    const wb = r ? `<span class="md-win-badge md-rank-${r.rank}">${mdRankLbl(r.rank)}</span>` : '';
     return `<div class="mdb-row">
       <span class="mdb-name">${escHtml(c.name)}</span>
-      ${wins ? `<span class="mdb-wins">${wins}</span>` : ''}
-      <span class="mdb-spins">${rem} spin${rem === 1 ? '' : 's'} left</span>
+      ${wb ? `<span class="mdb-wins">${wb}</span>` : ''}
+      <span class="mdb-spins">${c.tokens} ticket${c.tokens === 1 ? '' : 's'}</span>
     </div>`;
   }).join('');
+  el.innerHTML = html;
 }
 
 function setAdminTab(name) {
@@ -3111,8 +3065,111 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     const ov = document.getElementById('wheelOverlay');
     if (ov && ov.classList.contains('active')) hideWheelOverlay();
+    const pov = document.getElementById('pickerOverlay');
+    if (pov && pov.classList.contains('active')) hidePickerOverlay();
   }
 });
+
+// ── MONTHLY DRAW REVEAL (viewer-synced shuffle) ──
+let lastDrawSpinId = null;
+let shownWinnerSpinId = null;
+let pickerRaf = null;
+let pickerAutoHideTimer = null;
+let pickerSafetyTimer = null;
+
+function checkForNewMonthlyDraw(md) {
+  const spin = md && md.spin;
+  if (!spin || !spin.id) return;
+  if (spin.id === lastDrawSpinId) return;
+  const now = clockNow();
+  const finishedAt = spin.startAt + spin.durationMs;
+  if (now > finishedAt + SPIN_GRACE_MS) { lastDrawSpinId = spin.id; return; } // stale — consume silently
+  lastDrawSpinId = spin.id;
+  if (pickerRaf) { cancelAnimationFrame(pickerRaf); pickerRaf = null; }
+  showPickerOverlay(spin);
+  if (prefersReducedMotion() || now >= finishedAt) { displayPickerWinner(spin); return; }
+  animatePicker(spin);
+  // Safety net: requestAnimationFrame pauses in background tabs, so guarantee the
+  // winner reveal + auto-hide fire on wall-clock time even if the shuffle stalls.
+  clearTimeout(pickerSafetyTimer);
+  pickerSafetyTimer = setTimeout(() => displayPickerWinner(spin), Math.max(0, finishedAt - now) + 120);
+}
+
+function showPickerOverlay(spin) {
+  document.getElementById('pickerOverlay').classList.add('active');
+  const prizeEl = document.getElementById('pickerPrize');
+  if (prizeEl) {
+    const rank = (spin && spin.rank) || 1;
+    prizeEl.className = 'picker-prize rank-' + rank;
+    prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${mdRankLbl(rank)} Prize${spin && spin.prize ? ' &mdash; ' + escHtml(spin.prize) : ''}</span>`;
+  }
+  const nameEl = document.getElementById('pickerName');
+  const subEl = document.getElementById('pickerSub');
+  if (nameEl) { nameEl.classList.remove('locked'); nameEl.classList.add('shuffling'); nameEl.textContent = (spin && spin.entries && spin.entries[0]) || ' '; }
+  if (subEl) subEl.innerHTML = 'Drawing a winner…';
+}
+
+function hidePickerOverlay() {
+  document.getElementById('pickerOverlay').classList.remove('active');
+  if (pickerRaf) { cancelAnimationFrame(pickerRaf); pickerRaf = null; }
+  clearTimeout(pickerAutoHideTimer);
+  clearTimeout(pickerSafetyTimer);
+  const cc = document.getElementById('pickerConfetti');
+  if (cc) cc.innerHTML = '';
+}
+
+function handlePickerOverlayClick(e) {
+  if (e.target === document.getElementById('pickerOverlay')) hidePickerOverlay();
+}
+
+function animatePicker(spin) {
+  const N = spin.entries.length;
+  const nameEl = document.getElementById('pickerName');
+  if (!nameEl) return;
+  let lastIdx = -1, lastSwap = 0;
+  function tick() {
+    const now = clockNow();
+    const elapsed = now - spin.startAt;
+    if (elapsed < 0) { nameEl.textContent = spin.entries[0]; pickerRaf = requestAnimationFrame(tick); return; }
+    const t = Math.min(elapsed / spin.durationMs, 1);
+    if (t >= 1) { displayPickerWinner(spin); return; }
+    // Decelerating swap interval: ~45ms early → ~330ms near the end (slot-machine feel)
+    const eased = 1 - Math.pow(1 - t, 2);
+    const interval = 45 + 285 * eased;
+    if (now - lastSwap >= interval) {
+      let idx;
+      do { idx = Math.floor(Math.random() * N); } while (N > 1 && idx === lastIdx);
+      lastIdx = idx; lastSwap = now;
+      nameEl.textContent = spin.entries[idx];
+    }
+    pickerRaf = requestAnimationFrame(tick);
+  }
+  pickerRaf = requestAnimationFrame(tick);
+}
+
+function displayPickerWinner(spin) {
+  clearTimeout(pickerSafetyTimer);
+  // Idempotent: rAF and the safety timer may both reach the finish — reveal once,
+  // and on any later call just (re)arm the auto-hide so it can't get stuck open.
+  if (spin && spin.id && shownWinnerSpinId === spin.id) {
+    clearTimeout(pickerAutoHideTimer);
+    pickerAutoHideTimer = setTimeout(() => hidePickerOverlay(), 8000);
+    return;
+  }
+  if (spin && spin.id) shownWinnerSpinId = spin.id;
+  const name = (spin && spin.winnerName) || (spin && spin.entries && spin.entries[spin.winnerIndex]) || '';
+  const nameEl = document.getElementById('pickerName');
+  const subEl = document.getElementById('pickerSub');
+  if (nameEl) {
+    nameEl.textContent = name;
+    nameEl.classList.remove('shuffling');
+    nameEl.classList.remove('locked'); void nameEl.offsetWidth; nameEl.classList.add('locked');
+  }
+  if (subEl) subEl.innerHTML = '<svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg> Winner';
+  launchConfetti('pickerConfetti');
+  clearTimeout(pickerAutoHideTimer);
+  pickerAutoHideTimer = setTimeout(() => hidePickerOverlay(), 8000);
+}
 
 startPolling();
 </script>

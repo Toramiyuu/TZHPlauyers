@@ -60,6 +60,7 @@ const DEFAULT_STATE = {
   sessionDate: todayISO(),
   sessions: {},
   luckyDraw: { entries: [], spin: null, lastWinner: null, history: [] },
+  monthlyDraw: { prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'], participants: [], results: [], spin: null, history: [] },
   shopCustomers: [],
   monthlyDraws: [],
   drawPrizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'],
@@ -81,6 +82,15 @@ module.exports = async function handler(req, res) {
       if (!current.luckyDraw) current.luckyDraw = { entries: [], spin: null, lastWinner: null, history: [] };
       if (current.luckyDraw.lastWinner === undefined) current.luckyDraw.lastWinner = null;
       if (!current.luckyDraw.history) current.luckyDraw.history = [];
+      if (!current.monthlyDraw) current.monthlyDraw = { prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'], participants: [], results: [], spin: null, history: [] };
+      {
+        const md = current.monthlyDraw;
+        if (!Array.isArray(md.prizes)) md.prizes = ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'];
+        if (!Array.isArray(md.participants)) md.participants = [];
+        if (!Array.isArray(md.results)) md.results = [];
+        if (md.spin === undefined) md.spin = null;
+        if (!Array.isArray(md.history)) md.history = [];
+      }
       if (!current.roster) current.roster = DEFAULT_ROSTER;
       if (current.roster) current.roster = current.roster.map(r => r.points !== undefined ? r : { ...r, points: 0 });
       if (!Array.isArray(current.shopCustomers)) current.shopCustomers = [];
