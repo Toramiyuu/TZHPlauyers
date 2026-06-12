@@ -2353,7 +2353,7 @@ function renderMonthlyTab() {
             <div class="md-cust-name">${escHtml(p.name)} ${badge}</div>
             ${p.phone ? `<div class="md-cust-phone">${escHtml(p.phone)}</div>` : ''}
           </div>
-          <span class="md-tickets">${p.tokens} ticket${p.tokens === 1 ? '' : 's'}</span>
+          <span class="md-tickets">${p.tokens} token${p.tokens === 1 ? '' : 's'}</span>
         </div>`;
       }).join('');
     }
