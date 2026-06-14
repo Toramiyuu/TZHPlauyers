@@ -1731,12 +1731,8 @@ async function confirmBulkImport() {
   if (!names.length) return notify('No names entered.', 'warn');
 
   await refreshState();
-  const existing = new Set((state.roster || []).map(p => p.name.toLowerCase()));
   const newPlayers = names
-    .filter(n => !existing.has(n.toLowerCase()))
     .map(n => ({ id: 'r' + Date.now() + Math.random().toString(36).slice(2), name: n, photo: null }));
-
-  if (!newPlayers.length) return notify('All names already in roster.');
 
   const roster = [...(state.roster || []), ...newPlayers];
   await apiPost({ roster });
@@ -1862,14 +1858,6 @@ async function saveRound(i) {
       team1: [get('t1p1'), get('t1p2')],
       team2: [get('t2p1'), get('t2p2')]
     };
-  }
-
-  const allIds = r.courts.flatMap(c => [...c.team1, ...c.team2]);
-  const seen = new Set(), dupes = new Set();
-  allIds.forEach(id => { if (seen.has(id)) dupes.add(id); seen.add(id); });
-  if (dupes.size > 0) {
-    const names = [...dupes].map(id => playerById(id)?.name || id).join(', ');
-    return notify(`Duplicate player: ${names}`, 'warn');
   }
 
   await apiPost({ rounds });
