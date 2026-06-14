@@ -1205,7 +1205,12 @@ async function poll() {
   if (!s) return;
   if (s.locked) {
     // An authenticated admin must never be locked out of their own admin panel.
-    if (!sessionStorage.getItem('adminPwd')) { showSiteGate(); return; }
+    if (!sessionStorage.getItem('adminPwd')) {
+      // Only show the gate if it isn't already up. Re-showing every poll steals
+      // focus from the "Admin access" password field, so it can't be typed into.
+      if (document.getElementById('siteGate').style.display !== 'flex') showSiteGate();
+      return;
+    }
     return; // admin stays in; state can't refresh while locked until the code is removed
   }
   if (document.getElementById('siteGate').style.display !== 'none') hideSiteGate();
@@ -1974,7 +1979,10 @@ function showSiteGate() {
   document.getElementById('admin').style.display = 'none';
   document.getElementById('adminBtn').style.display = 'none';
   if (!alreadyOpen) initHeroGate();
-  setTimeout(() => document.getElementById('gateInput').focus(), 50);
+  // Don't grab focus while the admin-access password modal is open.
+  if (!document.getElementById('pwModal').classList.contains('open')) {
+    setTimeout(() => document.getElementById('gateInput').focus(), 50);
+  }
 }
 
 function hideSiteGate() {
