@@ -125,6 +125,12 @@ module.exports = async function handler(req, res) {
       state = { ...DEFAULT_STATE };
     }
 
+    // Auth-only ping (no updates): return state so an authenticated admin can
+    // bypass the site lock and reach the admin panel even without the site code.
+    if (Object.keys(updates).length === 0) {
+      return res.json({ ok: true, state: { ...state, serverTime: Date.now() } });
+    }
+
     // Handle deleteSession action
     if (updates.action === 'deleteSession') {
       const { date } = updates;

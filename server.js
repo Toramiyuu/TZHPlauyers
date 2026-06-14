@@ -54,6 +54,11 @@ app.post('/api/state', (req, res) => {
   if (password !== ADMIN_PASSWORD) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
+  // Auth-only ping (no updates): return state so an authenticated admin can
+  // bypass the site lock and reach the admin panel even without the site code.
+  if (Object.keys(updates).length === 0) {
+    return res.json({ ok: true, state: { ...state, serverTime: Date.now() } });
+  }
   state = { ...state, ...updates };
   res.json({ ok: true });
 });

@@ -1,9 +1,15 @@
 #!/usr/bin/env node
 /*
- * verify-redesign.js — static design-system + Phase-5 guard for the TZH app.
+ * verify-redesign.js — static design-system guard for the TZH app.
  *
- * Encodes the acceptance criteria from CLAUDE_PROMPT_pro_redesign.md so the
- * color-token sweep is test-driven (RED before the sweep, GREEN after).
+ * Baseline design system: minimalist Apple-style, light theme. Near-white
+ * surfaces (#fbfbfd/#ffffff/#f5f5f7), near-black ink (#1d1d1f), a single blue
+ * accent (#0071e3) used sparingly, SF Pro (system font) throughout. The viewer
+ * shows clean white player cards with circular avatars.
+ *
+ * These checks remain as regression guards against the earlier aesthetics
+ * leaking back in (the old brand-green, GitHub-dark greys, stray emoji,
+ * text-shadow, misused backdrop-filter/!important).
  *
  * Scope of each check (deliberately precise to avoid false positives):
  *   (a) api/state.js passes `node --check`
