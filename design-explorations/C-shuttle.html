@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TZH · Direction C — Shuttle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --field:#0c3527;          /* court-green under lights */
+    --field-2:#0a2a1f;
+    --chalk:#eef4ee;          /* court line white */
+    --chalk-soft:#eef4ee33;
+    --lime:#d6fb4f;           /* shuttle / energy accent */
+    --muted:#8fb8a6;
+  }
+  html,body{height:100%}
+  body{
+    background:var(--field);color:var(--chalk);overflow:hidden;
+    font-family:"Saira Condensed",system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:"Space Mono",monospace}
+  .stage{position:relative;height:100vh;width:100vw;display:flex;flex-direction:column;
+    padding:clamp(22px,2.6vw,40px) clamp(28px,3.4vw,56px) clamp(18px,2vw,30px);
+    background:radial-gradient(130% 90% at 50% 0%, #134331 0%, var(--field) 45%, var(--field-2) 100%);}
+
+  header{display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;position:relative;z-index:3}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand .mk{width:34px;height:34px;border:2px solid var(--lime);border-radius:50%;display:grid;place-items:center;flex-shrink:0}
+  .brand .mk svg{width:18px;height:18px}
+  .brand .txt{display:flex;flex-direction:column;line-height:1}
+  .brand .txt b{font-weight:800;font-size:22px;letter-spacing:.06em;text-transform:uppercase}
+  .brand .txt small{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.34em;color:var(--muted);text-transform:uppercase;margin-top:3px}
+  .hdr-right{display:flex;align-items:center;gap:18px}
+  .chip{font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+  .live{display:inline-flex;align-items:center;gap:9px;font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--lime)}
+  .live .dot{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime);animation:beat 1.5s infinite}
+  @keyframes beat{0%,100%{opacity:1}50%{opacity:.3}}
+
+  .courts{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,3vw,52px);position:relative;z-index:2;min-height:0}
+  .court{position:relative;display:flex;flex-direction:column}
+  .court-cap{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+  .court-cap .no{display:flex;align-items:baseline;gap:10px}
+  .court-cap .no .k{font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);transform:translateY(-3px)}
+  .court-cap .no .n{font-weight:800;font-size:clamp(40px,4.4vw,60px);line-height:.8;color:var(--lime);letter-spacing:.01em}
+  .court-cap .st{font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--field);background:var(--lime);padding:4px 10px;border-radius:2px;font-weight:700}
+
+  /* the court itself */
+  .field{position:relative;flex:1;border:2px solid var(--chalk);border-radius:3px;
+    background:repeating-linear-gradient(180deg,#0e3a2a,#0e3a2a 50%,#0d3527 50%,#0d3527 100%);
+    background-size:100% 14px;overflow:hidden;min-height:0}
+  .field svg{position:absolute;inset:0;width:100%;height:100%}
+  .net{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:30px;display:flex;align-items:center;justify-content:center;
+    background:repeating-linear-gradient(90deg,#ffffff1f 0 6px,transparent 6px 12px);border-top:1.5px solid var(--chalk-soft);border-bottom:1.5px solid var(--chalk-soft)}
+  .net span{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.4em;color:var(--muted);background:var(--field);padding:2px 12px;text-transform:uppercase}
+
+  .seat{position:absolute;width:46%;display:flex;flex-direction:column;align-items:center;gap:4px;transform:translate(-50%,-50%);text-align:center}
+  .seat .pos{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.22em;color:var(--muted);text-transform:uppercase}
+  .seat .nm{font-weight:700;font-size:clamp(26px,3.2vw,44px);line-height:.96;letter-spacing:.005em;text-transform:uppercase}
+  .seat.tl{left:25%;top:26%}.seat.tr{left:75%;top:26%}
+  .seat.bl{left:25%;top:74%}.seat.br{left:75%;top:74%}
+  .seat.b .nm{color:var(--lime)}
+
+  footer{display:flex;align-items:center;justify-content:space-between;padding-top:14px;position:relative;z-index:3;
+    font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+  footer .r{display:flex;gap:24px}
+</style>
+</head>
+<body>
+<div class="stage">
+  <header>
+    <div class="brand">
+      <span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="#d6fb4f" stroke-width="2" stroke-linecap="round"><path d="M12 3v10m0 0-5 7m5-7 5 7"/><circle cx="12" cy="13" r="3" fill="#d6fb4f" stroke="none"/></svg></span>
+      <span class="txt"><b>TZH Badminton</b><small>Tuen Mun · Members Club</small></span>
+    </div>
+    <div class="hdr-right">
+      <span class="chip">Mon · 9 Jun 2026</span>
+      <span class="live"><span class="dot"></span>Round 01 · Live</span>
+    </div>
+  </header>
+
+  <div class="courts">
+    <!-- COURT 1 -->
+    <section class="court">
+      <div class="court-cap">
+        <span class="no"><span class="k">Court</span><span class="n">01</span></span>
+        <span class="st">In Play</span>
+      </div>
+      <div class="field">
+        <svg viewBox="0 0 300 460" fill="none" stroke="#eef4ee" stroke-width="1.4" preserveAspectRatio="none" vector-effect="non-scaling-stroke">
+          <rect x="18" y="14" width="264" height="432" stroke-opacity=".85"/>
+          <line x1="150" y1="14" x2="150" y2="200" stroke-opacity=".5"/>
+          <line x1="150" y1="260" x2="150" y2="446" stroke-opacity=".5"/>
+          <line x1="18" y1="86" x2="282" y2="86" stroke-opacity=".5"/>
+          <line x1="18" y1="374" x2="282" y2="374" stroke-opacity=".5"/>
+          <line x1="60" y1="14" x2="60" y2="446" stroke-opacity=".35"/>
+          <line x1="240" y1="14" x2="240" y2="446" stroke-opacity=".35"/>
+        </svg>
+        <div class="seat tl a"><span class="pos">Right Court</span><span class="nm">Thomas</span></div>
+        <div class="seat tr a"><span class="pos">Left Court</span><span class="nm">Desmond</span></div>
+        <div class="net"><span>Net</span></div>
+        <div class="seat bl b"><span class="pos">Right Court</span><span class="nm">Celine</span></div>
+        <div class="seat br b"><span class="pos">Left Court</span><span class="nm">Sharmin</span></div>
+      </div>
+    </section>
+
+    <!-- COURT 2 -->
+    <section class="court">
+      <div class="court-cap">
+        <span class="no"><span class="k">Court</span><span class="n">02</span></span>
+        <span class="st">In Play</span>
+      </div>
+      <div class="field">
+        <svg viewBox="0 0 300 460" fill="none" stroke="#eef4ee" stroke-width="1.4" preserveAspectRatio="none" vector-effect="non-scaling-stroke">
+          <rect x="18" y="14" width="264" height="432" stroke-opacity=".85"/>
+          <line x1="150" y1="14" x2="150" y2="200" stroke-opacity=".5"/>
+          <line x1="150" y1="260" x2="150" y2="446" stroke-opacity=".5"/>
+          <line x1="18" y1="86" x2="282" y2="86" stroke-opacity=".5"/>
+          <line x1="18" y1="374" x2="282" y2="374" stroke-opacity=".5"/>
+          <line x1="60" y1="14" x2="60" y2="446" stroke-opacity=".35"/>
+          <line x1="240" y1="14" x2="240" y2="446" stroke-opacity=".35"/>
+        </svg>
+        <div class="seat tl a"><span class="pos">Right Court</span><span class="nm">Terence</span></div>
+        <div class="seat tr a"><span class="pos">Left Court</span><span class="nm">Alex</span></div>
+        <div class="net"><span>Net</span></div>
+        <div class="seat bl b"><span class="pos">Right Court</span><span class="nm">Kokyan</span></div>
+        <div class="seat br b"><span class="pos">Left Court</span><span class="nm">Yit Fung</span></div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <span>TZH Badminton — Live Court Display</span>
+    <div class="r"><span>2 Courts Active</span><span>8 Players</span><span>Members Only</span></div>
+  </footer>
+</div>
+</body>
+</html>

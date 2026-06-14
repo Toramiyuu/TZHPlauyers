@@ -8,7 +8,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  /* ── brand ─── */
+  /* ── brand accent — NOTE: token names (--green*) are legacy; values are Apple blue ─── */
   --green:#0071e3;--green-light:#0066cc;--green-dark:#005bb5;
   --green-tint:rgba(0,113,227,.16);--green-line:rgba(0,113,227,.42);
   /* ── neutral surfaces — Apple light theme ─── */
@@ -34,12 +34,12 @@
   /* ── Shuttle design system (viewer) ─── */
   --field:#0c3527;--field-2:#0a2a1f;--field-glow:#134331;
   --chalk:#eef4ee;--chalk-soft:rgba(238,244,238,.20);--chalk-line:rgba(238,244,238,.5);
-  --lime:#0071e3;--court-muted:#86868b;
+  --lime:#0071e3;/* legacy name — actually Apple blue, matches --green */--court-muted:#86868b;
   --font-sport:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Helvetica,Arial,sans-serif;
   --font-mono:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
   /* ── Apple-minimal (light) — viewer ─── */
   --a-bg:#eef4fd;--a-card:#ffffff;--a-card-2:#e2ecfa;
-  --a-ink:#1d1d1f;--a-ink-2:#5c6470;--a-ink-3:#7d8694;
+  --a-ink:#1d1d1f;--a-ink-2:#5c6470;--a-ink-3:#5f6b7a;/* WCAG AA: 4.9:1 on page bg, 5.4:1 on white cards */
   --a-line:#d4e2f5;--a-line-2:#c0d4ee;
   --a-blue:#0071e3;--a-blue-2:#0066cc;--a-blue-tint:rgba(0,113,227,.16);
   --font-apple:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
@@ -282,7 +282,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .gate-shuttle img{height:64px;width:auto;display:block}
 .gate-mark{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--lime);margin-bottom:14px}
 #gateInput{background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:14px 18px;border-radius:var(--radius-md);font-size:26px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.4em;width:220px;text-align:center;outline:none;transition:border-color .15s,box-shadow .15s}
-#gateInput:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(214,251,79,.18)}
+#gateInput:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(0,113,227,.22)}
 .gate-error{color:#ff6b6b;font-size:var(--fs-sm);margin-top:10px;margin-bottom:2px;display:none;min-height:18px}
 .gate-enter-btn{margin-top:16px;width:100%;background:var(--green);color:#fff;border:none;padding:14px 40px;border-radius:var(--radius-md);font-family:var(--font-apple);font-size:16px;font-weight:500;letter-spacing:-.01em;cursor:pointer;transition:var(--transition);box-shadow:none}
 .gate-enter-btn:hover{background:#0077ed}
@@ -722,11 +722,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 </div>
 
 <!-- Members modal -->
-<div id="membersModal">
+<div id="membersModal" role="dialog" aria-modal="true" aria-labelledby="membersTitle">
   <div class="members-box">
     <button class="members-close" onclick="closeMembersModal()" aria-label="Close members">&#x2715;</button>
     <div class="members-eyebrow">TZH Sports Club</div>
-    <div class="members-headline">Membership Tier System</div>
+    <h2 class="members-headline" id="membersTitle">Membership Tier System</h2>
 
     <div class="tier-grid">
       <div class="tier-card tier-visitor">
@@ -850,7 +850,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <div class="vh-nav">
         <button id="membersBtn" onclick="openMembersModal()"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6M10 20l.5-4M14 20l-.5-4"/></svg> Members</button>
         <button id="lbBtn" onclick="openLbModal()"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M8.5 12 7 21l5-2.8 5 2.8-1.5-9"/></svg> Leaderboard</button>
-        <button id="mdBoardBtn" onclick="openMdBoard()"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg> Prize Draw</button>
       </div>
     </div>
   </div>
@@ -860,10 +859,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 </div>
 
 <!-- Leaderboard Modal -->
-<div id="lbModal">
+<div id="lbModal" role="dialog" aria-modal="true" aria-labelledby="lbTitle">
   <div class="lb-box">
     <button class="lb-close" onclick="closeLbModal()" aria-label="Close leaderboard">&#x2715;</button>
-    <div class="lb-header">Leaderboard</div>
+    <h2 class="lb-header" id="lbTitle">Leaderboard</h2>
     <div class="lb-list" id="leaderboardList"></div>
   </div>
 </div>
@@ -890,10 +889,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 </div>
 
 <!-- Monthly Prize Draw Board -->
-<div id="mdBoardModal">
+<div id="mdBoardModal" role="dialog" aria-modal="true" aria-labelledby="mdBoardTitle">
   <div class="lb-box">
     <button class="lb-close" onclick="closeMdBoard()" aria-label="Close prize draw board">&#x2715;</button>
-    <div class="lb-header">Monthly Prize Draw</div>
+    <h2 class="lb-header" id="mdBoardTitle">Monthly Prize Draw</h2>
     <div id="mdBoardBody"></div>
   </div>
 </div>
@@ -943,6 +942,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <span id="sessionCount" class="admin-session-count"></span>
     </div>
     <div class="admin-helper-text">Tap a player to add/remove from today's session</div>
+    <input id="rosterSearch" type="text" class="admin-form-input" style="width:100%;margin-bottom:8px"
+      placeholder="Search players..." autocomplete="off" aria-label="Search players"
+      oninput="renderPlayersSection()"
+      onkeydown="if(event.key==='Escape'){this.value='';renderPlayersSection();}">
     <div class="roster-grid" id="rosterGrid"></div>
     <div id="guestStrip"></div>
     <div class="admin-btn-row admin-mt">
@@ -1256,33 +1259,45 @@ function getCourtRounds() {
   return new Array(numCourts).fill(base);
 }
 
+// Cheap signatures so the 2s poll only rebuilds DOM when its inputs actually
+// changed (base64 photos are reduced to a length marker to keep the diff light).
+let __lastCourtSig = null;
+function stateSig(obj) {
+  return JSON.stringify(obj, (k, v) => k === 'photo' ? (v ? 'P' + v.length : '') : v);
+}
+
 function renderViewer() {
   if (!state) return;
   const dateEl = document.getElementById('viewerDate');
   if (dateEl) dateEl.textContent = state.sessionDate ? formatDisplayDate(state.sessionDate) : '';
   const courtRounds = getCourtRounds();
-
-  const container = document.getElementById('courtsDisplay');
-  container.innerHTML = '';
   const numCourts = state.numCourts || 1;
-  for (let i = 0; i < numCourts; i++) {
-    const round = state.rounds?.[courtRounds[i]];
-    const court = round?.courts?.[i];
-    if (court) {
-      container.appendChild(buildCourtCard(i + 1, court, round?.label || null));
-    }
-  }
-  const stats = document.getElementById('viewerFootStats');
-  if (stats) {
-    const ids = new Set();
+
+  // Skip the court-card rebuild (the visible flicker source) when nothing changed.
+  const courtSig = stateSig({ nc: numCourts, crs: courtRounds, rounds: state.rounds, players: state.players });
+  if (courtSig !== __lastCourtSig) {
+    __lastCourtSig = courtSig;
+    const container = document.getElementById('courtsDisplay');
+    container.innerHTML = '';
     for (let i = 0; i < numCourts; i++) {
-      const c = state.rounds?.[courtRounds[i]]?.courts?.[i];
-      if (c) (c.team1 || []).concat(c.team2 || []).forEach(id => id && ids.add(id));
+      const round = state.rounds?.[courtRounds[i]];
+      const court = round?.courts?.[i];
+      if (court) {
+        container.appendChild(buildCourtCard(i + 1, court, round?.label || null));
+      }
     }
-    stats.textContent = `${numCourts} Court${numCourts > 1 ? 's' : ''} · ${ids.size} Players · Members Only`;
+    const stats = document.getElementById('viewerFootStats');
+    if (stats) {
+      const ids = new Set();
+      for (let i = 0; i < numCourts; i++) {
+        const c = state.rounds?.[courtRounds[i]]?.courts?.[i];
+        if (c) (c.team1 || []).concat(c.team2 || []).forEach(id => id && ids.add(id));
+      }
+      stats.textContent = `${numCourts} Court${numCourts > 1 ? 's' : ''} · ${ids.size} Players · Members Only`;
+    }
   }
   renderLeaderboard();
-  renderViewerLastWinner();
+  renderViewerLastWinner(); // time-dependent (scheduled reveal) — must run every poll
 }
 
 // clean circular avatar — photo, or neutral initials token
@@ -1443,11 +1458,19 @@ function renderPlayersSection() {
   if (!grid) return;
   grid.innerHTML = '';
 
+  // Filter the roster grid by the search box (name match, case-insensitive).
+  const q = (document.getElementById('rosterSearch')?.value || '').trim().toLowerCase();
+  const visibleRoster = q
+    ? (state.roster || []).filter(rp => (rp.name || '').toLowerCase().includes(q))
+    : (state.roster || []);
+
   if (!state.roster || state.roster.length === 0) {
     grid.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1;padding:6px 0">No roster players yet.</div>';
+  } else if (visibleRoster.length === 0) {
+    grid.innerHTML = `<div style="color:var(--muted);font-size:13px;grid-column:1/-1;padding:6px 0">No players match "${escHtml(q)}".</div>`;
   }
 
-  (state.roster || []).forEach(rp => {
+  visibleRoster.forEach(rp => {
     const isIn = sessionIds.has(rp.id);
     const card = document.createElement('div');
     card.className = 'rc' + (isIn ? ' in-session' : '');
@@ -1488,28 +1511,64 @@ function renderPlayersSection() {
   }
 }
 
+// A player who is removed from today's session must not stay on a court.
+// Their id lingers in state.rounds[].courts[] otherwise, and playerById()
+// resolves it against the permanent roster — so the live display keeps showing
+// a player who is no longer in the session. Strip the id from every team slot
+// (replace with '' = empty TBD spot) and report whether anything changed so the
+// caller only persists rounds when needed. Pure: never mutates its input.
+function stripPlayerFromRounds(rounds, id) {
+  let changed = false;
+  const swap = (arr) => (arr || []).map(pid => {
+    if (pid === id) { changed = true; return ''; }
+    return pid;
+  });
+  const cleaned = (rounds || []).map(round => ({
+    ...round,
+    courts: (round.courts || []).map(court => ({
+      ...court,
+      team1: swap(court.team1),
+      team2: swap(court.team2),
+    })),
+  }));
+  return { rounds: cleaned, changed };
+}
+
 async function toggleRosterPlayer(id) {
   await refreshState();
   const inSession = (state.players || []).some(p => p.id === id);
   let players;
+  const updates = {};
   if (inSession) {
     players = (state.players || []).filter(p => p.id !== id);
+    // Leaving the session → also pull them off any court they were slotted into.
+    const { rounds, changed } = stripPlayerFromRounds(state.rounds, id);
+    if (changed) updates.rounds = rounds;
   } else {
     const rp = (state.roster || []).find(r => r.id === id);
     if (!rp) return;
     players = [...(state.players || []), { id: rp.id, name: rp.name, photo: rp.photo || null }];
   }
-  await apiPost({ players });
+  updates.players = players;
+  await apiPost(updates);
   state.players = players;
+  if (updates.rounds) state.rounds = updates.rounds;
   renderPlayersSection();
+  if (updates.rounds) { renderCourtControls(); renderRoundList(); renderViewer(); }
 }
 
 async function removeFromSession(id) {
   await refreshState();
   const players = (state.players || []).filter(p => p.id !== id);
-  await apiPost({ players });
+  // Removing from the session also clears them from any court (see above).
+  const { rounds, changed } = stripPlayerFromRounds(state.rounds, id);
+  const updates = { players };
+  if (changed) updates.rounds = rounds;
+  await apiPost(updates);
   state.players = players;
+  if (changed) state.rounds = rounds;
   renderPlayersSection();
+  if (changed) { renderCourtControls(); renderRoundList(); renderViewer(); }
 }
 
 async function deleteRosterPlayer(id, btn) {
@@ -1530,12 +1589,17 @@ async function deleteRosterPlayer(id, btn) {
     if (filtered.length !== (sess.players || []).length) sessionsChanged = true;
     sessions[date] = { ...sess, players: filtered };
   }
+  // Also pull them off any current court so the live display doesn't show a
+  // deleted player (their id would otherwise linger in state.rounds).
+  const { rounds: cleanedRounds, changed: roundsChanged } = stripPlayerFromRounds(state.rounds, id);
   const updates = { roster, players };
   if (sessionsChanged) updates.sessions = sessions;
+  if (roundsChanged) updates.rounds = cleanedRounds;
   await apiPost(updates);
   state.roster = roster; state.players = players;
   if (sessionsChanged) state.sessions = sessions;
-  renderPlayersSection(); renderRoundList();
+  if (roundsChanged) state.rounds = cleanedRounds;
+  renderPlayersSection(); renderCourtControls(); renderRoundList(); renderViewer();
   notify('Removed from roster.');
 }
 
@@ -2777,9 +2841,15 @@ async function setPoints(id, val) {
 }
 
 // ── LEADERBOARD ───────────────────────────────
+let __lastLbSig = null;
 function renderLeaderboard() {
   const list = document.getElementById('leaderboardList');
   if (!list) return;
+  // Only rebuild when the roster (the sole input) changed; keeps the hidden
+  // modal's DOM correct without re-running the build on every 2s poll.
+  const lbSig = stateSig(state.roster || []);
+  if (lbSig === __lastLbSig && list.childElementCount) return;
+  __lastLbSig = lbSig;
   const players = [...(state.roster || [])].sort((a, b) =>
     (b.points || 0) - (a.points || 0) || a.name.localeCompare(b.name)
   );
@@ -3169,14 +3239,19 @@ function displayWheelWinner(name) {
   wheelAutoHideTimer = setTimeout(() => hideWheelOverlay(), 8000);
 }
 
-// Keyboard dismiss for wheel overlay
+// Keyboard dismiss for overlays and modals
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    const ov = document.getElementById('wheelOverlay');
-    if (ov && ov.classList.contains('active')) hideWheelOverlay();
-    const pov = document.getElementById('pickerOverlay');
-    if (pov && pov.classList.contains('active')) hidePickerOverlay();
-  }
+  if (e.key !== 'Escape') return;
+  const ov = document.getElementById('wheelOverlay');
+  if (ov && ov.classList.contains('active')) hideWheelOverlay();
+  const pov = document.getElementById('pickerOverlay');
+  if (pov && pov.classList.contains('active')) hidePickerOverlay();
+  // Close any open .open modal (Members / Leaderboard / Prize Draw / History)
+  const isOpen = id => { const el = document.getElementById(id); return el && el.classList.contains('open'); };
+  if (isOpen('membersModal')) closeMembersModal();
+  if (isOpen('lbModal')) closeLbModal();
+  if (isOpen('mdBoardModal')) closeMdBoard();
+  if (isOpen('historyModal')) closeHistoryModal();
 });
 
 // ── MONTHLY DRAW REVEAL (viewer-synced shuffle) ──
