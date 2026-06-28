@@ -77,6 +77,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .avs{display:flex;align-items:center;gap:16px;color:var(--a-ink-3)}
 .avs::before,.avs::after{content:"";height:1px;flex:1;background:var(--a-line)}
 .avs span{font-size:clamp(13px,1.4vw,15px);font-weight:500;color:var(--a-ink-3);letter-spacing:.01em}
+/* up next panel */
+.viewer-main{flex:1;display:flex;flex-direction:column;gap:clamp(20px,2.5vw,32px);min-height:0}
+.upnext-panel{flex:0 0 auto;background:var(--a-card);border:1px solid var(--a-line);border-radius:var(--radius-xl);padding:clamp(16px,2vw,26px) clamp(20px,2.4vw,32px);box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(0,0,0,.05)}
+.upnext-head{font-size:clamp(13px,1.4vw,15px);font-weight:600;color:var(--a-ink-3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:clamp(10px,1.2vw,16px)}
+.upnext-row{display:flex;align-items:center;gap:clamp(10px,1.4vw,18px);padding:clamp(10px,1.2vw,15px) 0;border-top:1px solid var(--a-line);font-size:clamp(15px,1.6vw,20px)}
+.upnext-row:first-of-type{border-top:none}
+.upnext-court{flex:0 0 auto;font-weight:600;color:var(--a-ink-2);min-width:clamp(74px,7vw,104px)}
+.upnext-arrow{flex:0 0 auto;color:var(--a-blue);font-weight:600}
+.upnext-match{flex:1;min-width:0;font-weight:500;color:var(--a-ink);letter-spacing:-.01em}
+.upnext-toggle{display:inline-flex;align-items:center;gap:8px;font-size:var(--fs-sm);color:var(--text-2);cursor:pointer;user-select:none}
+.upnext-toggle input{cursor:pointer;margin:0}
+.upnext-edit-round{font-weight:500;color:var(--muted);font-size:var(--fs-xs)}
+.upnext-row.clickable{cursor:pointer}
+.upnext-row.clickable:hover{background:var(--a-blue-tint)}
+.upnext-row.clickable:focus-visible{outline:2px solid var(--a-blue);outline-offset:2px}
 /* footer */
 .viewer-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:6px;padding-right:clamp(84px,8vw,124px);font-size:clamp(12px,1.2vw,13px);color:var(--a-ink-3);font-weight:400}
 .status-dot{width:8px;height:8px;border-radius:50%;background:var(--a-blue);display:inline-block;animation:pulse 1.8s infinite}
@@ -215,6 +230,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 #notif{position:fixed;top:18px;right:18px;background:var(--green);color:#fff;padding:11px 18px;border-radius:var(--radius-md);font-size:var(--fs-sm);font-weight:600;opacity:0;transform:translateY(-8px);transition:opacity .25s ease,transform .25s ease;z-index:400;pointer-events:none;box-shadow:var(--shadow-md);letter-spacing:-.005em}
 #notif.show{opacity:1;transform:none}
 #notif.notif-warn{background:var(--warn)}
+#mdUndoToast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,0);display:none;align-items:center;gap:14px;background:var(--text);color:#fff;padding:11px 14px 11px 18px;border-radius:100px;font-size:var(--fs-sm);font-weight:600;z-index:460;box-shadow:var(--shadow-lg)}
+#mdUndoToast.show{display:flex;animation:md-undo-in .25s ease-out both}
+@keyframes md-undo-in{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+@media(prefers-reduced-motion:reduce){#mdUndoToast.show{animation:none}}
+.md-undo-btn{background:var(--green);color:#fff;border:none;border-radius:100px;padding:7px 16px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;font-family:inherit;min-height:36px}
+.md-undo-btn:hover{background:var(--green-light)}
+.md-add-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.md-add-phone{max-width:150px}
+.md-add-tubes{max-width:88px;text-align:center}
 .divider{height:1px;background:var(--border);margin:14px 0}
 input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
@@ -429,9 +453,16 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .draw-history-row:last-child{border-bottom:none}
 .draw-history-name{font-weight:600;color:var(--text)}
 .draw-history-time{color:var(--muted);font-size:var(--fs-xs)}
-/* ── WHEEL OVERLAY ────────────────────────── */
-#wheelOverlay{position:fixed;inset:0;background:rgba(5,8,15,.97);z-index:450;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px}
-#wheelOverlay.active{display:flex}
+.draw-date-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.draw-date-input{max-width:180px}
+.draw-date-readable{font-size:var(--fs-sm);color:var(--text-2);font-weight:600}
+.draw-result{margin-top:14px}
+.draw-rank-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);margin-top:8px}
+.draw-rank-badge{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;border:1px solid var(--green-line);color:var(--green-light);background:var(--green-tint)}
+.draw-rank-name{flex:1;min-width:0;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.draw-rank-del{background:none;border:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0 4px;flex-shrink:0}
+.draw-rank-del:hover{color:var(--red)}
+.draw-history-date-input{max-width:150px;font-size:var(--fs-xs)}
 .confetti-container{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .confetti-piece{position:absolute;width:8px;height:8px;border-radius:2px;opacity:0;animation:confetti-fall 2.2s ease-out forwards}
 @keyframes confetti-fall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
@@ -483,15 +514,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .mdb-wins{display:flex;gap:4px;flex-shrink:0}
 .mdb-spins{font-size:var(--fs-xs);font-weight:700;color:var(--green-light);background:var(--green-tint);border:1px solid var(--green-line);padding:2px 8px;border-radius:100px;white-space:nowrap}
 .mdb-empty{color:var(--muted);font-size:var(--fs-sm);text-align:center;padding:14px 0}
-#wheelTitle{font-size:clamp(12px,2vw,16px);font-weight:600;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
-#wheelCanvas{max-width:min(78vw,460px);max-height:min(78vw,460px);width:460px;height:460px}
-#wheelWinnerBanner{text-align:center;display:none;padding:18px 28px;background:rgba(22,27,34,.95);border:1px solid var(--border2);border-radius:var(--radius-lg);animation:word-appear .4s ease-out forwards;max-width:min(88vw,440px)}
-#wheelWinnerBanner .winner-name-big{display:block;font-size:clamp(26px,5vw,44px);font-weight:900;color:var(--text);margin-top:6px;letter-spacing:-.5px}
-.winner-avatar-wrap{display:flex;justify-content:center;margin-bottom:8px}
-#wheelCloseBtn{position:absolute;top:18px;right:18px;background:var(--card);border:1px solid var(--border2);color:var(--muted);font-size:18px;padding:4px 12px;border-radius:8px;cursor:pointer;transition:var(--transition)}
-#wheelCloseBtn:hover{color:var(--text);border-color:var(--border2)}
 /* Viewer last-winner badge */
-.viewer-last-winner{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:100px;border:1px solid rgba(240,180,41,.3);background:rgba(240,180,41,.07);font-size:var(--fs-sm);color:var(--accent);font-weight:600}
+.viewer-last-winner{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 12px;border-radius:100px;border:1px solid rgba(240,180,41,.3);background:rgba(240,180,41,.07);font-size:var(--fs-sm);color:var(--accent);font-weight:600}
+.viewer-rank-chip{color:var(--text);font-weight:600}
+.viewer-rank-chip strong{color:var(--accent);margin-right:2px}
+.viewer-draw-date{color:var(--muted);font-weight:600;font-size:var(--fs-xs)}
 
 /* ── MONTHLY DRAW REVEAL OVERLAY ──────────── */
 #pickerOverlay{position:fixed;inset:0;background:rgba(5,8,15,.97);z-index:450;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
@@ -520,7 +547,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .md-draw-row{display:flex;align-items:center;gap:10px}
 .md-draw-row .md-prize-rank{flex-shrink:0}
 .md-draw-row .btn{flex:1;justify-content:center}
-.md-tickets{font-size:var(--fs-xs);font-weight:700;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);border:1px solid var(--accent-line);padding:2px 8px;border-radius:100px;white-space:nowrap}
 .md-import-note{font-size:var(--fs-sm);color:var(--text-2);margin:8px 0 2px}
 .md-import-note.warn{color:var(--accent)}
 
@@ -591,6 +617,13 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   .admin-tab-btn.active{border-bottom:none;border-top-color:var(--lime)}
   .tab-icon{font-size:18px}
   .tab-label{font-size:10px;font-weight:600;letter-spacing:.3px}
+  /* Touch targets >=44px + >=16px inputs (no iOS zoom) for the new draw controls */
+  .md-tube-step button{width:44px;height:44px;font-size:20px}
+  .md-tube-step input{width:56px;height:44px;font-size:16px}
+  .md-cust-del{min-width:44px;min-height:44px;font-size:22px}
+  .draw-rank-del{min-width:44px;min-height:44px}
+  .md-add-tubes,.md-add-phone,.draw-date-input,.draw-history-date-input{font-size:16px;min-height:44px}
+  .md-undo-btn{min-height:44px}
 }
 /* Desktop multi-column helpers */
 @media(min-width:640px){
@@ -603,10 +636,12 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 #membersBtn:focus-visible,#lbBtn:focus-visible,#adminBtn:focus-visible,
 .cal-chevron:focus-visible,.cal-strip-btn:focus-visible,
 .history-close:focus-visible,.members-close:focus-visible,
-.lb-close:focus-visible,#wheelCloseBtn:focus-visible,
+.lb-close:focus-visible,#pickerCloseBtn:focus-visible,
 .gate-enter-btn:focus-visible,.rc:focus-visible,
 .rc-del:focus-visible,.rc-points-btn:focus-visible,
-.draw-chip button:focus-visible,.guest-chip button:focus-visible{
+.draw-chip button:focus-visible,.guest-chip button:focus-visible,
+.md-tube-step button:focus-visible,.md-cust-del:focus-visible,
+.draw-rank-del:focus-visible,.md-undo-btn:focus-visible{
   outline:2px solid var(--green);outline-offset:2px
 }
 input:focus-visible,select:focus-visible,textarea:focus-visible{
@@ -853,8 +888,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       </div>
     </div>
   </div>
-  <div id="viewerLastWinner" style="display:none;margin-top:8px"></div>
-  <div id="courtsDisplay"></div>
+  <div id="viewerWinners" style="display:none;margin-top:8px"></div>
+  <div class="viewer-main">
+    <div id="courtsDisplay"></div>
+    <div id="upNextPanel" class="upnext-panel" style="display:none"></div>
+  </div>
   <div class="viewer-footer"><span>TZH Badminton — Live Court Display</span><span id="viewerFootStats"></span></div>
 </div>
 
@@ -867,16 +905,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   </div>
 </div>
 
-<!-- Lucky Draw Wheel Overlay -->
-<div id="wheelOverlay" role="dialog" aria-modal="true" aria-labelledby="wheelTitle" onclick="handleOverlayClick(event)">
-  <div class="confetti-container" id="confettiContainer"></div>
-  <button id="wheelCloseBtn" onclick="hideWheelOverlay()" aria-label="Close lucky draw">&#x2715;</button>
-  <div id="wheelTitle">Lucky Draw</div>
-  <canvas id="wheelCanvas" width="460" height="460" aria-label="Lucky draw wheel" role="img"></canvas>
-  <div id="wheelWinnerBanner" aria-live="polite" role="status"></div>
-</div>
-
-<!-- Monthly Lucky Draw Reveal Overlay -->
+<!-- Lucky Draw / Monthly Draw shared reveal overlay (anonymous name-reel picker) -->
 <div id="pickerOverlay" role="dialog" aria-modal="true" aria-labelledby="pickerTitle" onclick="handlePickerOverlayClick(event)">
   <div class="confetti-container" id="pickerConfetti"></div>
   <button id="pickerCloseBtn" onclick="hidePickerOverlay()" aria-label="Close draw">&#x2715;</button>
@@ -987,6 +1016,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <!-- Resting players -->
     <div id="restingStrip"></div>
 
+    <!-- Up Next controls -->
+    <div class="admin-btn-row admin-mt">
+      <button class="btn btn-primary btn-sm" onclick="startNextRound()">Start Next Round →</button>
+      <label class="upnext-toggle"><input type="checkbox" id="showNextUpToggle" onchange="toggleNextUp(this.checked)"> Show &ldquo;Up Next&rdquo; on viewer</label>
+    </div>
+
+    <!-- Up Next override editor -->
+    <div class="admin-subsection-label">Up Next — Override</div>
+    <div id="upNextEditor"></div>
+
     <div class="divider"></div>
 
     <!-- Generate -->
@@ -1017,8 +1056,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
   <!-- Lucky Draw -->
   <div class="admin-card">
-    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg></span> Lucky Draw</div>
-    <div class="admin-helper-text">Build a pool and spin the wheel live on the viewer screen.</div>
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> Lucky Draw</div>
+    <div class="admin-helper-text">Build a pool, set the draw date, then pick winners one at a time &mdash; each is revealed live on the viewer screen and removed from the pool.</div>
 
     <!-- Pool -->
     <div class="draw-pool-header admin-mt">
@@ -1041,10 +1080,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
     <div class="divider"></div>
 
-    <!-- Spin -->
-    <button class="btn btn-primary admin-spin-btn" id="spinBtn" onclick="spinWheel()"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg> Spin the Wheel</button>
+    <!-- Draw date -->
+    <div class="draw-date-row">
+      <label class="admin-form-label" for="drawDateInput">Draw date</label>
+      <input id="drawDateInput" type="date" class="admin-form-input draw-date-input" onchange="setDrawDate(this.value)" aria-label="Draw date">
+      <span class="draw-date-readable" id="drawDateReadable"></span>
+    </div>
 
-    <!-- Last winner + draw history -->
+    <!-- Spin -->
+    <button class="btn btn-primary admin-spin-btn" id="spinBtn" onclick="spinDraw()"><svg class="ic" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4z"/><path d="M9 6v12"/></svg> <span id="spinBtnLabel">Spin &mdash; pick 1st winner</span></button>
+
+    <!-- Ranked winners + draw history -->
     <div id="drawResult"></div>
   </div>
 
@@ -1053,6 +1099,15 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <!-- ── MONTHLY LUCKY DRAW TAB ──────────────── -->
   <div class="admin-tab-panel" data-tab="monthly">
 
+  <!-- Month -->
+  <div class="admin-card">
+    <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg></span> <span id="mdMonthLabel">This month</span></span></div>
+    <div class="admin-helper-text">4 tubes = 1 token; leftover tubes carry to next month.</div>
+    <div class="admin-btn-row admin-mt">
+      <button class="btn btn-secondary btn-sm" onclick="closeMonth()"><svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg> Close month &amp; carry over</button>
+    </div>
+  </div>
+
   <!-- Prizes -->
   <div class="admin-card">
     <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span> Prizes</div>
@@ -1060,14 +1115,20 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div class="md-prizes" id="mdPrizes"></div>
   </div>
 
-  <!-- Participants (import) -->
+  <!-- Participants (manual + import) -->
   <div class="admin-card">
     <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M16 19a4 4 0 0 0-8 0M12 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M5 20a3 3 0 0 1 3-3M19 20a3 3 0 0 0-3-3"/></svg></span> Participants</span><span class="md-summary" id="mdPoolSummary"></span></div>
-    <div class="admin-helper-text">Import your points sheet (in Excel: File &#x2192; Save As &#x2192; CSV). Each <strong>Lucky Draw Token</strong> = one entry; people with 0 tokens are skipped.</div>
+    <div class="admin-helper-text">Add players and their tube counts below (4 tubes = 1 token). You can also bulk-import a CSV &mdash; imported tubes are <strong>added</strong> to each person&#x2019;s current tubes; 0-token rows are skipped.</div>
+    <div class="md-add-row admin-mt">
+      <input id="mdAddName" class="admin-form-input admin-flex" type="text" placeholder="Name" onkeydown="if(event.key===&#x27;Enter&#x27;)addParticipantManual()">
+      <input id="mdAddPhone" class="admin-form-input md-add-phone" type="text" placeholder="Phone (optional)">
+      <input id="mdAddTubes" class="admin-form-input md-add-tubes" type="number" min="0" step="1" value="0" aria-label="Tubes">
+      <button class="btn btn-secondary btn-sm" onclick="addParticipantManual()">Add</button>
+    </div>
     <div class="admin-btn-row admin-mt">
-      <label class="btn btn-secondary btn-sm" for="csvFileInput"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg> Import CSV</label>
+      <label class="btn btn-ghost btn-sm" for="csvFileInput"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg> Import CSV</label>
       <input id="csvFileInput" type="file" accept=".csv,text/csv" style="display:none" onchange="importDrawCsv(this)">
-      <button class="btn btn-ghost btn-sm" onclick="clearParticipants()">Clear</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearParticipants()">Clear all</button>
     </div>
     <div id="mdImportSummary"></div>
     <div class="md-customers" id="mdParticipants"></div>
@@ -1079,7 +1140,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div class="admin-helper-text">Draw the prizes in order. Each winner is shuffled live on the viewer screen, then removed from the pool so nobody wins twice.</div>
     <div class="md-draw-buttons" id="mdDrawButtons"></div>
     <div id="mdResults"></div>
-    <div class="admin-btn-row admin-mt"><button class="btn btn-ghost btn-sm" onclick="resetMonthlyDraw()">Reset for new month</button></div>
+    <div class="admin-btn-row admin-mt"><button class="btn btn-ghost btn-sm" onclick="clearMonthlyResults()">Clear winners (redo this month)</button></div>
     <div class="divider"></div>
     <div id="mdHistory"></div>
   </div>
@@ -1125,6 +1186,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
 <button id="adminBtn" onclick="requestAdmin()" aria-label="Open admin panel">Admin</button>
 <div id="notif"></div>
+<!-- Month-close Undo toast (mounted outside renderMonthlyTab's innerHTML so the 20s timer/handler survive poll re-renders) -->
+<div id="mdUndoToast" role="status" aria-live="polite">
+  <span id="mdUndoToastText"></span>
+  <button class="md-undo-btn" onclick="undoMonthRoll()">Undo</button>
+</div>
 
 <script src="monthly-draw.js"></script>
 <script>
@@ -1259,6 +1325,60 @@ function getCourtRounds() {
   return new Array(numCourts).fill(base);
 }
 
+// Pure: for each court that HAS a next round (current index + 1 < total), return
+// { court, roundIndex, match }. Courts on their last round, or with no court
+// slot in the next round, are omitted. No DOM, no mutation — unit tested in
+// scripts/test-next-up.js.
+function computeNextUp(rounds, courtRounds, numCourts) {
+  const out = [];
+  if (!Array.isArray(rounds) || !Array.isArray(courtRounds)) return out;
+  const total = rounds.length;
+  const n = numCourts || courtRounds.length;
+  for (let i = 0; i < n; i++) {
+    const ni = (courtRounds[i] ?? 0) + 1;
+    if (ni >= total) continue;
+    const court = rounds[ni] && rounds[ni].courts ? rounds[ni].courts[i] : null;
+    if (!court) continue;
+    out.push({ court: i, roundIndex: ni, match: court });
+  }
+  return out;
+}
+
+// Pure: advance every court forward one round, clamped to the last round index
+// (total-1), preserving per-court offsets. Returns a NEW array — unit tested.
+function nextCourtRounds(courtRounds, total) {
+  const max = (total || 1) - 1;
+  return (courtRounds || []).map(r => Math.min(max, (r ?? 0) + 1));
+}
+
+// Pure: apply per-court next-round edits onto a CLONE of rounds and report
+// duplicate player ids scoped PER next-round index. A player in two courts that
+// SHARE a next-round index is a duplicate; the same player in two DIFFERENT
+// next-round indices is not. Empty ('') slots are ignored. Unit tested.
+// edits: [{ court, roundIndex, team1:[a,b], team2:[c,d] }]
+function applyNextUpEdits(rounds, edits) {
+  const cloned = Array.isArray(rounds) ? JSON.parse(JSON.stringify(rounds)) : [];
+  const affected = new Set();
+  (edits || []).forEach(e => {
+    if (!e || typeof e.court !== 'number' || typeof e.roundIndex !== 'number') return;
+    const r = cloned[e.roundIndex];
+    if (!r || !Array.isArray(r.courts) || !r.courts[e.court]) return;
+    r.courts[e.court] = {
+      team1: [e.team1?.[0] || '', e.team1?.[1] || ''],
+      team2: [e.team2?.[0] || '', e.team2?.[1] || ''],
+    };
+    affected.add(e.roundIndex);
+  });
+  const duplicates = [];
+  [...affected].sort((a, b) => a - b).forEach(ni => {
+    const ids = (cloned[ni].courts || []).flatMap(c => [...(c.team1 || []), ...(c.team2 || [])]).filter(Boolean);
+    const seen = new Set(), dupes = new Set();
+    ids.forEach(id => { if (seen.has(id)) dupes.add(id); seen.add(id); });
+    if (dupes.size) duplicates.push({ roundIndex: ni, ids: [...dupes] });
+  });
+  return { rounds: cloned, duplicates };
+}
+
 // Cheap signatures so the 2s poll only rebuilds DOM when its inputs actually
 // changed (base64 photos are reduced to a length marker to keep the diff light).
 let __lastCourtSig = null;
@@ -1274,7 +1394,9 @@ function renderViewer() {
   const numCourts = state.numCourts || 1;
 
   // Skip the court-card rebuild (the visible flicker source) when nothing changed.
-  const courtSig = stateSig({ nc: numCourts, crs: courtRounds, rounds: state.rounds, players: state.players });
+  // snu/adm are included so the Up Next panel rebuilds when the toggle flips or
+  // the device's admin login state changes (clickable rows in Task 4).
+  const courtSig = stateSig({ nc: numCourts, crs: courtRounds, rounds: state.rounds, players: state.players, snu: state.showNextUp, adm: !!sessionStorage.getItem('adminPwd') });
   if (courtSig !== __lastCourtSig) {
     __lastCourtSig = courtSig;
     const container = document.getElementById('courtsDisplay');
@@ -1295,9 +1417,10 @@ function renderViewer() {
       }
       stats.textContent = `${numCourts} Court${numCourts > 1 ? 's' : ''} · ${ids.size} Players · Members Only`;
     }
+    renderUpNext();
   }
   renderLeaderboard();
-  renderViewerLastWinner(); // time-dependent (scheduled reveal) — must run every poll
+  renderViewerWinners(); // time-dependent (scheduled reveal) — must run every poll
 }
 
 // clean circular avatar — photo, or neutral initials token
@@ -1328,6 +1451,31 @@ function buildCourtCard(num, court, roundLabel) {
     <div class="avs"><span>vs</span></div>
     <div class="ateam">${team(court.team2)}</div>`;
   return el;
+}
+
+// Viewer "Up Next" panel — one row per court that has a next round, so resting
+// players know they're up. Hidden when the admin toggle is off or no court has a
+// next round. Rebuilt only inside renderViewer's signature guard (flicker-free).
+function renderUpNext() {
+  const panel = document.getElementById('upNextPanel');
+  if (!panel) return;
+  if (state.showNextUp === false) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
+  const rows = computeNextUp(state.rounds, getCourtRounds(), state.numCourts || 1);
+  if (!rows.length) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
+  const nameOf = id => playerById(id)?.name || 'TBD';
+  // On a logged-in admin device, rows are clickable to advance that one court.
+  const isAdmin = !!sessionStorage.getItem('adminPwd');
+  const rowHtml = rows.map(r => {
+    const c = r.match;
+    const matchTxt = `${nameOf(c.team1?.[0])} & ${nameOf(c.team1?.[1])} vs ${nameOf(c.team2?.[0])} & ${nameOf(c.team2?.[1])}`;
+    const cls = 'upnext-row' + (isAdmin ? ' clickable' : '');
+    const attrs = isAdmin
+      ? ` role="button" tabindex="0" title="Advance Court ${r.court + 1} to this round" onclick="advanceCourt(${r.court},1)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();advanceCourt(${r.court},1);}"`
+      : '';
+    return `<div class="${cls}"${attrs}><span class="upnext-court">Court ${r.court + 1}</span><span class="upnext-arrow" aria-hidden="true">→</span><span class="upnext-match">${escHtml(matchTxt)}</span></div>`;
+  }).join('');
+  panel.style.display = '';
+  panel.innerHTML = `<div class="upnext-head">Up Next</div>${rowHtml}`;
 }
 
 // ── ADMIN ────────────────────────────────────
@@ -1385,6 +1533,11 @@ function renderCourtControls() {
 
   // Resting players strip
   renderRestingPlayers(courtRoundsAll);
+
+  // Up Next: sync the show/hide toggle (default ON) and render the override editor
+  const nextUpToggle = document.getElementById('showNextUpToggle');
+  if (nextUpToggle) nextUpToggle.checked = state.showNextUp !== false;
+  renderNextUpEditor();
 }
 
 function roundCourtSummary(round, courtIdx) {
@@ -1438,6 +1591,30 @@ async function stepAllCourts(delta) {
   renderCourtControls();
   renderRoundList();
   notify(`All courts → ${state.rounds?.[next]?.label || 'Round ' + (next + 1)}`);
+}
+
+// Advance EVERY court forward one round (preserving per-court offsets). No-op
+// (with a warn) when all courts are already on the last round.
+async function startNextRound() {
+  const total = (state.rounds || []).length;
+  if (!total) return notify('No schedule yet', 'warn');
+  const cur = getCourtRounds();
+  const next = nextCourtRounds(cur, total);
+  if (next.every((v, i) => v === cur[i])) return notify('All courts are on the last round', 'warn');
+  await apiPost({ courtRounds: next });
+  state.courtRounds = next;
+  renderCourtControls();
+  renderRoundList();
+  renderViewer();
+  notify('Started next round');
+}
+
+// Show/hide the viewer "Up Next" panel (persisted as state.showNextUp, default ON).
+async function toggleNextUp(on) {
+  await apiPost({ showNextUp: on });
+  state.showNextUp = on;
+  renderViewer();
+  notify(on ? 'Up Next shown on viewer' : 'Up Next hidden on viewer');
 }
 
 // ── ROSTER & PLAYERS ─────────────────────────
@@ -1819,6 +1996,7 @@ async function advanceCourt(courtIdx, delta) {
   state.courtRounds = courtRounds;
   renderCourtControls();
   renderRoundList();
+  renderViewer(); // refresh the viewer (and its Up Next panel) immediately, incl. clicks from the viewer
   notify(`Court ${courtIdx + 1} → ${state.rounds?.[next]?.label || 'Round ' + (next + 1)}`);
 }
 
@@ -1944,6 +2122,82 @@ function renderRoundList() {
 function toggleRoundExpand(i) {
   expandedRound = expandedRound === i ? null : i;
   renderRoundList();
+}
+
+// ── UP NEXT OVERRIDE EDITOR ───────────────────
+// Per-court dropdowns for each court's NEXT round, reusing the round-editor
+// primitives. Rebuilt by renderCourtControls every poll; an in-progress
+// selection is preserved by poll()'s isEditing() guard (focused <select>).
+function renderNextUpEditor() {
+  const box = document.getElementById('upNextEditor');
+  if (!box) return;
+  const numCourts = state.numCourts || 1;
+  const courtRounds = getCourtRounds();
+  const total = (state.rounds || []).length;
+  if (!total) { box.innerHTML = '<div class="admin-helper-text">Generate a schedule to edit the next round.</div>'; return; }
+  let html = '';
+  let anyEditable = false;
+  for (let i = 0; i < numCourts; i++) {
+    const ni = (courtRounds[i] ?? 0) + 1;
+    if (ni >= total) {
+      html += `<div class="court-editor"><h4>Court ${i + 1}</h4><div class="admin-helper-text">On last round — no next round. Add or generate more rounds.</div></div>`;
+      continue;
+    }
+    const court = state.rounds?.[ni]?.courts?.[i];
+    if (!court) {
+      html += `<div class="court-editor"><h4>Court ${i + 1}</h4><div class="admin-helper-text">No match slot in the next round.</div></div>`;
+      continue;
+    }
+    anyEditable = true;
+    const label = state.rounds?.[ni]?.label || `Round ${ni + 1}`;
+    html += `
+      <div class="court-editor">
+        <h4>Court ${i + 1} <span class="upnext-edit-round">${escHtml(label)}</span></h4>
+        <div class="selectors-row">
+          <span class="rl-team-label">Team A:</span>
+          ${buildPlayerSelect(`un_c${i}_t1p1`, court.team1?.[0])}
+          <span class="amp">&amp;</span>
+          ${buildPlayerSelect(`un_c${i}_t1p2`, court.team1?.[1])}
+          <span class="vs-small">VS</span>
+          <span class="rl-team-label">Team B:</span>
+          ${buildPlayerSelect(`un_c${i}_t2p1`, court.team2?.[0])}
+          <span class="amp">&amp;</span>
+          ${buildPlayerSelect(`un_c${i}_t2p2`, court.team2?.[1])}
+        </div>
+      </div>`;
+  }
+  if (anyEditable) html += `<button class="btn btn-primary btn-sm" onclick="saveNextUp()">Save Up Next</button>`;
+  box.innerHTML = html;
+}
+
+async function saveNextUp() {
+  const numCourts = state.numCourts || 1;
+  const courtRounds = getCourtRounds();
+  const total = (state.rounds || []).length;
+  const edits = [];
+  for (let i = 0; i < numCourts; i++) {
+    const ni = (courtRounds[i] ?? 0) + 1;
+    if (ni >= total) continue;
+    const get = role => document.getElementById(`un_c${i}_${role}`)?.value;
+    if (get('t1p1') === undefined) continue; // no editor rendered for this court
+    edits.push({
+      court: i, roundIndex: ni,
+      team1: [get('t1p1'), get('t1p2')],
+      team2: [get('t2p1'), get('t2p2')],
+    });
+  }
+  if (!edits.length) return notify('Nothing to save', 'warn');
+  const { rounds, duplicates } = applyNextUpEdits(state.rounds, edits);
+  if (duplicates.length) {
+    const names = [...new Set(duplicates.flatMap(d => d.ids).map(id => playerById(id)?.name || id))];
+    return notify(`Duplicate player: ${names.join(', ')}`, 'warn');
+  }
+  await apiPost({ rounds });
+  state.rounds = rounds;
+  renderCourtControls();
+  renderRoundList();
+  renderViewer();
+  notify('Up Next saved!');
 }
 
 // ── SMART SCHEDULE ────────────────────────────
@@ -2474,14 +2728,31 @@ let currentAdminTab = localStorage.getItem('adminTab') || 'session';
 // ── MONTHLY LUCKY DRAW (token ballot) ─────────
 function mdData() { return state.monthlyDraw || {}; }
 function mdRankLbl(r) { return r === 1 ? '1st' : r === 2 ? '2nd' : '3rd'; }
+function mdTokens(tubes) { return Math.floor((Number(tubes) || 0) / 4); }
+function currentMonthKey() { return todayISO().slice(0, 7); }
+function newParticipantId() { return 'mp' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
+
+// Month-roll state (page-session). Correctness for re-roll suppression rests on the
+// PERSISTED monthlyDraw.rollSuppressedMonth (F1); these are same-session helpers.
+let mdRolling = false;
+let mdPreCloseSnapshot = null;
+let mdUndoTimer = null;
+let lastAutoRolledFrom = null;
 
 function renderMonthlyTab() {
   if (!state) return;
+  // Auto-roll only when the admin is actually viewing the Monthly tab (never from the
+  // public viewer / background poll on another tab). ensureMonthlyRoll is idempotent.
+  if (currentAdminTab === 'monthly') ensureMonthlyRoll();
+
   const md = mdData();
   const prizes = md.prizes || [];
   const parts = md.participants || [];
   const results = md.results || [];
-  const wonIds = results.map(r => r.id);
+
+  // Month label
+  const ml = document.getElementById('mdMonthLabel');
+  if (ml) ml.textContent = md.month && window.MonthlyDraw ? MonthlyDraw.monthLabel(md.month) : (md.month || 'This month');
 
   // Prizes editor (no odds — ballot model)
   const pe = document.getElementById('mdPrizes');
@@ -2492,25 +2763,34 @@ function renderMonthlyTab() {
       </div>`).join('') +
     `<div class="admin-btn-row admin-mt"><button class="btn btn-secondary btn-sm" onclick="saveDrawPrizes()">Save prizes</button></div>`;
 
-  // Participants summary + list
-  const totalTickets = parts.reduce((s, p) => s + (p.tokens || 0), 0);
+  // Participants summary + list (tubes are the source of truth)
+  const totalTokens = parts.reduce((s, p) => s + (p.tokens != null ? p.tokens : mdTokens(p.tubes)), 0);
   const sum = document.getElementById('mdPoolSummary');
-  if (sum) sum.textContent = parts.length ? `${parts.length} · ${totalTickets} tokens` : '';
+  if (sum) sum.textContent = parts.length ? `${parts.length} · ${totalTokens} token${totalTokens === 1 ? '' : 's'}` : '';
 
   const pl = document.getElementById('mdParticipants');
   if (pl) {
     if (!parts.length) {
-      pl.innerHTML = '<div class="md-empty">No participants yet. Import your CSV above.</div>';
+      pl.innerHTML = '<div class="md-empty">No participants yet. Add one above, or import a CSV.</div>';
     } else {
       pl.innerHTML = parts.map(p => {
+        const tubes = Number(p.tubes) || 0;
+        const tokens = p.tokens != null ? p.tokens : mdTokens(tubes);
+        const leftover = tubes % 4;
         const r = results.find(x => x.id === p.id);
         const badge = r ? `<span class="md-win-badge md-rank-${r.rank}" title="${escHtml(r.prize || '')}">${mdRankLbl(r.rank)}</span>` : '';
-        return `<div class="md-cust"${r ? ' style="opacity:.55"' : ''}>
+        return `<div class="md-cust"${r ? ' style="opacity:.7"' : ''}>
           <div class="md-cust-main">
             <div class="md-cust-name">${escHtml(p.name)} ${badge}</div>
             ${p.phone ? `<div class="md-cust-phone">${escHtml(p.phone)}</div>` : ''}
+            <div class="md-leftover">${tokens} token${tokens === 1 ? '' : 's'} &middot; ${leftover} tube${leftover === 1 ? '' : 's'} carry over</div>
           </div>
-          <span class="md-tickets">${p.tokens} token${p.tokens === 1 ? '' : 's'}</span>
+          <div class="md-tube-step">
+            <button onclick="stepParticipantTubes('${p.id}',-1)" aria-label="Remove a tube from ${escHtml(p.name)}">&#8722;</button>
+            <input type="number" min="0" step="1" value="${tubes}" onchange="setParticipantTubes('${p.id}', this.value)" aria-label="Tubes for ${escHtml(p.name)}">
+            <button onclick="stepParticipantTubes('${p.id}',1)" aria-label="Add a tube to ${escHtml(p.name)}">+</button>
+          </div>
+          <button class="md-cust-del" onclick="removeParticipant('${p.id}')" title="Remove" aria-label="Remove ${escHtml(p.name)}">&#x00D7;</button>
         </div>`;
       }).join('');
     }
@@ -2573,10 +2853,14 @@ function renderMonthlyHistory() {
   const hist = mdData().history || [];
   if (!hist.length) { el.innerHTML = '<div class="md-empty">No past months yet.</div>'; return; }
   el.innerHTML = '<div class="admin-form-label">Past months</div>' + hist.map(d => {
-    const winners = (d.winners || []).map(w => `${escHtml(w.name)} (${mdRankLbl(w.rank)})`);
+    const winners = (d.winners || []).slice().sort((a, b) => a.rank - b.rank).map(w => `${escHtml(w.name)} (${mdRankLbl(w.rank)})`);
+    const sp = d.participants || [];
+    const carried = sp.reduce((s, p) => s + ((Number(p.tubes) || 0) % 4), 0);
+    const carriedNote = sp.length ? `${sp.length} participant${sp.length === 1 ? '' : 's'} &middot; ${carried} tube${carried === 1 ? '' : 's'} carried forward` : '';
     return `<div class="md-history-row">
       <div class="md-history-month">${escHtml(d.label || '')}</div>
-      <div class="md-history-winners">${winners.length ? winners.join('  ·  ') : 'No winners'}</div>
+      <div class="md-history-winners">${winners.length ? winners.join('  &middot;  ') : 'No winners'}</div>
+      ${carriedNote ? `<div class="md-history-winners">${carriedNote}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -2607,18 +2891,87 @@ function importDrawCsv(input) {
     if (parsed.error === 'no-name-column') { setImportNote('Could not find a "Name" column in that CSV.', true); return; }
     if (parsed.error) { setImportNote('That file looks empty.', true); return; }
     if (!parsed.participants.length) { setImportNote('No eligible participants — everyone had 0 tokens.', true); return; }
-    const participants = parsed.participants.map((p, i) => ({ id: 'mp' + i, name: p.name, phone: p.phone || '', tokens: p.tokens }));
-    await refreshState();
-    const monthlyDraw = { ...mdData(), participants, results: [], spin: null };
+    await refreshState();  // F7 — never merge onto a stale local copy
+    const md = mdData();
+    const incoming = parsed.participants.map(p => ({
+      name: p.name, phone: p.phone || '',
+      tubes: p.tubes != null ? p.tubes : (p.tokens || 0) * 4,
+    }));
+    // Additive merge by name(+phone): imported tubes are ADDED to each person's current tubes.
+    let participants = lib.mergeParticipants(md.participants || [], incoming, { add: true });
+    participants = participants.map(p => (p.id ? p : { ...p, id: newParticipantId() }));
+    const monthlyDraw = { ...md, participants };  // keep results/spin as-is (additive import)
     await apiPost({ monthlyDraw });
     state.monthlyDraw = monthlyDraw;
-    const total = participants.reduce((s, p) => s + p.tokens, 0);
-    setImportNote(`Imported ${participants.length} participants (${total} tokens)${parsed.skipped ? `, skipped ${parsed.skipped} with 0 tokens` : ''}.`, false);
+    const addedTubes = incoming.reduce((s, p) => s + (Number(p.tubes) || 0), 0);
+    setImportNote(`Added ${incoming.length} from CSV (+${addedTubes} tubes)${parsed.skipped ? `, skipped ${parsed.skipped} with 0 tokens` : ''}.`, false);
     renderMonthlyTab();
-    notify('Participants imported.');
+    notify('CSV imported — tubes added.');
   };
   reader.onerror = () => setImportNote('Could not read that file.', true);
   reader.readAsText(file);
+}
+
+async function addParticipantManual() {
+  const nameEl = document.getElementById('mdAddName');
+  const phoneEl = document.getElementById('mdAddPhone');
+  const tubesEl = document.getElementById('mdAddTubes');
+  const name = (nameEl ? nameEl.value : '').trim();
+  if (!name) { notify('Enter a name.', 'warn'); return; }
+  const phone = (phoneEl ? phoneEl.value : '').trim();
+  const tubes = Math.max(0, Math.floor(Number(tubesEl ? tubesEl.value : 0) || 0));
+  await refreshState();
+  const md = mdData();
+  const lib = window.MonthlyDraw;
+  // Additive merge: a matching name(+phone) sums tubes onto the existing person
+  // rather than creating a duplicate. Surface that so the behavior isn't a surprise.
+  const matched = lib && (md.participants || []).some(p => lib.matchParticipant(p, { name, phone }));
+  let participants = lib
+    ? lib.mergeParticipants(md.participants || [], [{ name, phone, tubes }], { add: true })
+    : [...(md.participants || []), { name, phone, tubes, tokens: mdTokens(tubes) }];
+  participants = participants.map(p => (p.id ? p : { ...p, id: newParticipantId() }));
+  const monthlyDraw = { ...md, participants };
+  await apiPost({ monthlyDraw });
+  state.monthlyDraw = monthlyDraw;
+  if (nameEl) nameEl.value = '';
+  if (phoneEl) phoneEl.value = '';
+  if (tubesEl) tubesEl.value = '0';
+  renderMonthlyTab();
+  notify(matched ? `Added ${tubes} tube(s) to ${name}.` : `Added ${name}.`);
+}
+
+async function setParticipantTubes(id, val, opts) {
+  const asDelta = !!(opts && opts.delta);
+  await refreshState();
+  const md = mdData();
+  const lib = window.MonthlyDraw;
+  const participants = (md.participants || []).map(p => {
+    if (p.id !== id) return p;
+    // For a stepper click, apply the delta to the freshly-refreshed tube count so a
+    // concurrent edit on another device isn't clobbered by a stale absolute value.
+    const base = asDelta ? (Number(p.tubes) || 0) + (Number(val) || 0) : (Number(val) || 0);
+    const tubes = Math.max(0, Math.floor(base));
+    return lib ? lib.withTokens({ ...p, tubes }) : { ...p, tubes, tokens: mdTokens(tubes) };
+  });
+  const monthlyDraw = { ...md, participants };
+  await apiPost({ monthlyDraw });
+  state.monthlyDraw = monthlyDraw;
+  renderMonthlyTab();
+}
+
+function stepParticipantTubes(id, delta) {
+  return setParticipantTubes(id, delta, { delta: true });
+}
+
+async function removeParticipant(id) {
+  await refreshState();
+  const md = mdData();
+  const participants = (md.participants || []).filter(p => p.id !== id);
+  const results = (md.results || []).filter(r => r.id !== id);
+  const monthlyDraw = { ...md, participants, results };
+  await apiPost({ monthlyDraw });
+  state.monthlyDraw = monthlyDraw;
+  renderMonthlyTab();
 }
 
 async function clearParticipants() {
@@ -2662,23 +3015,112 @@ async function drawPrize(rank) {
   renderMonthlyTab();
 }
 
-async function resetMonthlyDraw() {
+async function clearMonthlyResults() {
   await refreshState();
-  const md = mdData();
-  const results = md.results || [];
-  let history = md.history || [];
-  if (results.length) {
-    const d = new Date();
-    const label = d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-    const winners = results.slice().sort((a, b) => a.rank - b.rank).map(r => ({ rank: r.rank, name: r.name, prize: r.prize }));
-    history = [{ label, at: clockNow(), winners }, ...history].slice(0, 24);
-  }
-  const monthlyDraw = { ...md, participants: [], results: [], spin: null, history };
+  const monthlyDraw = { ...mdData(), results: [], spin: null };
   await apiPost({ monthlyDraw });
   state.monthlyDraw = monthlyDraw;
-  setImportNote('', false);
   renderMonthlyTab();
-  notify('Reset for a new month.');
+  notify('Winners cleared.');
+}
+
+// ── MONTH ROLL / CARRY-OVER ───────────────────
+// Auto-roll fires when the admin opens the Monthly tab in a new calendar month.
+// Idempotent + re-entrancy guarded; suppression after Undo is persisted (F1).
+function ensureMonthlyRoll() {
+  if (mdRolling) return;
+  const md = mdData();
+  const cur = currentMonthKey();
+  if (!md.month) {
+    // First run with no month: initialize without archiving.
+    mdRolling = true;
+    const monthlyDraw = { ...md, month: cur };
+    (async () => {
+      try { await apiPost({ monthlyDraw }); state.monthlyDraw = monthlyDraw; }
+      catch (e) { /* will retry next poll */ }
+      finally { mdRolling = false; renderMonthlyTab(); }
+    })();
+    return;
+  }
+  if (md.month < cur && md.month !== md.rollSuppressedMonth && md.month !== lastAutoRolledFrom) {
+    lastAutoRolledFrom = md.month;  // same-session de-dupe; persisted guard is rollSuppressedMonth
+    rollMonth(true);
+  }
+}
+
+async function rollMonth(isAuto) {
+  if (mdRolling) return;
+  mdRolling = true;  // set BEFORE the first await (F4)
+  try {
+    await refreshState();
+    const md = mdData();
+    // Re-validate staleness after refresh: a concurrent device may have already
+    // rolled this month. Auto-roll then becomes a no-op (avoids double-archiving
+    // an already-current/empty month). Manual close (isAuto=false) is unaffected.
+    if (isAuto && !(md.month && md.month < currentMonthKey())) return;
+    const lib = window.MonthlyDraw;
+    const closingMonth = md.month || currentMonthKey();
+    const label = lib ? lib.monthLabel(closingMonth) : closingMonth;
+    // Snapshot BEFORE any mutation, for Undo.
+    mdPreCloseSnapshot = JSON.parse(JSON.stringify(md));
+    // Archive participant snapshot from PRE-carry tubes/tokens (F8).
+    const results = md.results || [];
+    const winners = results.slice().sort((a, b) => a.rank - b.rank).map(r => ({ rank: r.rank, name: r.name, prize: r.prize }));
+    const snapParts = (md.participants || []).map(p => ({
+      name: p.name, phone: p.phone || '',
+      tubes: Number(p.tubes) || 0, tokens: p.tokens != null ? p.tokens : mdTokens(p.tubes),
+    }));
+    const archive = { month: closingMonth, label, at: clockNow(), winners, participants: snapParts };
+    const carried = lib ? lib.carryOverParticipants(md.participants || [])
+      : (md.participants || []).map(p => ({ ...p, tubes: (Number(p.tubes) || 0) % 4, tokens: 0 }));
+    const newMonth = isAuto ? currentMonthKey() : (lib ? lib.nextMonthKey(closingMonth) : closingMonth);
+    const history = [archive, ...(md.history || [])].slice(0, 36);
+    const monthlyDraw = { ...md, month: newMonth, rollSuppressedMonth: '', participants: carried, results: [], spin: null, history };
+    await apiPost({ monthlyDraw });
+    state.monthlyDraw = monthlyDraw;
+    renderMonthlyTab();
+    if (isAuto) showUndoToast(label);
+    else notify(`Closed ${label}.`);
+  } catch (e) {
+    notify('Could not close the month.', 'warn');
+  } finally {
+    mdRolling = false;
+  }
+}
+
+async function closeMonth() {
+  if (mdRolling) return;
+  await rollMonth(false);
+}
+
+async function undoMonthRoll() {
+  if (!mdPreCloseSnapshot) return;
+  const snap = mdPreCloseSnapshot;
+  // Persist suppression so a reload / 2nd device won't silently re-roll the restored month (F1).
+  const monthlyDraw = { ...JSON.parse(JSON.stringify(snap)), rollSuppressedMonth: snap.month };
+  await apiPost({ monthlyDraw });
+  state.monthlyDraw = monthlyDraw;
+  lastAutoRolledFrom = snap.month;
+  mdPreCloseSnapshot = null;
+  hideUndoToast();
+  renderMonthlyTab();
+  notify('Month close undone.');
+}
+
+function showUndoToast(label) {
+  const t = document.getElementById('mdUndoToast');
+  const txt = document.getElementById('mdUndoToastText');
+  if (!t) return;
+  if (txt) txt.textContent = 'Closed ' + label;
+  t.classList.add('show');
+  clearTimeout(mdUndoTimer);
+  mdUndoTimer = setTimeout(() => { hideUndoToast(); mdPreCloseSnapshot = null; }, 20000); // ~20s window
+}
+
+function hideUndoToast() {
+  const t = document.getElementById('mdUndoToast');
+  if (t) t.classList.remove('show');
+  clearTimeout(mdUndoTimer);
 }
 
 // ── MONTHLY DRAW BOARD (viewer-facing) ──
@@ -2892,16 +3334,8 @@ function renderLeaderboard() {
 let clockOffset = 0;
 function clockNow() { return Date.now() + clockOffset; }
 function prefersReducedMotion() { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
-function formatTimeAgo(ts) {
-  const d = Date.now() - ts;
-  if (d < 60000) return 'just now';
-  if (d < 3600000) return Math.floor(d / 60000) + 'm ago';
-  if (d < 86400000) return Math.floor(d / 3600000) + 'h ago';
-  return Math.floor(d / 86400000) + 'd ago';
-}
 
-// ── LUCKY DRAW ────────────────────────────────
-let drawHistoryOpen = false;
+// ── LUCKY DRAW (engagement: ranked winners, editable date) ──
 
 function setSpinBtnEnabled(enabled) {
   const btn = document.getElementById('spinBtn');
@@ -2935,75 +3369,136 @@ function renderDrawPool() {
   }).join('');
 }
 
+function getDrawDate() { return (state.luckyDraw || {}).drawDate || todayISO(); }
+
+function readableDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function renderDrawDate() {
+  const inp = document.getElementById('drawDateInput');
+  const lbl = document.getElementById('drawDateReadable');
+  const iso = getDrawDate();
+  if (inp && document.activeElement !== inp) inp.value = iso;  // don't clobber a focused edit
+  if (lbl) lbl.textContent = readableDate(iso);
+}
+
+async function setDrawDate(val) {
+  if (!val) return;
+  const luckyDraw = { ...(state.luckyDraw || {}), drawDate: val };
+  await apiPost({ luckyDraw });
+  state.luckyDraw = luckyDraw;
+  renderDrawDate();
+  renderViewerWinners();
+}
+
+function drawPoolHasEnough() {
+  const ld = state.luckyDraw || {};
+  const n = ((ld.entries) || []).length;
+  return n >= (((ld.results) || []).length === 0 ? 2 : 1);
+}
+
+function drawSpinLive() {
+  const live = (state.luckyDraw || {}).spin;
+  return !!(live && clockNow() < live.startAt + live.durationMs);
+}
+
+function ordinalLbl(n) { return window.MonthlyDraw ? MonthlyDraw.ordinal(n) : (n + 'th'); }
+
 function renderDrawResult() {
+  renderDrawDate();
+  const ld = state.luckyDraw || {};
+  const results = (ld.results || []);
+  // Spin label + enabled state — spin-aware so the 2s poll can't re-enable mid-reveal
+  const lblEl = document.getElementById('spinBtnLabel');
+  if (lblEl) lblEl.innerHTML = 'Spin &mdash; pick ' + escHtml(ordinalLbl(results.length + 1)) + ' winner';
+  setSpinBtnEnabled(drawPoolHasEnough() && !drawSpinLive());
+
   const el = document.getElementById('drawResult');
   if (!el) return;
-  const ld = state.luckyDraw || {};
   const now = clockNow();
+  // Only show winners already revealed (clockNow >= at) — matches the viewer reveal gate (F10)
+  const shown = results.filter(r => now >= r.at).slice().sort((a, b) => a.rank - b.rank);
   let html = '';
-  const lw = ld.lastWinner;
-  if (lw && now >= lw.at) {
-    const rp = (state.roster || []).find(r => r.name === lw.name);
-    const av = rp ? avatarHTML(rp, 36) : '';
-    html += `<div class="draw-result">
-      <div class="draw-result-label">Last Winner</div>
-      <div class="draw-winner-row">${av}<div>
-        <div class="draw-winner-name">${escHtml(lw.name)}</div>
-        <div class="draw-winner-time">${formatTimeAgo(lw.at)}</div>
-      </div></div>
-      <div class="admin-btn-row admin-mt">
-        <button class="btn btn-ghost btn-sm" onclick="removeWinnerFromPool()">Remove from pool</button>
+  if (shown.length) {
+    html += '<div class="draw-result"><div class="draw-result-label">Winners &mdash; ' + escHtml(readableDate(getDrawDate())) + '</div>';
+    html += shown.map(r => {
+      const rp = (state.roster || []).find(x => x.name === r.name);
+      const av = rp ? avatarHTML(rp, 30) : '';
+      return `<div class="draw-rank-row"><span class="draw-rank-badge">${escHtml(ordinalLbl(r.rank))}</span>${av}<span class="draw-rank-name">${escHtml(r.name)}</span><button class="draw-rank-del" onclick="removeDrawWinner(${r.rank})" title="Remove winner" aria-label="Remove ${escHtml(r.name)}">&#x00D7;</button></div>`;
+    }).join('');
+    html += `<div class="admin-btn-row admin-mt"><button class="btn btn-ghost btn-sm" onclick="startNewDraw()">Start new draw</button></div></div>`;
+  }
+  const history = (ld.history || []);
+  if (history.length) {
+    html += '<div class="divider"></div><div class="admin-form-label">Past draws</div>';
+    html += history.map((h, i) => {
+      const winners = (h.winners || []).slice().sort((a, b) => a.rank - b.rank)
+        .map(w => `${escHtml(w.name)} (${escHtml(ordinalLbl(w.rank))})`).join('  &middot;  ');
+      return `<div class="draw-history-row">
+        <input type="date" class="admin-form-input draw-history-date-input" value="${escHtml(h.date || '')}" onchange="editDrawHistoryDate(${i}, this.value)" aria-label="Draw date">
+        <span class="draw-history-name">${winners || 'No winners'}</span>
       </div>`;
-    const history = (ld.history || []).filter(h => now >= h.at);
-    if (history.length > 1) {
-      html += `<div class="draw-history-toggle" onclick="toggleDrawHistory()">
-        <span class="draw-history-toggle-label">Draw History (${history.length})</span>
-        <span style="color:var(--muted);font-size:12px">${drawHistoryOpen ? '▲' : '▼'}</span>
-      </div>`;
-      if (drawHistoryOpen) {
-        html += `<div class="draw-history-list">${history.map(h =>
-          `<div class="draw-history-row"><span class="draw-history-name">${escHtml(h.name)}</span><span class="draw-history-time">${formatTimeAgo(h.at)}</span></div>`
-        ).join('')}</div>
-        <div class="admin-mt"><button class="btn btn-ghost btn-sm" onclick="clearDrawHistory()">Clear history</button></div>`;
-      }
-    }
-    html += `</div>`;
+    }).join('');
   }
   el.innerHTML = html;
 }
 
-function toggleDrawHistory() { drawHistoryOpen = !drawHistoryOpen; renderDrawResult(); }
-
-async function clearDrawHistory() {
-  const luckyDraw = { ...(state.luckyDraw || {}), history: [], lastWinner: null };
+async function startNewDraw() {
+  const ld = state.luckyDraw || {};
+  const results = (ld.results || []);
+  let history = (ld.history || []);
+  if (results.length) {
+    const winners = results.slice().sort((a, b) => a.rank - b.rank).map(r => ({ rank: r.rank, name: r.name }));
+    history = [{ date: getDrawDate(), at: clockNow(), winners }, ...history].slice(0, 24);
+  }
+  const luckyDraw = { ...ld, results: [], history, drawDate: todayISO() };
   await apiPost({ luckyDraw });
   state.luckyDraw = luckyDraw;
+  renderDrawDate();
   renderDrawResult();
+  renderViewerWinners();
 }
 
-async function removeWinnerFromPool() {
-  const lw = (state.luckyDraw || {}).lastWinner;
-  if (!lw) return;
-  let removed = false;
-  const entries = ((state.luckyDraw || {}).entries || []).filter(n => {
-    if (!removed && n === lw.name) { removed = true; return false; }
-    return true;
-  });
-  const luckyDraw = { ...(state.luckyDraw || {}), entries };
+async function removeDrawWinner(rank) {
+  const ld = state.luckyDraw || {};
+  const results = (ld.results || []);
+  const target = results.find(r => r.rank === rank);
+  if (!target) return;
+  const kept = results.filter(r => r.rank !== rank);
+  const remaining = window.MonthlyDraw ? MonthlyDraw.reindexRanks(kept) : kept;
+  const entries = [...((ld.entries) || []), target.name];  // return winner to the pool
+  const luckyDraw = { ...ld, results: remaining, entries };
   await apiPost({ luckyDraw });
   state.luckyDraw = luckyDraw;
   renderDrawPool();
   renderDrawResult();
-  notify(`Removed ${lw.name} from pool.`);
+  renderViewerWinners();
+  notify(`Removed ${target.name}; returned to pool.`);
 }
 
-function renderViewerLastWinner() {
-  const el = document.getElementById('viewerLastWinner');
+async function editDrawHistoryDate(idx, val) {
+  const ld = state.luckyDraw || {};
+  const history = (ld.history || []).map((h, i) => (i === idx ? { ...h, date: val } : h));
+  const luckyDraw = { ...ld, history };
+  await apiPost({ luckyDraw });
+  state.luckyDraw = luckyDraw;
+  renderDrawResult();
+}
+
+function renderViewerWinners() {
+  const el = document.getElementById('viewerWinners');
   if (!el) return;
-  const lw = (state.luckyDraw || {}).lastWinner;
-  if (!lw || clockNow() < lw.at) { el.style.display = 'none'; return; }
+  const ld = state.luckyDraw || {};
+  const now = clockNow();
+  const shown = (ld.results || []).filter(r => now >= r.at).slice().sort((a, b) => a.rank - b.rank);
+  if (!shown.length) { el.style.display = 'none'; return; }
   el.style.display = '';
-  el.innerHTML = `<span class="viewer-last-winner"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg> Last winner: <strong>${escHtml(lw.name)}</strong></span>`;
+  const chips = shown.map(r => `<span class="viewer-rank-chip"><strong>${escHtml(ordinalLbl(r.rank))}</strong> ${escHtml(r.name)}</span>`).join('');
+  el.innerHTML = `<span class="viewer-last-winner"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg> ${chips}<span class="viewer-draw-date">${escHtml(readableDate(getDrawDate()))}</span></span>`;
 }
 
 async function loadSessionIntoPool() {
@@ -3017,6 +3512,7 @@ async function loadSessionIntoPool() {
   await apiPost({ luckyDraw });
   state.luckyDraw = luckyDraw;
   renderDrawPool();
+  renderDrawResult();  // refresh Spin button enabled state immediately
   notify(`Loaded ${entries.length} players into draw pool.`);
 }
 
@@ -3030,6 +3526,7 @@ async function addDrawName() {
   state.luckyDraw = luckyDraw;
   if (input) input.value = '';
   renderDrawPool();
+  renderDrawResult();  // refresh Spin button enabled state immediately
 }
 
 async function removeDrawEntry(idx) {
@@ -3038,6 +3535,7 @@ async function removeDrawEntry(idx) {
   await apiPost({ luckyDraw });
   state.luckyDraw = luckyDraw;
   renderDrawPool();
+  renderDrawResult();
 }
 
 async function clearDrawPool() {
@@ -3045,145 +3543,64 @@ async function clearDrawPool() {
   await apiPost({ luckyDraw });
   state.luckyDraw = luckyDraw;
   renderDrawPool();
+  renderDrawResult();
 }
 
-async function spinWheel() {
-  const entries = ((state.luckyDraw || {}).entries || []);
-  if (entries.length < 2) { notify('Need at least 2 entries to spin.'); return; }
-  // Bug 5: double-spin guard
-  const live = (state.luckyDraw || {}).spin;
-  if (live && clockNow() < live.startAt + live.durationMs) { notify('A draw is already in progress.'); return; }
+async function spinDraw() {
+  const ld = state.luckyDraw || {};
+  const entries = (ld.entries || []);
+  const results = (ld.results || []);
+  const minNeeded = results.length === 0 ? 2 : 1;
+  if (entries.length < minNeeded) { notify(`Need at least ${minNeeded} in the pool to draw.`); return; }
+  if (drawSpinLive()) { notify('A draw is already in progress.'); return; }  // double-spin guard
   const winnerIndex = Math.floor(Math.random() * entries.length);
+  const winnerName = entries[winnerIndex];
+  const rank = results.length + 1;
   const startAt = clockNow() + 800;
-  const durationMs = 6000;
-  const spin = { id: Date.now(), entries: [...entries], winnerIndex, startAt, durationMs };
-  const winner = { name: entries[winnerIndex], at: startAt + durationMs, spinId: spin.id };
-  const history = [{ name: winner.name, at: winner.at }, ...(((state.luckyDraw || {}).history) || [])].slice(0, 25);
-  const luckyDraw = { ...(state.luckyDraw || {}), spin, lastWinner: winner, history };
+  const durationMs = 4500;
+  const spin = {
+    id: Date.now(), kind: 'engagement', title: 'Lucky Draw', noPrize: true, rank,
+    entries: [...entries], winnerIndex, winnerName, startAt, durationMs,
+  };
+  const newResults = [...results, { rank, name: winnerName, at: startAt + durationMs, spinId: spin.id }];
+  const newEntries = entries.filter((_, i) => i !== winnerIndex);  // remove winner from the pool
+  const luckyDraw = { ...ld, spin, results: newResults, entries: newEntries };
   setSpinBtnEnabled(false);
   await apiPost({ luckyDraw });
   state.luckyDraw = luckyDraw;
   checkForNewSpin(luckyDraw);
+  renderDrawPool();
   renderDrawResult();
 }
 
-// ── WHEEL ANIMATION ───────────────────────────
+// ── DRAW REVEAL (engagement: routes through the shared name-reel picker) ──
 let lastSpinId = null;
-let wheelRaf = null;
-let wheelAutoHideTimer = null;
 const SPIN_GRACE_MS = 12000;
 
 function checkForNewSpin(ld) {
-  if (!ld || !ld.spin) return;
-  const spin = ld.spin;
+  const spin = ld && ld.spin;
+  if (!spin || !spin.id) return;
   if (spin.id === lastSpinId) return;
   const now = clockNow();
   const finishedAt = spin.startAt + spin.durationMs;
-  // Bug 1: stale spin — silently consume, never show
+  // Stale spin — silently consume, never show
   if (now > finishedAt + SPIN_GRACE_MS) { lastSpinId = spin.id; return; }
+  // Serialize against a monthly reveal that currently owns the single overlay (F2).
+  // Bail WITHOUT consuming the guard so this fires again on the next poll once free.
+  if (activeRevealKind && activeRevealKind !== 'engagement') return;
   lastSpinId = spin.id;
-  if (wheelRaf) { cancelAnimationFrame(wheelRaf); wheelRaf = null; }
-  if (prefersReducedMotion()) {
-    showWheelOverlay();
-    drawWheelAtAngle(spin, computeFinalAngle(spin));
-    displayWheelWinner(spin.entries[spin.winnerIndex]);
-    return;
-  }
-  if (now >= finishedAt) {
-    showWheelOverlay();
-    drawWheelAtAngle(spin, computeFinalAngle(spin));
-    displayWheelWinner(spin.entries[spin.winnerIndex]);
-    return;
-  }
-  showWheelOverlay();
-  animateWheel(spin);
-}
-
-function computeFinalAngle(spin) {
-  const N = spin.entries.length;
-  return 2 * Math.PI * (5 + Math.floor(N / 4)) - (spin.winnerIndex + 0.5) * (2 * Math.PI / N);
-}
-
-function showWheelOverlay() {
-  document.getElementById('wheelOverlay').classList.add('active');
-  const banner = document.getElementById('wheelWinnerBanner');
-  banner.style.display = 'none';
-  banner.innerHTML = '';
-}
-
-function hideWheelOverlay() {
-  document.getElementById('wheelOverlay').classList.remove('active');
-  if (wheelRaf) { cancelAnimationFrame(wheelRaf); wheelRaf = null; }
-  clearTimeout(wheelAutoHideTimer);
-  const cc = document.getElementById('confettiContainer');
-  if (cc) cc.innerHTML = '';
-}
-
-function handleOverlayClick(e) {
-  if (e.target === document.getElementById('wheelOverlay')) hideWheelOverlay();
-}
-
-function wheelSegColors(n) {
-  const p = ['#16a55a','#388bfd','#f0b429','#8957e5','#b87333','#e05c5c',
-             '#22c66e','#58a6ff','#c8910a','#bc8cff','#e8a87c','#ff7070',
-             '#0d7a3e','#1a68d1','#d4920a','#6b3fba','#8a5a25','#b02020'];
-  return Array.from({length: n}, (_, i) => p[i % p.length]);
-}
-
-function drawWheelAtAngle(spin, angle) {
-  const canvas = document.getElementById('wheelCanvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const cx = W / 2, cy = H / 2;
-  const R = Math.min(W, H) / 2 - 18;
-  const N = spin.entries.length;
-  const seg = (2 * Math.PI) / N;
-  const colors = wheelSegColors(N);
-  ctx.clearRect(0, 0, W, H);
-  // Outer shadow ring
-  ctx.beginPath(); ctx.arc(cx, cy, R + 4, 0, 2 * Math.PI);
-  ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fill();
-  // Segments
-  for (let i = 0; i < N; i++) {
-    const sa = angle + i * seg - Math.PI / 2;
-    const ea = sa + seg;
-    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, sa, ea); ctx.closePath();
-    ctx.fillStyle = colors[i]; ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = 1.5; ctx.stroke();
-    ctx.save(); ctx.translate(cx, cy); ctx.rotate(sa + seg / 2);
-    const maxL = N > 16 ? 4 : N > 10 ? 7 : N > 6 ? 10 : 14;
-    const lbl = spin.entries[i].length > maxL ? spin.entries[i].slice(0, maxL - 1) + '…' : spin.entries[i];
-    const fs = N > 18 ? 8 : N > 14 ? 9 : N > 10 ? 11 : N > 6 ? 13 : 15;
-    ctx.font = `600 ${fs}px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif`;
-    ctx.textAlign = 'right'; ctx.fillStyle = '#fff';
-    ctx.shadowColor = 'rgba(0,0,0,.7)'; ctx.shadowBlur = 4;
-    ctx.fillText(lbl, R - 12, fs / 3);
-    ctx.restore();
-  }
-  // Outer border ring
-  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2 * Math.PI);
-  ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 3; ctx.stroke();
-  // Center hub
-  ctx.beginPath(); ctx.arc(cx, cy, 22, 0, 2 * Math.PI);
-  ctx.fillStyle = '#0a0c0f'; ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 3; ctx.stroke();
-  ctx.beginPath(); ctx.arc(cx, cy, 10, 0, 2 * Math.PI);
-  ctx.fillStyle = '#16a55a'; ctx.fill();
-  // Pointer at top
-  const pY = cy - R - 4;
-  ctx.beginPath();
-  ctx.moveTo(cx, pY + 6);
-  ctx.lineTo(cx - 11, pY - 16);
-  ctx.lineTo(cx + 11, pY - 16);
-  ctx.closePath();
-  ctx.fillStyle = '#e6edf3'; ctx.fill();
-  ctx.strokeStyle = '#0a0c0f'; ctx.lineWidth = 2; ctx.stroke();
+  activeRevealKind = 'engagement';
+  if (pickerRaf) { cancelAnimationFrame(pickerRaf); pickerRaf = null; }
+  showPickerOverlay(spin);
+  if (prefersReducedMotion() || now >= finishedAt) { displayPickerWinner(spin); return; }
+  animatePicker(spin);
+  clearTimeout(pickerSafetyTimer);
+  pickerSafetyTimer = setTimeout(() => displayPickerWinner(spin), Math.max(0, finishedAt - now) + 120);
 }
 
 function launchConfetti(containerId) {
   if (prefersReducedMotion()) return;
-  const container = document.getElementById(containerId || 'confettiContainer');
+  const container = document.getElementById(containerId || 'pickerConfetti');
   if (!container) return;
   container.innerHTML = '';
   const colors = ['#f0b429','#16a55a','#388bfd','#8957e5','#e05c5c','#22c66e','#58a6ff'];
@@ -3199,39 +3616,9 @@ function launchConfetti(containerId) {
   }
 }
 
-function animateWheel(spin) {
-  const finalAngle = computeFinalAngle(spin);
-  function tick() {
-    const now = clockNow();
-    const elapsed = now - spin.startAt;
-    if (elapsed < 0) { drawWheelAtAngle(spin, 0); wheelRaf = requestAnimationFrame(tick); return; }
-    const rawT = Math.min(elapsed / spin.durationMs, 1);
-    const eased = 1 - Math.pow(1 - rawT, 3);
-    drawWheelAtAngle(spin, finalAngle * eased);
-    if (rawT >= 1) { displayWheelWinner(spin.entries[spin.winnerIndex]); return; }
-    wheelRaf = requestAnimationFrame(tick);
-  }
-  wheelRaf = requestAnimationFrame(tick);
-}
-
-function displayWheelWinner(name) {
-  const banner = document.getElementById('wheelWinnerBanner');
-  const rp = (state.roster || []).find(r => r.name === name);
-  const av = rp ? avatarHTML(rp, 64) : '';
-  banner.innerHTML = (av ? `<div class="winner-avatar-wrap">${av}</div>` : `<div class="winner-avatar-wrap"><svg class="ic" viewBox="0 0 24 24" style="width:48px;height:48px;color:var(--accent)"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6M10 20l.5-4M14 20l-.5-4"/></svg></div>`)
-    + `<span class="winner-name-big">${escHtml(name)}</span>`;
-  banner.style.display = 'block';
-  launchConfetti();
-  setSpinBtnEnabled(true);
-  clearTimeout(wheelAutoHideTimer);
-  wheelAutoHideTimer = setTimeout(() => hideWheelOverlay(), 8000);
-}
-
 // Keyboard dismiss for overlays and modals
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  const ov = document.getElementById('wheelOverlay');
-  if (ov && ov.classList.contains('active')) hideWheelOverlay();
   const pov = document.getElementById('pickerOverlay');
   if (pov && pov.classList.contains('active')) hidePickerOverlay();
   // Close any open .open modal (Members / Leaderboard / Prize Draw / History)
@@ -3248,6 +3635,9 @@ let shownWinnerSpinId = null;
 let pickerRaf = null;
 let pickerAutoHideTimer = null;
 let pickerSafetyTimer = null;
+// Which draw currently owns the single #pickerOverlay ('engagement'|'monthly'|null).
+// poll() fires checkForNewSpin + checkForNewMonthlyDraw every tick; this serializes them (F2).
+let activeRevealKind = null;
 
 function checkForNewMonthlyDraw(md) {
   const spin = md && md.spin;
@@ -3256,7 +3646,10 @@ function checkForNewMonthlyDraw(md) {
   const now = clockNow();
   const finishedAt = spin.startAt + spin.durationMs;
   if (now > finishedAt + SPIN_GRACE_MS) { lastDrawSpinId = spin.id; return; } // stale — consume silently
+  // Serialize against an engagement reveal that currently owns the overlay (F2).
+  if (activeRevealKind && activeRevealKind !== 'monthly') return;
   lastDrawSpinId = spin.id;
+  activeRevealKind = 'monthly';
   if (pickerRaf) { cancelAnimationFrame(pickerRaf); pickerRaf = null; }
   showPickerOverlay(spin);
   if (prefersReducedMotion() || now >= finishedAt) { displayPickerWinner(spin); return; }
@@ -3269,11 +3662,19 @@ function checkForNewMonthlyDraw(md) {
 
 function showPickerOverlay(spin) {
   document.getElementById('pickerOverlay').classList.add('active');
+  const titleEl = document.getElementById('pickerTitle');
+  if (titleEl) titleEl.textContent = (spin && spin.title) || 'Monthly Lucky Draw';
   const prizeEl = document.getElementById('pickerPrize');
   if (prizeEl) {
     const rank = (spin && spin.rank) || 1;
-    prizeEl.className = 'picker-prize rank-' + rank;
-    prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${mdRankLbl(rank)} Prize${spin && spin.prize ? ' &mdash; ' + escHtml(spin.prize) : ''}</span>`;
+    // Cap the medal style at rank-3 so ranks >3 reuse a defined palette (F3);
+    // the medal number + label still show the true rank/ordinal.
+    prizeEl.className = 'picker-prize rank-' + Math.min(rank, 3);
+    if (spin && spin.noPrize) {
+      prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${escHtml(ordinalLbl(rank))} Winner</span>`;
+    } else {
+      prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${mdRankLbl(rank)} Prize${spin && spin.prize ? ' &mdash; ' + escHtml(spin.prize) : ''}</span>`;
+    }
   }
   const nameEl = document.getElementById('pickerName');
   const subEl = document.getElementById('pickerSub');
@@ -3286,6 +3687,7 @@ function hidePickerOverlay() {
   if (pickerRaf) { cancelAnimationFrame(pickerRaf); pickerRaf = null; }
   clearTimeout(pickerAutoHideTimer);
   clearTimeout(pickerSafetyTimer);
+  activeRevealKind = null;  // free the overlay for the other draw source (F2)
   const cc = document.getElementById('pickerConfetti');
   if (cc) cc.innerHTML = '';
 }

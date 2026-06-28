@@ -118,8 +118,12 @@
         if (Number.isFinite(tubes)) tokens = drawTokens(tubes);
       }
       if (!Number.isFinite(tokens) || tokens < 0) tokens = 0;
+      // Tube-centric model: prefer the Accumulated tubes column; fall back to tokens*4.
+      let tubesOut = NaN;
+      if (tubesCol !== -1) { const uv = (cells[tubesCol] || '').trim(); if (uv !== '') tubesOut = parseInt(uv, 10); }
+      if (!Number.isFinite(tubesOut) || tubesOut < 0) tubesOut = tokens * 4;
       const phone = phoneCol !== -1 ? (cells[phoneCol] || '').trim() : '';
-      if (tokens >= 1) result.participants.push({ name, phone, tokens });
+      if (tokens >= 1) result.participants.push({ name, phone, tokens, tubes: tubesOut });
       else result.skipped++;
     }
     return result;
@@ -145,5 +149,113 @@
     return Math.floor(rng() * len);
   }
 
-  return { drawTokens, drawLeftover, tokensRemaining, spinOutcome, parseDrawCsv, buildBallot, pickWinnerIndex };
+  // ── Engagement + month carry-over helpers (2026-06-28 overhaul) ────────
+
+  /** Ordinal string: 1->1st, 2->2nd, 3->3rd, 4->4th; 11/12/13 -> th. */
+  function ordinal(n) {
+    const x = Math.floor(Number(n));
+    if (!Number.isFinite(x)) return String(n);
+    const s = Math.abs(x) % 100;
+    const last = Math.abs(x) % 10;
+    let suf = 'th';
+    if (s < 11 || s > 13) {
+      if (last === 1) suf = 'st';
+      else if (last === 2) suf = 'nd';
+      else if (last === 3) suf = 'rd';
+    }
+    return x + suf;
+  }
+
+  /** Return a copy of a participant with tokens derived from tubes (1 per 4). */
+  function withTokens(p) {
+    p = p || {};
+    const tubes = _int(p.tubes);
+    return Object.assign({}, p, { tubes: tubes, tokens: drawTokens(tubes) });
+  }
+
+  /**
+   * Close a month: each participant's tubes -> leftover (tubes%4) and tokens -> 0.
+   * Everyone is kept (incl. tubes 0) so name(+phone) identity stays stable across months.
+   */
+  function carryOverParticipants(list) {
+    return (list || []).map(function (p) {
+      const left = drawLeftover(p && p.tubes);
+      return Object.assign({}, p, { tubes: left, tokens: drawTokens(left) }); // drawTokens(0..3) === 0
+    });
+  }
+
+  function _normName(s) { return String(s == null ? '' : s).trim().toLowerCase(); }
+  function _normPhone(s) { return String(s == null ? '' : s).replace(/\D/g, ''); }
+
+  /** Identity match: same name; if BOTH have a phone, phone (digits) must match too. */
+  function matchParticipant(a, b) {
+    a = a || {}; b = b || {};
+    if (_normName(a.name) !== _normName(b.name)) return false;
+    const pa = _normPhone(a.phone), pb = _normPhone(b.phone);
+    if (pa && pb) return pa === pb;
+    return true; // one or both phones missing -> match on name alone
+  }
+
+  /** Grouping key for the common case: normalized name (+ phone digits when present). */
+  function participantKey(name, phone) {
+    const ph = _normPhone(phone);
+    return _normName(name) + (ph ? '|' + ph : '');
+  }
+
+  /**
+   * Merge `incoming` into `existing` by identity (matchParticipant).
+   * opts.add: sum tubes onto the matched person; otherwise replace tubes.
+   * Unmatched incoming are appended (id left for the caller to assign).
+   * Untouched existing are kept. Tokens are always re-derived from tubes.
+   */
+  function mergeParticipants(existing, incoming, opts) {
+    opts = opts || {};
+    const add = !!opts.add;
+    const out = (existing || []).map(function (p) { return Object.assign({}, p); });
+    (incoming || []).forEach(function (inc) {
+      const tubesInc = _int(inc && inc.tubes);
+      let hit = null;
+      for (let i = 0; i < out.length; i++) { if (matchParticipant(out[i], inc)) { hit = out[i]; break; } }
+      if (hit) {
+        hit.tubes = add ? _int(hit.tubes) + tubesInc : tubesInc;
+        hit.tokens = drawTokens(hit.tubes);
+      } else {
+        out.push(Object.assign({}, inc, { tubes: tubesInc, tokens: drawTokens(tubesInc) }));
+      }
+    });
+    return out;
+  }
+
+  /** "YYYY-MM" -> next month key, handling Dec->Jan rollover. */
+  function nextMonthKey(m) {
+    const parts = String(m || '').split('-');
+    let y = parseInt(parts[0], 10), mo = parseInt(parts[1], 10);
+    if (!Number.isFinite(y) || !Number.isFinite(mo)) return String(m || '');
+    mo += 1;
+    if (mo > 12) { mo = 1; y += 1; }
+    return y + '-' + String(mo).padStart(2, '0');
+  }
+
+  const _MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'];
+  /** "YYYY-MM" -> "Month YYYY" (built from the key, never Date.now). */
+  function monthLabel(m) {
+    const parts = String(m || '').split('-');
+    const y = parseInt(parts[0], 10), mo = parseInt(parts[1], 10);
+    if (!Number.isFinite(y) || !Number.isFinite(mo) || mo < 1 || mo > 12) return String(m || '');
+    return _MONTHS[mo - 1] + ' ' + y;
+  }
+
+  /** Sort results by current rank and renumber 1..n (engagement winner removal re-rank). */
+  function reindexRanks(list) {
+    return (list || []).slice()
+      .sort(function (a, b) { return (a.rank || 0) - (b.rank || 0); })
+      .map(function (r, i) { return Object.assign({}, r, { rank: i + 1 }); });
+  }
+
+  return {
+    drawTokens, drawLeftover, tokensRemaining, spinOutcome, parseDrawCsv, buildBallot, pickWinnerIndex,
+    ordinal, withTokens, carryOverParticipants, matchParticipant, participantKey, mergeParticipants,
+    nextMonthKey, monthLabel, reindexRanks,
+  };
 });

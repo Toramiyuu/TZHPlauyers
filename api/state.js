@@ -59,8 +59,8 @@ const DEFAULT_STATE = {
   currentRound: 0,
   sessionDate: todayISO(),
   sessions: {},
-  luckyDraw: { entries: [], spin: null, lastWinner: null, history: [] },
-  monthlyDraw: { prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'], participants: [], results: [], spin: null, history: [] },
+  luckyDraw: { entries: [], drawDate: todayISO(), spin: null, results: [], history: [] },
+  monthlyDraw: { month: '', rollSuppressedMonth: '', prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'], participants: [], results: [], spin: null, history: [] },
   shopCustomers: [],
   monthlyDraws: [],
   drawPrizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'],
@@ -68,7 +68,54 @@ const DEFAULT_STATE = {
   monthlySpin: null,
 };
 
-module.exports = async function handler(req, res) {
+const DEFAULT_MD_PRIZES = ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'];
+
+// Tokens per tubes (1 per 4). Inlined here (not require('../public/monthly-draw.js'))
+// to avoid any Vercel function-bundling path surprise — keep it trivial.
+function mdDrawTokens(tubes) { return Math.floor((Number(tubes) || 0) / 4); }
+
+// Gracefully migrate the luckyDraw + monthlyDraw sub-objects of an arbitrary (possibly
+// old) saved blob to the 2026-06-28 draw-overhaul shape. Additive and tolerant — never
+// throws on malformed input; the legacy luckyDraw.lastWinner field is simply ignored.
+function normalizeDrawState(current) {
+  current = current || {};
+
+  if (!current.luckyDraw || typeof current.luckyDraw !== 'object') {
+    current.luckyDraw = { entries: [], drawDate: todayISO(), spin: null, results: [], history: [] };
+  }
+  {
+    const ld = current.luckyDraw;
+    if (!Array.isArray(ld.entries)) ld.entries = [];
+    if (typeof ld.drawDate !== 'string' || !ld.drawDate) ld.drawDate = todayISO();
+    if (!Array.isArray(ld.results)) ld.results = [];
+    if (!Array.isArray(ld.history)) ld.history = [];
+    if (ld.spin === undefined) ld.spin = null;
+    // legacy `lastWinner` (if present) is intentionally ignored
+  }
+
+  if (!current.monthlyDraw || typeof current.monthlyDraw !== 'object') {
+    current.monthlyDraw = { month: '', rollSuppressedMonth: '', prizes: DEFAULT_MD_PRIZES.slice(), participants: [], results: [], spin: null, history: [] };
+  }
+  {
+    const md = current.monthlyDraw;
+    if (!Array.isArray(md.prizes)) md.prizes = DEFAULT_MD_PRIZES.slice();
+    if (typeof md.month !== 'string') md.month = '';
+    if (typeof md.rollSuppressedMonth !== 'string') md.rollSuppressedMonth = '';
+    if (!Array.isArray(md.participants)) md.participants = [];
+    md.participants = md.participants.map((p) => {
+      p = p || {};
+      const tubes = (p.tubes != null) ? (Number(p.tubes) || 0) : ((Number(p.tokens) || 0) * 4);
+      return Object.assign({}, p, { tubes, tokens: mdDrawTokens(tubes) });
+    });
+    if (!Array.isArray(md.results)) md.results = [];
+    if (md.spin === undefined) md.spin = null;
+    if (!Array.isArray(md.history)) md.history = [];
+  }
+
+  return current;
+}
+
+const handler = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -79,18 +126,7 @@ module.exports = async function handler(req, res) {
     try {
       const state = await kv.get(STATE_KEY);
       const current = state || DEFAULT_STATE;
-      if (!current.luckyDraw) current.luckyDraw = { entries: [], spin: null, lastWinner: null, history: [] };
-      if (current.luckyDraw.lastWinner === undefined) current.luckyDraw.lastWinner = null;
-      if (!current.luckyDraw.history) current.luckyDraw.history = [];
-      if (!current.monthlyDraw) current.monthlyDraw = { prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'], participants: [], results: [], spin: null, history: [] };
-      {
-        const md = current.monthlyDraw;
-        if (!Array.isArray(md.prizes)) md.prizes = ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'];
-        if (!Array.isArray(md.participants)) md.participants = [];
-        if (!Array.isArray(md.results)) md.results = [];
-        if (md.spin === undefined) md.spin = null;
-        if (!Array.isArray(md.history)) md.history = [];
-      }
+      normalizeDrawState(current);
       if (!current.roster) current.roster = DEFAULT_ROSTER;
       if (current.roster) current.roster = current.roster.map(r => r.points !== undefined ? r : { ...r, points: 0 });
       if (!Array.isArray(current.shopCustomers)) current.shopCustomers = [];
@@ -190,3 +226,6 @@ module.exports = async function handler(req, res) {
 
   return res.status(405).json({ error: 'Method not allowed' });
 };
+
+module.exports = handler;
+module.exports.normalizeDrawState = normalizeDrawState;

@@ -113,5 +113,112 @@ check('pick: empty -> -1', pickWinnerIndex(0) === -1);
   check('pick: weighted ballot resolves to a participant', !!winner && !!winner.name);
 }
 
+// ── Draw-overhaul additions (2026-06-28) ───────────────────────────────
+const {
+  ordinal, withTokens, carryOverParticipants, matchParticipant,
+  participantKey, mergeParticipants, nextMonthKey, monthLabel, reindexRanks,
+} = require('../public/monthly-draw.js');
+
+// ordinal — covering the 11/12/13 teen trap
+check('ordinal 1 -> 1st', ordinal(1) === '1st');
+check('ordinal 2 -> 2nd', ordinal(2) === '2nd');
+check('ordinal 3 -> 3rd', ordinal(3) === '3rd');
+check('ordinal 4 -> 4th', ordinal(4) === '4th');
+check('ordinal 11 -> 11th', ordinal(11) === '11th');
+check('ordinal 12 -> 12th', ordinal(12) === '12th');
+check('ordinal 13 -> 13th', ordinal(13) === '13th');
+check('ordinal 21 -> 21st', ordinal(21) === '21st');
+check('ordinal 22 -> 22nd', ordinal(22) === '22nd');
+check('ordinal 23 -> 23rd', ordinal(23) === '23rd');
+check('ordinal 111 -> 111th', ordinal(111) === '111th');
+check('ordinal 112 -> 112th', ordinal(112) === '112th');
+
+// withTokens — tokens derived from tubes, tubes preserved
+check('withTokens 6 -> 1 token', withTokens({ name: 'H', tubes: 6 }).tokens === 1);
+check('withTokens 6 keeps tubes', withTokens({ name: 'H', tubes: 6 }).tubes === 6);
+check('withTokens 3 -> 0 token', withTokens({ name: 'H', tubes: 3 }).tokens === 0);
+
+// carryOverParticipants — tubes%4, tokens reset to 0, keep everyone (incl tubes 0)
+{
+  const co = carryOverParticipants([
+    { id: 'a', name: 'Harvey', phone: '', tubes: 6, tokens: 1 },
+    { id: 'b', name: 'Zed', tubes: 3, tokens: 0 },
+  ]);
+  check('carry: Harvey 6 -> 2 tubes', co[0].tubes === 2);
+  check('carry: Harvey tokens reset to 0', co[0].tokens === 0);
+  check('carry: Zed 3 -> 3 tubes / 0 tokens', co[1].tubes === 3 && co[1].tokens === 0);
+  check('carry: keeps everyone (no drop)', co.length === 2);
+  check('carry: id preserved', co[0].id === 'a');
+}
+{
+  const co = carryOverParticipants([{ id: 'z', name: 'Zero', tubes: 0, tokens: 0 }]);
+  check('carry: tubes=0 person kept at 0', co.length === 1 && co[0].tubes === 0 && co[0].tokens === 0);
+}
+
+// matchParticipant — name match; phone as tiebreaker only when both present
+check('match: same name (case/space-insensitive), no phones', matchParticipant({ name: ' harvey ' }, { name: 'Harvey' }) === true);
+check('match: same name, phones differ -> no match', matchParticipant({ name: 'Harvey', phone: '012 1' }, { name: 'Harvey', phone: '012 2' }) === false);
+check('match: same name, same phone (digit-normalised) -> match', matchParticipant({ name: 'Harvey', phone: '014 306 6392' }, { name: 'Harvey', phone: '0143066392' }) === true);
+check('match: same name, one phone missing -> match on name', matchParticipant({ name: 'Harvey', phone: '' }, { name: 'Harvey', phone: '014' }) === true);
+check('match: different name -> no match', matchParticipant({ name: 'Harvey' }, { name: 'Joo' }) === false);
+check('participantKey: name+phone digits', participantKey('Harvey', '014 306 6392') === 'harvey|0143066392');
+check('participantKey: name only when no phone', participantKey('Harvey', '') === 'harvey');
+
+// mergeParticipants — add mode sums tubes, matches by identity, appends new, keeps untouched
+{
+  const existing = [{ id: 'a', name: 'Harvey', phone: '', tubes: 2, tokens: 0 }];
+  const incoming = [{ name: 'Harvey', phone: '', tubes: 4, tokens: 1 }, { name: 'NewGuy', phone: '', tubes: 8, tokens: 2 }];
+  const merged = mergeParticipants(existing, incoming, { add: true });
+  const h = merged.find(p => p.name === 'Harvey');
+  const n = merged.find(p => p.name === 'NewGuy');
+  check('merge add: Harvey tubes 2+4=6', h.tubes === 6);
+  check('merge add: Harvey tokens recomputed = 1', h.tokens === 1);
+  check('merge add: Harvey id preserved', h.id === 'a');
+  check('merge add: new person appended', !!n && n.tubes === 8 && n.tokens === 2);
+  check('merge add: total 2 people', merged.length === 2);
+}
+{
+  const existing = [{ id: 'a', name: 'Harvey', phone: '', tubes: 2, tokens: 0 }];
+  const merged = mergeParticipants(existing, [{ name: 'Harvey', tubes: 4 }], { add: false });
+  check('merge replace: Harvey tubes set to 4 (not summed)', merged.find(p => p.name === 'Harvey').tubes === 4);
+}
+{
+  const existing = [{ id: 'a', name: 'Harvey', tubes: 2, tokens: 0 }, { id: 'b', name: 'Stay', tubes: 5, tokens: 1 }];
+  const merged = mergeParticipants(existing, [{ name: 'Harvey', tubes: 4 }], { add: true });
+  check('merge: untouched existing kept', merged.find(p => p.name === 'Stay').tubes === 5);
+}
+
+// nextMonthKey / monthLabel — pure date-key math (no Date.now)
+check('nextMonthKey 2026-06 -> 2026-07', nextMonthKey('2026-06') === '2026-07');
+check('nextMonthKey 2026-12 -> 2027-01', nextMonthKey('2026-12') === '2027-01');
+check('nextMonthKey 2026-01 -> 2026-02', nextMonthKey('2026-01') === '2026-02');
+check('monthLabel 2026-06 -> June 2026', monthLabel('2026-06') === 'June 2026');
+check('monthLabel 2027-01 -> January 2027', monthLabel('2027-01') === 'January 2027');
+check('monthLabel 2026-12 -> December 2026', monthLabel('2026-12') === 'December 2026');
+
+// reindexRanks — engagement winner removal re-rank
+{
+  const after = reindexRanks([{ rank: 1, name: 'A' }, { rank: 3, name: 'C' }]); // removed rank 2
+  check('reindex: ranks become 1,2', after[0].rank === 1 && after[1].rank === 2);
+  check('reindex: order preserved (A,C)', after[0].name === 'A' && after[1].name === 'C');
+}
+{
+  const after = reindexRanks([{ rank: 2, name: 'B' }, { rank: 3, name: 'C' }]); // removed rank 1
+  check('reindex: removing rank1 of [1,2,3] -> [1,2]', after.length === 2 && after[0].rank === 1 && after[1].rank === 2);
+  check('reindex: first becomes old rank2 (B)', after[0].name === 'B');
+}
+
+// parseDrawCsv — now also returns tubes (additive; eligibility unchanged)
+{
+  const p2 = parseDrawCsv(sheetCsv);
+  check('csv: Joo tubes mapped from Accumulated tubes (16)', p2.participants[0].tubes === 16);
+  check('csv: Ling tubes 8', p2.participants[1].tubes === 8);
+}
+{
+  const noTubes = ['Name,Lucky Draw Token', 'Sam,3'].join('\n');
+  const pf2 = parseDrawCsv(noTubes);
+  check('csv: tubes fallback tokens*4 (3 tokens -> 12 tubes)', pf2.participants[0].tubes === 12);
+}
+
 console.log(`\nmonthly-draw tests: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
