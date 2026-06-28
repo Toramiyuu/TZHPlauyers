@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TZH Badminton — Showcase Turntable</title>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  :root{
+    --blue:#0071e3; --blue-2:#0066cc; --blue-dark:#005bb5;
+    --blue-tint:rgba(0,113,227,.16); --blue-line:rgba(0,113,227,.42);
+    --bg:#eef4fd; --bg-2:#e8f0fb; --card:#ffffff; --card-2:#e2ecfa;
+    --ink:#1d1d1f; --ink-2:#5c6470; --ink-3:#5f6b7a; --line:#d4e2f5;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 700px at 70% -10%, #ffffff 0%, rgba(255,255,255,0) 60%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* ---------- WebGL canvas backdrop ---------- */
+  #scene{
+    position:fixed; inset:0; width:100%; height:100%;
+    display:block; z-index:0;
+  }
+  /* CSS fallback backdrop (visible if WebGL fails or behind transparent canvas) */
+  #backdrop{
+    position:fixed; inset:0; z-index:-1;
+    background:
+      radial-gradient(820px 820px at 50% 54%, rgba(0,113,227,.12), rgba(0,113,227,0) 60%),
+      radial-gradient(900px 520px at 28% 18%, rgba(0,113,227,.08), rgba(0,113,227,0) 60%),
+      radial-gradient(1000px 600px at 80% 88%, rgba(0,102,204,.08), rgba(0,102,204,0) 62%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+  }
+  /* soft vignette of light over the stage */
+  #vignette{
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    background:
+      radial-gradient(closest-side at 50% 46%, rgba(255,255,255,0) 56%, rgba(255,255,255,.0) 72%, rgba(232,240,251,.55) 100%);
+  }
+
+  /* ---------- HUD overlay ---------- */
+  #hud{
+    position:fixed; inset:0; z-index:10;
+    display:flex; flex-direction:column;
+    padding:26px clamp(24px,3.4vw,56px) 22px;
+    pointer-events:none; /* let drags pass to scene; panels re-enable */
+  }
+  .hud-panel{ pointer-events:auto; }
+
+  /* glass surface */
+  .glass{
+    background:linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.66));
+    border:1px solid rgba(255,255,255,.85);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.9) inset,
+      0 18px 50px -22px rgba(20,52,99,.45),
+      0 2px 10px -4px rgba(20,52,99,.22);
+    -webkit-backdrop-filter:saturate(1.5) blur(18px);
+    backdrop-filter:saturate(1.5) blur(18px);
+  }
+
+  /* ===== Header ===== */
+  header{
+    display:flex; align-items:center; gap:18px;
+    padding:12px 18px; border-radius:18px;
+  }
+  header img{ height:46px; width:auto; display:block; }
+  .brand{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .brand h1{
+    font-size:19px; font-weight:650; letter-spacing:-.02em; color:var(--ink);
+    line-height:1;
+  }
+  .brand .date{ font-size:12.5px; color:var(--ink-2); font-weight:480; letter-spacing:.01em; }
+  .header-spacer{ flex:1 1 auto; }
+
+  .live{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:7px 13px 7px 11px; border-radius:999px;
+    background:var(--blue-tint); border:1px solid var(--blue-line);
+    font-size:12px; font-weight:600; color:var(--blue-dark); letter-spacing:.04em;
+    text-transform:uppercase;
+  }
+  .live .dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--blue);
+    box-shadow:0 0 0 0 rgba(0,113,227,.55);
+    animation:pulse 1.8s ease-out infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(0,113,227,.55); }
+    70%{ box-shadow:0 0 0 9px rgba(0,113,227,0); }
+    100%{ box-shadow:0 0 0 0 rgba(0,113,227,0); }
+  }
+  .nav{ display:flex; gap:9px; }
+  .pill{
+    padding:8px 16px; border-radius:999px;
+    font-size:13px; font-weight:550; color:var(--ink-2);
+    background:rgba(255,255,255,.6);
+    border:1px solid var(--line);
+    transition:.18s ease;
+  }
+  .pill:hover{ color:var(--blue-dark); border-color:var(--blue-line); background:var(--blue-tint); }
+  .pill.active{ color:#fff; background:linear-gradient(180deg,var(--blue),var(--blue-2)); border-color:transparent; box-shadow:0 6px 16px -6px rgba(0,113,227,.6); }
+
+  /* ===== Center stage spacer ===== */
+  .stage{ flex:1 1 auto; min-height:0; }
+
+  /* ===== Match cards (bottom strip) ===== */
+  .cards{
+    pointer-events:none;
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:16px;
+  }
+  .card{
+    pointer-events:auto;
+    border-radius:18px; padding:15px 16px 14px;
+    display:flex; flex-direction:column; gap:12px;
+    position:relative; overflow:hidden;
+  }
+  .card::before{ /* top accent hairline */
+    content:""; position:absolute; left:16px; right:16px; top:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--blue-line), transparent);
+  }
+  .card-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .court-id{ display:flex; align-items:center; gap:8px; }
+  .court-num{
+    font-size:13px; font-weight:680; letter-spacing:-.01em; color:var(--ink);
+  }
+  .court-num span{ color:var(--ink-3); font-weight:520; }
+  .round-badge{
+    font-size:10.5px; font-weight:650; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--blue-dark);
+    padding:4px 9px; border-radius:999px;
+    background:var(--blue-tint); border:1px solid var(--blue-line);
+  }
+
+  .team{ display:flex; align-items:center; gap:10px; }
+  .avatars{ display:flex; }
+  .avatars .av:nth-child(2){ margin-left:-9px; }
+  .av{
+    width:32px; height:32px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:670; letter-spacing:.01em; color:#fff;
+    background:linear-gradient(155deg, var(--blue) 0%, var(--blue-dark) 100%);
+    border:2px solid #fff;
+    box-shadow:0 3px 8px -3px rgba(0,113,227,.55);
+    flex:0 0 auto;
+  }
+  .av.alt{ background:linear-gradient(155deg, #4a9bf0 0%, var(--blue-2) 100%); }
+  .names{ display:flex; flex-direction:column; gap:1px; min-width:0; line-height:1.18; }
+  .names .n{ font-size:12.5px; font-weight:560; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .vs-row{ display:flex; align-items:center; gap:10px; }
+  .vs-line{ flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--line),transparent); }
+  .vs{
+    font-size:10.5px; font-weight:700; letter-spacing:.12em; color:var(--blue);
+    text-transform:uppercase;
+  }
+
+  /* ===== Footer ===== */
+  footer{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:16px;
+    font-size:12px; color:var(--ink-2); letter-spacing:.01em;
+    padding:0 4px;
+  }
+  footer .right{ color:var(--ink-3); font-weight:520; }
+  footer strong{ color:var(--ink); font-weight:600; }
+
+  @media (max-width:1080px){
+    .cards{ grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width:620px){
+    .cards{ grid-template-columns:1fr; }
+    .nav{ display:none; }
+  }
+</style>
+</head>
+<body>
+  <div id="backdrop"></div>
+  <canvas id="scene"></canvas>
+  <div id="vignette"></div>
+
+  <div id="hud">
+    <!-- Header -->
+    <header class="hud-panel glass">
+      <img src="logo.png" alt="TZH" onerror="this.style.display='none'" />
+      <div class="brand">
+        <h1>TZH Badminton</h1>
+        <div class="date">Saturday 28 June 2026</div>
+      </div>
+      <div class="header-spacer"></div>
+      <div class="live"><span class="dot"></span>Live</div>
+      <nav class="nav">
+        <span class="pill">Members</span>
+        <span class="pill active">Leaderboard</span>
+      </nav>
+    </header>
+
+    <div class="stage"></div>
+
+    <!-- Match cards -->
+    <div class="cards" id="cards"></div>
+
+    <!-- Footer -->
+    <footer class="hud-panel">
+      <div class="left">TZH Badminton — Live Court Display</div>
+      <div class="right"><strong>4 courts</strong> · Round 3 · 16 players</div>
+    </footer>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* =========================================================
+   CONTENT MODEL
+   ========================================================= */
+function initials(name){
+  return name.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+}
+var MATCHES = [
+  { court:1, round:3, t1:["Thomas Wong","Mei Lin"],   t2:["David Park","Sarah Chen"] },
+  { court:2, round:3, t1:["Aiden Lee","Priya Nair"],  t2:["Marcus Tan","Yuki Sato"] },
+  { court:3, round:2, t1:["Carlos Diaz","Hannah Kim"],t2:["Leo Zhang","Nina Patel"] },
+  { court:4, round:2, t1:["Ravi Kumar","Sofia Reyes"],t2:["Ben Carter","Grace Lim"] }
+];
+
+function teamHTML(players, alt){
+  var avs = players.map(function(p,i){
+    return '<div class="av'+((alt|| i===1)?' alt':'')+'">'+initials(p)+'</div>';
+  }).join('');
+  var nms = players.map(function(p){ return '<div class="n">'+p+'</div>'; }).join('');
+  return '<div class="team"><div class="avatars">'+avs+'</div><div class="names">'+nms+'</div></div>';
+}
+
+(function renderCards(){
+  var el = document.getElementById('cards');
+  el.innerHTML = MATCHES.map(function(m){
+    return ''+
+    '<div class="card glass">'+
+      '<div class="card-top">'+
+        '<div class="court-id"><span class="court-num">Court '+m.court+' <span>·</span></span>'+
+          '<span class="round-badge">Round '+m.round+'</span></div>'+
+      '</div>'+
+      teamHTML(m.t1, false)+
+      '<div class="vs-row"><span class="vs-line"></span><span class="vs">vs</span><span class="vs-line"></span></div>'+
+      teamHTML(m.t2, true)+
+    '</div>';
+  }).join('');
+})();
+
+/* =========================================================
+   THREE.JS — SHOWCASE TURNTABLE SCENE
+   Premium product-reveal dais: 4 courts in a ring on a
+   rotating podium, a glowing centerpiece, fixed 3/4 camera.
+   ========================================================= */
+(function buildScene(){
+  if(typeof THREE === 'undefined'){
+    console.warn('THREE not available — using CSS backdrop only.');
+    return; // CSS backdrop already visible
+  }
+
+  var reduceMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var canvas = document.getElementById('scene');
+  var renderer, scene, camera;
+
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas: canvas, antialias:true, alpha:true
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  } catch(err){
+    console.warn('WebGL init failed — CSS backdrop fallback active.', err);
+    canvas.style.display = 'none';
+    return;
+  }
+
+  scene = new THREE.Scene();
+  var FOG = 0xeef4fd;
+  scene.background = new THREE.Color(FOG);
+  scene.fog = new THREE.Fog(FOG, 30, 92);
+
+  camera = new THREE.PerspectiveCamera(44, window.innerWidth/window.innerHeight, 0.1, 400);
+
+  var CENTER = new THREE.Vector3(0, 1.2, 0); // look slightly above the dais top
+
+  /* ---- Lights (same clean studio rig as the original) ---- */
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xcfe0f7, 1.05));
+  var dir = new THREE.DirectionalLight(0xffffff, 0.55);
+  dir.position.set(14, 26, 12);
+  scene.add(dir);
+  var fill = new THREE.DirectionalLight(0xbcd6ff, 0.35);
+  fill.position.set(-16, 14, -10);
+  scene.add(fill);
+  /* gentle blue key from the centerpiece for the reveal mood */
+  var coreGlow = new THREE.PointLight(0x6fb2ff, 0.6, 60, 2);
+  coreGlow.position.set(0, 4.5, 0);
+  scene.add(coreGlow);
+
+  var BLUE = 0x0071e3;
+
+  /* ---- Big studio floor ---- */
+  var floorGeo = new THREE.PlaneGeometry(240, 240);
+  var floorMat = new THREE.MeshStandardMaterial({
+    color:0xf3f8ff, roughness:0.95, metalness:0.0
+  });
+  var floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI/2;
+  floor.position.y = -0.02;
+  scene.add(floor);
+
+  /* ---- Subtle grid ---- */
+  var grid = new THREE.GridHelper(180, 90, 0xbcd2f0, 0xd9e6fa);
+  grid.material.opacity = 0.42;
+  grid.material.transparent = true;
+  grid.position.y = 0;
+  scene.add(grid);
+
+  /* ---- Large soft circular glow/halo under the dais ---- */
+  var floorHaloMat = new THREE.MeshBasicMaterial({ color:BLUE, transparent:true, opacity:0.13, side:THREE.DoubleSide, depthWrite:false });
+  var floorHalo = new THREE.Mesh(new THREE.CircleGeometry(26, 80), floorHaloMat);
+  floorHalo.rotation.x = -Math.PI/2;
+  floorHalo.position.y = 0.005;
+  scene.add(floorHalo);
+  /* a tighter, brighter inner pool of light */
+  var floorHalo2Mat = new THREE.MeshBasicMaterial({ color:0x8cc0ff, transparent:true, opacity:0.16, side:THREE.DoubleSide, depthWrite:false });
+  var floorHalo2 = new THREE.Mesh(new THREE.CircleGeometry(16, 72), floorHalo2Mat);
+  floorHalo2.rotation.x = -Math.PI/2;
+  floorHalo2.position.y = 0.006;
+  scene.add(floorHalo2);
+
+  /* =========================================================
+     COURT FACTORY (preserved from the original Arena)
+     Standard-ish proportions (not regulation): length(z) x width(x)
+     ========================================================= */
+  var COURT_L = 13.4;   // along z
+  var COURT_W = 6.1;    // along x
+  var lineMat = new THREE.LineBasicMaterial({ color:BLUE, transparent:true, opacity:0.92 });
+  var glowMat = new THREE.MeshBasicMaterial({ color:BLUE, transparent:true, opacity:0.16 });
+
+  function makeRect(w, l, y){
+    var hw=w/2, hl=l/2;
+    var pts = [
+      new THREE.Vector3(-hw,y,-hl), new THREE.Vector3( hw,y,-hl),
+      new THREE.Vector3( hw,y,-hl), new THREE.Vector3( hw,y, hl),
+      new THREE.Vector3( hw,y, hl), new THREE.Vector3(-hw,y, hl),
+      new THREE.Vector3(-hw,y, hl), new THREE.Vector3(-hw,y,-hl)
+    ];
+    var g = new THREE.BufferGeometry().setFromPoints(pts);
+    return new THREE.LineSegments(g, lineMat);
+  }
+  function makeLine(x1,z1,x2,z2,y){
+    var g = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(x1,y,z1), new THREE.Vector3(x2,y,z2)
+    ]);
+    return new THREE.LineSegments(g, lineMat);
+  }
+
+  function buildCourt(){
+    var grp = new THREE.Group();
+    var y = 0.04;
+    var hw=COURT_W/2, hl=COURT_L/2;
+
+    /* faint blue court surface */
+    var surfGeo = new THREE.PlaneGeometry(COURT_W, COURT_L);
+    var surfMat = new THREE.MeshStandardMaterial({
+      color:0xe6f0fe, roughness:0.85, metalness:0.0,
+      transparent:true, opacity:0.92
+    });
+    var surf = new THREE.Mesh(surfGeo, surfMat);
+    surf.rotation.x = -Math.PI/2;
+    surf.position.y = 0.015;
+    grp.add(surf);
+
+    /* glow halo under court */
+    var halo = new THREE.Mesh(new THREE.PlaneGeometry(COURT_W+1.4, COURT_L+1.4), glowMat);
+    halo.rotation.x = -Math.PI/2;
+    halo.position.y = 0.008;
+    grp.add(halo);
+
+    /* outer boundary */
+    grp.add(makeRect(COURT_W, COURT_L, y));
+    /* inner singles side-lines */
+    grp.add(makeLine(-hw+0.55,-hl,-hw+0.55,hl,y));
+    grp.add(makeLine( hw-0.55,-hl, hw-0.55,hl,y));
+    /* service lines (short of net) */
+    grp.add(makeLine(-hw,-1.95, hw,-1.95,y));
+    grp.add(makeLine(-hw, 1.95, hw, 1.95,y));
+    /* back service / long service line */
+    grp.add(makeLine(-hw,-hl+0.75, hw,-hl+0.75,y));
+    grp.add(makeLine(-hw, hl-0.75, hw, hl-0.75,y));
+    /* center service line (two halves) */
+    grp.add(makeLine(0,-1.95,0,-hl+0.75,y));
+    grp.add(makeLine(0, 1.95,0, hl-0.75,y));
+
+    /* ---- Net at center ---- */
+    var netH = 1.05;
+    var netMat = new THREE.MeshBasicMaterial({
+      color:0xffffff, transparent:true, opacity:0.10, side:THREE.DoubleSide
+    });
+    var net = new THREE.Mesh(new THREE.PlaneGeometry(COURT_W, netH), netMat);
+    net.position.set(0, netH/2, 0);
+    grp.add(net);
+    /* net mesh lines */
+    var netLineMat = new THREE.LineBasicMaterial({ color:0x9cc2f2, transparent:true, opacity:0.55 });
+    var npts = [];
+    var cols = 14;
+    for(var i=0;i<=cols;i++){
+      var xx = -hw + (COURT_W*i/cols);
+      npts.push(new THREE.Vector3(xx,0,0), new THREE.Vector3(xx,netH,0));
+    }
+    var rows = 4;
+    for(var r=0;r<=rows;r++){
+      var yy = netH*r/rows;
+      npts.push(new THREE.Vector3(-hw,yy,0), new THREE.Vector3(hw,yy,0));
+    }
+    var netGrid = new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints(npts), netLineMat);
+    grp.add(netGrid);
+    /* bright net tape (top) */
+    var tape = makeLine(-hw,0,hw,0,netH);
+    grp.add(tape);
+    /* net posts */
+    var postMat = new THREE.MeshStandardMaterial({ color:0x0071e3, roughness:0.4, metalness:0.2, emissive:0x0a3a78, emissiveIntensity:0.35 });
+    [-hw,hw].forEach(function(px){
+      var post = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,netH+0.18,12), postMat);
+      post.position.set(px,(netH+0.18)/2,0);
+      grp.add(post);
+    });
+
+    return grp;
+  }
+
+  /* =========================================================
+     TURNTABLE: one parent group holds the podium + ring of courts.
+     Rotating THIS group is the hero motion (camera stays fixed).
+     ========================================================= */
+  var turntable = new THREE.Group();
+  scene.add(turntable);
+
+  /* ---- The round PODIUM / DAIS ---- */
+  var DAIS_R = 16.2;        // radius of the dais top
+  var DAIS_H = 0.6;         // thickness of the dais
+  var DAIS_TOP_Y = 0.02;    // courts sit ~ here on top of the dais
+
+  /* dais body (soft sides) */
+  var daisSideMat = new THREE.MeshStandardMaterial({
+    color:0xeaf2ff, roughness:0.7, metalness:0.05
+  });
+  var daisBody = new THREE.Mesh(
+    new THREE.CylinderGeometry(DAIS_R, DAIS_R+0.5, DAIS_H, 96),
+    daisSideMat
+  );
+  daisBody.position.y = DAIS_TOP_Y - DAIS_H/2;
+  turntable.add(daisBody);
+
+  /* dais white top surface */
+  var daisTopMat = new THREE.MeshStandardMaterial({
+    color:0xffffff, roughness:0.82, metalness:0.0
+  });
+  var daisTop = new THREE.Mesh(new THREE.CircleGeometry(DAIS_R, 96), daisTopMat);
+  daisTop.rotation.x = -Math.PI/2;
+  daisTop.position.y = DAIS_TOP_Y + 0.001;
+  turntable.add(daisTop);
+
+  /* thin glowing blue rim ring on the dais top edge */
+  var rimMat = new THREE.MeshBasicMaterial({ color:BLUE, transparent:true, opacity:0.95, side:THREE.DoubleSide });
+  var rim = new THREE.Mesh(new THREE.RingGeometry(DAIS_R-0.22, DAIS_R, 96), rimMat);
+  rim.rotation.x = -Math.PI/2;
+  rim.position.y = DAIS_TOP_Y + 0.02;
+  turntable.add(rim);
+  /* soft outer glow ring just beyond the rim */
+  var rimGlowMat = new THREE.MeshBasicMaterial({ color:BLUE, transparent:true, opacity:0.22, side:THREE.DoubleSide, depthWrite:false });
+  var rimGlow = new THREE.Mesh(new THREE.RingGeometry(DAIS_R, DAIS_R+0.9, 96), rimGlowMat);
+  rimGlow.rotation.x = -Math.PI/2;
+  rimGlow.position.y = DAIS_TOP_Y + 0.015;
+  turntable.add(rimGlow);
+
+  /* ---- 4 courts arranged in a RING, each facing outward ---- */
+  /* radius from center to each court's center; tuned so the 4 courts
+     read as one unified turntable without overlapping. */
+  var RING_R = 8.6;
+  for(var ci=0; ci<4; ci++){
+    var court = buildCourt();
+    var a = ci * (Math.PI/2);          // 0, 90, 180, 270 degrees
+    court.position.set(
+      Math.sin(a) * RING_R,
+      DAIS_TOP_Y,
+      Math.cos(a) * RING_R
+    );
+    court.rotation.y = a;              // face outward / radial
+    turntable.add(court);
+  }
+
+  /* =========================================================
+     CENTERPIECE — a glowing blue obelisk pillar + a floating
+     shuttlecock (cone skirt + light sphere head) that spins.
+     ========================================================= */
+  var centerpiece = new THREE.Group();
+  turntable.add(centerpiece);
+
+  /* obelisk: tapered glowing pillar */
+  var obeliskMat = new THREE.MeshStandardMaterial({
+    color:0x2a8bff, roughness:0.25, metalness:0.15,
+    emissive:0x0a4fb0, emissiveIntensity:0.85
+  });
+  var obelisk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.18, 0.62, 4.4, 5),
+    obeliskMat
+  );
+  obelisk.position.y = 2.2;
+  centerpiece.add(obelisk);
+
+  /* soft glow column halo around the obelisk */
+  var pillarGlowMat = new THREE.MeshBasicMaterial({ color:0x5aa6ff, transparent:true, opacity:0.10, side:THREE.DoubleSide, depthWrite:false });
+  var pillarGlow = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.95, 1.35, 4.6, 24, 1, true),
+    pillarGlowMat
+  );
+  pillarGlow.position.y = 2.3;
+  centerpiece.add(pillarGlow);
+
+  /* base pedestal disc */
+  var pedMat = new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.6, metalness:0.05 });
+  var pedestal = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.5, 0.34, 48), pedMat);
+  pedestal.position.y = DAIS_TOP_Y + 0.17;
+  centerpiece.add(pedestal);
+  var pedRimMat = new THREE.MeshBasicMaterial({ color:BLUE, transparent:true, opacity:0.9, side:THREE.DoubleSide });
+  var pedRim = new THREE.Mesh(new THREE.RingGeometry(1.18, 1.32, 64), pedRimMat);
+  pedRim.rotation.x = -Math.PI/2;
+  pedRim.position.y = DAIS_TOP_Y + 0.35;
+  centerpiece.add(pedRim);
+
+  /* floating ring orbiting the obelisk */
+  var haloRingMat = new THREE.MeshBasicMaterial({ color:BLUE, transparent:true, opacity:0.5, side:THREE.DoubleSide });
+  var haloRing = new THREE.Mesh(new THREE.TorusGeometry(1.7, 0.045, 16, 80), haloRingMat);
+  haloRing.position.y = 3.0;
+  haloRing.rotation.x = Math.PI/2;
+  centerpiece.add(haloRing);
+
+  /* ---- floating shuttlecock ---- */
+  var shuttle = new THREE.Group();
+  shuttle.position.y = 5.6;
+  centerpiece.add(shuttle);
+
+  /* skirt: open cone (feathers) */
+  var skirtMat = new THREE.MeshStandardMaterial({
+    color:0xffffff, roughness:0.5, metalness:0.0,
+    emissive:0x9cc6ff, emissiveIntensity:0.2,
+    transparent:true, opacity:0.96, side:THREE.DoubleSide
+  });
+  var skirt = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.05, 18, 1, true), skirtMat);
+  skirt.position.y = 0.42;   // wide end up, point down
+  shuttle.add(skirt);
+  /* thin blue rings around the skirt for definition */
+  var skRingMat = new THREE.MeshBasicMaterial({ color:BLUE, transparent:true, opacity:0.6, side:THREE.DoubleSide });
+  var skRingTop = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.02, 12, 40), skRingMat);
+  skRingTop.position.y = 0.94; skRingTop.rotation.x = Math.PI/2;
+  shuttle.add(skRingTop);
+  var skRingMid = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.018, 12, 40), skRingMat);
+  skRingMid.position.y = 0.58; skRingMid.rotation.x = Math.PI/2;
+  shuttle.add(skRingMid);
+
+  /* cork head: light sphere */
+  var headMat = new THREE.MeshStandardMaterial({
+    color:0xbcdcff, roughness:0.3, metalness:0.1,
+    emissive:0x2a7fe0, emissiveIntensity:0.55
+  });
+  var head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 28, 20), headMat);
+  head.position.y = -0.18; // at the point (bottom)
+  shuttle.add(head);
+  /* soft glow shell around the head */
+  var headGlowMat = new THREE.MeshBasicMaterial({ color:0x6fb2ff, transparent:true, opacity:0.18, depthWrite:false });
+  var headGlow = new THREE.Mesh(new THREE.SphereGeometry(0.42, 20, 16), headGlowMat);
+  headGlow.position.y = -0.18;
+  shuttle.add(headGlow);
+
+  /* =========================================================
+     RENDER LOOP — TURNTABLE spin (camera mostly fixed)
+     ========================================================= */
+  var clock = new THREE.Clock();
+  var t = 0;
+
+  /* fixed, flattering elevated 3/4 angle looking at the dais */
+  var BASE_ANGLE = Math.PI * 0.20;   // azimuth of the camera
+  var BASE_RADIUS = 33;
+  var BASE_HEIGHT = 18.5;
+
+  function positionCamera(){
+    /* very gentle camera "breathing"/parallax — the hero motion is the
+       turntable, not the camera. */
+    var breatheA = reduceMotion ? 0 : Math.sin(t * 0.18) * 0.05;   // tiny azimuth sway
+    var breatheH = reduceMotion ? 0 : Math.sin(t * 0.30) * 0.7;    // tiny vertical drift
+    var a = BASE_ANGLE + breatheA;
+    camera.position.set(
+      Math.cos(a) * BASE_RADIUS,
+      BASE_HEIGHT + breatheH,
+      Math.sin(a) * BASE_RADIUS
+    );
+    camera.lookAt(CENTER);
+  }
+
+  function frame(){
+    if(!reduceMotion){
+      var dt = clock.getDelta();
+      t += dt;
+      /* HERO MOTION: slow turntable spin */
+      turntable.rotation.y += dt * 0.16;
+      /* keep the centerpiece visually upright & lively even as the dais spins */
+      centerpiece.rotation.y -= dt * 0.16;             // cancel parent spin for the obelisk facing
+      haloRing.rotation.z += dt * 0.5;                 // orbiting halo ring
+      shuttle.rotation.y += dt * 0.8;                  // shuttlecock slowly spins
+      shuttle.position.y = 5.6 + Math.sin(t * 0.9) * 0.18;  // gentle float
+    }
+    positionCamera();
+    renderer.render(scene, camera);
+    if(!reduceMotion) requestAnimationFrame(frame);
+  }
+
+  /* ---- Resize ---- */
+  function onResize(){
+    var w = window.innerWidth, h = window.innerHeight;
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  }
+  window.addEventListener('resize', onResize);
+
+  positionCamera();
+  if(reduceMotion){
+    renderer.render(scene, camera); // freeze: render one frame
+  } else {
+    requestAnimationFrame(frame);
+  }
+})();
+</script>
+</body>
+</html>

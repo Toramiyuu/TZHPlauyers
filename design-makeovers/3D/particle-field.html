@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TZH Badminton — Arena · Particle Field</title>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  :root{
+    --blue:#0071e3; --blue-2:#0066cc; --blue-dark:#005bb5; --blue-bright:#4f97ff;
+    --blue-tint:rgba(79,151,255,.18); --blue-line:rgba(79,151,255,.40);
+    --bg:#05132b; --bg-2:#020a18; --card:#0a1a33; --card-2:#0e2244;
+    --ink:#eaf2ff; --ink-2:#aebfd8; --ink-3:#8fa3c4; --line:rgba(120,170,255,.18);
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 760px at 70% -12%, #0c2148 0%, rgba(12,33,72,0) 60%),
+      radial-gradient(900px 540px at 18% 110%, #07182f 0%, rgba(7,24,47,0) 62%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* ---------- WebGL canvas backdrop ---------- */
+  #scene{
+    position:fixed; inset:0; width:100%; height:100%;
+    display:block; z-index:0;
+  }
+  /* CSS fallback backdrop (visible if WebGL fails or behind transparent canvas) */
+  #backdrop{
+    position:fixed; inset:0; z-index:-1;
+    background:
+      radial-gradient(820px 520px at 50% 46%, rgba(79,151,255,.20), rgba(79,151,255,0) 64%),
+      radial-gradient(900px 540px at 30% 16%, rgba(79,151,255,.14), rgba(79,151,255,0) 60%),
+      radial-gradient(1000px 620px at 80% 90%, rgba(0,113,227,.12), rgba(0,113,227,0) 62%),
+      radial-gradient(700px 700px at 50% 50%, rgba(8,28,66,.6), rgba(8,28,66,0) 70%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+  }
+
+  /* ---------- HUD overlay ---------- */
+  #hud{
+    position:fixed; inset:0; z-index:10;
+    display:flex; flex-direction:column;
+    padding:26px clamp(24px,3.4vw,56px) 22px;
+    pointer-events:none; /* let drags pass to scene; panels re-enable */
+  }
+  .hud-panel{ pointer-events:auto; }
+
+  /* glass surface — dark frosted */
+  .glass{
+    background:linear-gradient(180deg, rgba(10,26,51,.62), rgba(8,20,40,.5));
+    border:1px solid rgba(120,170,255,.22);
+    box-shadow:
+      0 1px 0 rgba(140,185,255,.10) inset,
+      0 18px 54px -22px rgba(0,0,0,.7),
+      0 2px 12px -4px rgba(0,20,60,.5);
+    -webkit-backdrop-filter:saturate(1.35) blur(18px);
+    backdrop-filter:saturate(1.35) blur(18px);
+  }
+
+  /* ===== Header ===== */
+  header{
+    display:flex; align-items:center; gap:18px;
+    padding:12px 18px; border-radius:18px;
+  }
+  header img{
+    height:46px; width:auto; display:block;
+    filter:drop-shadow(0 0 10px rgba(79,151,255,.45));
+  }
+  .brand{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .brand h1{
+    font-size:19px; font-weight:650; letter-spacing:-.02em; color:var(--ink);
+    line-height:1;
+  }
+  .brand .date{ font-size:12.5px; color:var(--ink-2); font-weight:480; letter-spacing:.01em; }
+  .header-spacer{ flex:1 1 auto; }
+
+  .live{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:7px 13px 7px 11px; border-radius:999px;
+    background:var(--blue-tint); border:1px solid var(--blue-line);
+    font-size:12px; font-weight:600; color:#cfe2ff; letter-spacing:.04em;
+    text-transform:uppercase;
+    box-shadow:0 0 18px -4px rgba(79,151,255,.4);
+  }
+  .live .dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--blue-bright);
+    box-shadow:0 0 0 0 rgba(79,151,255,.6);
+    animation:pulse 1.8s ease-out infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(79,151,255,.6); }
+    70%{ box-shadow:0 0 0 9px rgba(79,151,255,0); }
+    100%{ box-shadow:0 0 0 0 rgba(79,151,255,0); }
+  }
+  .nav{ display:flex; gap:9px; }
+  .pill{
+    padding:8px 16px; border-radius:999px;
+    font-size:13px; font-weight:550; color:var(--ink-2);
+    background:rgba(120,170,255,.07);
+    border:1px solid var(--line);
+    transition:.18s ease;
+  }
+  .pill:hover{ color:#cfe2ff; border-color:var(--blue-line); background:var(--blue-tint); }
+  .pill.active{ color:#fff; background:linear-gradient(180deg,var(--blue-bright),var(--blue)); border-color:transparent; box-shadow:0 6px 20px -6px rgba(79,151,255,.7); }
+
+  /* ===== Center stage spacer ===== */
+  .stage{ flex:1 1 auto; min-height:0; }
+
+  /* ===== Match cards (bottom strip) ===== */
+  .cards{
+    pointer-events:none;
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:16px;
+  }
+  .card{
+    pointer-events:auto;
+    border-radius:18px; padding:15px 16px 14px;
+    display:flex; flex-direction:column; gap:12px;
+    position:relative; overflow:hidden;
+  }
+  .card::before{ /* top accent hairline */
+    content:""; position:absolute; left:16px; right:16px; top:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--blue-bright), transparent);
+    opacity:.7;
+  }
+  .card-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .court-id{ display:flex; align-items:center; gap:8px; }
+  .court-num{
+    font-size:13px; font-weight:680; letter-spacing:-.01em; color:var(--ink);
+  }
+  .court-num span{ color:var(--ink-3); font-weight:520; }
+  .round-badge{
+    font-size:10.5px; font-weight:650; letter-spacing:.05em; text-transform:uppercase;
+    color:#cfe2ff;
+    padding:4px 9px; border-radius:999px;
+    background:var(--blue-tint); border:1px solid var(--blue-line);
+    box-shadow:0 0 14px -4px rgba(79,151,255,.45);
+  }
+
+  .team{ display:flex; align-items:center; gap:10px; }
+  .avatars{ display:flex; }
+  .avatars .av:nth-child(2){ margin-left:-9px; }
+  .av{
+    width:32px; height:32px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:670; letter-spacing:.01em; color:#fff;
+    background:linear-gradient(155deg, var(--blue-bright) 0%, var(--blue-dark) 100%);
+    border:2px solid rgba(13,30,58,.95);
+    box-shadow:0 3px 10px -3px rgba(79,151,255,.6);
+    flex:0 0 auto;
+  }
+  .av.alt{ background:linear-gradient(155deg, #6fb0ff 0%, var(--blue-2) 100%); }
+  .names{ display:flex; flex-direction:column; gap:1px; min-width:0; line-height:1.18; }
+  .names .n{ font-size:12.5px; font-weight:560; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .vs-row{ display:flex; align-items:center; gap:10px; }
+  .vs-line{ flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--line),transparent); }
+  .vs{
+    font-size:10.5px; font-weight:700; letter-spacing:.12em; color:var(--blue-bright);
+    text-transform:uppercase;
+  }
+
+  /* ===== Footer ===== */
+  footer{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:16px;
+    font-size:12px; color:var(--ink-2); letter-spacing:.01em;
+    padding:0 4px;
+  }
+  footer .right{ color:var(--ink-3); font-weight:520; }
+  footer strong{ color:var(--ink); font-weight:600; }
+
+  @media (max-width:1080px){
+    .cards{ grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width:620px){
+    .cards{ grid-template-columns:1fr; }
+    .nav{ display:none; }
+  }
+</style>
+</head>
+<body>
+  <div id="backdrop"></div>
+  <canvas id="scene"></canvas>
+
+  <div id="hud">
+    <!-- Header -->
+    <header class="hud-panel glass">
+      <img src="logo.png" alt="TZH" onerror="this.style.display='none'" />
+      <div class="brand">
+        <h1>TZH Badminton</h1>
+        <div class="date">Saturday 28 June 2026</div>
+      </div>
+      <div class="header-spacer"></div>
+      <div class="live"><span class="dot"></span>Live</div>
+      <nav class="nav">
+        <span class="pill">Members</span>
+        <span class="pill active">Leaderboard</span>
+      </nav>
+    </header>
+
+    <div class="stage"></div>
+
+    <!-- Match cards -->
+    <div class="cards" id="cards"></div>
+
+    <!-- Footer -->
+    <footer class="hud-panel">
+      <div class="left">TZH Badminton — Live Court Display</div>
+      <div class="right"><strong>4 courts</strong> · Round 3 · 16 players</div>
+    </footer>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* =========================================================
+   CONTENT MODEL
+   ========================================================= */
+function initials(name){
+  return name.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+}
+var MATCHES = [
+  { court:1, round:3, t1:["Thomas Wong","Mei Lin"],   t2:["David Park","Sarah Chen"] },
+  { court:2, round:3, t1:["Aiden Lee","Priya Nair"],  t2:["Marcus Tan","Yuki Sato"] },
+  { court:3, round:2, t1:["Carlos Diaz","Hannah Kim"],t2:["Leo Zhang","Nina Patel"] },
+  { court:4, round:2, t1:["Ravi Kumar","Sofia Reyes"],t2:["Ben Carter","Grace Lim"] }
+];
+
+function teamHTML(players, alt){
+  var avs = players.map(function(p,i){
+    return '<div class="av'+((alt|| i===1)?' alt':'')+'">'+initials(p)+'</div>';
+  }).join('');
+  var nms = players.map(function(p){ return '<div class="n">'+p+'</div>'; }).join('');
+  return '<div class="team"><div class="avatars">'+avs+'</div><div class="names">'+nms+'</div></div>';
+}
+
+(function renderCards(){
+  var el = document.getElementById('cards');
+  el.innerHTML = MATCHES.map(function(m){
+    return ''+
+    '<div class="card glass">'+
+      '<div class="card-top">'+
+        '<div class="court-id"><span class="court-num">Court '+m.court+' <span>·</span></span>'+
+          '<span class="round-badge">Round '+m.round+'</span></div>'+
+      '</div>'+
+      teamHTML(m.t1, false)+
+      '<div class="vs-row"><span class="vs-line"></span><span class="vs">vs</span><span class="vs-line"></span></div>'+
+      teamHTML(m.t2, true)+
+    '</div>';
+  }).join('');
+})();
+
+/* =========================================================
+   THREE.JS PARTICLE FIELD — GLOWING SHUTTLECOCK
+   The only thing that changes vs the Arena is the 3D scene.
+   No courts-on-a-floor — a single GPU THREE.Points cloud that
+   assembles into a giant glowing shuttlecock and morphs to a
+   flat court grid, with cursor interaction and living shimmer.
+   ========================================================= */
+(function buildScene(){
+  if(typeof THREE === 'undefined'){
+    console.warn('THREE not available — using CSS backdrop only.');
+    return; // CSS backdrop already visible
+  }
+
+  var reduceMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var canvas = document.getElementById('scene');
+  var renderer, scene, camera;
+
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas: canvas, antialias:true, alpha:true
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  } catch(err){
+    console.warn('WebGL init failed — CSS backdrop fallback active.', err);
+    canvas.style.display = 'none';
+    return;
+  }
+
+  scene = new THREE.Scene();
+  var FOG = 0x04102a;             // deep navy
+  scene.background = new THREE.Color(FOG);
+  scene.fog = new THREE.Fog(FOG, 30, 96);
+
+  camera = new THREE.PerspectiveCamera(46, window.innerWidth/window.innerHeight, 0.1, 400);
+
+  var CENTER = new THREE.Vector3(0, 0, 0);
+
+  /* palette */
+  var COL_BLUE   = new THREE.Color(0x0071e3);
+  var COL_BRIGHT = new THREE.Color(0x4f97ff);
+  var COL_WHITE  = new THREE.Color(0xdcebff);
+
+  /* =========================================================
+     SOFT ROUND SPRITE — radial gradient on a 2D canvas
+     ========================================================= */
+  function makeSprite(){
+    var s = 64;
+    var c = document.createElement('canvas');
+    c.width = c.height = s;
+    var ctx = c.getContext('2d');
+    var g = ctx.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2);
+    g.addColorStop(0.0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.25, 'rgba(220,235,255,0.92)');
+    g.addColorStop(0.55, 'rgba(120,170,255,0.40)');
+    g.addColorStop(1.0, 'rgba(80,140,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, s, s);
+    var tex = new THREE.CanvasTexture(c);
+    tex.needsUpdate = true;
+    return tex;
+  }
+
+  /* =========================================================
+     TARGET BUILDERS — precompute both shape point clouds
+     ========================================================= */
+  var COUNT = 9000;
+
+  // Shuttlecock dimensions (world units)
+  var SK_BOTTOM   = -3.4;   // base of the cork
+  var SK_THROAT   = -1.6;   // where feathers begin (top of cork)
+  var SK_TOP      =  4.4;   // open mouth of the feather skirt
+  var SK_R_THROAT =  0.55;  // skirt radius at the throat
+  var SK_R_TOP    =  2.7;   // skirt radius at the open top
+  var CORK_R      =  0.95;  // cork radius
+
+  // ~24% of points go to the cork (denser base), rest to the feather skirt
+  var CORK_RATIO = 0.24;
+
+  function buildShuttle(){
+    var arr = new Float32Array(COUNT * 3);
+    var FEATHERS = 16;            // ribs of the skirt for structure
+    for(var i=0;i<COUNT;i++){
+      var ox = i*3, oy = i*3+1, oz = i*3+2;
+      if(i < COUNT * CORK_RATIO){
+        // ---- CORK: rounded base (half-sphere blended into a short dome) ----
+        var u = Math.random(), v = Math.random();
+        var theta = u * Math.PI * 2;
+        // bias toward lower hemisphere for a rounded bottom
+        var phi = Math.acos(1 - v);            // 0..pi/2 (lower dome)
+        var rr = CORK_R * (0.55 + 0.45*Math.cbrt(Math.random())); // shell-ish
+        var cy = SK_THROAT - rr * Math.cos(phi) * 1.15;            // dome downward
+        var cradius = rr * Math.sin(phi);
+        arr[ox] = Math.cos(theta) * cradius;
+        arr[oy] = Math.max(cy, SK_BOTTOM);
+        arr[oz] = Math.sin(theta) * cradius;
+      } else {
+        // ---- FEATHER SKIRT: flared cone shell widening along +Y ----
+        var t = Math.random();                 // 0 at throat -> 1 at top
+        // ease so points cluster slightly toward the open mouth
+        var te = t;
+        var y = SK_THROAT + (SK_TOP - SK_THROAT) * te;
+        var radius = SK_R_THROAT + (SK_R_TOP - SK_R_THROAT) * te;
+        // snap angle loosely toward feather ribs for a structured, airy skirt
+        var baseAng = Math.random() * Math.PI * 2;
+        var rib = Math.round(baseAng / (Math.PI*2) * FEATHERS) / FEATHERS * Math.PI*2;
+        var ang = baseAng * 0.45 + rib * 0.55; // blend: structured but not rigid
+        // thin shell with a little inward scatter
+        var jitter = (Math.random() - 0.5) * 0.22 * (0.4 + te);
+        var rr2 = radius + jitter;
+        arr[ox] = Math.cos(ang) * rr2;
+        arr[oy] = y + (Math.random()-0.5)*0.12;
+        arr[oz] = Math.sin(ang) * rr2;
+      }
+    }
+    return arr;
+  }
+
+  function buildCourt(){
+    // Flat rectangular court grid of points lying in the XZ plane,
+    // tilted slightly so it reads as a plane in the orbit.
+    var arr = new Float32Array(COUNT * 3);
+    var W = 9.0;    // x half handled below
+    var L = 15.0;
+    var hw = W/2, hl = L/2;
+    // We arrange most points on grid lines (boundary + service lines),
+    // and scatter the remainder lightly across the surface.
+    var lines = [];
+    // outer boundary
+    lines.push([-hw,-hl, hw,-hl]); lines.push([ hw,-hl, hw, hl]);
+    lines.push([ hw, hl,-hw, hl]); lines.push([-hw, hl,-hw,-hl]);
+    // singles side-lines
+    lines.push([-hw+0.8,-hl,-hw+0.8, hl]); lines.push([ hw-0.8,-hl, hw-0.8, hl]);
+    // service lines short of net
+    lines.push([-hw,-2.4, hw,-2.4]); lines.push([-hw, 2.4, hw, 2.4]);
+    // back service lines
+    lines.push([-hw,-hl+1.0, hw,-hl+1.0]); lines.push([-hw, hl-1.0, hw, hl-1.0]);
+    // center service line (two halves)
+    lines.push([0,-2.4, 0,-hl+1.0]); lines.push([0, 2.4, 0, hl-1.0]);
+    // net line (center)
+    lines.push([-hw,0, hw,0]);
+
+    var lineCount = Math.floor(COUNT * 0.72);
+    var per = lineCount / lines.length;
+    var idx = 0;
+    for(var li=0; li<lines.length; li++){
+      var s = lines[li];
+      for(var p=0; p<per && idx<COUNT; p++){
+        var f = Math.random();
+        var x = s[0] + (s[2]-s[0]) * f;
+        var z = s[1] + (s[3]-s[1]) * f;
+        arr[idx*3]   = x + (Math.random()-0.5)*0.10;
+        arr[idx*3+1] = (Math.random()-0.5)*0.10;        // flat sheet
+        arr[idx*3+2] = z + (Math.random()-0.5)*0.10;
+        idx++;
+      }
+    }
+    // scatter the rest across the surface for a faint glowing court fill
+    for(; idx<COUNT; idx++){
+      arr[idx*3]   = (Math.random()-0.5) * W;
+      arr[idx*3+1] = (Math.random()-0.5)*0.12;
+      arr[idx*3+2] = (Math.random()-0.5) * L;
+    }
+    return arr;
+  }
+
+  var shuttleTarget = buildShuttle();
+  var courtTarget   = buildCourt();
+
+  /* =========================================================
+     GEOMETRY — positions start at the shuttlecock; per-particle
+     phase/speed/amp for living shimmer; per-particle colour.
+     ========================================================= */
+  var geo = new THREE.BufferGeometry();
+  var positions = new Float32Array(COUNT * 3);
+  var colors    = new Float32Array(COUNT * 3);
+
+  // per-particle animation state (CPU)
+  var phase = new Float32Array(COUNT);
+  var speed = new Float32Array(COUNT);
+  var amp   = new Float32Array(COUNT);
+  var push  = new Float32Array(COUNT * 3); // transient cursor displacement
+
+  var tmpCol = new THREE.Color();
+  for(var i=0;i<COUNT;i++){
+    positions[i*3]   = shuttleTarget[i*3];
+    positions[i*3+1] = shuttleTarget[i*3+1];
+    positions[i*3+2] = shuttleTarget[i*3+2];
+
+    phase[i] = Math.random() * Math.PI * 2;
+    speed[i] = 0.6 + Math.random() * 1.4;
+    amp[i]   = 0.04 + Math.random() * 0.10;
+
+    // colour: blend blue -> bright -> white, with per-particle brightness sparkle
+    var m = Math.random();
+    if(m < 0.55){
+      tmpCol.copy(COL_BLUE).lerp(COL_BRIGHT, Math.random());
+    } else if(m < 0.9){
+      tmpCol.copy(COL_BRIGHT).lerp(COL_WHITE, Math.random()*0.7);
+    } else {
+      tmpCol.copy(COL_WHITE);
+    }
+    var b = 0.6 + Math.random() * 0.55; // brightness variation for sparkle
+    colors[i*3]   = Math.min(1, tmpCol.r * b);
+    colors[i*3+1] = Math.min(1, tmpCol.g * b);
+    colors[i*3+2] = Math.min(1, tmpCol.b * b);
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(colors, 3));
+
+  var mat = new THREE.PointsMaterial({
+    map: makeSprite(),
+    size: 0.16,
+    sizeAttenuation: true,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    vertexColors: true,
+    opacity: 0.95
+  });
+
+  var points = new THREE.Points(geo, mat);
+  scene.add(points);
+
+  /* faint deep glow halo behind the cloud for atmosphere */
+  var haloTex = makeSprite();
+  var haloMat = new THREE.SpriteMaterial({
+    map: haloTex, color:0x1f4e9c, transparent:true,
+    opacity:0.5, blending:THREE.AdditiveBlending, depthWrite:false
+  });
+  var halo = new THREE.Sprite(haloMat);
+  halo.scale.set(22, 22, 1);
+  halo.position.set(0, 0.6, 0);
+  scene.add(halo);
+
+  /* =========================================================
+     MORPH STATE — lerp between shuttlecock and court targets
+     ========================================================= */
+  var SHAPE_SHUTTLE = 0, SHAPE_COURT = 1;
+  var morph = 0;              // 0 = shuttle, 1 = court (eased)
+  var targetShape = SHAPE_SHUTTLE;
+  var morphTimer = 0;
+  var HOLD_TIME = 8.0;        // seconds between morphs (~7-9s)
+  var MORPH_SPEED = 0.55;     // how fast the eased value chases target
+
+  function easeInOut(x){ return x<0.5 ? 2*x*x : 1-Math.pow(-2*x+2,2)/2; }
+
+  /* =========================================================
+     CURSOR INTERACTION — unproject to a point near the cloud;
+     particles within a radius get pushed radially outward, then
+     ease back. rAF-throttled via a dirty flag.
+     ========================================================= */
+  var pointer = new THREE.Vector2(0, 0);
+  var pointerActive = false;
+  var pointerMoved = false;
+  var hitPoint = new THREE.Vector3();
+  var rayPlane = new THREE.Plane(new THREE.Vector3(0,0,1), 0); // plane through origin facing camera-ish
+  var raycaster = new THREE.Raycaster();
+
+  function onPointerMove(e){
+    pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+    pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    pointerActive = true;
+    pointerMoved = true;
+  }
+  window.addEventListener('pointermove', onPointerMove, { passive:true });
+  window.addEventListener('pointerleave', function(){ pointerActive = false; });
+
+  function updateHitPoint(){
+    // unproject cursor onto a plane facing the camera through the cloud center
+    raycaster.setFromCamera(pointer, camera);
+    // build a plane perpendicular to camera direction at CENTER
+    var camDir = new THREE.Vector3();
+    camera.getWorldDirection(camDir);
+    rayPlane.setFromNormalAndCoplanarPoint(camDir, CENTER);
+    var hit = raycaster.ray.intersectPlane(rayPlane, hitPoint);
+    return !!hit;
+  }
+
+  var PUSH_RADIUS = 2.6;
+  var PUSH_RADIUS2 = PUSH_RADIUS * PUSH_RADIUS;
+  var PUSH_STRENGTH = 2.2;
+
+  /* =========================================================
+     RENDER LOOP
+     ========================================================= */
+  var clock = new THREE.Clock();
+  var orbit = Math.PI * 0.12;
+  var RADIUS = 16.5;
+  var HEIGHT = 2.2;
+  var spin = 0;              // shuttlecock self-rotation around Y
+  var breathe = 0;
+
+  var posAttr = geo.attributes.position;
+  var posArr = posAttr.array;
+
+  function positionCamera(){
+    camera.position.set(
+      Math.cos(orbit) * RADIUS,
+      HEIGHT + Math.sin(orbit*0.7) * 1.6,
+      Math.sin(orbit) * RADIUS
+    );
+    camera.lookAt(CENTER);
+  }
+
+  // reusable temp vectors (avoid per-particle allocation)
+  var _v = new THREE.Vector3();
+
+  function updateParticles(time, dt){
+    // advance morph cadence
+    morphTimer += dt;
+    if(morphTimer >= HOLD_TIME){
+      morphTimer = 0;
+      targetShape = (targetShape === SHAPE_SHUTTLE) ? SHAPE_COURT : SHAPE_SHUTTLE;
+    }
+    // chase eased morph value toward target (0 or 1)
+    var tgt = targetShape;
+    morph += (tgt - morph) * Math.min(1, dt * MORPH_SPEED);
+    var m = easeInOut(Math.max(0, Math.min(1, morph)));
+
+    // self-rotation of the assembled cloud (applied as a Y-spin to the Points)
+    spin += dt * 0.18;
+    breathe = Math.sin(time * 0.5) * 0.18;
+
+    // cursor hit point (cheap; only recompute when pointer moved)
+    var pushOn = pointerActive;
+    if(pointerMoved){ updateHitPoint(); pointerMoved = false; }
+
+    for(var i=0;i<COUNT;i++){
+      var ox=i*3, oy=i*3+1, oz=i*3+2;
+
+      // base target = lerp(shuttle, court, m)
+      var sx = shuttleTarget[ox], sy = shuttleTarget[oy], sz = shuttleTarget[oz];
+      var cx = courtTarget[ox],   cy = courtTarget[oy],   cz = courtTarget[oz];
+      var bx = sx + (cx - sx) * m;
+      var by = sy + (cy - sy) * m;
+      var bz = sz + (cz - sz) * m;
+
+      // breathing scale (more on the shuttle, less on the flat court)
+      var scl = 1 + breathe * (1 - m) * 0.12;
+      bx *= scl; by *= scl; bz *= scl;
+
+      // living shimmer — per-particle sine offset, always on
+      var ph = phase[i];
+      var sp = speed[i];
+      var am = amp[i];
+      bx += Math.sin(time * sp + ph) * am;
+      by += Math.cos(time * sp * 0.9 + ph) * am;
+      bz += Math.sin(time * sp * 1.1 + ph * 1.3) * am;
+
+      // cursor push — radial outward from hit point, then ease back
+      var dx = bx - hitPoint.x;
+      var dy = by - hitPoint.y;
+      var dz = bz - hitPoint.z;
+      var d2 = dx*dx + dy*dy + dz*dz;
+      if(pushOn && d2 < PUSH_RADIUS2){
+        var dist = Math.sqrt(d2) + 0.0001;
+        var falloff = (1 - dist / PUSH_RADIUS);
+        var force = falloff * falloff * PUSH_STRENGTH;
+        push[ox] += (dx/dist) * force;
+        push[oy] += (dy/dist) * force;
+        push[oz] += (dz/dist) * force;
+      }
+      // ease push back to zero (springy decay)
+      push[ox] *= 0.86; push[oy] *= 0.86; push[oz] *= 0.86;
+
+      posArr[ox] = bx + push[ox];
+      posArr[oy] = by + push[oy];
+      posArr[oz] = bz + push[oz];
+    }
+    posAttr.needsUpdate = true;
+  }
+
+  function frame(){
+    var dt = clock.getDelta();
+    if(dt > 0.05) dt = 0.05; // clamp after tab-switch stalls
+    var time = clock.elapsedTime;
+
+    orbit += dt * 0.05;                 // slow gentle camera orbit
+    points.rotation.y = spin;           // shuttlecock spins around Y
+    halo.position.y = 0.6 + breathe;
+
+    updateParticles(time, dt);
+    positionCamera();
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+
+  /* ---- Resize ---- */
+  function onResize(){
+    var w = window.innerWidth, h = window.innerHeight;
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  }
+  window.addEventListener('resize', onResize);
+
+  positionCamera();
+  if(reduceMotion){
+    // freeze: no orbit, no morph, no shimmer — render one static frame
+    renderer.render(scene, camera);
+  } else {
+    requestAnimationFrame(frame);
+  }
+})();
+</script>
+</body>
+</html>

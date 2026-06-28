@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TZH Badminton — Arena</title>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  :root{
+    --blue:#0071e3; --blue-2:#0066cc; --blue-dark:#005bb5;
+    --blue-tint:rgba(0,113,227,.16); --blue-line:rgba(0,113,227,.42);
+    --bg:#eef4fd; --bg-2:#e8f0fb; --card:#ffffff; --card-2:#e2ecfa;
+    --ink:#1d1d1f; --ink-2:#5c6470; --ink-3:#5f6b7a; --line:#d4e2f5;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 700px at 70% -10%, #ffffff 0%, rgba(255,255,255,0) 60%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* ---------- WebGL canvas backdrop ---------- */
+  #scene{
+    position:fixed; inset:0; width:100%; height:100%;
+    display:block; z-index:0;
+  }
+  /* CSS fallback backdrop (visible if WebGL fails or behind transparent canvas) */
+  #backdrop{
+    position:fixed; inset:0; z-index:-1;
+    background:
+      radial-gradient(900px 520px at 28% 18%, rgba(0,113,227,.10), rgba(0,113,227,0) 60%),
+      radial-gradient(1000px 600px at 80% 88%, rgba(0,102,204,.10), rgba(0,102,204,0) 62%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+  }
+
+  /* ---------- HUD overlay ---------- */
+  #hud{
+    position:fixed; inset:0; z-index:10;
+    display:flex; flex-direction:column;
+    padding:26px clamp(24px,3.4vw,56px) 22px;
+    pointer-events:none; /* let drags pass to scene; panels re-enable */
+  }
+  .hud-panel{ pointer-events:auto; }
+
+  /* glass surface */
+  .glass{
+    background:linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.66));
+    border:1px solid rgba(255,255,255,.85);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.9) inset,
+      0 18px 50px -22px rgba(20,52,99,.45),
+      0 2px 10px -4px rgba(20,52,99,.22);
+    -webkit-backdrop-filter:saturate(1.5) blur(18px);
+    backdrop-filter:saturate(1.5) blur(18px);
+  }
+
+  /* ===== Header ===== */
+  header{
+    display:flex; align-items:center; gap:18px;
+    padding:12px 18px; border-radius:18px;
+  }
+  header img{ height:46px; width:auto; display:block; }
+  .brand{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .brand h1{
+    font-size:19px; font-weight:650; letter-spacing:-.02em; color:var(--ink);
+    line-height:1;
+  }
+  .brand .date{ font-size:12.5px; color:var(--ink-2); font-weight:480; letter-spacing:.01em; }
+  .header-spacer{ flex:1 1 auto; }
+
+  .live{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:7px 13px 7px 11px; border-radius:999px;
+    background:var(--blue-tint); border:1px solid var(--blue-line);
+    font-size:12px; font-weight:600; color:var(--blue-dark); letter-spacing:.04em;
+    text-transform:uppercase;
+  }
+  .live .dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--blue);
+    box-shadow:0 0 0 0 rgba(0,113,227,.55);
+    animation:pulse 1.8s ease-out infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(0,113,227,.55); }
+    70%{ box-shadow:0 0 0 9px rgba(0,113,227,0); }
+    100%{ box-shadow:0 0 0 0 rgba(0,113,227,0); }
+  }
+  .nav{ display:flex; gap:9px; }
+  .pill{
+    padding:8px 16px; border-radius:999px;
+    font-size:13px; font-weight:550; color:var(--ink-2);
+    background:rgba(255,255,255,.6);
+    border:1px solid var(--line);
+    transition:.18s ease;
+  }
+  .pill:hover{ color:var(--blue-dark); border-color:var(--blue-line); background:var(--blue-tint); }
+  .pill.active{ color:#fff; background:linear-gradient(180deg,var(--blue),var(--blue-2)); border-color:transparent; box-shadow:0 6px 16px -6px rgba(0,113,227,.6); }
+
+  /* ===== Center stage spacer ===== */
+  .stage{ flex:1 1 auto; min-height:0; }
+
+  /* ===== Match cards (bottom strip) ===== */
+  .cards{
+    pointer-events:none;
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:16px;
+  }
+  .card{
+    pointer-events:auto;
+    border-radius:18px; padding:15px 16px 14px;
+    display:flex; flex-direction:column; gap:12px;
+    position:relative; overflow:hidden;
+  }
+  .card::before{ /* top accent hairline */
+    content:""; position:absolute; left:16px; right:16px; top:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--blue-line), transparent);
+  }
+  .card-top{ display:flex; align-items:center; justify-content:center; gap:8px; }
+  .court-id{ display:flex; align-items:center; gap:8px; }
+  .court-num{
+    font-size:13px; font-weight:680; letter-spacing:-.01em; color:var(--ink);
+  }
+  .court-num span{ color:var(--ink-3); font-weight:520; }
+  .round-badge{
+    font-size:10.5px; font-weight:650; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--blue-dark);
+    padding:4px 9px; border-radius:999px;
+    background:var(--blue-tint); border:1px solid var(--blue-line);
+  }
+
+  .team{ display:flex; align-items:center; justify-content:center; gap:10px; }
+  .avatars{ display:flex; }
+  .avatars .av:nth-child(2){ margin-left:-9px; }
+  .av{
+    width:32px; height:32px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:670; letter-spacing:.01em; color:#fff;
+    background:linear-gradient(155deg, var(--blue) 0%, var(--blue-dark) 100%);
+    border:2px solid #fff;
+    box-shadow:0 3px 8px -3px rgba(0,113,227,.55);
+    flex:0 0 auto;
+  }
+  .av.alt{ background:linear-gradient(155deg, #4a9bf0 0%, var(--blue-2) 100%); }
+  .names{ display:flex; flex-direction:column; gap:1px; min-width:0; line-height:1.18; text-align:center; }
+  .names .n{ font-size:12.5px; font-weight:560; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .vs-row{ display:flex; align-items:center; gap:10px; }
+  .vs-line{ flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--line),transparent); }
+  .vs{
+    font-size:10.5px; font-weight:700; letter-spacing:.12em; color:var(--blue);
+    text-transform:uppercase;
+  }
+
+  /* ===== Footer ===== */
+  footer{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:16px;
+    font-size:12px; color:var(--ink-2); letter-spacing:.01em;
+    padding:0 4px;
+  }
+  footer .right{ color:var(--ink-3); font-weight:520; }
+  footer strong{ color:var(--ink); font-weight:600; }
+
+  @media (max-width:1080px){
+    .cards{ grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width:620px){
+    .cards{ grid-template-columns:1fr; }
+    .nav{ display:none; }
+  }
+</style>
+</head>
+<body>
+  <div id="backdrop"></div>
+  <canvas id="scene"></canvas>
+
+  <div id="hud">
+    <!-- Header -->
+    <header class="hud-panel glass">
+      <img src="logo.png" alt="TZH" onerror="this.style.display='none'" />
+      <div class="brand">
+        <h1>TZH Badminton</h1>
+        <div class="date">Saturday 28 June 2026</div>
+      </div>
+      <div class="header-spacer"></div>
+      <div class="live"><span class="dot"></span>Live</div>
+      <nav class="nav">
+        <span class="pill">Members</span>
+        <span class="pill active">Leaderboard</span>
+      </nav>
+    </header>
+
+    <div class="stage"></div>
+
+    <!-- Match cards -->
+    <div class="cards" id="cards"></div>
+
+    <!-- Footer -->
+    <footer class="hud-panel">
+      <div class="left">TZH Badminton — Live Court Display</div>
+      <div class="right"><strong>4 courts</strong> · Round 3 · 16 players</div>
+    </footer>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* =========================================================
+   CONTENT MODEL
+   ========================================================= */
+function initials(name){
+  return name.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+}
+var MATCHES = [
+  { court:1, round:3, t1:["Thomas Wong","Mei Lin"],   t2:["David Park","Sarah Chen"] },
+  { court:2, round:3, t1:["Aiden Lee","Priya Nair"],  t2:["Marcus Tan","Yuki Sato"] },
+  { court:3, round:2, t1:["Carlos Diaz","Hannah Kim"],t2:["Leo Zhang","Nina Patel"] },
+  { court:4, round:2, t1:["Ravi Kumar","Sofia Reyes"],t2:["Ben Carter","Grace Lim"] }
+];
+
+function teamHTML(players, alt){
+  var avs = players.map(function(p,i){
+    return '<div class="av'+((alt|| i===1)?' alt':'')+'">'+initials(p)+'</div>';
+  }).join('');
+  var nms = players.map(function(p){ return '<div class="n">'+p+'</div>'; }).join('');
+  return '<div class="team"><div class="avatars">'+avs+'</div><div class="names">'+nms+'</div></div>';
+}
+
+(function renderCards(){
+  var el = document.getElementById('cards');
+  el.innerHTML = MATCHES.map(function(m){
+    return ''+
+    '<div class="card glass">'+
+      '<div class="card-top">'+
+        '<div class="court-id"><span class="court-num">Court '+m.court+' <span>·</span></span>'+
+          '<span class="round-badge">Round '+m.round+'</span></div>'+
+      '</div>'+
+      teamHTML(m.t1, false)+
+      '<div class="vs-row"><span class="vs-line"></span><span class="vs">vs</span><span class="vs-line"></span></div>'+
+      teamHTML(m.t2, true)+
+    '</div>';
+  }).join('');
+})();
+
+/* =========================================================
+   THREE.JS ARENA SCENE
+   ========================================================= */
+(function buildScene(){
+  if(typeof THREE === 'undefined'){
+    console.warn('THREE not available — using CSS backdrop only.');
+    return; // CSS backdrop already visible
+  }
+
+  var reduceMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var canvas = document.getElementById('scene');
+  var renderer, scene, camera;
+
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas: canvas, antialias:true, alpha:true
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  } catch(err){
+    console.warn('WebGL init failed — CSS backdrop fallback active.', err);
+    canvas.style.display = 'none';
+    return;
+  }
+
+  scene = new THREE.Scene();
+  var FOG = 0xeef4fd;
+  scene.background = new THREE.Color(FOG);
+  scene.fog = new THREE.Fog(FOG, 32, 150);
+
+  camera = new THREE.PerspectiveCamera(46, window.innerWidth/window.innerHeight, 0.1, 400);
+
+  var CENTER = new THREE.Vector3(0, 0, 0);
+
+  /* ---- Lights (bright hall + sheen on the dark floor) ---- */
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x9fb3cc, 1.0));
+  var dir = new THREE.DirectionalLight(0xffffff, 0.95);
+  dir.position.set(14, 30, 12);
+  scene.add(dir);
+  var fill = new THREE.DirectionalLight(0xbcd6ff, 0.4);
+  fill.position.set(-16, 14, -10);
+  scene.add(fill);
+
+  var BLUE = 0x0071e3;
+
+  /* ---- Hall floor: dark glossy sports flooring (real venue) ---- */
+  var floor = new THREE.Mesh(new THREE.PlaneGeometry(260, 260),
+    new THREE.MeshStandardMaterial({ color:0x14171d, roughness:0.34, metalness:0.16 }));
+  floor.rotation.x = -Math.PI/2; floor.position.y = -0.03;
+  scene.add(floor);
+
+  /* ---- Green perimeter walkway, with the dark court strip on top
+          (leaves a green band around the playing area, like the hall) ---- */
+  var green = new THREE.Mesh(new THREE.PlaneGeometry(64, 30),
+    new THREE.MeshStandardMaterial({ color:0x2f7d50, roughness:0.85, metalness:0.0 }));
+  green.rotation.x = -Math.PI/2; green.position.set(-2, -0.022, 0);
+  scene.add(green);
+  var strip = new THREE.Mesh(new THREE.PlaneGeometry(58, 24),
+    new THREE.MeshStandardMaterial({ color:0x16191f, roughness:0.33, metalness:0.15 }));
+  strip.rotation.x = -Math.PI/2; strip.position.set(-2, -0.015, 0);
+  scene.add(strip);
+
+  /* ---- faint grid for texture (dark) ---- */
+  var grid = new THREE.GridHelper(180, 90, 0x2b3442, 0x222a36);
+  grid.material.opacity = 0.32; grid.material.transparent = true; grid.position.y = -0.012;
+  scene.add(grid);
+
+  /* ---- Court factory ----
+     Standard-ish proportions (not regulation): length(z) x width(x)
+  */
+  var COURT_L = 13.4;   // along z
+  var COURT_W = 6.1;    // along x
+  var lineMat = new THREE.LineBasicMaterial({ color:0xffffff, transparent:true, opacity:0.96 });  // court lines — white (real venue)
+  var blueLineMat = new THREE.LineBasicMaterial({ color:BLUE, transparent:true, opacity:0.9 });    // blue accent lines (store etc.)
+  var glowMat = new THREE.MeshBasicMaterial({ color:BLUE, transparent:true, opacity:0.22 });        // blue under-glow accent
+
+  function makeRect(w, l, y, mat){
+    var hw=w/2, hl=l/2;
+    var pts = [
+      new THREE.Vector3(-hw,y,-hl), new THREE.Vector3( hw,y,-hl),
+      new THREE.Vector3( hw,y,-hl), new THREE.Vector3( hw,y, hl),
+      new THREE.Vector3( hw,y, hl), new THREE.Vector3(-hw,y, hl),
+      new THREE.Vector3(-hw,y, hl), new THREE.Vector3(-hw,y,-hl)
+    ];
+    var g = new THREE.BufferGeometry().setFromPoints(pts);
+    return new THREE.LineSegments(g, mat || lineMat);
+  }
+  function makeLine(x1,z1,x2,z2,y){
+    var g = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(x1,y,z1), new THREE.Vector3(x2,y,z2)
+    ]);
+    return new THREE.LineSegments(g, lineMat);
+  }
+
+  /* ---- Player profile avatars (billboarded tokens standing inside each court) ----
+     Drop a real photo (data URL or URL) into PLAYER_PHOTOS[name] to swap the initials
+     disc for the player's actual profile picture — clipped into the same circle.       */
+  var PLAYER_PHOTOS = {
+    // "Thomas Wong": "data:image/jpeg;base64,...",   // ← wire live player.photo here
+  };
+  var avatarTexCache = {};
+  function makeAvatarTexture(name){
+    if(avatarTexCache[name]) return avatarTexCache[name];
+    var S = 256;
+    var c = document.createElement('canvas'); c.width = c.height = S;
+    var ctx = c.getContext('2d');
+    var cx = S/2, cy = S/2, r = S/2 - 14;
+    function base(){
+      ctx.clearRect(0,0,S,S);
+      ctx.save();
+      ctx.shadowColor='rgba(0,90,200,.5)'; ctx.shadowBlur=26; ctx.shadowOffsetY=6;
+      var g = ctx.createLinearGradient(40,30,210,230);
+      g.addColorStop(0,'#3a9bff'); g.addColorStop(1,'#005bb5');
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+      ctx.restore();
+    }
+    function ring(){ ctx.lineWidth=14; ctx.strokeStyle='#ffffff';
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.stroke(); }
+    function initialsLayer(){
+      var hl = ctx.createRadialGradient(cx-40,cy-55,10,cx,cy,r);
+      hl.addColorStop(0,'rgba(255,255,255,.32)'); hl.addColorStop(.55,'rgba(255,255,255,0)');
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fillStyle=hl; ctx.fill();
+      ctx.fillStyle='#ffffff';
+      ctx.font='700 112px -apple-system,BlinkMacSystemFont,"SF Pro Display",Helvetica,Arial,sans-serif';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(initials(name), cx, cy+8);
+    }
+    base();
+    var tex = new THREE.CanvasTexture(c);
+    tex.minFilter = THREE.LinearFilter;
+    try{ if(renderer && renderer.capabilities) tex.anisotropy = renderer.capabilities.getMaxAnisotropy(); }catch(e){}
+    var photo = PLAYER_PHOTOS[name];
+    if(photo){
+      var img = new Image();
+      img.onload = function(){
+        base();
+        ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,r-2,0,Math.PI*2); ctx.clip();
+        var s = Math.max((2*r)/img.width, (2*r)/img.height);
+        var dw = img.width*s, dh = img.height*s;
+        ctx.drawImage(img, cx-dw/2, cy-dh/2, dw, dh);
+        ctx.restore();
+        ring(); tex.needsUpdate = true;
+      };
+      img.onerror = function(){ initialsLayer(); ring(); tex.needsUpdate = true; };
+      img.src = photo;
+    } else {
+      initialsLayer(); ring();
+    }
+    avatarTexCache[name] = tex;
+    return tex;
+  }
+  /* glowing blue footprint under each token (reads on the dark court floor) */
+  var _shadowTex;
+  function shadowTexture(){
+    if(_shadowTex) return _shadowTex;
+    var S=128, c=document.createElement('canvas'); c.width=c.height=S;
+    var ctx=c.getContext('2d');
+    var g=ctx.createRadialGradient(S/2,S/2,2,S/2,S/2,S/2);
+    g.addColorStop(0,'rgba(80,160,255,.6)'); g.addColorStop(0.55,'rgba(60,140,255,.18)'); g.addColorStop(1,'rgba(60,140,255,0)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,S,S);
+    _shadowTex = new THREE.CanvasTexture(c);
+    return _shadowTex;
+  }
+  function addPlayerToken(grp, name, x, z){
+    var D = 1.8;                 // world diameter of the avatar
+    var sp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: makeAvatarTexture(name), transparent:true, depthWrite:false, depthTest:true
+    }));
+    sp.scale.set(D, D, 1);
+    sp.position.set(x, 1.35, z);
+    grp.add(sp);
+    var glow = new THREE.Mesh(
+      new THREE.PlaneGeometry(D*1.6, D*1.6),
+      new THREE.MeshBasicMaterial({ map:shadowTexture(), transparent:true, depthWrite:false, blending:THREE.AdditiveBlending })
+    );
+    glow.rotation.x = -Math.PI/2; glow.position.set(x, 0.06, z);
+    grp.add(glow);
+  }
+  /* place a team (1 player → centred, 2 players → left+right) on its half (at depth z) */
+  function placeTeam(grp, players, z){
+    var list = players || [];
+    if(list.length === 1){ addPlayerToken(grp, list[0], 0, z); return; }
+    list.slice(0,2).forEach(function(nm, i){ addPlayerToken(grp, nm, i===0 ? -1.5 : 1.5, z); });
+  }
+
+  function buildCourt(cx, cz, match){
+    var grp = new THREE.Group();
+    grp.position.set(cx, 0, cz);
+    var y = 0.04;
+    var hw=COURT_W/2, hl=COURT_L/2;
+
+    /* dark glossy court surface (real venue) */
+    var surfGeo = new THREE.PlaneGeometry(COURT_W, COURT_L);
+    var surfMat = new THREE.MeshStandardMaterial({
+      color:0x181b22, roughness:0.34, metalness:0.18
+    });
+    var surf = new THREE.Mesh(surfGeo, surfMat);
+    surf.rotation.x = -Math.PI/2;
+    surf.position.y = 0.015;
+    grp.add(surf);
+
+    /* glow halo under court */
+    var halo = new THREE.Mesh(new THREE.PlaneGeometry(COURT_W+1.4, COURT_L+1.4), glowMat);
+    halo.rotation.x = -Math.PI/2;
+    halo.position.y = 0.008;
+    grp.add(halo);
+
+    /* outer boundary */
+    grp.add(makeRect(COURT_W, COURT_L, y));
+    /* inner singles side-lines */
+    grp.add(makeLine(-hw+0.55,-hl,-hw+0.55,hl,y));
+    grp.add(makeLine( hw-0.55,-hl, hw-0.55,hl,y));
+    /* service lines (short of net) */
+    grp.add(makeLine(-hw,-1.95, hw,-1.95,y));
+    grp.add(makeLine(-hw, 1.95, hw, 1.95,y));
+    /* back service / long service line */
+    grp.add(makeLine(-hw,-hl+0.75, hw,-hl+0.75,y));
+    grp.add(makeLine(-hw, hl-0.75, hw, hl-0.75,y));
+    /* center service line (two halves) */
+    grp.add(makeLine(0,-1.95,0,-hl+0.75,y));
+    grp.add(makeLine(0, 1.95,0, hl-0.75,y));
+
+    /* ---- Net at center ---- */
+    var netH = 1.05;
+    var netMat = new THREE.MeshBasicMaterial({
+      color:0xffffff, transparent:true, opacity:0.10, side:THREE.DoubleSide, depthWrite:false
+    });
+    var net = new THREE.Mesh(new THREE.PlaneGeometry(COURT_W, netH), netMat);
+    net.position.set(0, netH/2, 0);
+    grp.add(net);
+    /* net mesh lines */
+    var netLineMat = new THREE.LineBasicMaterial({ color:0x9cc2f2, transparent:true, opacity:0.55 });
+    var npts = [];
+    var cols = 14;
+    for(var i=0;i<=cols;i++){
+      var xx = -hw + (COURT_W*i/cols);
+      npts.push(new THREE.Vector3(xx,0,0), new THREE.Vector3(xx,netH,0));
+    }
+    var rows = 4;
+    for(var r=0;r<=rows;r++){
+      var yy = netH*r/rows;
+      npts.push(new THREE.Vector3(-hw,yy,0), new THREE.Vector3(hw,yy,0));
+    }
+    var netGrid = new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints(npts), netLineMat);
+    grp.add(netGrid);
+    /* bright net tape (top) */
+    var tape = makeLine(-hw,0,hw,0,netH);
+    grp.add(tape);
+    /* net posts */
+    var postMat = new THREE.MeshStandardMaterial({ color:0x0071e3, roughness:0.4, metalness:0.2, emissive:0x0a3a78, emissiveIntensity:0.35 });
+    [-hw,hw].forEach(function(px){
+      var post = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,netH+0.18,12), postMat);
+      post.position.set(px,(netH+0.18)/2,0);
+      grp.add(post);
+    });
+
+    /* ---- Players standing inside the court ----
+       team1 on the near half (−z), team2 on the far half (+z) */
+    if(match){
+      var zHalf = COURT_L * 0.24;          // ~3.2 — mid of each service half
+      placeTeam(grp, match.t1, -zHalf);
+      placeTeam(grp, match.t2,  zHalf);
+    }
+
+    return grp;
+  }
+
+  /* ---- Floating pill label (billboarded): "STORE" / "COURT 1" … ---- */
+  function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+  function makeLabelSprite(text, opts){
+    opts = opts || {};
+    var store = !!opts.store;
+    var fs = store ? 100 : 74;
+    var font = '800 '+fs+'px -apple-system,BlinkMacSystemFont,"SF Pro Display",Helvetica,Arial,sans-serif';
+    var m = document.createElement('canvas').getContext('2d');
+    m.font = font;
+    var tw = m.measureText(text).width;
+    var padX = store ? 70 : 48, padY = store ? 42 : 32, GM = store ? 44 : 26;
+    var W = Math.ceil(tw + padX*2), H = Math.ceil(fs + padY*2);
+    var c = document.createElement('canvas');
+    c.width = W + GM*2; c.height = H + GM*2;
+    var ctx = c.getContext('2d');
+    var ox = c.width/2, oy = c.height/2;
+    if(store){ ctx.save(); ctx.shadowColor='rgba(0,140,255,.95)'; ctx.shadowBlur=48; }
+    roundRect(ctx, GM, GM, W, H, H/2);
+    if(store){
+      var g = ctx.createLinearGradient(0,GM,0,GM+H);
+      g.addColorStop(0,'#1f8bff'); g.addColorStop(1,'#0066cc');
+      ctx.fillStyle = g; ctx.fill(); ctx.restore();
+      ctx.lineWidth=5; ctx.strokeStyle='rgba(255,255,255,.9)'; ctx.stroke();
+      ctx.fillStyle='#ffffff';
+    } else {
+      ctx.fillStyle='rgba(255,255,255,.94)'; ctx.fill();
+      ctx.lineWidth=3; ctx.strokeStyle='rgba(0,113,227,.55)'; ctx.stroke();
+      ctx.fillStyle='#0a4da0';
+    }
+    ctx.font = font; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(text, ox, oy + (store?5:3));
+    var tex = new THREE.CanvasTexture(c);
+    tex.minFilter = THREE.LinearFilter;
+    try{ if(renderer && renderer.capabilities) tex.anisotropy = renderer.capabilities.getMaxAnisotropy(); }catch(e){}
+    var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, transparent:true, depthWrite:false }));
+    var worldH = store ? 1.85 : 1.2;
+    sp.scale.set(worldH * (c.width/c.height), worldH, 1);
+    return sp;
+  }
+
+  /* small unlit double-sided plane helper (store details) */
+  function mkPlane(w, h, color, opacity, x, y, z){
+    var m = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
+      new THREE.MeshBasicMaterial({ color:color, transparent: opacity < 1, opacity:opacity, side:THREE.DoubleSide }));
+    m.position.set(x, y, z);
+    return m;
+  }
+
+  /* ---- Pro-shop "Store" — white kiosk, glowing edges, lit service window, fridge & drinks ---- */
+  function buildStore(cx){
+    var grp = new THREE.Group();
+    grp.position.set(cx, 0, 0);
+    var bw = 5.4, bh = 3.2, bd = 5.4;
+
+    /* floor pad + halo + blue outline (matches the courts' language) */
+    var pad = new THREE.Mesh(new THREE.PlaneGeometry(7.6, 9.6),
+      new THREE.MeshStandardMaterial({ color:0xeef5ff, roughness:0.9, metalness:0, transparent:true, opacity:0.95 }));
+    pad.rotation.x = -Math.PI/2; pad.position.y = 0.015; grp.add(pad);
+    var phalo = new THREE.Mesh(new THREE.PlaneGeometry(9.2, 11.2), glowMat);
+    phalo.rotation.x = -Math.PI/2; phalo.position.y = 0.008; grp.add(phalo);
+    grp.add(makeRect(7.6, 9.6, 0.03, blueLineMat));
+
+    /* building body — white box with glowing blue edges */
+    var body = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd),
+      new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.6, metalness:0.06 }));
+    body.position.y = bh/2 + 0.04; grp.add(body);
+    var edges = new THREE.LineSegments(new THREE.EdgesGeometry(body.geometry),
+      new THREE.LineBasicMaterial({ color:BLUE, transparent:true, opacity:0.95 }));
+    edges.position.copy(body.position); grp.add(edges);
+
+    /* blue roof slab */
+    var roof = new THREE.Mesh(new THREE.BoxGeometry(bw+0.5, 0.22, bd+0.5),
+      new THREE.MeshStandardMaterial({ color:0x0071e3, roughness:0.5, metalness:0.2, emissive:0x0a3a78, emissiveIntensity:0.3 }));
+    roof.position.y = bh + 0.04 + 0.11; grp.add(roof);
+
+    /* awning over the entrance (front = −z, toward the camera) */
+    var awn = new THREE.Mesh(new THREE.BoxGeometry(bw, 0.12, 1.6),
+      new THREE.MeshStandardMaterial({ color:0x0071e3, roughness:0.55, metalness:0.12, emissive:0x0a3a78, emissiveIntensity:0.28 }));
+    awn.position.set(0, bh*0.6, -bd/2 - 0.62); awn.rotation.x = -0.34; grp.add(awn);
+
+    var fz = -bd/2 - 0.02;     // front face (toward camera)
+
+    /* ---- lit service window (counter) with shelves + products ---- */
+    var winW = 3.0, winH = 1.7, winY = 1.62;
+    // (camera is at −z, so more-negative z = closer/front: backing → shelves → products → frame)
+    grp.add(mkPlane(winW, winH, 0xfff1d6, 1, 0, winY, fz));          // warm-lit interior (backing)
+    var shelfMat = new THREE.MeshBasicMaterial({ color:0xcaa86a, transparent:true, opacity:0.85, side:THREE.DoubleSide });
+    [-0.5, 0.18].forEach(function(sy){
+      var shelf = new THREE.Mesh(new THREE.PlaneGeometry(winW, 0.05), shelfMat);
+      shelf.position.set(0, winY+sy, fz-0.004); grp.add(shelf);
+    });
+    var prodCols = [0x0071e3, 0xe5484d, 0xf0b429, 0x2f7d50, 0xffffff, 0x4f97ff];
+    for(var pi=0; pi<7; pi++){
+      var pw = 0.18 + (pi%3)*0.05;
+      grp.add(mkPlane(pw, 0.34, prodCols[pi%prodCols.length], 1,
+        -winW/2 + 0.34 + pi*0.38, winY + ((pi%2) ? 0.2 : -0.32), fz-0.008));
+    }
+    grp.add(new THREE.LineSegments(                                   // blue window frame (frontmost)
+      new THREE.EdgesGeometry(new THREE.PlaneGeometry(winW+0.14, winH+0.14)),
+      new THREE.LineBasicMaterial({ color:BLUE, transparent:true, opacity:0.95 }))
+      .translateY(winY).translateZ(fz-0.012));
+
+    /* ---- glowing drinks fridge beside the kiosk (court-facing) ---- */
+    var fridge = new THREE.Group();
+    fridge.position.set(bw/2 + 1.05, 0, -bd/2 + 0.7);
+    var fbody = new THREE.Mesh(new THREE.BoxGeometry(1.4, 2.7, 0.9),
+      new THREE.MeshStandardMaterial({ color:0xf4f8ff, roughness:0.5, metalness:0.12 }));
+    fbody.position.y = 1.35; fridge.add(fbody);
+    fridge.add(mkPlane(1.1, 2.2, 0x86d8ff, 0.92, 0, 1.45, -0.46));   // glowing glass door
+    [-0.7, -0.1, 0.5].forEach(function(sy){
+      fridge.add(mkPlane(1.1, 0.05, 0xffffff, 0.7, 0, 1.45+sy, -0.455));
+    });
+    fridge.add(new THREE.LineSegments(new THREE.EdgesGeometry(fbody.geometry),
+      new THREE.LineBasicMaterial({ color:BLUE, transparent:true, opacity:0.85 })).translateY(1.35));
+    grp.add(fridge);
+
+    /* ---- stacked drinks (water / cans) next to the fridge ---- */
+    function crate(x, y, z, col){
+      var m = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.5, 0.7),
+        new THREE.MeshStandardMaterial({ color:col, roughness:0.7, metalness:0.05 }));
+      m.position.set(x, y, z); grp.add(m);
+    }
+    var sx = bw/2 + 0.5, sz = bd/2 - 0.5;
+    crate(sx,      0.27, sz, 0x2bb3e0);
+    crate(sx,      0.77, sz, 0xffffff);
+    crate(sx+1.08, 0.27, sz, 0x0071e3);
+
+    /* ---- signage: glowing STORE sign + smaller training sign ---- */
+    var sign = makeLabelSprite('STORE', { store:true });
+    sign.position.set(0, bh + 1.55, fz + 0.22); grp.add(sign);
+    var sub = makeLabelSprite('TZH · BADMINTON TRAINING', {});
+    sub.scale.multiplyScalar(0.6);
+    sub.position.set(0, bh + 0.58, fz + 0.22); grp.add(sub);
+
+    return grp;
+  }
+
+  /* ---- Stage: raised platform (maroon skirt + green carpet) with a backdrop ---- */
+  function buildStage(cx, cz){
+    var g = new THREE.Group(); g.position.set(cx, 0, cz);
+    var W = 9, H = 0.7, D = 4;
+    var body = new THREE.Mesh(new THREE.BoxGeometry(W, H, D),
+      new THREE.MeshStandardMaterial({ color:0x7a1f2b, roughness:0.7, metalness:0.05 }));
+    body.position.y = H/2; g.add(body);
+    g.add(new THREE.LineSegments(new THREE.EdgesGeometry(body.geometry), blueLineMat).translateY(H/2));
+    var carpet = new THREE.Mesh(new THREE.PlaneGeometry(W-0.12, D-0.12),
+      new THREE.MeshStandardMaterial({ color:0x2f7d50, roughness:0.85, side:THREE.DoubleSide }));
+    carpet.rotation.x = -Math.PI/2; carpet.position.y = H + 0.01; g.add(carpet);
+    var back = new THREE.Mesh(new THREE.BoxGeometry(W, 3.0, 0.18),
+      new THREE.MeshStandardMaterial({ color:0x0e2548, roughness:0.5, metalness:0.2, emissive:0x0a2a55, emissiveIntensity:0.28 }));
+    back.position.set(0, H + 1.5, D/2); g.add(back);
+    var step = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.22, 0.6),
+      new THREE.MeshStandardMaterial({ color:0x6a1a25, roughness:0.7 }));
+    step.position.set(0, 0.11, -D/2 - 0.3); g.add(step);
+    var lbl = makeLabelSprite('STAGE', {});
+    lbl.scale.multiplyScalar(1.35);
+    lbl.position.set(0, H + 3.6, 0); g.add(lbl);
+    return g;
+  }
+
+  /* ---- Entrance: a glowing gateway arch ---- */
+  function buildEntrance(cx, cz){
+    var g = new THREE.Group(); g.position.set(cx, 0, cz);
+    var PW = 0.42, PH = 3.4, gap = 3.4;
+    var postMat = new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.6, metalness:0.06 });
+    [-gap/2, gap/2].forEach(function(px){
+      var post = new THREE.Mesh(new THREE.BoxGeometry(PW, PH, PW), postMat);
+      post.position.set(px, PH/2, 0); g.add(post);
+      g.add(new THREE.LineSegments(new THREE.EdgesGeometry(post.geometry), blueLineMat).translateX(px).translateY(PH/2));
+    });
+    var lintel = new THREE.Mesh(new THREE.BoxGeometry(gap + PW*2 + 0.5, 0.5, PW),
+      new THREE.MeshStandardMaterial({ color:0x0071e3, roughness:0.5, metalness:0.2, emissive:0x0a3a78, emissiveIntensity:0.32 }));
+    lintel.position.set(0, PH + 0.1, 0); g.add(lintel);
+    g.add(mkPlane(gap, PH - 0.2, 0x86d8ff, 0.16, 0, PH/2, 0));   // soft glowing threshold
+    var lbl = makeLabelSprite('ENTRANCE', {});
+    lbl.scale.multiplyScalar(1.35);
+    lbl.position.set(0, PH + 1.25, 0); g.add(lbl);
+    return g;
+  }
+
+  /* ---- Toilet: small white block with a door ---- */
+  function buildToilet(cx, cz){
+    var g = new THREE.Group(); g.position.set(cx, 0, cz);
+    var W = 3, H = 2.7, D = 3;
+    var body = new THREE.Mesh(new THREE.BoxGeometry(W, H, D),
+      new THREE.MeshStandardMaterial({ color:0xf4f7fc, roughness:0.6, metalness:0.05 }));
+    body.position.y = H/2; g.add(body);
+    g.add(new THREE.LineSegments(new THREE.EdgesGeometry(body.geometry), blueLineMat).translateY(H/2));
+    var roof = new THREE.Mesh(new THREE.BoxGeometry(W + 0.3, 0.18, D + 0.3),
+      new THREE.MeshStandardMaterial({ color:0x0071e3, roughness:0.5, metalness:0.2, emissive:0x0a3a78, emissiveIntensity:0.25 }));
+    roof.position.y = H + 0.05; g.add(roof);
+    g.add(mkPlane(1.0, 2.0, 0x12243f, 1, 0, 1.0, -D/2 - 0.01));   // door (faces camera)
+    var lbl = makeLabelSprite('TOILET', {});
+    lbl.scale.multiplyScalar(1.35);
+    lbl.position.set(0, H + 1.3, 0); g.add(lbl);
+    return g;
+  }
+
+  /* ---- Lay out a single row:  Store · Court 1 · Court 2 · Court 3 · Court 4 ----
+     The camera frames the row from the front (−z), where world +x renders on the
+     LEFT of screen — so the Store goes to +2·PITCH and the courts descend, giving a
+     left→right read of:  Store · Court 1 · Court 2 · Court 3 · Court 4              */
+  var PITCH = 9.4;
+  // Courts stay exactly as they are (user: "courts are fine")
+  MATCHES.forEach(function(m, i){
+    var x = (1 - i) * PITCH;                       // Court 1 → +9.4 … Court 4 → −18.8
+    scene.add(buildCourt(x, 0, m));
+    var lbl = makeLabelSprite('COURT ' + m.court, {});
+    lbl.position.set(x, 4.7, 0);
+    scene.add(lbl);
+  });
+
+  /* ---- One straight line, left→right:  Stage · Store · Entrance · Court 1–4 · Toilet ----
+     Facilities sit in line with the courts (z = 0); world +x renders on screen-LEFT.   */
+  /* Stage · Store · Entrance treated as ONE cluster, turned to read VERTICALLY from the
+     viewer — stacked along depth (z) at the head of the courts. Each building keeps its
+     original facing (toward the camera); only the cluster's line was rotated.           */
+  var CX = 18;
+  function faceCourts(obj){ obj.rotation.y = Math.PI / 2; scene.add(obj); }  // front → −x, toward the courts
+  faceCourts(buildStage(CX, -7.5));     // Stage — front (nearest viewer / lower on screen)
+  faceCourts(buildStore(CX, 0));        // Store — middle
+  faceCourts(buildEntrance(CX, 6.5));   // Entrance — back (further from viewer / higher on screen)
+  var toilet = buildToilet(-27, -10);   // bottom-right corner, mirroring the Stage's spot on the left
+  toilet.rotation.y = -Math.PI / 2;     // face down the row toward the Stage & courts (front → +x)
+  scene.add(toilet);
+
+  /* ---- floating soft accent rings (premium ambiance) ---- */
+  var ringMat = new THREE.MeshBasicMaterial({ color:BLUE, transparent:true, opacity:0.08, side:THREE.DoubleSide });
+  var ring = new THREE.Mesh(new THREE.RingGeometry(33, 33.3, 120), ringMat);
+  ring.rotation.x = -Math.PI/2; ring.position.set(-2, 0.02, 0);
+  scene.add(ring);
+
+  /* =========================================================
+     RENDER LOOP — manual slow auto-orbit
+     ========================================================= */
+  var R = 45, BASE_H = 28, CENTER_X = -2;  // content: cluster(+24)…Toilet(−27), centre ≈ −2
+  var SWEEP_MAX = 0.4;        // each side of centre
+  var sweep = 0, sweepT = 0;
+  var clock = new THREE.Clock();
+
+  function positionCamera(){
+    // front-of-row camera that gently dollies left↔right so the whole
+    // Store · Court 1–4 line stays framed (no full 360 — the row is wide & shallow)
+    camera.position.set(
+      CENTER_X + Math.sin(sweep) * R,
+      BASE_H + Math.cos(sweep) * 2.0,
+      -Math.cos(sweep) * R
+    );
+    camera.lookAt(CENTER_X, 0.6, 0);
+  }
+
+  function frame(){
+    if(!reduceMotion){
+      sweepT += clock.getDelta();
+      sweep = Math.sin(sweepT * 0.15) * SWEEP_MAX;
+    }
+    positionCamera();
+    renderer.render(scene, camera);
+    if(!reduceMotion) requestAnimationFrame(frame);
+  }
+
+  /* ---- Resize ---- */
+  function onResize(){
+    var w = window.innerWidth, h = window.innerHeight;
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  }
+  window.addEventListener('resize', onResize);
+
+  positionCamera();
+  if(reduceMotion){
+    renderer.render(scene, camera); // freeze: render one frame
+  } else {
+    requestAnimationFrame(frame);
+  }
+})();
+</script>
+</body>
+</html>

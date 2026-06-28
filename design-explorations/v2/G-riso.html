@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TZH · Style G — Riso Zine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --paper:#f0e9d6;          /* warm newsprint */
+    --blue:#243bb0;           /* riso federal blue */
+    --orange:#ff5a1f;         /* riso fluoro orange ~ brand warm */
+    --pink:#ff3f93;           /* riso fluoro pink */
+    --ink:#1b1a24;            /* overprint near-black */
+  }
+  html,body{background:#bdb59f}
+  body{font-family:"Barlow Condensed",sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;
+    display:flex;justify-content:center;min-height:100vh}
+  .mono{font-family:"DM Mono",monospace}
+  .anton{font-family:"Anton",sans-serif;font-weight:400;text-transform:uppercase}
+  .frame{width:430px;max-width:100%;min-height:100vh;position:relative;overflow:hidden;background:var(--paper)}
+  /* paper grain */
+  .frame::before{content:"";position:absolute;inset:0;z-index:8;pointer-events:none;opacity:.5;mix-blend-mode:multiply;
+    background-image:radial-gradient(#0000000d 1px,transparent 1px);background-size:3px 3px}
+  .wrap{position:relative;z-index:3;padding:18px 20px 30px}
+
+  /* print registration marks */
+  .reg{position:absolute;z-index:7;width:18px;height:18px;pointer-events:none;
+    background:
+      linear-gradient(var(--ink),var(--ink)) center/1px 100% no-repeat,
+      linear-gradient(var(--ink),var(--ink)) center/100% 1px no-repeat;
+    border-radius:50%;box-shadow:0 0 0 1px transparent;opacity:.6}
+  .reg.tl{top:8px;left:8px}.reg.tr{top:8px;right:8px}.reg.br{bottom:8px;right:8px}
+  .inkbars{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:7;display:flex;gap:3px}
+  .inkbars i{width:16px;height:7px}
+
+  /* ── masthead ── */
+  .mast{display:flex;align-items:flex-end;gap:12px;border-bottom:4px solid var(--ink);padding-bottom:9px;margin-top:14px}
+  .mast .mk{width:26px;height:54px;-webkit-mask:url(logo.png) center/contain no-repeat;mask:url(logo.png) center/contain no-repeat;background:var(--blue)}
+  .mast .tt{flex:1}
+  .mast .kr{font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.24em;color:var(--blue)}
+  .mast .nm{font-family:"Anton";font-size:30px;line-height:.86;letter-spacing:.005em;color:var(--ink);text-transform:uppercase}
+  .mast .iss{font-family:"DM Mono",monospace;font-size:9.5px;text-align:right;color:#6b6450;line-height:1.5}
+
+  /* ── headline poster ── */
+  .poster{position:relative;margin-top:16px;padding:18px 16px 16px;overflow:hidden;
+    background:var(--blue);color:var(--paper)}
+  .poster .dots{position:absolute;right:-30px;bottom:-30px;width:190px;height:190px;
+    background-image:radial-gradient(var(--orange) 45%,transparent 46%);background-size:13px 13px;
+    mix-blend-mode:screen;opacity:.9;border-radius:50%;
+    -webkit-mask:radial-gradient(circle,#000 55%,transparent 70%);mask:radial-gradient(circle,#000 55%,transparent 70%)}
+  .poster .kr{font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.2em;color:#ffd9a0}
+  .poster h2{font-family:"Anton";font-size:55px;line-height:.82;margin:5px 0 0;letter-spacing:.01em;text-transform:uppercase}
+  .poster h2 em{font-style:normal;color:var(--orange);-webkit-text-stroke:1px var(--paper)}
+  .poster .who{position:relative;z-index:2;margin-top:12px;display:flex;align-items:flex-end;gap:12px}
+  .poster .who .tier{font-family:"Anton";font-size:34px;color:var(--orange);line-height:.9;text-transform:uppercase}
+  .poster .who .meta{font-family:"DM Mono",monospace;font-size:11px;line-height:1.5;color:#e8e2cf}
+  .poster .bar{position:relative;z-index:2;margin-top:14px;height:15px;background:#16259c;border:1.5px solid var(--paper)}
+  .poster .bar i{display:block;height:100%;width:69%;background:var(--orange)}
+  .poster .bar span{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-family:"DM Mono",monospace;font-size:9px;letter-spacing:.04em;color:var(--paper)}
+
+  /* ── section bar ── */
+  .sb{display:flex;align-items:center;gap:10px;margin:24px 0 10px}
+  .sb b{font-family:"Anton";font-size:21px;text-transform:uppercase;letter-spacing:.01em}
+  .sb .ln{flex:1;height:3px;background:var(--ink)}
+  .sb .pg{font-family:"DM Mono",monospace;font-size:10px;color:var(--orange)}
+
+  /* ── table ── */
+  .tbl{border-top:2px solid var(--ink)}
+  .tr{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:10px;
+    padding:6px 2px;border-bottom:1px solid #1b1a2433}
+  .tr .rk{font-family:"Anton";font-size:26px;color:var(--blue);line-height:1;text-align:center}
+  .tr .nm{font-family:"Barlow Condensed";font-weight:700;font-size:24px;text-transform:uppercase;letter-spacing:.01em;display:flex;align-items:center;gap:9px;line-height:1}
+  .tr .nm .tag{font-family:"DM Mono",monospace;font-size:9px;font-weight:500;letter-spacing:.05em;padding:2px 5px;color:var(--paper)}
+  .tr .pt{font-family:"DM Mono",monospace;font-size:15px;font-weight:500;font-variant-numeric:tabular-nums}
+  .tr.me{background:var(--orange);margin:0 -6px;padding:6px 8px;color:var(--ink)}
+  .tr.me .rk{color:var(--ink)}
+  .tr.me .nm::after{content:"YOU";font-family:"DM Mono";font-size:9px;font-weight:500;background:var(--ink);color:var(--orange);padding:2px 5px;margin-left:1px}
+  .g-vip{background:var(--pink)}.g-plat{background:var(--blue)}.g-gold{background:#c9842a}.g-silv{background:#8a8475}
+
+  /* ── tier scale ── */
+  .scale{display:flex;border:2px solid var(--ink)}
+  .sl{flex:1;text-align:center;padding:9px 3px;border-right:1px solid #1b1a2433;position:relative}
+  .sl:last-child{border-right:0}
+  .sl .d{width:14px;height:14px;margin:0 auto 6px;border-radius:50%}
+  .sl b{display:block;font-family:"Barlow Condensed";font-weight:700;font-size:13px;text-transform:uppercase}
+  .sl span{font-family:"DM Mono",monospace;font-size:8px;color:#6b6450;display:block;margin-top:2px}
+  .sl.cur{background:var(--ink)}.sl.cur b{color:var(--orange)}.sl.cur span{color:#cfc8b6}
+
+  /* ── raffle ── */
+  .raffle{position:relative;margin-top:4px;display:flex;background:var(--pink);color:var(--paper)}
+  .raffle .stub{flex:0 0 96px;border-right:3px dashed var(--paper);padding:15px 10px;text-align:center;
+    display:flex;flex-direction:column;justify-content:center}
+  .raffle .stub .n{font-family:"Anton";font-size:46px;line-height:.85}
+  .raffle .stub .l{font-family:"DM Mono",monospace;font-size:9px;letter-spacing:.1em;margin-top:5px}
+  .raffle .body{flex:1;padding:14px 15px}
+  .raffle .body .kr{font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.18em;color:#ffe0ce}
+  .raffle .body h3{font-family:"Anton";font-size:25px;line-height:.9;text-transform:uppercase;margin:3px 0 9px}
+  .raffle .body .pz{font-family:"Barlow Condensed";font-weight:600;font-size:15px;line-height:1.5;text-transform:uppercase}
+  .raffle .body .pz i{font-family:"DM Mono";font-size:9px;font-style:normal;color:#ffe0ce;display:inline-block;width:16px}
+  .raffle .body .cl{font-family:"DM Mono",monospace;font-size:9.5px;color:#ffe0ce;margin-top:10px}
+
+  footer{margin-top:22px;display:flex;justify-content:space-between;font-family:"DM Mono",monospace;
+    font-size:9.5px;letter-spacing:.12em;color:#6b6450;border-top:2px solid var(--ink);padding-top:9px}
+</style>
+</head>
+<body>
+<div class="frame">
+  <span class="reg tl"></span><span class="reg tr"></span><span class="reg br"></span>
+  <div class="inkbars"><i style="background:var(--blue)"></i><i style="background:var(--orange)"></i><i style="background:var(--pink)"></i><i style="background:var(--ink)"></i></div>
+
+  <div class="wrap">
+    <div class="mast">
+      <span class="mk"></span>
+      <div class="tt"><div class="kr">冰城 BADMINTON · IPOH</div><div class="nm">TZH Players</div></div>
+      <div class="iss">No. 06<br>JUN 2026</div>
+    </div>
+
+    <div class="poster">
+      <div class="dots"></div>
+      <div class="kr">YOUR STANDING</div>
+      <h2>Play.<br>Earn.<br><em>Rise.</em></h2>
+      <div class="who">
+        <span class="tier">Gold</span>
+        <span class="meta">DESMOND · No.0047<br>1,240 PTS · RANK 04</span>
+      </div>
+      <div class="bar"><i></i><span>560 → PLATINUM</span></div>
+    </div>
+
+    <div class="sb"><b>The June Table</b><span class="ln"></span><span class="pg">08</span></div>
+    <div class="tbl">
+      <div class="tr"><span class="rk">1</span><span class="nm">Kokyan <span class="tag g-vip">VIP</span></span><span class="pt">2,310</span></div>
+      <div class="tr"><span class="rk">2</span><span class="nm">Thomas <span class="tag g-plat">PLAT</span></span><span class="pt">1,980</span></div>
+      <div class="tr"><span class="rk">3</span><span class="nm">Yit&nbsp;Fung <span class="tag g-gold">GOLD</span></span><span class="pt">1,540</span></div>
+      <div class="tr me"><span class="rk">4</span><span class="nm">Desmond <span class="tag g-gold">GOLD</span></span><span class="pt">1,240</span></div>
+      <div class="tr"><span class="rk">5</span><span class="nm">Celine <span class="tag g-gold">GOLD</span></span><span class="pt">1,080</span></div>
+      <div class="tr"><span class="rk">6</span><span class="nm">Terence <span class="tag g-gold">GOLD</span></span><span class="pt">940</span></div>
+      <div class="tr"><span class="rk">7</span><span class="nm">Sharmin <span class="tag g-silv">SLVR</span></span><span class="pt">620</span></div>
+      <div class="tr"><span class="rk">8</span><span class="nm">Alex <span class="tag g-silv">SLVR</span></span><span class="pt">410</span></div>
+    </div>
+
+    <div class="sb"><b>Tiers</b><span class="ln"></span><span class="pg">↑</span></div>
+    <div class="scale">
+      <div class="sl"><span class="d" style="background:#8a8475"></span><b>Visit</b><span>OPEN</span></div>
+      <div class="sl"><span class="d" style="background:#c9842a"></span><b>Bronze</b><span>50</span></div>
+      <div class="sl"><span class="d" style="background:#b9b3a0"></span><b>Silver</b><span>300</span></div>
+      <div class="sl cur"><span class="d" style="background:var(--orange)"></span><b>Gold</b><span>900</span></div>
+      <div class="sl"><span class="d" style="background:var(--blue)"></span><b>Plat</b><span>1800</span></div>
+      <div class="sl"><span class="d" style="background:var(--pink)"></span><b>VIP</b><span>INVITE</span></div>
+    </div>
+
+    <div class="sb"><b>June Draw</b><span class="ln"></span><span class="pg">★</span></div>
+    <div class="raffle">
+      <div class="stub"><div class="n">14</div><div class="l">TOKENS</div></div>
+      <div class="body">
+        <div class="kr">MONTHLY PRIZE BALLOT</div>
+        <h3>Win the<br>pot</h3>
+        <div class="pz"><i>1</i>RM150 PRO-SHOP CREDIT<br><i>2</i>YONEX RESTRING × 3<br><i>3</i>1-MONTH COURT PASS</div>
+        <div class="cl">84 ENTERED · CLOSES 30 JUN · DRAWN ON COURT</div>
+      </div>
+    </div>
+
+    <footer><span>TZH BADMINTON</span><span>MEMBERS ONLY · EST. 2026</span></footer>
+  </div>
+</div>
+</body>
+</html>

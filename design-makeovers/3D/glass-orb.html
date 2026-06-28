@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TZH Badminton — Liquid Glass</title>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  :root{
+    --blue:#0071e3; --blue-2:#0066cc; --blue-dark:#005bb5;
+    --blue-tint:rgba(0,113,227,.16); --blue-line:rgba(0,113,227,.42);
+    --bg:#eef4fd; --bg-2:#e8f0fb; --card:#ffffff; --card-2:#e2ecfa;
+    --ink:#1d1d1f; --ink-2:#5c6470; --ink-3:#5f6b7a; --line:#d4e2f5;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 700px at 70% -10%, #ffffff 0%, rgba(255,255,255,0) 60%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* ---------- WebGL canvas backdrop ---------- */
+  #scene{
+    position:fixed; inset:0; width:100%; height:100%;
+    display:block; z-index:0;
+  }
+  /* CSS fallback backdrop (visible if WebGL fails or behind transparent canvas) */
+  #backdrop{
+    position:fixed; inset:0; z-index:-1;
+    background:
+      radial-gradient(900px 520px at 28% 18%, rgba(0,113,227,.10), rgba(0,113,227,0) 60%),
+      radial-gradient(1000px 600px at 80% 88%, rgba(0,102,204,.10), rgba(0,102,204,0) 62%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+  }
+
+  /* ---------- HUD overlay ---------- */
+  #hud{
+    position:fixed; inset:0; z-index:10;
+    display:flex; flex-direction:column;
+    padding:26px clamp(24px,3.4vw,56px) 22px;
+    pointer-events:none; /* let drags pass to scene; panels re-enable */
+  }
+  .hud-panel{ pointer-events:auto; }
+
+  /* glass surface */
+  .glass{
+    background:linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.66));
+    border:1px solid rgba(255,255,255,.85);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.9) inset,
+      0 18px 50px -22px rgba(20,52,99,.45),
+      0 2px 10px -4px rgba(20,52,99,.22);
+    -webkit-backdrop-filter:saturate(1.5) blur(18px);
+    backdrop-filter:saturate(1.5) blur(18px);
+  }
+
+  /* ===== Header ===== */
+  header{
+    display:flex; align-items:center; gap:18px;
+    padding:12px 18px; border-radius:18px;
+  }
+  header img{ height:46px; width:auto; display:block; }
+  .brand{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .brand h1{
+    font-size:19px; font-weight:650; letter-spacing:-.02em; color:var(--ink);
+    line-height:1;
+  }
+  .brand .date{ font-size:12.5px; color:var(--ink-2); font-weight:480; letter-spacing:.01em; }
+  .header-spacer{ flex:1 1 auto; }
+
+  .live{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:7px 13px 7px 11px; border-radius:999px;
+    background:var(--blue-tint); border:1px solid var(--blue-line);
+    font-size:12px; font-weight:600; color:var(--blue-dark); letter-spacing:.04em;
+    text-transform:uppercase;
+  }
+  .live .dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--blue);
+    box-shadow:0 0 0 0 rgba(0,113,227,.55);
+    animation:pulse 1.8s ease-out infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(0,113,227,.55); }
+    70%{ box-shadow:0 0 0 9px rgba(0,113,227,0); }
+    100%{ box-shadow:0 0 0 0 rgba(0,113,227,0); }
+  }
+  .nav{ display:flex; gap:9px; }
+  .pill{
+    padding:8px 16px; border-radius:999px;
+    font-size:13px; font-weight:550; color:var(--ink-2);
+    background:rgba(255,255,255,.6);
+    border:1px solid var(--line);
+    transition:.18s ease;
+  }
+  .pill:hover{ color:var(--blue-dark); border-color:var(--blue-line); background:var(--blue-tint); }
+  .pill.active{ color:#fff; background:linear-gradient(180deg,var(--blue),var(--blue-2)); border-color:transparent; box-shadow:0 6px 16px -6px rgba(0,113,227,.6); }
+
+  /* ===== Center stage spacer ===== */
+  .stage{ flex:1 1 auto; min-height:0; }
+
+  /* ===== Match cards (bottom strip) ===== */
+  .cards{
+    pointer-events:none;
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:16px;
+  }
+  .card{
+    pointer-events:auto;
+    border-radius:18px; padding:15px 16px 14px;
+    display:flex; flex-direction:column; gap:12px;
+    position:relative; overflow:hidden;
+  }
+  .card::before{ /* top accent hairline */
+    content:""; position:absolute; left:16px; right:16px; top:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--blue-line), transparent);
+  }
+  .card-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .court-id{ display:flex; align-items:center; gap:8px; }
+  .court-num{
+    font-size:13px; font-weight:680; letter-spacing:-.01em; color:var(--ink);
+  }
+  .court-num span{ color:var(--ink-3); font-weight:520; }
+  .round-badge{
+    font-size:10.5px; font-weight:650; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--blue-dark);
+    padding:4px 9px; border-radius:999px;
+    background:var(--blue-tint); border:1px solid var(--blue-line);
+  }
+
+  .team{ display:flex; align-items:center; gap:10px; }
+  .avatars{ display:flex; }
+  .avatars .av:nth-child(2){ margin-left:-9px; }
+  .av{
+    width:32px; height:32px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:670; letter-spacing:.01em; color:#fff;
+    background:linear-gradient(155deg, var(--blue) 0%, var(--blue-dark) 100%);
+    border:2px solid #fff;
+    box-shadow:0 3px 8px -3px rgba(0,113,227,.55);
+    flex:0 0 auto;
+  }
+  .av.alt{ background:linear-gradient(155deg, #4a9bf0 0%, var(--blue-2) 100%); }
+  .names{ display:flex; flex-direction:column; gap:1px; min-width:0; line-height:1.18; }
+  .names .n{ font-size:12.5px; font-weight:560; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .vs-row{ display:flex; align-items:center; gap:10px; }
+  .vs-line{ flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--line),transparent); }
+  .vs{
+    font-size:10.5px; font-weight:700; letter-spacing:.12em; color:var(--blue);
+    text-transform:uppercase;
+  }
+
+  /* ===== Footer ===== */
+  footer{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:16px;
+    font-size:12px; color:var(--ink-2); letter-spacing:.01em;
+    padding:0 4px;
+  }
+  footer .right{ color:var(--ink-3); font-weight:520; }
+  footer strong{ color:var(--ink); font-weight:600; }
+
+  @media (max-width:1080px){
+    .cards{ grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width:620px){
+    .cards{ grid-template-columns:1fr; }
+    .nav{ display:none; }
+  }
+</style>
+</head>
+<body>
+  <div id="backdrop"></div>
+  <canvas id="scene"></canvas>
+
+  <div id="hud">
+    <!-- Header -->
+    <header class="hud-panel glass">
+      <img src="logo.png" alt="TZH" onerror="this.style.display='none'" />
+      <div class="brand">
+        <h1>TZH Badminton</h1>
+        <div class="date">Saturday 28 June 2026</div>
+      </div>
+      <div class="header-spacer"></div>
+      <div class="live"><span class="dot"></span>Live</div>
+      <nav class="nav">
+        <span class="pill">Members</span>
+        <span class="pill active">Leaderboard</span>
+      </nav>
+    </header>
+
+    <div class="stage"></div>
+
+    <!-- Match cards -->
+    <div class="cards" id="cards"></div>
+
+    <!-- Footer -->
+    <footer class="hud-panel">
+      <div class="left">TZH Badminton — Live Court Display</div>
+      <div class="right"><strong>4 courts</strong> · Round 3 · 16 players</div>
+    </footer>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* =========================================================
+   CONTENT MODEL
+   ========================================================= */
+function initials(name){
+  return name.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+}
+var MATCHES = [
+  { court:1, round:3, t1:["Thomas Wong","Mei Lin"],   t2:["David Park","Sarah Chen"] },
+  { court:2, round:3, t1:["Aiden Lee","Priya Nair"],  t2:["Marcus Tan","Yuki Sato"] },
+  { court:3, round:2, t1:["Carlos Diaz","Hannah Kim"],t2:["Leo Zhang","Nina Patel"] },
+  { court:4, round:2, t1:["Ravi Kumar","Sofia Reyes"],t2:["Ben Carter","Grace Lim"] }
+];
+
+function teamHTML(players, alt){
+  var avs = players.map(function(p,i){
+    return '<div class="av'+((alt|| i===1)?' alt':'')+'">'+initials(p)+'</div>';
+  }).join('');
+  var nms = players.map(function(p){ return '<div class="n">'+p+'</div>'; }).join('');
+  return '<div class="team"><div class="avatars">'+avs+'</div><div class="names">'+nms+'</div></div>';
+}
+
+(function renderCards(){
+  var el = document.getElementById('cards');
+  el.innerHTML = MATCHES.map(function(m){
+    return ''+
+    '<div class="card glass">'+
+      '<div class="card-top">'+
+        '<div class="court-id"><span class="court-num">Court '+m.court+' <span>·</span></span>'+
+          '<span class="round-badge">Round '+m.round+'</span></div>'+
+      '</div>'+
+      teamHTML(m.t1, false)+
+      '<div class="vs-row"><span class="vs-line"></span><span class="vs">vs</span><span class="vs-line"></span></div>'+
+      teamHTML(m.t2, true)+
+    '</div>';
+  }).join('');
+})();
+
+/* =========================================================
+   THREE.JS — LIQUID GLASS ORB SCENE
+   A morphing glass blob that reflects/refracts a soft blue
+   studio populated by 4 slowly-orbiting frosted court panels.
+   The CubeCamera at the orb centre gives genuine glass
+   (envMap reflection/refraction is reliable in r128).
+   ========================================================= */
+(function buildScene(){
+  if(typeof THREE === 'undefined'){
+    console.warn('THREE not available — using CSS backdrop only.');
+    return; // CSS backdrop already visible
+  }
+
+  var reduceMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var canvas = document.getElementById('scene');
+  var renderer, scene, camera;
+
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas: canvas, antialias:true, alpha:true
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    if('outputEncoding' in renderer) renderer.outputEncoding = THREE.sRGBEncoding;
+  } catch(err){
+    console.warn('WebGL init failed — CSS backdrop fallback active.', err);
+    canvas.style.display = 'none';
+    return;
+  }
+
+  scene = new THREE.Scene();
+  /* Soft very-light blue → white studio with gentle fog */
+  var FOG = 0xeaf3ff;
+  scene.background = new THREE.Color(FOG);
+  scene.fog = new THREE.Fog(FOG, 18, 60);
+
+  camera = new THREE.PerspectiveCamera(42, window.innerWidth/window.innerHeight, 0.1, 400);
+
+  var CENTER = new THREE.Vector3(0, 0, 0);
+  var BLUE = 0x0071e3;
+
+  /* =====================================================
+     LIGHTING — bright, clean studio so the glass sparkles
+     ===================================================== */
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xd6e6ff, 1.15));
+  var key = new THREE.DirectionalLight(0xffffff, 0.9);
+  key.position.set(10, 16, 14);
+  scene.add(key);
+  var fill = new THREE.DirectionalLight(0xbcd6ff, 0.4);
+  fill.position.set(-14, 8, -10);
+  scene.add(fill);
+  /* soft blue point accents add colour for the glass to grab */
+  var pA = new THREE.PointLight(0x4f97ff, 0.7, 60); pA.position.set(-9, 4, 7);  scene.add(pA);
+  var pB = new THREE.PointLight(0x0071e3, 0.55, 60); pB.position.set(8, -3, -6); scene.add(pB);
+
+  /* =====================================================
+     SURROUNDINGS — a gradient sky dome + soft blue blobs
+     give the glass a rich environment to bend.
+     ===================================================== */
+  var dome = new THREE.Mesh(
+    new THREE.SphereGeometry(80, 32, 32),
+    new THREE.ShaderMaterial({
+      side: THREE.BackSide, fog:false, depthWrite:false,
+      uniforms:{
+        topCol:{ value:new THREE.Color(0xf6fbff) },
+        midCol:{ value:new THREE.Color(0xdcecff) },
+        botCol:{ value:new THREE.Color(0xc4ddff) }
+      },
+      vertexShader:[
+        'varying vec3 vP;',
+        'void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }'
+      ].join('\n'),
+      fragmentShader:[
+        'varying vec3 vP;',
+        'uniform vec3 topCol; uniform vec3 midCol; uniform vec3 botCol;',
+        'void main(){',
+        '  float h = normalize(vP).y * 0.5 + 0.5;',
+        '  vec3 c = mix(botCol, midCol, smoothstep(0.0,0.55,h));',
+        '  c = mix(c, topCol, smoothstep(0.5,1.0,h));',
+        '  gl_FragColor = vec4(c,1.0);',
+        '}'
+      ].join('\n')
+    })
+  );
+  scene.add(dome);
+
+  /* soft blue ambiance blobs (give reflections something to catch) */
+  var blobMat = new THREE.MeshBasicMaterial({ color:0x4f97ff, transparent:true, opacity:0.20, fog:false });
+  var ambBlobs = [];
+  [[ -14, 6, -8, 5.5 ], [ 13, -5, -10, 6.5 ], [ 6, 11, -14, 4.5 ], [ -8, -9, 8, 4.0 ]].forEach(function(b){
+    var m = new THREE.Mesh(new THREE.SphereGeometry(b[3], 20, 20), blobMat.clone());
+    m.position.set(b[0], b[1], b[2]);
+    scene.add(m); ambBlobs.push(m);
+  });
+
+  /* =====================================================
+     ORBITING FROSTED COURT PANELS — one per match.
+     Each is a plane with a CanvasTexture drawn live.
+     They orbit the blob and are what the glass reflects.
+     ===================================================== */
+  function makePanelTexture(m){
+    var W = 512, H = 320;
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    var g = cv.getContext('2d');
+
+    /* frosted light card */
+    var bg = g.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0, 'rgba(255,255,255,0.97)');
+    bg.addColorStop(1, 'rgba(232,242,255,0.95)');
+    g.fillStyle = bg;
+    roundRect(g, 8, 8, W-16, H-16, 30); g.fill();
+
+    /* border */
+    g.lineWidth = 3; g.strokeStyle = 'rgba(0,113,227,0.35)';
+    roundRect(g, 8, 8, W-16, H-16, 30); g.stroke();
+
+    /* top accent hairline */
+    var hl = g.createLinearGradient(60,0,W-60,0);
+    hl.addColorStop(0,'rgba(0,113,227,0)');
+    hl.addColorStop(0.5,'rgba(0,113,227,0.55)');
+    hl.addColorStop(1,'rgba(0,113,227,0)');
+    g.fillStyle = hl; g.fillRect(60, 20, W-120, 4);
+
+    /* Court N  +  Round X badge */
+    g.fillStyle = '#1d1d1f';
+    g.font = '700 40px -apple-system, "SF Pro Display", Helvetica, Arial, sans-serif';
+    g.textBaseline = 'middle';
+    g.fillText('Court ' + m.court, 44, 70);
+
+    var badge = 'ROUND ' + m.round;
+    g.font = '700 22px -apple-system, "SF Pro Text", Helvetica, Arial, sans-serif';
+    var bw = g.measureText(badge).width + 36;
+    g.fillStyle = 'rgba(0,113,227,0.14)';
+    roundRect(g, W-44-bw, 50, bw, 40, 20); g.fill();
+    g.fillStyle = '#005bb5';
+    g.fillText(badge, W-44-bw+18, 71);
+
+    /* team rows */
+    drawTeam(g, m.t1, 150, '#0071e3');
+    /* vs divider */
+    g.strokeStyle = 'rgba(0,113,227,0.30)'; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(44, 205); g.lineTo(W-44, 205); g.stroke();
+    g.fillStyle = '#0071e3';
+    g.font = '700 20px -apple-system, Helvetica, Arial, sans-serif';
+    g.textAlign = 'center';
+    g.fillStyle = '#eaf3ff'; roundRect(g, W/2-30, 188, 60, 34, 17); g.fill();
+    g.fillStyle = '#0071e3'; g.fillText('VS', W/2, 206);
+    g.textAlign = 'left';
+    drawTeam(g, m.t2, 258, '#4f97ff');
+
+    var tex = new THREE.CanvasTexture(cv);
+    if('encoding' in tex) tex.encoding = THREE.sRGBEncoding;
+    tex.anisotropy = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 1;
+    return tex;
+  }
+  function drawTeam(g, players, y, accent){
+    /* two avatar chips + names */
+    var x = 44;
+    players.forEach(function(p, i){
+      var cx = x + 22 + i*30;  // slight overlap
+      g.beginPath(); g.arc(cx, y, 22, 0, Math.PI*2);
+      g.fillStyle = i===1 ? '#4f97ff' : accent; g.fill();
+      g.lineWidth = 3; g.strokeStyle = '#ffffff'; g.stroke();
+      g.fillStyle = '#ffffff';
+      g.font = '700 18px -apple-system, Helvetica, Arial, sans-serif';
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(initials(p), cx, y+1);
+      g.textAlign = 'left';
+    });
+    g.fillStyle = '#1d1d1f';
+    g.font = '560 22px -apple-system, "SF Pro Text", Helvetica, Arial, sans-serif';
+    g.textBaseline = 'middle';
+    g.fillText(players[0] + '  /  ' + players[1], 44 + 22 + 30 + 28, y);
+  }
+  function roundRect(g, x, y, w, h, r){
+    g.beginPath();
+    g.moveTo(x+r, y);
+    g.arcTo(x+w, y,   x+w, y+h, r);
+    g.arcTo(x+w, y+h, x,   y+h, r);
+    g.arcTo(x,   y+h, x,   y,   r);
+    g.arcTo(x,   y,   x+w, y,   r);
+    g.closePath();
+  }
+
+  var ORBIT_R = 9.2;
+  var panels = [];
+  MATCHES.forEach(function(m, i){
+    var tex = makePanelTexture(m);
+    var mat = new THREE.MeshStandardMaterial({
+      map: tex, transparent:true, opacity:0.9,
+      roughness:0.55, metalness:0.0,
+      side: THREE.DoubleSide,
+      emissive:0x0a2c5c, emissiveIntensity:0.06,
+      depthWrite:true
+    });
+    var mesh = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 2.75), mat);
+    mesh.userData.baseAngle = (i / MATCHES.length) * Math.PI * 2;
+    mesh.userData.yOff = (i % 2 === 0) ? 1.6 : -1.6;
+    scene.add(mesh);
+    panels.push(mesh);
+  });
+
+  function layoutPanels(t){
+    panels.forEach(function(p){
+      var a = p.userData.baseAngle + t * 0.12;
+      var x = Math.cos(a) * ORBIT_R;
+      var z = Math.sin(a) * ORBIT_R;
+      var y = p.userData.yOff + Math.sin(t * 0.5 + p.userData.baseAngle) * 0.4;
+      p.position.set(x, y, z);
+      p.lookAt(CENTER);        // always face the orb (and roughly the camera as it orbits)
+    });
+  }
+
+  /* =====================================================
+     THE GLASS BLOB
+     High-detail icosahedron, displaced along normals each
+     frame by layered sine "noise" → slow liquid wobble.
+     ===================================================== */
+  var ORB_R = 3.4;
+  var DETAIL = 5;                                   // ~5k verts, smooth + cheap enough
+  var blobGeo = new THREE.IcosahedronGeometry(ORB_R, DETAIL);
+  var posAttr = blobGeo.attributes.position;
+  var vCount = posAttr.count;
+
+  /* cache the original unit directions (normals on a sphere) */
+  var baseDir = new Float32Array(vCount * 3);
+  for(var vi = 0; vi < vCount; vi++){
+    var bx = posAttr.getX(vi), by = posAttr.getY(vi), bz = posAttr.getZ(vi);
+    var len = Math.sqrt(bx*bx + by*by + bz*bz) || 1;
+    baseDir[vi*3]   = bx/len;
+    baseDir[vi*3+1] = by/len;
+    baseDir[vi*3+2] = bz/len;
+  }
+
+  /* layered-sine pseudo-noise → smooth, seamless, no deps */
+  function noise3(x, y, z, t){
+    var n = 0.0;
+    n += Math.sin(x * 1.5 + t * 0.9) * Math.cos(y * 1.3 - t * 0.7);
+    n += Math.sin(y * 2.1 - t * 0.6) * Math.cos(z * 1.7 + t * 0.5) * 0.6;
+    n += Math.sin(z * 2.6 + t * 0.8) * Math.cos(x * 2.0 + t * 0.4) * 0.4;
+    return n / 2.0; // ~[-1,1]
+  }
+
+  function displaceBlob(t){
+    for(var i = 0; i < vCount; i++){
+      var dx = baseDir[i*3], dy = baseDir[i*3+1], dz = baseDir[i*3+2];
+      var amp = 0.55 * noise3(dx*1.6, dy*1.6, dz*1.6, t)   // big slow swells
+              + 0.18 * noise3(dx*3.4, dy*3.4, dz*3.4, t*1.3); // finer ripples
+      var r = ORB_R + amp;                                  // modest → stays a rounded blob
+      posAttr.setXYZ(i, dx*r, dy*r, dz*r);
+    }
+    posAttr.needsUpdate = true;
+    blobGeo.computeVertexNormals();
+  }
+  displaceBlob(0); // initial shape before first cube capture
+
+  /* CubeCamera → reflective/refractive envMap (genuine glass in r128) */
+  var cubeRT = new THREE.WebGLCubeRenderTarget(256, {
+    format: THREE.RGBAFormat,
+    generateMipmaps: true,
+    minFilter: THREE.LinearMipmapLinearFilter
+  });
+  if('encoding' in cubeRT.texture) cubeRT.texture.encoding = THREE.sRGBEncoding;
+  var cubeCam = new THREE.CubeCamera(0.1, 200, cubeRT);
+  cubeCam.position.copy(CENTER);
+  scene.add(cubeCam);
+
+  var glassMat = new THREE.MeshPhysicalMaterial({
+    color: 0xeaf4ff,
+    metalness: 0.0,
+    roughness: 0.04,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.05,
+    envMap: cubeRT.texture,
+    envMapIntensity: 1.4,
+    transparent: true,
+    opacity: 0.9,
+    reflectivity: 1.0,
+    side: THREE.FrontSide
+  });
+  /* transmission is present in r128 but won't screen-space refract reliably;
+     keep a small amount — the envMap does the visible refraction work. */
+  if('transmission' in glassMat) glassMat.transmission = 0.25;
+  if('ior' in glassMat) glassMat.ior = 1.45;
+
+  var blob = new THREE.Mesh(blobGeo, glassMat);
+  scene.add(blob);
+
+  /* Fresnel rim — a slightly larger additive shell that glows at edges */
+  var rimMat = new THREE.ShaderMaterial({
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    side: THREE.FrontSide,
+    depthWrite: false,
+    fog: false,
+    uniforms:{ rimCol:{ value:new THREE.Color(0x4f97ff) }, power:{ value:3.0 }, strength:{ value:0.9 } },
+    vertexShader:[
+      'varying vec3 vN; varying vec3 vV;',
+      'void main(){',
+      '  vec4 wp = modelMatrix * vec4(position,1.0);',
+      '  vN = normalize(mat3(modelMatrix) * normal);',
+      '  vV = normalize(cameraPosition - wp.xyz);',
+      '  gl_Position = projectionMatrix * viewMatrix * wp;',
+      '}'
+    ].join('\n'),
+    fragmentShader:[
+      'varying vec3 vN; varying vec3 vV;',
+      'uniform vec3 rimCol; uniform float power; uniform float strength;',
+      'void main(){',
+      '  float f = pow(1.0 - max(dot(normalize(vN), normalize(vV)), 0.0), power);',
+      '  gl_FragColor = vec4(rimCol * f * strength, f);',
+      '}'
+    ].join('\n')
+  });
+  var rim = new THREE.Mesh(blobGeo, rimMat); // shares the morphing geometry
+  rim.scale.setScalar(1.035);
+  scene.add(rim);
+
+  /* tiny inner core glint for depth */
+  var core = new THREE.Mesh(
+    new THREE.SphereGeometry(ORB_R*0.45, 24, 24),
+    new THREE.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.12, blending:THREE.AdditiveBlending, depthWrite:false, fog:false })
+  );
+  scene.add(core);
+
+  /* =====================================================
+     CUBE CAPTURE — hide the orb, render the cube, show it
+     ===================================================== */
+  function captureCube(){
+    blob.visible = false;
+    rim.visible = false;
+    core.visible = false;
+    cubeCam.update(renderer, scene);
+    blob.visible = true;
+    rim.visible = true;
+    core.visible = true;
+  }
+
+  /* =====================================================
+     RENDER LOOP — gentle camera parallax orbit
+     ===================================================== */
+  var angle = Math.PI * 0.15;
+  var RADIUS = 13.5;
+  var BASE_H = 1.2;
+  var clock = new THREE.Clock();
+  var elapsed = 0;
+  var frameCount = 0;
+
+  function positionCamera(){
+    camera.position.set(
+      Math.cos(angle) * RADIUS,
+      BASE_H + Math.sin(angle * 0.7) * 1.4,
+      Math.sin(angle) * RADIUS
+    );
+    camera.lookAt(CENTER);
+  }
+
+  function frame(){
+    var dt = clock.getDelta();
+    elapsed += dt;
+    if(!reduceMotion){
+      angle += dt * 0.10;            // slow cinematic orbit
+      displaceBlob(elapsed * 0.6);    // liquid wobble
+      layoutPanels(elapsed);          // panels drift around the orb
+    }
+    positionCamera();
+
+    /* refresh env every 2nd frame (perf) — orb visibly bends the blue scene */
+    if(frameCount % 2 === 0) captureCube();
+    frameCount++;
+
+    renderer.render(scene, camera);
+    if(!reduceMotion) requestAnimationFrame(frame);
+  }
+
+  /* ---- Resize ---- */
+  function onResize(){
+    var w = window.innerWidth, h = window.innerHeight;
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  }
+  window.addEventListener('resize', onResize);
+
+  /* ---- Boot ---- */
+  layoutPanels(0);
+  positionCamera();
+  if(reduceMotion){
+    captureCube();                 // capture the cube once
+    renderer.render(scene, camera); // freeze: render one frame
+  } else {
+    requestAnimationFrame(frame);
+  }
+})();
+</script>
+</body>
+</html>

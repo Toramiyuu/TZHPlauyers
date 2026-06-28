@@ -253,9 +253,64 @@
       .map(function (r, i) { return Object.assign({}, r, { rank: i + 1 }); });
   }
 
+  // ── Social game sign-ups (2026-06-28) — public join flow ───────────────
+  // Pure validators shared by the browser modal and the server endpoint, so
+  // both reject the same bad input. enabledDays = array of weekday names that
+  // are currently open for sign-up (e.g. ['Friday','Sunday','Monday']).
+
+  /**
+   * Validate a prospective player's sign-up. Returns {ok, error}; error is a
+   * user-facing string ('' when ok). First failing rule wins.
+   * @param {{name?:string, phone?:string, days?:string[]}} input
+   * @param {string[]} enabledDays  weekday names currently open
+   */
+  function validateSignup(input, enabledDays) {
+    input = input || {};
+    const name = String(input.name == null ? '' : input.name).trim();
+    const phone = String(input.phone == null ? '' : input.phone).trim();
+    const days = input.days;
+    const allowed = new Set(enabledDays || []);
+    if (!name) return { ok: false, error: 'Please enter your name.' };
+    if (name.length > 80) return { ok: false, error: 'Name is too long.' };
+    if (!phone) return { ok: false, error: 'Please enter your phone number.' };
+    if (!/\d/.test(phone)) return { ok: false, error: 'Please enter a valid phone number.' };
+    if (!Array.isArray(days) || days.length === 0) return { ok: false, error: 'Please pick at least one game day.' };
+    for (let i = 0; i < days.length; i++) {
+      if (!allowed.has(days[i])) return { ok: false, error: 'Please pick a valid game day.' };
+    }
+    return { ok: true, error: '' };
+  }
+
+  /** Count sign-ups still awaiting review (the admin tab badge). Non-array -> 0. */
+  function unhandledCount(signups) {
+    if (!Array.isArray(signups)) return 0;
+    let n = 0;
+    for (let i = 0; i < signups.length; i++) { if (!signups[i] || !signups[i].handled) n++; }
+    return n;
+  }
+
+  /**
+   * Human "x ago" label. `now` is injected (never reads the clock) so the
+   * browser passes its synced server time. Bands: <45s just now, <60m Nm,
+   * <24h Nh, else Nd. Non-finite inputs -> ''.
+   */
+  function timeAgo(at, now) {
+    const a = Number(at), n = Number(now);
+    if (!Number.isFinite(a) || !Number.isFinite(n)) return '';
+    let diff = n - a;
+    if (diff < 0) diff = 0;
+    if (diff / 1000 < 45) return 'just now';
+    const m = diff / 60000;
+    if (m < 60) return Math.round(m) + 'm ago';
+    const h = diff / 3600000;
+    if (h < 24) return Math.round(h) + 'h ago';
+    return Math.round(diff / 86400000) + 'd ago';
+  }
+
   return {
     drawTokens, drawLeftover, tokensRemaining, spinOutcome, parseDrawCsv, buildBallot, pickWinnerIndex,
     ordinal, withTokens, carryOverParticipants, matchParticipant, participantKey, mergeParticipants,
     nextMonthKey, monthLabel, reindexRanks,
+    validateSignup, unhandledCount, timeAgo,
   };
 });

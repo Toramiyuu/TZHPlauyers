@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TZH Badminton · 3D Makeovers</title>
+<link rel="icon" type="image/png" href="logo.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --blue:#0071e3; --blue-2:#0066cc; --blue-dark:#005bb5;
+    --blue-tint:rgba(0,113,227,.16); --blue-line:rgba(0,113,227,.42);
+    --bg:#eef4fd; --bg-2:#e8f0fb; --card:#ffffff; --card-2:#e2ecfa;
+    --ink:#1d1d1f; --ink-2:#5c6470; --ink-3:#5f6b7a; --line:#d4e2f5;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased;letter-spacing:-.01em;line-height:1.5}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(1100px 600px at 12% -8%, rgba(0,113,227,.16), transparent 60%),
+      radial-gradient(1000px 700px at 108% 0%, rgba(79,151,255,.14), transparent 55%),
+      linear-gradient(180deg,#eef4fd 0%,#e6eefb 100%);
+    padding:clamp(28px,5vw,72px) clamp(20px,5vw,72px) clamp(48px,6vw,96px);
+  }
+  /* ── hero ── */
+  .hero{max-width:1180px;margin:0 auto clamp(30px,3.4vw,48px);display:flex;flex-direction:column;gap:18px}
+  .hero-top{display:flex;align-items:center;gap:14px}
+  .hero-top img{height:46px;width:auto;display:block;filter:drop-shadow(0 6px 18px rgba(0,113,227,.18))}
+  .badge{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--blue-2);
+    background:rgba(255,255,255,.7);border:1px solid var(--blue-line);padding:7px 14px;border-radius:980px;
+    backdrop-filter:blur(10px);box-shadow:0 4px 16px rgba(0,113,227,.08)}
+  .badge .dot{width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px rgba(0,113,227,.18)}
+  h1{font-size:clamp(34px,5.4vw,66px);font-weight:700;letter-spacing:-.03em;line-height:1.02;max-width:16ch}
+  h1 .grad{background:linear-gradient(110deg,var(--blue) 0%,#4f97ff 60%,#0066cc 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{font-size:clamp(15px,1.7vw,20px);color:var(--ink-2);max-width:62ch;font-weight:400}
+  .sub b{color:var(--ink);font-weight:600}
+  /* ── section heading ── */
+  .section-head{max-width:1180px;margin:clamp(30px,3.4vw,52px) auto clamp(16px,1.6vw,22px);display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .section-head:first-of-type{margin-top:0}
+  .section-head h2{font-size:clamp(18px,2vw,24px);font-weight:680;letter-spacing:-.02em}
+  .section-head .eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--blue);
+    background:var(--blue-tint);border:1px solid var(--blue-line);padding:5px 11px;border-radius:980px}
+  .section-head .note{font-size:14px;color:var(--ink-3);margin-left:auto;font-weight:450}
+  /* ── grid ── */
+  .grid{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(22px,2.4vw,32px);perspective:1600px}
+  .grid > .feature{grid-column:1 / -1}
+  /* ── card ── */
+  .vcard{
+    position:relative;display:flex;flex-direction:column;text-decoration:none;color:inherit;
+    background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.9);border-radius:26px;overflow:hidden;
+    box-shadow:0 1px 2px rgba(13,40,90,.05),0 18px 50px rgba(13,40,90,.10);
+    backdrop-filter:blur(20px) saturate(150%);
+    transform-style:preserve-3d;transition:transform .5s cubic-bezier(.16,.84,.34,1),box-shadow .5s ease;
+    will-change:transform;outline:none;
+  }
+  .vcard:focus-visible{box-shadow:0 0 0 3px var(--blue),0 18px 50px rgba(13,40,90,.14)}
+  .vcard:hover{box-shadow:0 1px 2px rgba(13,40,90,.05),0 34px 80px rgba(13,40,90,.20)}
+  /* preview */
+  .preview{position:relative;aspect-ratio:1440/900;overflow:hidden;background:var(--bg-2);border-bottom:1px solid var(--line)}
+  .feature .preview{aspect-ratio:1440/600}
+  .preview .frame{position:absolute;top:0;left:0;width:1440px;height:900px;border:0;transform-origin:top left;pointer-events:none}
+  .preview .veil{position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(13,30,60,.06));pointer-events:none}
+  .num{position:absolute;top:16px;left:18px;z-index:3;font-size:13px;font-weight:700;letter-spacing:.06em;color:#fff;
+    background:rgba(0,113,227,.92);padding:6px 13px;border-radius:980px;box-shadow:0 6px 18px rgba(0,113,227,.35);transform:translateZ(40px)}
+  .tag{position:absolute;top:16px;right:18px;z-index:3;font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--blue-2);
+    background:rgba(255,255,255,.86);border:1px solid var(--blue-line);padding:5px 11px;border-radius:980px}
+  /* meta */
+  .meta{padding:clamp(18px,2vw,26px) clamp(20px,2.2vw,30px);display:flex;flex-direction:column;gap:7px;transform:translateZ(30px)}
+  .vname{font-size:clamp(19px,2vw,26px);font-weight:650;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+  .vname .open{margin-left:auto;font-size:13px;font-weight:600;color:var(--blue);opacity:0;transform:translateX(-4px);transition:.35s}
+  .vcard:hover .vname .open{opacity:1;transform:translateX(0)}
+  .vdesc{font-size:clamp(14px,1.45vw,16px);color:var(--ink-2);font-weight:400;max-width:56ch}
+  .vtech{margin-top:4px;display:flex;flex-wrap:wrap;gap:7px}
+  .chip{font-size:12px;font-weight:500;color:var(--ink-3);background:var(--card-2);border:1px solid var(--line);padding:4px 11px;border-radius:980px}
+  .chip.b{color:var(--blue-2);background:var(--blue-tint);border-color:var(--blue-line)}
+  /* footer */
+  .foot{max-width:1180px;margin:clamp(38px,4vw,64px) auto 0;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between;
+    padding-top:22px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3)}
+  .foot b{color:var(--ink-2);font-weight:600}
+  .foot code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--blue-2);font-size:12px}
+  @media (max-width:760px){.grid{grid-template-columns:1fr}.grid>.feature{grid-column:auto}.feature .preview{aspect-ratio:1440/900}}
+  @media (prefers-reduced-motion:reduce){.vcard,.vname .open{transition:none}}
+  /* load-in */
+  .vcard{opacity:0;transform:translateY(26px)}
+  .loaded .vcard{opacity:1;transform:none;transition:opacity .7s ease,transform .7s cubic-bezier(.16,.84,.34,1)}
+  .loaded .grid .vcard:nth-child(1){transition-delay:.04s}
+  .loaded .grid .vcard:nth-child(2){transition-delay:.10s}
+  .loaded .grid .vcard:nth-child(3){transition-delay:.16s}
+  .loaded .grid .vcard:nth-child(4){transition-delay:.22s}
+  .loaded .grid .vcard:nth-child(5){transition-delay:.28s}
+</style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-top">
+      <img src="logo.png" alt="TZH Badminton">
+      <span class="badge"><span class="dot"></span>13 concepts · live previews</span>
+    </div>
+    <h1>Thirteen <span class="grad">3D makeovers</span> of the live court display</h1>
+    <p class="sub">Same data, same <b>Apple-blue</b> identity. Five live <b>WebGL arenas</b>, four <b>immersive 3D worlds</b> (particles, glass, waves, hyperspace), and four lighter CSS concepts. Hover a card to feel the tilt; click to open it full-screen.</p>
+  </header>
+
+  <!-- ============ GROUP A · WEBGL ARENAS ============ -->
+  <div class="section-head">
+    <span class="eyebrow">WebGL · Three.js</span>
+    <h2>Live 3D Arenas</h2>
+    <span class="note">five real-time 3D scenes</span>
+  </div>
+
+  <main class="grid">
+    <a class="vcard feature" href="3D/arena-webgl.html">
+      <div class="preview">
+        <span class="num">01</span><span class="tag">The original</span>
+        <iframe class="frame" data-src="3D/arena-webgl.html" title="Arena preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+        <span class="veil"></span>
+      </div>
+      <div class="meta">
+        <div class="vname">Arena <span class="open">Open full-screen ↗</span></div>
+        <div class="vdesc">The one you loved — four courts in a bright studio with glowing blue lines and nets, while the camera slowly orbits the floor. The clean genuine-3D showpiece.</div>
+        <div class="vtech"><span class="chip b">Real WebGL</span><span class="chip">Auto-orbit camera</span><span class="chip">Light studio</span></div>
+      </div>
+    </a>
+
+    <a class="vcard" href="3D/arena-night.html">
+      <div class="preview">
+        <span class="num">02</span><span class="tag">WebGL · Dark</span>
+        <iframe class="frame" data-src="3D/arena-night.html" title="Night Broadcast preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+        <span class="veil"></span>
+      </div>
+      <div class="meta">
+        <div class="vname">Night Broadcast <span class="open">Open full-screen ↗</span></div>
+        <div class="vdesc">The dark esports cut — volumetric spotlight cones pool light onto neon-blue courts over a glossy reflective floor, with drifting dust. Same scene, after hours.</div>
+        <div class="vtech"><span class="chip b">Spotlights</span><span class="chip">Reflective floor</span><span class="chip">Broadcast mood</span></div>
+      </div>
+    </a>
+
+    <a class="vcard" href="3D/arena-floating.html">
+      <div class="preview">
+        <span class="num">03</span><span class="tag">WebGL · Light</span>
+        <iframe class="frame" data-src="3D/arena-floating.html" title="Floating Courts preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+        <span class="veil"></span>
+      </div>
+      <div class="meta">
+        <div class="vname">Floating Courts <span class="open">Open full-screen ↗</span></div>
+        <div class="vdesc">Each court rides its own floating island at a different height, gently bobbing and turning in a bright sky with soft contact-glows. Dreamy and dimensional.</div>
+        <div class="vtech"><span class="chip b">Floating islands</span><span class="chip">Sine-wave bob</span><span class="chip">Sky ambiance</span></div>
+      </div>
+    </a>
+
+    <a class="vcard" href="3D/arena-carousel.html">
+      <div class="preview">
+        <span class="num">04</span><span class="tag">WebGL · Turntable</span>
+        <iframe class="frame" data-src="3D/arena-carousel.html" title="Showcase Turntable preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+        <span class="veil"></span>
+      </div>
+      <div class="meta">
+        <div class="vname">Showcase Turntable <span class="open">Open full-screen ↗</span></div>
+        <div class="vdesc">A product-reveal dais — the four courts ring a glowing podium that slowly rotates around a blue centerpiece, camera fixed at a flattering 3/4 angle.</div>
+        <div class="vtech"><span class="chip b">Turntable spin</span><span class="chip">Glowing dais</span><span class="chip">Center emblem</span></div>
+      </div>
+    </a>
+
+    <a class="vcard" href="3D/arena-hologram.html">
+      <div class="preview">
+        <span class="num">05</span><span class="tag">WebGL · Dark</span>
+        <iframe class="frame" data-src="3D/arena-hologram.html" title="Hologram Table preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+        <span class="veil"></span>
+      </div>
+      <div class="meta">
+        <div class="vname">Hologram Table <span class="open">Open full-screen ↗</span></div>
+        <div class="vdesc">Wireframe courts projected above a dark control-table grid, with drifting scanlines, shuttlecock light-trails arcing overhead, and a blue particle haze. Sci-fi, strictly blue.</div>
+        <div class="vtech"><span class="chip b">Wireframe holo</span><span class="chip">Shuttle trails</span><span class="chip">Grid table</span></div>
+      </div>
+    </a>
+  </main>
+
+  <!-- ============ GROUP B · IMMERSIVE 3D WORLDS ============ -->
+  <div class="section-head">
+    <span class="eyebrow">WebGL · Three.js</span>
+    <h2>Immersive 3D worlds</h2>
+    <span class="note">four other types of 3D site</span>
+  </div>
+
+  <main class="grid">
+    <a class="vcard" href="3D/particle-field.html">
+      <div class="preview">
+        <span class="num">06</span><span class="tag">WebGL · Dark</span>
+        <iframe class="frame" data-src="3D/particle-field.html" title="Particle Field preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+        <span class="veil"></span>
+      </div>
+      <div class="meta">
+        <div class="vname">Particle Field <span class="open">Open full-screen ↗</span></div>
+        <div class="vdesc">~9,000 additive blue particles assemble into a glowing shuttlecock that breathes, scatters from your cursor, and morphs into a court grid. A GPU particle hero.</div>
+        <div class="vtech"><span class="chip b">GPU particles</span><span class="chip">Cursor scatter</span><span class="chip">Shape morph</span></div>
+      </div>
+    </a>
+
+    <a class="vcard" href="3D/glass-orb.html">
+      <div class="preview">
+        <span class="num">07</span><span class="tag">WebGL · Light</span>
+        <iframe class="frame" data-src="3D/glass-orb.html" title="Liquid Glass Orb preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+        <span class="veil"></span>
+      </div>
+      <div class="meta">
+        <div class="vname">Liquid Glass Orb <span class="open">Open full-screen ↗</span></div>
+        <div class="vdesc">A morphing glass blob with real-time refraction bends the blue studio behind it while frosted court panels orbit. Apple-Vision premium.</div>
+        <div class="vtech"><span class="chip b">Real refraction</span><span class="chip">Liquid wobble</span><span class="chip">Orbiting panels</span></div>
+      </div>
+    </a>
+
+    <a class="vcard" href="3D/wave-terrain.html">
+      <div class="preview">
+        <span class="num">08</span><span class="tag">WebGL · Dark</span>
+        <iframe class="frame" data-src="3D/wave-terrain.html" title="Wave Terrain preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+        <span class="veil"></span>
+      </div>
+      <div class="meta">
+        <div class="vname">Wave Terrain <span class="open">Open full-screen ↗</span></div>
+        <div class="vdesc">An endless ocean of glowing blue points rolls toward the horizon and melts into fog as the camera drifts. Calm, hypnotic, award-tier.</div>
+        <div class="vtech"><span class="chip b">Animated mesh</span><span class="chip">Point ocean</span><span class="chip">Fog depth</span></div>
+      </div>
+    </a>
+
+    <a class="vcard" href="3D/hyperspace-tunnel.html">
+      <div class="preview">
+        <span class="num">09</span><span class="tag">WebGL · Dark</span>
+        <iframe class="frame" data-src="3D/hyperspace-tunnel.html" title="Hyperspace Tunnel preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+        <span class="veil"></span>
+      </div>
+      <div class="meta">
+        <div class="vname">Hyperspace Tunnel <span class="open">Open full-screen ↗</span></div>
+        <div class="vdesc">An infinite flight through streaming blue light-rings, with court panels rushing past the camera. Cinematic broadcast-intro energy.</div>
+        <div class="vtech"><span class="chip b">Infinite flight</span><span class="chip">Light-rings</span><span class="chip">Speed streaks</span></div>
+      </div>
+    </a>
+  </main>
+
+  <!-- ============ GROUP C · CSS CONCEPTS ============ -->
+  <div class="section-head">
+    <span class="eyebrow">CSS 3D</span>
+    <h2>Lighter CSS concepts</h2>
+    <span class="note">four non-WebGL directions</span>
+  </div>
+
+  <main class="grid">
+    <a class="vcard" href="3D/glass-depth.html">
+      <div class="preview">
+        <span class="num">10</span><span class="tag">Light</span>
+        <iframe class="frame" data-src="3D/glass-depth.html" title="Glass Depth preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+        <span class="veil"></span>
+      </div>
+      <div class="meta">
+        <div class="vname">Glass Depth <span class="open">Open full-screen ↗</span></div>
+        <div class="vdesc">visionOS-style frosted glass floating over parallaxing blue depth orbs; cards lift toward you on hover. Calm and premium.</div>
+        <div class="vtech"><span class="chip b">CSS preserve-3d</span><span class="chip">Mouse parallax</span><span class="chip">Frosted glass</span></div>
+      </div>
+    </a>
+
+    <a class="vcard" href="3D/holo-tilt.html">
+      <div class="preview">
+        <span class="num">11</span><span class="tag">Interactive</span>
+        <iframe class="frame" data-src="3D/holo-tilt.html" title="Holo Tilt preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+        <span class="veil"></span>
+      </div>
+      <div class="meta">
+        <div class="vname">Holo Tilt <span class="open">Open full-screen ↗</span></div>
+        <div class="vdesc">Holographic trading-cards that tilt toward your cursor with a blue-cyan sheen and pop-out depth. Move the mouse across a card to feel it.</div>
+        <div class="vtech"><span class="chip b">Pointer tilt</span><span class="chip">Holo glare</span><span class="chip">Z pop-out</span></div>
+      </div>
+    </a>
+
+    <a class="vcard" href="3D/iso-floor.html">
+      <div class="preview">
+        <span class="num">12</span><span class="tag">Isometric</span>
+        <iframe class="frame" data-src="3D/iso-floor.html" title="Digital Twin preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+        <span class="veil"></span>
+      </div>
+      <div class="meta">
+        <div class="vname">Digital Twin <span class="open">Open full-screen ↗</span></div>
+        <div class="vdesc">An architectural isometric map of the venue — extruded court slabs with player chips floating and bobbing above each one.</div>
+        <div class="vtech"><span class="chip b">Isometric 3D</span><span class="chip">Floating chips</span><span class="chip">Blueprint clean</span></div>
+      </div>
+    </a>
+
+    <a class="vcard" href="3D/aurora-cinematic.html">
+      <div class="preview">
+        <span class="num">13</span><span class="tag">Dark · Broadcast</span>
+        <iframe class="frame" data-src="3D/aurora-cinematic.html" title="Aurora preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+        <span class="veil"></span>
+      </div>
+      <div class="meta">
+        <div class="vname">Aurora <span class="open">Open full-screen ↗</span></div>
+        <div class="vdesc">A deep-navy broadcast stage with a drifting blue aurora and neon-rim glass panels that emerge from depth. Same blue — turned up to 11. (CSS, no WebGL.)</div>
+        <div class="vtech"><span class="chip b">Neon glow</span><span class="chip">Aurora mesh</span><span class="chip">Emerge-from-depth</span></div>
+      </div>
+    </a>
+  </main>
+
+  <footer class="foot">
+    <span><b>TZH Badminton</b> — 3D makeover exploration · blue <code>#0071e3</code> theme preserved across all thirteen</span>
+    <span>Hover to preview · click to open</span>
+  </footer>
+
+<script>
+(function(){
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function fit(){
+    document.querySelectorAll('.preview').forEach(function(p){
+      var f = p.querySelector('.frame');
+      if(!f) return;
+      var s = p.clientWidth / 1440;
+      f.style.transform = 'scale(' + s + ')';
+      f.style.height = (p.clientHeight / s) + 'px';
+    });
+  }
+
+  function loadFrames(){
+    document.querySelectorAll('iframe.frame').forEach(function(f){
+      if(!f.src) f.src = f.getAttribute('data-src');
+    });
+  }
+
+  function bindTilt(){
+    if(reduce) return;
+    document.querySelectorAll('.vcard').forEach(function(card){
+      var raf=null, pend=null;
+      function apply(){
+        raf=null; if(!pend) return;
+        var r=pend.r, x=pend.x, y=pend.y;
+        var cx=(x/r.width-0.5), cy=(y/r.height-0.5);
+        var ry=cx*7, rx=-cy*7;
+        card.style.transform='translateY(-4px) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg)';
+      }
+      card.addEventListener('pointermove',function(e){
+        if(e.pointerType==='touch') return;
+        var r=card.getBoundingClientRect();
+        pend={r:r,x:e.clientX-r.left,y:e.clientY-r.top};
+        if(raf===null) raf=requestAnimationFrame(apply);
+      });
+      card.addEventListener('pointerleave',function(){
+        if(raf!==null){cancelAnimationFrame(raf);raf=null;} pend=null;
+        card.style.transform='';
+      });
+    });
+  }
+
+  window.addEventListener('resize', fit);
+  window.addEventListener('load', function(){
+    fit(); bindTilt();
+    setTimeout(function(){ loadFrames(); setTimeout(fit, 400); }, reduce?0:350);
+  });
+  document.body.classList.add('loaded');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TZH · Style E — Bauhaus Court</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --paper:#f1ede1;        /* warm white */
+    --ink:#15120c;          /* near-black */
+    --red:#e23b2c;          /* bauhaus red */
+    --blue:#214bbf;         /* cobalt */
+    --yellow:#f4b71a;       /* primary yellow ~ brand gold */
+    --bar:3px solid var(--ink);
+  }
+  html,body{background:#cfc8b6}
+  body{font-family:"Jost",system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;
+    display:flex;justify-content:center;min-height:100vh}
+  .frame{width:430px;max-width:100%;min-height:100vh;background:var(--paper);
+    border-left:var(--bar);border-right:var(--bar);overflow:hidden}
+
+  /* ── masthead ── */
+  .top{display:flex;align-items:stretch;border-bottom:var(--bar)}
+  .top .mk{width:62px;flex:0 0 62px;display:grid;place-items:center;background:var(--ink);border-right:var(--bar)}
+  .top .mk i{width:22px;height:46px;-webkit-mask:url(logo.png) center/contain no-repeat;mask:url(logo.png) center/contain no-repeat;background:var(--yellow)}
+  .top .nm{flex:1;padding:14px 16px;display:flex;flex-direction:column;justify-content:center}
+  .top .nm b{font-weight:800;font-size:23px;letter-spacing:.02em;line-height:.95}
+  .top .nm span{font-size:11px;font-weight:500;letter-spacing:.42em;color:#6b6450;margin-top:4px}
+  .top .shapes{flex:0 0 62px;border-left:var(--bar);position:relative;background:var(--red)}
+  .top .shapes::before{content:"";position:absolute;inset:0;background:
+    radial-gradient(circle at 50% 34%, var(--ink) 0 11px, transparent 12px),
+    linear-gradient(135deg,transparent 49%,var(--blue) 49%);}
+
+  /* ── hero / member ── */
+  .hero{display:grid;grid-template-columns:1fr 96px;border-bottom:var(--bar)}
+  .member{background:var(--yellow);padding:18px 18px 16px}
+  .member .k{font-size:11px;font-weight:700;letter-spacing:.3em;text-transform:uppercase}
+  .member .tier{font-weight:900;font-size:52px;line-height:.84;margin:6px 0 2px;letter-spacing:-.01em}
+  .member .who{font-weight:500;font-size:15px;letter-spacing:.02em}
+  .member .who b{font-weight:700}
+  .seg{display:flex;gap:4px;margin-top:14px}
+  .seg i{height:9px;flex:1;border:2px solid var(--ink);background:transparent}
+  .seg i.on{background:var(--ink)}
+  .member .prog{margin-top:8px;font-size:11.5px;font-weight:600;letter-spacing:.02em}
+  .ptsblk{background:var(--blue);color:var(--paper);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;border-left:var(--bar);text-align:center;padding:8px}
+  .ptsblk b{font-weight:800;font-size:30px;line-height:.9;font-variant-numeric:tabular-nums}
+  .ptsblk span{font-size:9.5px;font-weight:600;letter-spacing:.24em;margin-top:5px;opacity:.85}
+
+  /* ── section heading ── */
+  .head{display:flex;align-items:center;gap:10px;padding:15px 18px 9px;font-weight:800;
+    font-size:13px;letter-spacing:.26em;text-transform:uppercase}
+  .head .sq{width:13px;height:13px;flex:0 0 13px}
+
+  /* ── leaderboard ── */
+  .board{border-top:var(--bar);border-bottom:var(--bar)}
+  .ln{display:grid;grid-template-columns:46px 1fr auto;align-items:center;
+    border-bottom:1px solid #15120c22;min-height:46px}
+  .ln:last-child{border-bottom:0}
+  .ln .rk{font-weight:800;font-size:18px;text-align:center;border-right:1px solid #15120c22;
+    align-self:stretch;display:grid;place-items:center;font-variant-numeric:tabular-nums}
+  .ln .nme{padding:0 14px;font-weight:600;font-size:16px;display:flex;align-items:center;gap:9px}
+  .ln .nme .chip{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    padding:2px 6px;border:1.5px solid var(--ink)}
+  .ln .pt{padding:0 16px;font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
+  .ln.me{background:var(--red);color:var(--paper)}
+  .ln.me .rk{border-right-color:#ffffff44}
+  .ln.me .chip{border-color:var(--paper)}
+  .ln.me .nme::after{content:"YOU";font-size:9px;font-weight:800;letter-spacing:.14em;
+    background:var(--paper);color:var(--red);padding:2px 5px;margin-left:2px}
+  /* tier chip fills */
+  .b-vip{background:#6b3fb0;color:#fff;border-color:#6b3fb0}
+  .b-plat{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .b-gold{background:var(--yellow)}
+  .b-silv{background:#cdc6b4}
+
+  /* ── tier ladder (geometric chips) ── */
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+  .tc{padding:13px 12px;border-right:1px solid #15120c22;border-bottom:1px solid #15120c22}
+  .tc:nth-child(3n){border-right:0}
+  .tc .sh{width:24px;height:24px;margin-bottom:9px}
+  .tc b{display:block;font-weight:800;font-size:15px;letter-spacing:.01em}
+  .tc span{font-size:10.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#6b6450}
+  .tc.cur{background:var(--ink);color:var(--paper)}
+  .tc.cur span{color:#cfc8b6}
+
+  /* ── draw ── */
+  .draw{background:var(--ink);color:var(--paper);padding:20px 18px 22px;border-top:var(--bar)}
+  .draw .dh{display:flex;justify-content:space-between;align-items:baseline}
+  .draw .dh b{font-weight:900;font-size:24px;letter-spacing:.01em}
+  .draw .dh span{font-size:10.5px;font-weight:600;letter-spacing:.2em;color:var(--yellow)}
+  .draw .big{display:flex;align-items:flex-end;gap:12px;margin:14px 0 4px}
+  .draw .big .n{font-weight:900;font-size:62px;line-height:.8;color:var(--yellow);font-variant-numeric:tabular-nums}
+  .draw .big .lab{font-weight:600;font-size:12.5px;letter-spacing:.04em;padding-bottom:8px;color:#d9d3c2}
+  .pr{margin-top:14px;display:flex;flex-direction:column;gap:2px}
+  .pr div{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid #ffffff22;font-size:13.5px}
+  .pr .a{font-weight:600}.pr .b{font-weight:700;color:var(--yellow)}
+  .pr .a i{display:inline-block;width:8px;height:8px;background:var(--red);margin-right:9px}
+  .draw .ent{margin-top:14px;font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:#a39d8c;text-align:center}
+
+  footer{display:flex;justify-content:space-between;padding:13px 18px;font-size:10px;font-weight:700;
+    letter-spacing:.2em;text-transform:uppercase;color:#6b6450}
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <div class="top">
+    <div class="mk"><i></i></div>
+    <div class="nm"><b>TZH BADMINTON</b><span>冰城 · IPOH</span></div>
+    <div class="shapes"></div>
+  </div>
+
+  <div class="hero">
+    <div class="member">
+      <div class="k">Your Membership</div>
+      <div class="tier">GOLD</div>
+      <div class="who"><b>Desmond</b> · No. 0047</div>
+      <div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+      <div class="prog">560 PTS → PLATINUM</div>
+    </div>
+    <div class="ptsblk"><b>1,240</b><span>POINTS</span></div>
+  </div>
+
+  <div class="head"><span class="sq" style="background:var(--red)"></span>Leaderboard · June</div>
+  <div class="board">
+    <div class="ln"><div class="rk">1</div><div class="nme">Kokyan <span class="chip b-vip">VIP</span></div><div class="pt">2,310</div></div>
+    <div class="ln"><div class="rk">2</div><div class="nme">Thomas <span class="chip b-plat">Plat</span></div><div class="pt">1,980</div></div>
+    <div class="ln"><div class="rk">3</div><div class="nme">Yit&nbsp;Fung <span class="chip b-gold">Gold</span></div><div class="pt">1,540</div></div>
+    <div class="ln me"><div class="rk">4</div><div class="nme">Desmond <span class="chip b-gold">Gold</span></div><div class="pt">1,240</div></div>
+    <div class="ln"><div class="rk">5</div><div class="nme">Celine <span class="chip b-gold">Gold</span></div><div class="pt">1,080</div></div>
+    <div class="ln"><div class="rk">6</div><div class="nme">Terence <span class="chip b-gold">Gold</span></div><div class="pt">940</div></div>
+    <div class="ln"><div class="rk">7</div><div class="nme">Sharmin <span class="chip b-silv">Silver</span></div><div class="pt">620</div></div>
+    <div class="ln"><div class="rk">8</div><div class="nme">Alex <span class="chip b-silv">Silver</span></div><div class="pt">410</div></div>
+  </div>
+
+  <div class="head"><span class="sq" style="background:var(--blue)"></span>Tiers</div>
+  <div class="tiers">
+    <div class="tc"><div class="sh" style="background:#8b8478"></div><b>Visitor</b><span>Open</span></div>
+    <div class="tc"><div class="sh" style="background:#b0743f;border-radius:50%"></div><b>Bronze</b><span>50 pts</span></div>
+    <div class="tc"><div class="sh" style="background:#cdc6b4;clip-path:polygon(50% 0,100% 100%,0 100%)"></div><b>Silver</b><span>300 pts</span></div>
+    <div class="tc cur"><div class="sh" style="background:var(--yellow);border-radius:50%"></div><b>Gold</b><span>You · 900</span></div>
+    <div class="tc"><div class="sh" style="background:var(--blue)"></div><b>Platinum</b><span>1,800 pts</span></div>
+    <div class="tc"><div class="sh" style="background:#6b3fb0;clip-path:polygon(50% 0,100% 100%,0 100%)"></div><b>VIP</b><span>Invite</span></div>
+  </div>
+
+  <div class="draw">
+    <div class="dh"><b>JUNE DRAW</b><span>CLOSES 30 JUN</span></div>
+    <div class="big"><span class="n">14</span><span class="lab">tokens in<br>your name</span></div>
+    <div class="pr">
+      <div><span class="a"><i></i>First</span><span class="b">RM150 pro-shop credit</span></div>
+      <div><span class="a"><i></i>Second</span><span class="b">Yonex restring × 3</span></div>
+      <div><span class="a"><i></i>Third</span><span class="b">One-month court pass</span></div>
+    </div>
+    <div class="ent">84 members entered · drawn live on court</div>
+  </div>
+
+  <footer><span>MEMBERS ONLY</span><span>EST. MMXXVI</span></footer>
+</div>
+</body>
+</html>

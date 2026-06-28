@@ -33,6 +33,12 @@ const DEFAULT_STATE = {
   currentRound: 0,
   luckyDraw: { entries: [], drawDate: null, spin: null, results: [], history: [] },
   monthlyDraw: { month: '', rollSuppressedMonth: '', prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'], participants: [], results: [], spin: null, history: [] },
+  socialGames: [
+    { id: 'sg-fri', day: 'Friday', weekday: 5, time: '9–11pm', enabled: true },
+    { id: 'sg-sun', day: 'Sunday', weekday: 0, time: '9–11pm', enabled: true },
+    { id: 'sg-mon', day: 'Monday', weekday: 1, time: '9–11pm', enabled: true },
+  ],
+  signups: [],
 };
 
 let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -42,7 +48,12 @@ app.get('/api/state', (req, res) => {
   if (state.siteCode) {
     const provided = req.query.code || '';
     if (provided !== state.siteCode) {
-      return res.json({ locked: true });
+      // Surface only the open game days so the locked screen can show its CTA.
+      const games = Array.isArray(state.socialGames) ? state.socialGames : [];
+      const openGames = games
+        .filter(g => g && g.enabled)
+        .map(g => ({ id: g.id, day: g.day, weekday: g.weekday, time: g.time, enabled: true }));
+      return res.json({ locked: true, socialGames: openGames });
     }
   }
   res.json({ ...state, serverTime: Date.now() });
@@ -50,6 +61,41 @@ app.get('/api/state', (req, res) => {
 
 // POST state — admin only, merges updates
 app.post('/api/state', (req, res) => {
+  const b = req.body || {};
+
+  // Public, UNAUTHENTICATED sign-up submission. This is the ONLY POST path that
+  // does not require the admin password. It self-builds one sanitized signup
+  // and never spreads req.body into state, so it cannot overwrite siteCode,
+  // roster, players, socialGames, etc. It returns in every branch, so a
+  // submitSignup request never falls through to the password-gated logic below.
+  if (b.action === 'submitSignup') {
+    if (String(b.hp || '').trim()) return res.json({ ok: true }); // honeypot
+
+    const name = String(b.name == null ? '' : b.name).trim().slice(0, 80);
+    const phone = String(b.phone == null ? '' : b.phone).trim().slice(0, 40);
+    const days = Array.isArray(b.days)
+      ? b.days.slice(0, 7).map(d => String(d == null ? '' : d).slice(0, 20))
+      : [];
+    if (!name || !phone || !/\d/.test(phone) || days.length === 0) {
+      return res.status(400).json({ error: 'Please enter your name, phone and at least one game day.' });
+    }
+
+    const games = Array.isArray(state.socialGames) ? state.socialGames : DEFAULT_STATE.socialGames;
+    const allowed = new Set(games.filter(g => g && g.enabled).map(g => g.day));
+    const validDays = days.filter(d => allowed.has(d));
+    if (validDays.length === 0) {
+      return res.status(400).json({ error: 'Please pick a valid game day.' });
+    }
+
+    const signup = {
+      id: 'su' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name, phone, days: validDays, at: Date.now(), handled: false,
+    };
+    const existing = Array.isArray(state.signups) ? state.signups : [];
+    state.signups = [signup, ...existing].slice(0, 500); // append-only, cap 500
+    return res.json({ ok: true });
+  }
+
   const { password, ...updates } = req.body;
   if (password !== ADMIN_PASSWORD) {
     return res.status(401).json({ error: 'Unauthorized' });

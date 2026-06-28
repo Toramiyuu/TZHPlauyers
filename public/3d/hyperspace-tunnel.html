@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TZH Badminton — Hyperspace Tunnel</title>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  :root{
+    --blue:#0071e3; --blue-2:#0066cc; --blue-dark:#005bb5; --blue-bright:#4f97ff;
+    --blue-tint:rgba(79,151,255,.18); --blue-line:rgba(79,151,255,.40);
+    --bg:#040a1c; --bg-2:#01060f; --card:#0a1a33; --card-2:#0e2244;
+    --ink:#eaf2ff; --ink-2:#aebfd8; --ink-3:#8fa3c4; --line:rgba(120,170,255,.18);
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 760px at 50% -8%, #0a2148 0%, rgba(10,33,72,0) 58%),
+      radial-gradient(900px 620px at 50% 116%, #05142e 0%, rgba(5,20,46,0) 60%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* ---------- WebGL canvas backdrop ---------- */
+  #scene{
+    position:fixed; inset:0; width:100%; height:100%;
+    display:block; z-index:0;
+  }
+  /* CSS fallback backdrop (visible if WebGL fails or behind transparent canvas) */
+  #backdrop{
+    position:fixed; inset:0; z-index:-1;
+    background:
+      radial-gradient(620px 620px at 50% 50%, rgba(79,151,255,.20), rgba(79,151,255,0) 64%),
+      radial-gradient(1100px 700px at 50% 0%, rgba(0,113,227,.16), rgba(0,113,227,0) 60%),
+      radial-gradient(900px 760px at 50% 100%, rgba(10,40,90,.55), rgba(10,40,90,0) 70%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+  }
+
+  /* ---------- HUD overlay ---------- */
+  #hud{
+    position:fixed; inset:0; z-index:10;
+    display:flex; flex-direction:column;
+    padding:26px clamp(24px,3.4vw,56px) 22px;
+    pointer-events:none; /* let drags pass to scene; panels re-enable */
+  }
+  .hud-panel{ pointer-events:auto; }
+
+  /* glass surface — dark frosted */
+  .glass{
+    background:linear-gradient(180deg, rgba(10,26,51,.62), rgba(8,20,40,.5));
+    border:1px solid rgba(120,170,255,.22);
+    box-shadow:
+      0 1px 0 rgba(140,185,255,.10) inset,
+      0 18px 54px -22px rgba(0,0,0,.7),
+      0 2px 12px -4px rgba(0,20,60,.5);
+    -webkit-backdrop-filter:saturate(1.35) blur(18px);
+    backdrop-filter:saturate(1.35) blur(18px);
+  }
+
+  /* ===== Header ===== */
+  header{
+    display:flex; align-items:center; gap:18px;
+    padding:12px 18px; border-radius:18px;
+  }
+  header img{
+    height:46px; width:auto; display:block;
+    filter:drop-shadow(0 0 10px rgba(79,151,255,.45));
+  }
+  .brand{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .brand h1{
+    font-size:19px; font-weight:650; letter-spacing:-.02em; color:var(--ink);
+    line-height:1;
+  }
+  .brand .date{ font-size:12.5px; color:var(--ink-2); font-weight:480; letter-spacing:.01em; }
+  .header-spacer{ flex:1 1 auto; }
+
+  .live{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:7px 13px 7px 11px; border-radius:999px;
+    background:var(--blue-tint); border:1px solid var(--blue-line);
+    font-size:12px; font-weight:600; color:#cfe2ff; letter-spacing:.04em;
+    text-transform:uppercase;
+    box-shadow:0 0 18px -4px rgba(79,151,255,.4);
+  }
+  .live .dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--blue-bright);
+    box-shadow:0 0 0 0 rgba(79,151,255,.6);
+    animation:pulse 1.8s ease-out infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(79,151,255,.6); }
+    70%{ box-shadow:0 0 0 9px rgba(79,151,255,0); }
+    100%{ box-shadow:0 0 0 0 rgba(79,151,255,0); }
+  }
+  .nav{ display:flex; gap:9px; }
+  .pill{
+    padding:8px 16px; border-radius:999px;
+    font-size:13px; font-weight:550; color:var(--ink-2);
+    background:rgba(120,170,255,.07);
+    border:1px solid var(--line);
+    transition:.18s ease;
+  }
+  .pill:hover{ color:#cfe2ff; border-color:var(--blue-line); background:var(--blue-tint); }
+  .pill.active{ color:#fff; background:linear-gradient(180deg,var(--blue-bright),var(--blue)); border-color:transparent; box-shadow:0 6px 20px -6px rgba(79,151,255,.7); }
+
+  /* ===== Center stage spacer ===== */
+  .stage{ flex:1 1 auto; min-height:0; }
+
+  /* ===== Match cards (bottom strip) ===== */
+  .cards{
+    pointer-events:none;
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:16px;
+  }
+  .card{
+    pointer-events:auto;
+    border-radius:18px; padding:15px 16px 14px;
+    display:flex; flex-direction:column; gap:12px;
+    position:relative; overflow:hidden;
+  }
+  .card::before{ /* top accent hairline */
+    content:""; position:absolute; left:16px; right:16px; top:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--blue-bright), transparent);
+    opacity:.7;
+  }
+  .card-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .court-id{ display:flex; align-items:center; gap:8px; }
+  .court-num{
+    font-size:13px; font-weight:680; letter-spacing:-.01em; color:var(--ink);
+  }
+  .court-num span{ color:var(--ink-3); font-weight:520; }
+  .round-badge{
+    font-size:10.5px; font-weight:650; letter-spacing:.05em; text-transform:uppercase;
+    color:#cfe2ff;
+    padding:4px 9px; border-radius:999px;
+    background:var(--blue-tint); border:1px solid var(--blue-line);
+    box-shadow:0 0 14px -4px rgba(79,151,255,.45);
+  }
+
+  .team{ display:flex; align-items:center; gap:10px; }
+  .avatars{ display:flex; }
+  .avatars .av:nth-child(2){ margin-left:-9px; }
+  .av{
+    width:32px; height:32px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:670; letter-spacing:.01em; color:#fff;
+    background:linear-gradient(155deg, var(--blue-bright) 0%, var(--blue-dark) 100%);
+    border:2px solid rgba(13,30,58,.95);
+    box-shadow:0 3px 10px -3px rgba(79,151,255,.6);
+    flex:0 0 auto;
+  }
+  .av.alt{ background:linear-gradient(155deg, #6fb0ff 0%, var(--blue-2) 100%); }
+  .names{ display:flex; flex-direction:column; gap:1px; min-width:0; line-height:1.18; }
+  .names .n{ font-size:12.5px; font-weight:560; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .vs-row{ display:flex; align-items:center; gap:10px; }
+  .vs-line{ flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--line),transparent); }
+  .vs{
+    font-size:10.5px; font-weight:700; letter-spacing:.12em; color:var(--blue-bright);
+    text-transform:uppercase;
+  }
+
+  /* ===== Footer ===== */
+  footer{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:16px;
+    font-size:12px; color:var(--ink-2); letter-spacing:.01em;
+    padding:0 4px;
+  }
+  footer .right{ color:var(--ink-3); font-weight:520; }
+  footer strong{ color:var(--ink); font-weight:600; }
+
+  @media (max-width:1080px){
+    .cards{ grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width:620px){
+    .cards{ grid-template-columns:1fr; }
+    .nav{ display:none; }
+  }
+</style>
+</head>
+<body>
+  <div id="backdrop"></div>
+  <canvas id="scene"></canvas>
+
+  <div id="hud">
+    <!-- Header -->
+    <header class="hud-panel glass">
+      <img src="logo.png" alt="TZH" onerror="this.style.display='none'" />
+      <div class="brand">
+        <h1>TZH Badminton</h1>
+        <div class="date">Saturday 28 June 2026</div>
+      </div>
+      <div class="header-spacer"></div>
+      <div class="live"><span class="dot"></span>Live</div>
+      <nav class="nav">
+        <span class="pill">Members</span>
+        <span class="pill active">Leaderboard</span>
+      </nav>
+    </header>
+
+    <div class="stage"></div>
+
+    <!-- Match cards -->
+    <div class="cards" id="cards"></div>
+
+    <!-- Footer -->
+    <footer class="hud-panel">
+      <div class="left">TZH Badminton — Live Court Display</div>
+      <div class="right"><strong>4 courts</strong> · Round 3 · 16 players</div>
+    </footer>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* =========================================================
+   CONTENT MODEL
+   ========================================================= */
+function initials(name){
+  return name.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+}
+var MATCHES = [
+  { court:1, round:3, t1:["Thomas Wong","Mei Lin"],   t2:["David Park","Sarah Chen"] },
+  { court:2, round:3, t1:["Aiden Lee","Priya Nair"],  t2:["Marcus Tan","Yuki Sato"] },
+  { court:3, round:2, t1:["Carlos Diaz","Hannah Kim"],t2:["Leo Zhang","Nina Patel"] },
+  { court:4, round:2, t1:["Ravi Kumar","Sofia Reyes"],t2:["Ben Carter","Grace Lim"] }
+];
+
+function teamHTML(players, alt){
+  var avs = players.map(function(p,i){
+    return '<div class="av'+((alt|| i===1)?' alt':'')+'">'+initials(p)+'</div>';
+  }).join('');
+  var nms = players.map(function(p){ return '<div class="n">'+p+'</div>'; }).join('');
+  return '<div class="team"><div class="avatars">'+avs+'</div><div class="names">'+nms+'</div></div>';
+}
+
+(function renderCards(){
+  var el = document.getElementById('cards');
+  el.innerHTML = MATCHES.map(function(m){
+    return ''+
+    '<div class="card glass">'+
+      '<div class="card-top">'+
+        '<div class="court-id"><span class="court-num">Court '+m.court+' <span>·</span></span>'+
+          '<span class="round-badge">Round '+m.round+'</span></div>'+
+      '</div>'+
+      teamHTML(m.t1, false)+
+      '<div class="vs-row"><span class="vs-line"></span><span class="vs">vs</span><span class="vs-line"></span></div>'+
+      teamHTML(m.t2, true)+
+    '</div>';
+  }).join('');
+})();
+
+/* =========================================================
+   THREE.JS HYPERSPACE TUNNEL SCENE
+   Camera near origin looking down -Z; the WORLD streams toward
+   it (+Z) and recycles to the far back for endless forward flight.
+   ========================================================= */
+(function buildScene(){
+  if(typeof THREE === 'undefined'){
+    console.warn('THREE not available — using CSS backdrop only.');
+    return; // CSS backdrop already visible
+  }
+
+  var reduceMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var canvas = document.getElementById('scene');
+  var renderer, scene, camera;
+
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas: canvas, antialias:true, alpha:true
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  } catch(err){
+    console.warn('WebGL init failed — CSS backdrop fallback active.', err);
+    canvas.style.display = 'none';
+    return;
+  }
+
+  scene = new THREE.Scene();
+  var FOG = 0x03091c;                 // near-black navy
+  scene.background = new THREE.Color(FOG);
+  scene.fog = new THREE.Fog(FOG, 28, 165);
+
+  camera = new THREE.PerspectiveCamera(62, window.innerWidth/window.innerHeight, 0.1, 400);
+  camera.position.set(0, 0, 0);
+
+  var BLUE = 0x0071e3;
+  var BLUE_BRIGHT = 0x4f97ff;
+
+  /* ---- Tunnel geometry parameters ---- */
+  var RING_COUNT   = 32;     // number of rings in the stream
+  var RING_GAP     = 6.0;    // spacing between rings along z
+  var TUNNEL_LEN   = RING_COUNT * RING_GAP; // total recycling length
+  var NEAR_Z       = 6;      // recycle threshold (just behind camera)
+  var FAR_Z        = NEAR_Z - TUNNEL_LEN;   // furthest ring start
+  var BASE_RADIUS  = 7.2;    // tunnel radius
+
+  /* heading offset that the mouse nudges (the tunnel "centre") */
+  var headX = 0, headY = 0;        // target
+  var curHeadX = 0, curHeadY = 0;  // smoothed
+
+  /* =========================================================
+     RINGS — thin glowing tori streaming toward the camera
+     ========================================================= */
+  var ringGroup = new THREE.Group();
+  scene.add(ringGroup);
+  var rings = [];
+
+  // shared thin torus geometry, reused (varied per-ring via scale/rotation)
+  var ringGeo = new THREE.TorusGeometry(BASE_RADIUS, 0.045, 8, 90);
+
+  for(var i=0; i<RING_COUNT; i++){
+    // alternate the two blues for subtle depth banding
+    var col = (i % 2 === 0) ? BLUE_BRIGHT : BLUE;
+    var mat = new THREE.MeshBasicMaterial({
+      color: col,
+      transparent: true,
+      opacity: 0.0,                 // faded in per-frame based on distance
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+    var ring = new THREE.Mesh(ringGeo, mat);
+    ring.position.z = NEAR_Z - i * RING_GAP;     // line them up into the distance
+    // organic variation
+    var rScale = 0.82 + Math.random() * 0.42;
+    ring.scale.set(rScale, rScale, 1);
+    ring.rotation.z = Math.random() * Math.PI;
+    ring.userData = {
+      baseOpacity: 0.55 + Math.random() * 0.30,
+      spin: (Math.random() - 0.5) * 0.18,        // gentle per-ring roll
+      phase: Math.random() * Math.PI * 2         // brightness pulse phase
+    };
+    ringGroup.add(ring);
+    rings.push(ring);
+  }
+
+  /* =========================================================
+     SPEED STREAKS — blue specks in a cylinder around the axis,
+     streaming +Z and recycling. Additive for velocity glow.
+     ========================================================= */
+  var STREAK_COUNT = 900;
+  var streakGeo = new THREE.BufferGeometry();
+  var streakPos = new Float32Array(STREAK_COUNT * 3);
+  var streakRadius = BASE_RADIUS * 0.96;   // keep specks inside the ring wall
+
+  function seedStreak(idx, z){
+    var ang = Math.random() * Math.PI * 2;
+    // bias toward the tunnel wall for a hollow look, but keep some interior
+    var r = streakRadius * (0.18 + Math.random() * 0.82);
+    streakPos[idx*3+0] = Math.cos(ang) * r;
+    streakPos[idx*3+1] = Math.sin(ang) * r;
+    streakPos[idx*3+2] = z;
+  }
+  for(var s=0; s<STREAK_COUNT; s++){
+    seedStreak(s, NEAR_Z - Math.random() * TUNNEL_LEN);
+  }
+  streakGeo.setAttribute('position', new THREE.BufferAttribute(streakPos, 3));
+  var streakMat = new THREE.PointsMaterial({
+    color: 0x9cc6ff, size: 0.13, sizeAttenuation: true,
+    transparent: true, opacity: 0.85, depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+  var streaks = new THREE.Points(streakGeo, streakMat);
+  ringGroup.add(streaks);
+
+  /* a second, sparser bright layer for foreground sparkle */
+  var SPARK_COUNT = 220;
+  var sparkGeo = new THREE.BufferGeometry();
+  var sparkPos = new Float32Array(SPARK_COUNT * 3);
+  function seedSpark(idx, z){
+    var ang = Math.random() * Math.PI * 2;
+    var r = streakRadius * (0.30 + Math.random() * 0.68);
+    sparkPos[idx*3+0] = Math.cos(ang) * r;
+    sparkPos[idx*3+1] = Math.sin(ang) * r;
+    sparkPos[idx*3+2] = z;
+  }
+  for(var k=0; k<SPARK_COUNT; k++){
+    seedSpark(k, NEAR_Z - Math.random() * TUNNEL_LEN);
+  }
+  sparkGeo.setAttribute('position', new THREE.BufferAttribute(sparkPos, 3));
+  var sparkMat = new THREE.PointsMaterial({
+    color: 0xdfeeff, size: 0.22, sizeAttenuation: true,
+    transparent: true, opacity: 0.9, depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+  var sparks = new THREE.Points(sparkGeo, sparkMat);
+  ringGroup.add(sparks);
+
+  /* =========================================================
+     PASSING PANELS — billboard "Court N · Round X" plaques that
+     approach, pass, and recycle with the rings. Sparse (4).
+     ========================================================= */
+  function makePanelTexture(court, round){
+    var W = 512, H = 256;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var ctx = cv.getContext('2d');
+
+    // rounded translucent dark-glass panel
+    var pad = 14, r = 30;
+    var x = pad, y = pad, w = W - pad*2, h = H - pad*2;
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w, y,   x+w, y+h, r);
+    ctx.arcTo(x+w, y+h, x,   y+h, r);
+    ctx.arcTo(x,   y+h, x,   y,   r);
+    ctx.arcTo(x,   y,   x+w, y,   r);
+    ctx.closePath();
+
+    var grad = ctx.createLinearGradient(0, y, 0, y+h);
+    grad.addColorStop(0, 'rgba(12,30,60,0.92)');
+    grad.addColorStop(1, 'rgba(6,16,36,0.92)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(79,151,255,0.85)';
+    ctx.stroke();
+
+    // accent hairline
+    ctx.fillStyle = 'rgba(79,151,255,0.85)';
+    ctx.fillRect(x+34, y+26, w-68, 3);
+
+    // COURT N
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#eaf2ff';
+    ctx.font = '700 92px -apple-system, "SF Pro Display", Helvetica, Arial, sans-serif';
+    ctx.fillText('COURT ' + court, W/2, H/2 - 14);
+
+    // ROUND X
+    ctx.fillStyle = '#9cc6ff';
+    ctx.font = '600 38px -apple-system, "SF Pro Display", Helvetica, Arial, sans-serif';
+    ctx.fillText('ROUND ' + round, W/2, H/2 + 64);
+
+    var tex = new THREE.CanvasTexture(cv);
+    tex.anisotropy = 4;
+    return tex;
+  }
+
+  var panels = [];
+  var PANEL_GAP = TUNNEL_LEN / MATCHES.length;   // evenly spread along tunnel
+  for(var p=0; p<MATCHES.length; p++){
+    var m = MATCHES[p];
+    var tex = makePanelTexture(m.court, m.round);
+    var pmat = new THREE.MeshBasicMaterial({
+      map: tex, transparent: true, opacity: 0.0,
+      depthWrite: false, side: THREE.DoubleSide
+    });
+    // 4.4 x 2.2 world units, mounted to the side of the tunnel
+    var panel = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 2.2), pmat);
+    // alternate left/right mounting so they don't block the centre
+    var side = (p % 2 === 0) ? -1 : 1;
+    var mountAng = (p % 2 === 0) ? -0.62 : 0.62;   // up-left / up-right of axis
+    panel.userData = {
+      offX: Math.cos(mountAng) * BASE_RADIUS * 0.58 * side,
+      offY: Math.sin(Math.abs(mountAng)) * BASE_RADIUS * 0.42
+    };
+    panel.position.set(panel.userData.offX, panel.userData.offY, NEAR_Z - p * PANEL_GAP);
+    ringGroup.add(panel);
+    panels.push(panel);
+  }
+
+  /* a faint central core glow billboard that always faces camera */
+  var coreMat = new THREE.MeshBasicMaterial({
+    color: 0x2f6fd6, transparent: true, opacity: 0.16,
+    blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
+  });
+  var core = new THREE.Mesh(new THREE.CircleGeometry(2.2, 40), coreMat);
+  core.position.set(0, 0, FAR_Z + 6);
+  ringGroup.add(core);
+
+  /* =========================================================
+     MOTION / INPUT
+     ========================================================= */
+  var SPEED = 22;          // world units per second (tasteful, cinematic)
+  var clock = new THREE.Clock();
+  var elapsed = 0;
+  var lastMouseFrame = 0;
+
+  // rAF-throttled mouse → heading nudge
+  var pendingMouse = null;
+  window.addEventListener('mousemove', function(e){
+    pendingMouse = {
+      x: (e.clientX / window.innerWidth) * 2 - 1,
+      y: (e.clientY / window.innerHeight) * 2 - 1
+    };
+  }, { passive:true });
+
+  function applyMouse(){
+    if(pendingMouse){
+      headX = pendingMouse.x * 1.6;   // small nudge of tunnel centre
+      headY = -pendingMouse.y * 1.0;
+      pendingMouse = null;
+    }
+  }
+
+  /* recycle helper: move a z forward by SPEED*dt, wrap past NEAR_Z */
+  function recycleZ(z){
+    if(z > NEAR_Z){ z -= TUNNEL_LEN; }
+    return z;
+  }
+
+  function step(dt){
+    elapsed += dt;
+    applyMouse();
+
+    var move = SPEED * dt;
+
+    /* --- rings --- */
+    for(var i=0; i<rings.length; i++){
+      var ring = rings[i];
+      ring.position.z += move;
+      if(ring.position.z > NEAR_Z){
+        ring.position.z -= TUNNEL_LEN;
+        // re-randomize on recycle for organic variety
+        var rScale = 0.82 + Math.random() * 0.42;
+        ring.scale.set(rScale, rScale, 1);
+        ring.rotation.z = Math.random() * Math.PI;
+        ring.userData.baseOpacity = 0.55 + Math.random() * 0.30;
+        ring.userData.spin = (Math.random() - 0.5) * 0.18;
+        ring.userData.phase = Math.random() * Math.PI * 2;
+      }
+      ring.rotation.z += ring.userData.spin * dt;
+
+      // fade IN from the fog as the ring approaches; fade as it passes camera
+      var z = ring.position.z;
+      var depth = (z - FAR_Z) / TUNNEL_LEN;           // 0 far .. 1 near
+      var approach = Math.min(1, Math.max(0, depth)); // clamp
+      var passFade = z > 0 ? Math.max(0, 1 - z / NEAR_Z) : 1; // dim as it overtakes
+      var pulse = 0.82 + 0.18 * Math.sin(elapsed * 1.4 + ring.userData.phase);
+      ring.material.opacity = ring.userData.baseOpacity * approach * passFade * pulse;
+    }
+
+    /* --- streaks --- */
+    var sp = streakGeo.attributes.position.array;
+    for(var a=0; a<STREAK_COUNT; a++){
+      var zi = a*3+2;
+      sp[zi] += move;
+      if(sp[zi] > NEAR_Z){ seedStreak(a, sp[zi] - TUNNEL_LEN); }
+    }
+    streakGeo.attributes.position.needsUpdate = true;
+
+    var kp = sparkGeo.attributes.position.array;
+    for(var b=0; b<SPARK_COUNT; b++){
+      var ki = b*3+2;
+      kp[ki] += move;
+      if(kp[ki] > NEAR_Z){ seedSpark(b, kp[ki] - TUNNEL_LEN); }
+    }
+    sparkGeo.attributes.position.needsUpdate = true;
+
+    /* --- panels --- */
+    for(var pp=0; pp<panels.length; pp++){
+      var pn = panels[pp];
+      pn.position.z += move;
+      if(pn.position.z > NEAR_Z){
+        pn.position.z -= TUNNEL_LEN;
+      }
+      pn.lookAt(camera.position);   // billboard toward camera
+      // fade in from fog, hold, dim as it passes
+      var pz = pn.position.z;
+      var pdepth = (pz - FAR_Z) / TUNNEL_LEN;
+      var pApproach = Math.min(1, Math.max(0, pdepth * 1.4));
+      var pPass = pz > 0 ? Math.max(0, 1 - pz / NEAR_Z) : 1;
+      pn.material.opacity = 0.92 * pApproach * pPass;
+    }
+
+    core.lookAt(camera.position);
+  }
+
+  function applyCamera(){
+    // smooth heading toward target (mouse nudge)
+    curHeadX += (headX - curHeadX) * 0.05;
+    curHeadY += (headY - curHeadY) * 0.05;
+
+    // gentle camera roll/sway over time (small sin)
+    var sway = reduceMotion ? 0 : elapsed;
+    var roll = Math.sin(sway * 0.32) * 0.05;            // radians
+    var swayX = Math.sin(sway * 0.21) * 0.35;
+    var swayY = Math.cos(sway * 0.17) * 0.22;
+
+    camera.position.x = curHeadX + swayX;
+    camera.position.y = curHeadY + swayY;
+    camera.position.z = 0;
+    camera.up.set(Math.sin(roll), Math.cos(roll), 0);
+    // look slightly toward the heading so the tunnel "bends" with the mouse
+    camera.lookAt(curHeadX * 0.4, curHeadY * 0.4, -40);
+  }
+
+  function frame(){
+    if(!reduceMotion){
+      var dt = Math.min(clock.getDelta(), 0.05); // clamp big tab-switch gaps
+      step(dt);
+    }
+    applyCamera();
+    renderer.render(scene, camera);
+    if(!reduceMotion) requestAnimationFrame(frame);
+  }
+
+  /* ---- Resize ---- */
+  function onResize(){
+    var w = window.innerWidth, h = window.innerHeight;
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  }
+  window.addEventListener('resize', onResize);
+
+  if(reduceMotion){
+    // freeze: prime opacities once, render a single static frame
+    step(0);
+    applyCamera();
+    renderer.render(scene, camera);
+  } else {
+    requestAnimationFrame(frame);
+  }
+})();
+</script>
+</body>
+</html>

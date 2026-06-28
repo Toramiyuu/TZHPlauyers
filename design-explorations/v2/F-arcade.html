@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TZH · Style F — Arcade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#160f2b;            /* deep indigo night */
+    --bg2:#1d1442;
+    --panel:#221752;
+    --ink:#ece6ff;
+    --dim:#9a8fce;
+    --amber:#ffc24a;         /* warm gold neon ~ brand */
+    --mag:#ff3d8b;           /* hot magenta */
+    --cyan:#3fe6d2;          /* warm teal */
+    --line:#5a44a855;
+    --px:"Press Start 2P",monospace;
+  }
+  html,body{background:#0c0820}
+  body{font-family:"Chakra Petch",system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;
+    display:flex;justify-content:center;min-height:100vh}
+  .frame{width:430px;max-width:100%;min-height:100vh;position:relative;overflow:hidden;
+    background:
+      radial-gradient(120% 70% at 50% -10%, #3a2170 0%, transparent 55%),
+      linear-gradient(180deg,var(--bg) 0%,#120c26 100%);}
+  /* CRT scanlines + vignette */
+  .frame::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:9;
+    background:repeating-linear-gradient(0deg,#0000 0 2px,#00000026 2px 3px);mix-blend-mode:multiply}
+  .frame::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:9;
+    box-shadow:inset 0 0 120px #0c0820;}
+  .wrap{position:relative;z-index:2;padding:16px 16px 30px}
+  .px{font-family:var(--px);line-height:1.6}
+
+  /* ── HUD header ── */
+  .hud{display:flex;align-items:center;gap:12px;border:2px solid var(--line);
+    background:#1c124a99;padding:11px 13px;position:relative}
+  .hud .mk{width:18px;height:38px;-webkit-mask:url(logo.png) center/contain no-repeat;mask:url(logo.png) center/contain no-repeat;
+    background:var(--cyan);filter:drop-shadow(0 0 6px var(--cyan))}
+  .hud .ti{flex:1}
+  .hud .ti b{font-family:var(--px);font-size:13px;color:var(--amber);text-shadow:0 0 10px #ffc24a66;letter-spacing:1px}
+  .hud .ti span{display:block;font-size:11px;letter-spacing:.4em;color:var(--dim);margin-top:6px}
+  .hud .coin{font-family:var(--px);font-size:8px;color:var(--cyan);text-align:right;line-height:1.9}
+  .blink{animation:bl 1s steps(1) infinite}@keyframes bl{50%{opacity:.25}}
+
+  /* ── player card ── */
+  .card{margin-top:14px;border:2px solid var(--amber);background:
+      linear-gradient(180deg,#2a1b63,#1b1142);padding:15px 15px 16px;position:relative;
+    box-shadow:0 0 0 1px #0c0820, 0 0 22px -6px #ffc24a55}
+  .card .corner{position:absolute;width:7px;height:7px;background:var(--amber)}
+  .c1{top:-2px;left:-2px}.c2{top:-2px;right:-2px}.c3{bottom:-2px;left:-2px}.c4{bottom:-2px;right:-2px}
+  .pc-top{display:flex;justify-content:space-between;align-items:flex-start}
+  .pc-lab{font-family:var(--px);font-size:7px;color:var(--cyan);letter-spacing:1px}
+  .pc-name{font-size:30px;font-weight:700;line-height:1;margin-top:7px;letter-spacing:.01em}
+  .pc-rank{font-family:var(--px);font-size:18px;color:var(--amber);text-shadow:0 0 12px #ffc24a88;text-align:right}
+  .pc-rank span{display:block;font-family:"Chakra Petch";font-size:11px;color:var(--dim);letter-spacing:.2em;margin-top:7px;text-shadow:none}
+  .xprow{margin-top:15px;display:flex;align-items:center;gap:9px}
+  .xprow .lv{font-family:var(--px);font-size:8px;color:var(--mag)}
+  .xpbar{flex:1;height:13px;border:2px solid #4a3a8c;background:#120c2e;padding:1px;display:flex;gap:2px}
+  .xpbar i{flex:1;background:#2a1f5e}
+  .xpbar i.on{background:linear-gradient(180deg,var(--amber),#ff9a2e);box-shadow:0 0 6px #ffb43b88}
+  .xpval{font-family:var(--px);font-size:9px;color:var(--ink)}
+  .pc-next{margin-top:10px;font-size:13px;color:var(--dim);letter-spacing:.02em}
+  .pc-next b{color:var(--cyan)}
+
+  /* ── section title ── */
+  .st{font-family:var(--px);font-size:9px;letter-spacing:1px;color:var(--cyan);
+    margin:24px 2px 11px;display:flex;align-items:center;gap:10px}
+  .st::after{content:"";flex:1;height:2px;background:repeating-linear-gradient(90deg,var(--line) 0 6px,transparent 6px 10px)}
+
+  /* ── hi-scores ── */
+  .scores{border:2px solid var(--line);background:#160e3a99}
+  .sr{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:10px;
+    padding:9px 12px;border-bottom:1px solid #ffffff10}
+  .sr:last-child{border-bottom:0}
+  .sr .rk{font-family:var(--px);font-size:11px;color:var(--dim);text-align:center}
+  .sr .nm{font-size:17px;font-weight:600;display:flex;align-items:center;gap:9px}
+  .tg{font-size:9px;font-weight:700;letter-spacing:.08em;padding:1px 6px;border:1px solid currentColor;text-transform:uppercase}
+  .sr .sco{font-family:var(--px);font-size:11px;font-variant-numeric:tabular-nums}
+  .sr.top .rk{color:var(--amber);text-shadow:0 0 8px #ffc24a}
+  .sr.me{background:linear-gradient(90deg,#ff3d8b22,transparent);box-shadow:inset 3px 0 0 var(--mag)}
+  .sr.me .sco{color:var(--mag)}
+  .sr.me .nm::after{content:"◄ 1P";font-family:var(--px);font-size:7px;color:var(--mag);margin-left:4px}
+  .t-vip{color:#c79bff}.t-plat{color:var(--cyan)}.t-gold{color:var(--amber)}.t-silv{color:#c4cbe0}
+
+  /* ── rank ladder ── */
+  .belts{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .belt{border:2px solid var(--line);background:#170f3c;padding:11px 9px;text-align:center}
+  .belt .dz{font-family:var(--px);font-size:14px;margin-bottom:7px}
+  .belt b{display:block;font-size:14px;font-weight:700}
+  .belt span{font-family:var(--px);font-size:6px;color:var(--dim);letter-spacing:1px;display:block;margin-top:5px}
+  .belt.cur{border-color:var(--amber);background:#2a1b5e;box-shadow:0 0 16px -4px #ffc24a66}
+  .belt.cur b{color:var(--amber)}
+
+  /* ── gacha draw ── */
+  .gacha{margin-top:13px;border:2px solid var(--mag);background:
+      linear-gradient(180deg,#3a1242,#1c0f3c);padding:16px 15px 17px;
+    box-shadow:0 0 22px -8px #ff3d8b66}
+  .gh{display:flex;justify-content:space-between;align-items:baseline}
+  .gh b{font-family:var(--px);font-size:11px;color:var(--mag);text-shadow:0 0 10px #ff3d8b66;letter-spacing:1px}
+  .gh span{font-family:var(--px);font-size:7px;color:var(--amber)}
+  .credits{display:flex;align-items:center;gap:12px;margin:16px 0 4px}
+  .cap{width:46px;height:46px;border-radius:50%;flex:0 0 46px;position:relative;
+    background:radial-gradient(circle at 38% 32%, #ffe39a, var(--amber) 60%, #c97e16);
+    border:2px solid #fff3;box-shadow:0 0 16px #ffc24a66}
+  .cap::after{content:"";position:absolute;left:6px;right:6px;top:50%;height:2px;background:#0006}
+  .credits .cn{font-family:var(--px);font-size:22px;color:var(--amber)}
+  .credits .cl{font-size:13px;color:var(--dim);letter-spacing:.02em}
+  .loot{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+  .loot div{display:flex;justify-content:space-between;font-size:14px;align-items:center;
+    border-top:1px solid #ffffff14;padding-top:8px}
+  .loot .ll{color:var(--ink);display:flex;gap:9px;align-items:center}
+  .loot .ll i{font-family:var(--px);font-size:8px}
+  .loot .lr{color:var(--cyan);font-weight:600}
+  .gacha .pl{margin-top:14px;font-family:var(--px);font-size:7px;letter-spacing:1px;color:var(--dim);text-align:center}
+
+  footer{margin-top:24px;text-align:center;font-family:var(--px);font-size:7px;letter-spacing:1px;color:#6c5fa6;line-height:2}
+  footer b{color:var(--cyan)}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="wrap">
+
+    <div class="hud">
+      <span class="mk"></span>
+      <div class="ti"><b>TZH ARENA</b><span>冰城 BADMINTON</span></div>
+      <div class="coin"><span class="blink">●</span> INSERT COIN<br>CREDITS 14</div>
+    </div>
+
+    <div class="card">
+      <i class="corner c1"></i><i class="corner c2"></i><i class="corner c3"></i><i class="corner c4"></i>
+      <div class="pc-top">
+        <div><div class="pc-lab">PLAYER 0047</div><div class="pc-name">DESMOND</div></div>
+        <div class="pc-rank">GOLD<span>RANK</span></div>
+      </div>
+      <div class="xprow">
+        <span class="lv">LV.4</span>
+        <div class="xpbar"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+        <span class="xpval">69%</span>
+      </div>
+      <div class="pc-next">SCORE <b>1,240</b> · 560 XP TO PLATINUM</div>
+    </div>
+
+    <div class="st">HI-SCORES · JUNE</div>
+    <div class="scores">
+      <div class="sr top"><span class="rk">1ST</span><span class="nm">Kokyan <span class="tg t-vip">VIP</span></span><span class="sco t-gold">2,310</span></div>
+      <div class="sr"><span class="rk">2ND</span><span class="nm">Thomas <span class="tg t-plat">PLAT</span></span><span class="sco">1,980</span></div>
+      <div class="sr"><span class="rk">3RD</span><span class="nm">Yit Fung <span class="tg t-gold">GOLD</span></span><span class="sco">1,540</span></div>
+      <div class="sr me"><span class="rk">4TH</span><span class="nm">Desmond <span class="tg t-gold">GOLD</span></span><span class="sco">1,240</span></div>
+      <div class="sr"><span class="rk">5TH</span><span class="nm">Celine <span class="tg t-gold">GOLD</span></span><span class="sco">1,080</span></div>
+      <div class="sr"><span class="rk">6TH</span><span class="nm">Terence <span class="tg t-gold">GOLD</span></span><span class="sco">940</span></div>
+      <div class="sr"><span class="rk">7TH</span><span class="nm">Sharmin <span class="tg t-silv">SLVR</span></span><span class="sco">620</span></div>
+      <div class="sr"><span class="rk">8TH</span><span class="nm">Alex <span class="tg t-silv">SLVR</span></span><span class="sco">410</span></div>
+    </div>
+
+    <div class="st">RANKS</div>
+    <div class="belts">
+      <div class="belt"><div class="dz" style="color:#8b8db0">▢</div><b>Visitor</b><span>OPEN</span></div>
+      <div class="belt"><div class="dz" style="color:#c8814a">◆</div><b>Bronze</b><span>50 XP</span></div>
+      <div class="belt"><div class="dz" style="color:#c4cbe0">◆</div><b>Silver</b><span>300 XP</span></div>
+      <div class="belt cur"><div class="dz" style="color:var(--amber)">★</div><b>Gold</b><span>YOU · 900</span></div>
+      <div class="belt"><div class="dz" style="color:var(--cyan)">★</div><b>Platinum</b><span>1800 XP</span></div>
+      <div class="belt"><div class="dz" style="color:#c79bff">♛</div><b>VIP</b><span>INVITE</span></div>
+    </div>
+
+    <div class="st">MONTHLY GACHA</div>
+    <div class="gacha">
+      <div class="gh"><b>JUNE DRAW</b><span>CLOSES 30 JUN</span></div>
+      <div class="credits">
+        <div class="cap"></div>
+        <div><div class="cn">×14</div><div class="cl">tokens loaded</div></div>
+      </div>
+      <div class="loot">
+        <div><span class="ll"><i style="color:var(--amber)">★</i>1st prize</span><span class="lr">RM150 pro-shop credit</span></div>
+        <div><span class="ll"><i style="color:var(--cyan)">★</i>2nd prize</span><span class="lr">Yonex restring × 3</span></div>
+        <div><span class="ll"><i style="color:var(--mag)">★</i>3rd prize</span><span class="lr">1-month court pass</span></div>
+      </div>
+      <div class="pl">84 PLAYERS ENTERED · DRAWN LIVE ON COURT</div>
+    </div>
+
+    <footer>TZH BADMINTON · IPOH<br><b>● MEMBERS ONLY ●</b> EST.MMXXVI</footer>
+  </div>
+</div>
+</body>
+</html>

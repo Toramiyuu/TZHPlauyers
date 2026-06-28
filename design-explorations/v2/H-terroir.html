@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TZH · Style H — Terroir</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Hanken+Grotesk:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --jade:#11463a;          /* deep tropical pine */
+    --jade-2:#0c352b;
+    --clay:#c0613a;          /* terracotta */
+    --clay-deep:#a04e2d;
+    --sand:#efe5cf;          /* warm sand */
+    --sand-2:#e6d9bd;
+    --cream:#f7f0e0;
+    --gold:#cf9c3a;          /* heritage gold */
+    --gold-soft:#e6c478;
+    --ink:#2b241a;           /* warm earth ink */
+    --ink-soft:#766a55;
+  }
+  html,body{background:#0a2a22}
+  body{font-family:"Hanken Grotesk",system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;
+    display:flex;justify-content:center;min-height:100vh}
+  .zh{font-family:"Noto Serif SC",serif}
+  .mar{font-family:"Marcellus",serif}
+  .frame{width:430px;max-width:100%;min-height:100vh;background:var(--sand);position:relative;overflow:hidden}
+  .frame::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.45;mix-blend-mode:multiply;
+    background-image:radial-gradient(#0000000a 1px,transparent 1px);background-size:3px 3px}
+
+  /* ── hero (jade, arched) ── */
+  .hero{position:relative;background:
+      radial-gradient(120% 80% at 80% 0,#1a6150 0,var(--jade) 50%,var(--jade-2) 100%);
+    color:var(--cream);padding:26px 26px 30px;border-bottom-left-radius:34px;border-bottom-right-radius:34px;
+    box-shadow:0 14px 30px -20px #0a2a22;overflow:hidden}
+  /* feather/foliage watermark (reuses brand mark) */
+  .hero .leaf{position:absolute;background:var(--gold-soft);opacity:.13;pointer-events:none;
+    -webkit-mask:url(logo.png) center/contain no-repeat;mask:url(logo.png) center/contain no-repeat}
+  .hero .leaf.a{width:150px;height:320px;right:-44px;top:-30px;transform:rotate(18deg)}
+  .hero .leaf.b{width:70px;height:150px;left:-22px;bottom:-30px;transform:rotate(-24deg);opacity:.09}
+  .hero .top{position:relative;z-index:2;display:flex;align-items:center;gap:13px}
+  .hero .mk{width:24px;height:50px;-webkit-mask:url(logo.png) center/contain no-repeat;mask:url(logo.png) center/contain no-repeat;background:var(--gold-soft)}
+  .hero .top .nm{line-height:1}
+  .hero .top .nm b{font-family:"Marcellus";font-size:21px;letter-spacing:.04em;display:block}
+  .hero .top .nm span{font-size:10px;letter-spacing:.34em;color:#bcd6cc;text-transform:uppercase}
+  .hero .gline{position:relative;z-index:2;display:flex;align-items:center;gap:10px;margin:18px 0 4px;
+    font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-soft)}
+  .hero .gline::before,.hero .gline::after{content:"";height:1px;background:#cf9c3a55}
+  .hero .gline::before{width:18px}.hero .gline::after{flex:1}
+  .welcome{position:relative;z-index:2}
+  .welcome .hi{font-size:13px;color:#cfe2d9;letter-spacing:.02em}
+  .welcome .hi .zh{font-size:14px}
+  .welcome h1{font-family:"Marcellus";font-size:33px;line-height:1.04;margin:4px 0 0;letter-spacing:.01em}
+  .mbadge{position:relative;z-index:2;margin-top:18px;display:flex;align-items:flex-end;gap:14px}
+  .mbadge .tier{flex:1}
+  .mbadge .tier .t{font-family:"Marcellus";font-size:23px;color:var(--gold-soft);letter-spacing:.02em}
+  .mbadge .tier .t .zh{font-size:15px;color:#cfe2d9;margin-left:6px}
+  .mbadge .pts{text-align:right}
+  .mbadge .pts b{font-family:"Marcellus";font-size:30px;line-height:1}
+  .mbadge .pts span{font-size:10px;letter-spacing:.22em;color:#bcd6cc;display:block;margin-top:3px}
+  .pmeter{position:relative;z-index:2;margin-top:14px;height:5px;border-radius:3px;background:#ffffff1f;overflow:hidden}
+  .pmeter i{display:block;height:100%;width:69%;background:linear-gradient(90deg,var(--clay),var(--gold-soft))}
+  .ptxt{position:relative;z-index:2;margin-top:8px;font-size:12px;color:#cfe2d9;font-style:italic}
+
+  .body{padding:6px 26px 36px}
+
+  /* ── section header (bilingual) ── */
+  .sh{display:flex;align-items:baseline;gap:10px;margin:30px 0 14px}
+  .sh b{font-family:"Marcellus";font-size:21px;color:var(--jade);letter-spacing:.02em}
+  .sh .zh{font-size:13px;color:var(--clay);font-weight:500}
+  .sh .ln{flex:1;height:1px;background:linear-gradient(90deg,var(--gold),transparent)}
+
+  /* ── leaderboard ── */
+  .lb{border-top:1px solid #2b241a22}
+  .lr{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:13px;
+    padding:11px 2px;border-bottom:1px solid #2b241a18}
+  .lr .rk{font-family:"Marcellus";font-size:19px;color:var(--gold);text-align:center;font-variant-numeric:tabular-nums}
+  .lr .nm{display:flex;flex-direction:column;gap:2px}
+  .lr .nm b{font-weight:600;font-size:16px;letter-spacing:.01em}
+  .lr .nm .tr{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;gap:6px}
+  .lr .nm .tr i{width:7px;height:7px;border-radius:50%}
+  .lr .pt{font-family:"Marcellus";font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .lr.me{background:linear-gradient(90deg,#cf9c3a22,transparent);border-radius:8px;margin:0 -8px;padding:11px 8px}
+  .lr.me .pt{color:var(--clay-deep)}
+  .lr.me .nm b::after{content:"· 你";font-family:"Noto Serif SC";color:var(--clay);font-size:13px;font-weight:500;margin-left:5px}
+  .dv{background:#7a4f8e}.dp{background:#3f7fae}.dg{background:var(--gold)}.ds{background:#9a9484}
+
+  /* ── tiers ── */
+  .tiers{display:flex;flex-direction:column;gap:0;border:1px solid #2b241a1f;border-radius:12px;overflow:hidden;background:var(--cream)}
+  .ti{display:flex;align-items:center;gap:13px;padding:12px 16px;border-bottom:1px solid #2b241a14}
+  .ti:last-child{border-bottom:0}
+  .ti .lf{width:13px;height:27px;-webkit-mask:url(logo.png) center/contain no-repeat;mask:url(logo.png) center/contain no-repeat;flex:0 0 13px}
+  .ti .nm{font-family:"Marcellus";font-size:16px;flex:0 0 86px;letter-spacing:.01em}
+  .ti .zh{font-size:12px;color:var(--ink-soft)}
+  .ti .rq{margin-left:auto;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+  .ti.cur{background:linear-gradient(90deg,#cf9c3a26,transparent)}
+  .ti.cur .nm{color:var(--clay-deep)}.ti.cur .rq{color:var(--clay-deep)}
+
+  /* ── prize draw (clay ticket) ── */
+  .draw{position:relative;background:
+      radial-gradient(120% 90% at 100% 0,#d0744a,var(--clay) 55%,var(--clay-deep) 100%);
+    color:var(--cream);border-radius:16px;padding:22px 24px 24px;overflow:hidden;
+    box-shadow:0 16px 30px -22px #a04e2d}
+  .draw .leaf{position:absolute;right:-30px;bottom:-50px;width:130px;height:280px;opacity:.14;
+    background:#fff;-webkit-mask:url(logo.png) center/contain no-repeat;mask:url(logo.png) center/contain no-repeat;transform:rotate(-12deg)}
+  .draw .dh{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:baseline}
+  .draw .dh b{font-family:"Marcellus";font-size:22px}
+  .draw .dh b .zh{font-size:14px;color:#ffe6cf;margin-left:6px}
+  .draw .dh .cl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#ffe0c8}
+  .draw .tok{position:relative;z-index:2;display:flex;align-items:flex-end;gap:11px;margin:16px 0 4px}
+  .draw .tok .n{font-family:"Marcellus";font-size:46px;line-height:.85}
+  .draw .tok .l{font-size:12px;color:#ffe6cf;padding-bottom:7px;font-style:italic}
+  .draw .pz{position:relative;z-index:2;margin-top:14px;border-top:1px solid #ffffff33;padding-top:12px;display:flex;flex-direction:column;gap:9px}
+  .draw .pz div{display:flex;justify-content:space-between;font-size:13.5px}
+  .draw .pz .a{color:#ffe6cf}.draw .pz .b{font-family:"Marcellus";letter-spacing:.01em}
+  .draw .ent{position:relative;z-index:2;margin-top:14px;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#ffdcc2;text-align:center}
+
+  footer{padding:6px 26px 34px;text-align:center}
+  footer .ln{height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-bottom:14px}
+  footer .zh{font-family:"Noto Serif SC";font-size:14px;color:var(--jade);font-weight:500}
+  footer span{display:block;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-soft);margin-top:6px}
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <div class="hero">
+    <span class="leaf a"></span><span class="leaf b"></span>
+    <div class="top">
+      <span class="mk"></span>
+      <div class="nm"><b>TZH Badminton</b><span class="zh">冰城 · Ipoh</span></div>
+    </div>
+
+    <div class="gline">The Ipoh Court</div>
+
+    <div class="welcome">
+      <div class="hi">Welcome back &nbsp;·&nbsp; <span class="zh">欢迎回来</span></div>
+      <h1>Desmond</h1>
+    </div>
+
+    <div class="mbadge">
+      <div class="tier"><div class="t">Gold Member<span class="zh">黄金会员</span></div></div>
+      <div class="pts"><b>1,240</b><span>POINTS · 积分</span></div>
+    </div>
+    <div class="pmeter"><i></i></div>
+    <div class="ptxt">560 points to Platinum · 距离白金会员还差 560 分</div>
+  </div>
+
+  <div class="body">
+
+    <div class="sh"><b>Leaderboard</b><span class="zh">本月排行榜</span><span class="ln"></span></div>
+    <div class="lb">
+      <div class="lr"><span class="rk">1</span><div class="nm"><b>Kokyan</b><span class="tr"><i class="dv"></i>VIP</span></div><span class="pt">2,310</span></div>
+      <div class="lr"><span class="rk">2</span><div class="nm"><b>Thomas</b><span class="tr"><i class="dp"></i>Platinum</span></div><span class="pt">1,980</span></div>
+      <div class="lr"><span class="rk">3</span><div class="nm"><b>Yit&nbsp;Fung</b><span class="tr"><i class="dg"></i>Gold</span></div><span class="pt">1,540</span></div>
+      <div class="lr me"><span class="rk">4</span><div class="nm"><b>Desmond</b><span class="tr"><i class="dg"></i>Gold</span></div><span class="pt">1,240</span></div>
+      <div class="lr"><span class="rk">5</span><div class="nm"><b>Celine</b><span class="tr"><i class="dg"></i>Gold</span></div><span class="pt">1,080</span></div>
+      <div class="lr"><span class="rk">6</span><div class="nm"><b>Terence</b><span class="tr"><i class="dg"></i>Gold</span></div><span class="pt">940</span></div>
+      <div class="lr"><span class="rk">7</span><div class="nm"><b>Sharmin</b><span class="tr"><i class="ds"></i>Silver</span></div><span class="pt">620</span></div>
+      <div class="lr"><span class="rk">8</span><div class="nm"><b>Alex</b><span class="tr"><i class="ds"></i>Silver</span></div><span class="pt">410</span></div>
+    </div>
+
+    <div class="sh"><b>Tiers</b><span class="zh">会员等级</span><span class="ln"></span></div>
+    <div class="tiers">
+      <div class="ti"><span class="lf" style="background:#8b8478"></span><span class="nm">Visitor</span><span class="zh">访客</span><span class="rq">Open Door</span></div>
+      <div class="ti"><span class="lf" style="background:#b0743f"></span><span class="nm">Bronze</span><span class="zh">青铜</span><span class="rq">50 pts</span></div>
+      <div class="ti"><span class="lf" style="background:#9a9484"></span><span class="nm">Silver</span><span class="zh">白银</span><span class="rq">300 pts</span></div>
+      <div class="ti cur"><span class="lf" style="background:var(--gold)"></span><span class="nm">Gold</span><span class="zh">黄金 · 你</span><span class="rq">900 pts</span></div>
+      <div class="ti"><span class="lf" style="background:#3f7fae"></span><span class="nm">Platinum</span><span class="zh">白金</span><span class="rq">1,800 pts</span></div>
+      <div class="ti"><span class="lf" style="background:#7a4f8e"></span><span class="nm">VIP</span><span class="zh">至尊</span><span class="rq">By Invitation</span></div>
+    </div>
+
+    <div class="sh"><b>Prize Draw</b><span class="zh">每月抽奖</span><span class="ln"></span></div>
+    <div class="draw">
+      <span class="leaf"></span>
+      <div class="dh"><b>June Draw<span class="zh">六月</span></b><span class="cl">Closes 30 Jun</span></div>
+      <div class="tok"><span class="n">14</span><span class="l">tokens in your name · 您的抽奖券</span></div>
+      <div class="pz">
+        <div><span class="a">First · 一等奖</span><span class="b">RM150 pro-shop credit</span></div>
+        <div><span class="a">Second · 二等奖</span><span class="b">Yonex restring × 3</span></div>
+        <div><span class="a">Third · 三等奖</span><span class="b">One-month court pass</span></div>
+      </div>
+      <div class="ent">84 members entered · 本月共 84 人参与 · drawn live on court</div>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="ln"></div>
+    <div class="zh">以球会友 · 冰城羽球</div>
+    <span>TZH Badminton · Ipoh · Members Only</span>
+  </footer>
+</div>
+</body>
+</html>

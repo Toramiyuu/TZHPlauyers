@@ -66,6 +66,12 @@ const DEFAULT_STATE = {
   drawPrizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'],
   drawOdds: { first: 0.01, second: 0.03, third: 0.05 },
   monthlySpin: null,
+  socialGames: [
+    { id: 'sg-fri', day: 'Friday', weekday: 5, time: '9–11pm', enabled: true },
+    { id: 'sg-sun', day: 'Sunday', weekday: 0, time: '9–11pm', enabled: true },
+    { id: 'sg-mon', day: 'Monday', weekday: 1, time: '9–11pm', enabled: true },
+  ],
+  signups: [],
 };
 
 const DEFAULT_MD_PRIZES = ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'];
@@ -134,10 +140,17 @@ const handler = async function handler(req, res) {
       if (!Array.isArray(current.drawPrizes)) current.drawPrizes = ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'];
       if (!current.drawOdds || typeof current.drawOdds !== 'object') current.drawOdds = { first: 0.01, second: 0.03, third: 0.05 };
       if (current.monthlySpin === undefined) current.monthlySpin = null;
+      if (!Array.isArray(current.socialGames)) current.socialGames = DEFAULT_STATE.socialGames.map(g => ({ ...g }));
+      if (!Array.isArray(current.signups)) current.signups = [];
       if (current.siteCode) {
         const provided = (req.query && req.query.code) ? req.query.code : '';
         if (provided !== current.siteCode) {
-          return res.status(200).json({ locked: true });
+          // Still surface the open game days so the locked screen can show its
+          // "Join our social games" CTA. Nothing else leaks while locked.
+          const openGames = current.socialGames
+            .filter(g => g && g.enabled)
+            .map(g => ({ id: g.id, day: g.day, weekday: g.weekday, time: g.time, enabled: true }));
+          return res.status(200).json({ locked: true, socialGames: openGames });
         }
       }
       return res.json({ ...current, serverTime: Date.now() });
@@ -148,6 +161,59 @@ const handler = async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
+    const b = req.body || {};
+
+    // Public, UNAUTHENTICATED sign-up submission. This is the ONLY POST path
+    // that does not require the admin password. It can ONLY ever append one
+    // sanitized signup — it self-builds the signup object and never spreads
+    // req.body into state, so it cannot overwrite siteCode, roster, players,
+    // socialGames, etc. It returns in every branch, so a submitSignup request
+    // can never fall through to the password-gated update logic below.
+    if (b.action === 'submitSignup') {
+      // Honeypot: bots fill hidden fields. Pretend success, store nothing.
+      if (String(b.hp || '').trim()) return res.json({ ok: true });
+
+      const name = String(b.name == null ? '' : b.name).trim().slice(0, 80);
+      const phone = String(b.phone == null ? '' : b.phone).trim().slice(0, 40);
+      const days = Array.isArray(b.days)
+        ? b.days.slice(0, 7).map(d => String(d == null ? '' : d).slice(0, 20))
+        : [];
+      if (!name || !phone || !/\d/.test(phone) || days.length === 0) {
+        return res.status(400).json({ error: 'Please enter your name, phone and at least one game day.' });
+      }
+
+      let s;
+      try {
+        s = (await kv.get(STATE_KEY)) || { ...DEFAULT_STATE };
+      } catch (e) {
+        s = { ...DEFAULT_STATE };
+      }
+
+      const games = Array.isArray(s.socialGames) ? s.socialGames : DEFAULT_STATE.socialGames;
+      const allowed = new Set(games.filter(g => g && g.enabled).map(g => g.day));
+      const validDays = days.filter(d => allowed.has(d));
+      if (validDays.length === 0) {
+        return res.status(400).json({ error: 'Please pick a valid game day.' });
+      }
+
+      const signup = {
+        id: 'su' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        name, phone, days: validDays, at: Date.now(), handled: false,
+      };
+      const existing = Array.isArray(s.signups) ? s.signups : [];
+      // Append-only, newest first, hard-capped at 500 (drop oldest). This slice
+      // is the LAST mutation on every append — the array can never grow unbounded.
+      s.signups = [signup, ...existing].slice(0, 500);
+
+      try {
+        await kv.set(STATE_KEY, s);
+      } catch (e) {
+        console.error('KV write error (signup):', e.message);
+        return res.status(500).json({ error: 'Storage error.' });
+      }
+      return res.json({ ok: true });
+    }
+
     const { password, ...updates } = req.body || {};
 
     if (password !== ADMIN_PASSWORD) {

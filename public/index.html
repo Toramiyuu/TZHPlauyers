@@ -60,9 +60,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .vh-right{display:flex;align-items:center;gap:clamp(10px,1.2vw,16px);flex-wrap:wrap;justify-content:flex-end}
 .vh-live{display:inline-flex;align-items:center;gap:7px;font-size:clamp(12px,1.3vw,14px);font-weight:500;color:var(--a-ink-2)}
 .vh-nav{display:flex;gap:8px;flex-wrap:wrap}
-.vh-nav #membersBtn,.vh-nav #lbBtn,.vh-nav #mdBoardBtn{font-family:var(--font-apple);font-size:14px;font-weight:500;letter-spacing:-.01em;text-transform:none;padding:8px 16px;border-radius:980px;border:none;background:var(--a-card-2);color:var(--a-ink);cursor:pointer;transition:background .2s ease;display:inline-flex;align-items:center;gap:7px;min-height:36px}
-.vh-nav #membersBtn:hover,.vh-nav #lbBtn:hover,.vh-nav #mdBoardBtn:hover{background:#ececee;color:var(--a-ink)}
-.vh-nav #membersBtn .ic,.vh-nav #lbBtn .ic,.vh-nav #mdBoardBtn .ic{width:15px;height:15px;color:var(--a-ink-2)}
+.vh-nav #membersBtn,.vh-nav #lbBtn,.vh-nav #mdBoardBtn,.vh-nav #viewerJoinBtn,.vh-nav #td3Btn{font-family:var(--font-apple);font-size:14px;font-weight:500;letter-spacing:-.01em;text-transform:none;padding:8px 16px;border-radius:980px;border:none;background:var(--a-card-2);color:var(--a-ink);cursor:pointer;transition:background .2s ease;display:inline-flex;align-items:center;gap:7px;min-height:36px;text-decoration:none}
+.vh-nav #membersBtn:hover,.vh-nav #lbBtn:hover,.vh-nav #mdBoardBtn:hover,.vh-nav #viewerJoinBtn:hover,.vh-nav #td3Btn:hover{background:#ececee;color:var(--a-ink)}
+.vh-nav #membersBtn .ic,.vh-nav #lbBtn .ic,.vh-nav #mdBoardBtn .ic,.vh-nav #viewerJoinBtn .ic,.vh-nav #td3Btn .ic{width:15px;height:15px;color:var(--a-ink-2)}
 /* courts as clean cards */
 #courtsDisplay{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(440px,100%),1fr));gap:clamp(20px,2.5vw,32px);flex:1;width:100%;margin:0 auto;align-content:start;min-height:0}
 .acourt{background:var(--a-card);border:1px solid var(--a-line);border-radius:24px;padding:clamp(26px,3vw,42px) clamp(22px,2.6vw,38px);display:flex;flex-direction:column;gap:clamp(18px,2.4vw,30px);box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(0,0,0,.05)}
@@ -192,6 +192,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 /* ── UNIFIED MODALS ──────────────────────── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);z-index:300;align-items:center;justify-content:center;padding:var(--sp-md)}
 .modal-overlay.open{display:flex}
+#joinModal{z-index:560}
 .modal-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--sp-lg);width:400px;max-width:94vw;box-shadow:var(--shadow-lg)}
 .modal-box h2{font-family:var(--font-apple);font-size:clamp(21px,2.2vw,26px);font-weight:600;letter-spacing:-.02em;color:var(--text);margin-bottom:var(--sp-md)}
 .modal-desc{font-size:var(--fs-sm);color:var(--muted);margin-bottom:var(--sp-md)}
@@ -204,6 +205,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .modal-photo-hint{font-size:var(--fs-xs);color:var(--muted);margin-bottom:var(--sp-md);display:block}
 .modal-center{text-align:center}
 .pw-error{color:var(--red);font-size:var(--fs-sm);margin-top:6px;display:none}
+/* Public social sign-up modal */
+.join-day-chips{display:flex;flex-wrap:wrap;gap:var(--sp-sm);margin-bottom:var(--sp-md)}
+.join-field-label{display:block;font-size:var(--fs-sm);color:var(--muted);margin:var(--sp-sm) 0 4px;font-weight:500}
+.join-day-chip{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border-radius:980px;border:1px solid var(--border2);background:var(--card);color:var(--text);font-family:var(--font-apple);font-size:var(--fs-base);font-weight:500;cursor:pointer;transition:var(--transition)}
+.join-day-chip:hover{border-color:var(--a-blue)}
+.join-day-chip.selected{background:var(--a-blue-tint);border-color:var(--a-blue);color:var(--a-blue)}
+.join-thanks{text-align:center;padding:var(--sp-md) 0;color:var(--text)}
+.join-thanks-mark{font-size:34px;color:var(--a-blue);line-height:1;display:block;margin-bottom:var(--sp-sm)}
+.join-error{color:var(--red);font-size:var(--fs-sm);margin-top:var(--sp-sm);display:none}
+.gate-join-link{margin-top:10px;background:none;border:none;color:var(--a-blue);font-family:var(--font-apple);font-size:14px;font-weight:500;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:8px;min-height:44px}
+.gate-join-link:hover{color:var(--green-light)}
+/* Admin sign-ups tab */
+.signup-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 6px;margin-left:3px;border-radius:100px;background:var(--a-blue);color:#fff;font-size:13px;font-weight:700;line-height:1}
+.signup-row{position:relative;border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:10px;background:var(--card)}
+.signup-row.unhandled{border-left:3px solid var(--a-blue);background:var(--a-blue-tint)}
+.signup-row-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.signup-name{font-size:var(--fs-md);font-weight:600;color:var(--text)}
+.signup-new-pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;background:var(--a-blue);color:#fff;font-size:13px;font-weight:700;line-height:1.2}
+.signup-time{margin-left:auto;font-size:var(--fs-xs);color:var(--muted);white-space:nowrap}
+.signup-phone{font-size:var(--fs-sm);color:var(--text-2);margin-bottom:8px}
+.signup-days{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.signup-day-tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;border:1px solid var(--border2);background:var(--card2);color:var(--text-2);font-size:var(--fs-xs);font-weight:500}
+.signup-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.signup-actions .btn{min-height:44px}
+.signup-empty{color:var(--muted);font-size:var(--fs-sm);padding:10px 0}
+.signup-del{margin-left:auto;width:44px;min-width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;transition:var(--transition)}
+.signup-del:hover,.signup-del.confirm{background:var(--red);border-color:var(--red);color:#fff}
+/* Settings: Social Game Days editor */
+.social-games-row{display:flex;align-items:center;gap:var(--sp-sm);flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border)}
+.social-games-row:last-child{border-bottom:none}
+.social-games-row .sg-day{flex:1;min-width:130px}
+.social-games-row .sg-time{width:120px}
+.sg-toggle{display:inline-flex;align-items:center;min-height:44px;padding:0 6px;cursor:pointer}
+.sg-toggle input{width:20px;height:20px;accent-color:var(--a-blue);cursor:pointer}
 /* History modal nav helpers */
 .hist-nav{display:flex;align-items:center;justify-content:space-between;margin:14px 0 18px}
 .hist-nav-btns{display:flex;gap:8px}
@@ -601,6 +636,18 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .rl-delete{padding:4px 8px;font-size:14px;line-height:1}
 /* Engagement tab */
 .admin-spin-btn{width:100%;font-size:var(--fs-md);padding:11px}
+/* Court Spins — one self-contained spin per court */
+.cspin-grid{display:grid;grid-template-columns:1fr;gap:var(--sp-md)}
+.cspin-court{background:var(--dark);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--sp-md)}
+.cspin-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cspin-title{font-size:var(--fs-md);font-weight:700;color:var(--text)}
+.cspin-count{font-size:var(--fs-xs);font-weight:700;color:var(--green-light);background:rgba(0,113,227,.12);padding:2px 8px;border-radius:100px;white-space:nowrap}
+.cspin-max{font-size:var(--fs-xs);color:var(--muted);margin-top:2px}
+.cspin-names{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;min-height:32px}
+.cspin-add-row{display:flex;gap:var(--sp-sm);align-items:center;margin-bottom:8px}
+.cspin-winner{margin:2px 0 8px;font-size:var(--fs-sm);color:var(--green-light);font-weight:600;display:flex;align-items:center;gap:6px}
+.cspin-winner .ic{width:14px;height:14px;color:var(--accent)}
+@media(min-width:640px){.cspin-grid{grid-template-columns:1fr 1fr}}
 /* Settings tab */
 .admin-code-input{font-size:16px;font-family:monospace;letter-spacing:4px;width:136px}
 .admin-remove-btn{font-size:var(--fs-xs);color:var(--muted)}
@@ -622,7 +669,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   .md-tube-step input{width:56px;height:44px;font-size:16px}
   .md-cust-del{min-width:44px;min-height:44px;font-size:22px}
   .draw-rank-del{min-width:44px;min-height:44px}
-  .md-add-tubes,.md-add-phone,.draw-date-input,.draw-history-date-input{font-size:16px;min-height:44px}
+  .md-add-tubes,.md-add-phone,.draw-date-input,.draw-history-date-input,.cspin-input{font-size:16px;min-height:44px}
   .md-undo-btn{min-height:44px}
 }
 /* Desktop multi-column helpers */
@@ -716,6 +763,31 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   </div>
 </div>
 
+<!-- Social sign-up modal (public, no auth) -->
+<div id="joinModal" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Join our social games</h2>
+    <div id="joinForm">
+      <p class="modal-desc">Leave your name and number, pick the day(s) you'd like to play, and we'll be in touch.</p>
+      <div id="joinDayChips" class="join-day-chips"></div>
+      <label class="join-field-label" for="joinNameInput">Name</label>
+      <input id="joinNameInput" class="modal-input" type="text" maxlength="80" placeholder="Your name" autocomplete="name">
+      <label class="join-field-label" for="joinPhoneInput">Phone</label>
+      <input id="joinPhoneInput" class="modal-input" type="tel" inputmode="numeric" maxlength="40" placeholder="Your phone number" autocomplete="tel">
+      <input id="joinHp" type="text" name="hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+      <div id="joinError" class="join-error" role="alert"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeJoinModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitJoinForm()">Submit</button>
+      </div>
+    </div>
+    <div id="joinThanks" class="join-thanks" style="display:none">
+      <span class="join-thanks-mark" aria-hidden="true">✓</span>
+      <p>Thanks! We've got your details and will be in touch about our social games.</p>
+    </div>
+  </div>
+</div>
+
 <!-- History modal -->
 <div id="historyModal">
   <div class="history-box">
@@ -752,6 +824,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <button class="gate-enter-btn" onclick="submitSiteCode()">Enter</button>
     </div>
     <div class="gate-foot">Members only · Authorised access</div>
+    <button type="button" id="gateJoinLink" class="gate-join-link" onclick="openJoinModal()">Want to join our social games?</button>
     <button type="button" class="gate-admin-link" onclick="openPwModal()">Admin access</button>
   </div>
 </div>
@@ -885,6 +958,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <div class="vh-nav">
         <button id="membersBtn" onclick="openMembersModal()"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6M10 20l.5-4M14 20l-.5-4"/></svg> Members</button>
         <button id="lbBtn" onclick="openLbModal()"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M8.5 12 7 21l5-2.8 5 2.8-1.5-9"/></svg> Leaderboard</button>
+        <button id="viewerJoinBtn" onclick="openJoinModal()"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Join social games</button>
+        <a id="td3Btn" href="/3d/arena-webgl.html" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg> 3D View</a>
       </div>
     </div>
   </div>
@@ -947,6 +1022,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <button class="admin-tab-btn" data-tab="courts" onclick="setAdminTab('courts')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg></span><span class="tab-label">Courts</span></button>
     <button class="admin-tab-btn" data-tab="engagement" onclick="setAdminTab('engagement')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg></span><span class="tab-label">Engagement</span></button>
     <button class="admin-tab-btn" data-tab="monthly" onclick="setAdminTab('monthly')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span><span class="tab-label">Monthly Draw</span></button>
+    <button class="admin-tab-btn" data-tab="signups" onclick="setAdminTab('signups')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M15 19a4 4 0 0 0-8 0M11 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M18 8v6M21 11h-6"/></svg></span><span class="tab-label">Sign-ups</span><span class="signup-badge" id="signupBadge" style="display:none"></span></button>
     <button class="admin-tab-btn" data-tab="settings" onclick="setAdminTab('settings')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 2h-4l-.5 2.4a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 22h4l.5-2.4a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg></span><span class="tab-label">Settings</span></button>
   </div>
 
@@ -1094,6 +1170,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div id="drawResult"></div>
   </div>
 
+  <!-- Court Spins -->
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg></span> Court Spins</div>
+    <div class="admin-helper-text">A separate spin for each court &mdash; add up to 12 names, then spin to reveal that court&#x2019;s winner live on the viewer screen.</div>
+    <div class="cspin-grid" id="courtSpins"></div>
+  </div>
+
   </div><!-- /engagement tab -->
 
   <!-- ── MONTHLY LUCKY DRAW TAB ──────────────── -->
@@ -1147,6 +1230,15 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
   </div><!-- /monthly tab -->
 
+  <!-- ── SIGN-UPS TAB ────────────────────────── -->
+  <div class="admin-tab-panel" data-tab="signups">
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M15 19a4 4 0 0 0-8 0M11 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M18 8v6M21 11h-6"/></svg></span> Sign-ups</div>
+    <div class="admin-helper-text">People who asked to join via the public sign-up form. Newest first; new ones are highlighted until you mark them contacted.</div>
+    <div id="signupsList"></div>
+  </div>
+  </div><!-- /signups tab -->
+
   <!-- ── SETTINGS TAB ───────────────────────── -->
   <div class="admin-tab-panel" data-tab="settings">
 
@@ -1180,6 +1272,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     </div>
   </div>
 
+  <!-- Social Game Days -->
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4M9 14l2 2 4-4"/></svg></span> Social Game Days</div>
+    <div class="admin-helper-text">Recurring days shown in the public &ldquo;Join our social games&rdquo; sign-up form. With no enabled days, the public sign-up button is hidden everywhere.</div>
+    <div id="socialGamesList"></div>
+    <div class="admin-btn-row admin-mt">
+      <button class="btn btn-ghost btn-sm" onclick="addSocialGameDay()"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add day</button>
+      <button class="btn btn-primary btn-sm" onclick="saveSocialGames()">Save game days</button>
+    </div>
+  </div>
+
   </div><!-- /settings tab -->
 
 </div>
@@ -1197,8 +1300,24 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 // ── STATE ────────────────────────────────────
 let state = null;
 let pollTimer = null;
+// True once a full renderAdmin() has populated the admin panel (including the
+// Settings-tab cards). Guards against a reload that runs showAdmin() before
+// state has loaded — poll() does the first full render once state arrives.
+let adminInitDone = false;
 let expandedRound = null;
 let generatePending = false; // confirm-to-generate state
+
+// Social sign-up: fallback game days mirror the server DEFAULT_STATE, used before
+// any state has loaded. `lockedSocialGames` holds the open days the locked GET
+// surfaces so the lockscreen CTA can render before the site code is entered.
+const DEFAULT_SOCIAL_GAMES = [
+  { id: 'sg-fri', day: 'Friday', weekday: 5, time: '9–11pm', enabled: true },
+  { id: 'sg-sun', day: 'Sunday', weekday: 0, time: '9–11pm', enabled: true },
+  { id: 'sg-mon', day: 'Monday', weekday: 1, time: '9–11pm', enabled: true },
+];
+let lockedSocialGames = null;
+// Weekday number ↔ name map for the Settings day editor (index = getDay() value).
+const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 // ── AVATAR COLORS ────────────────────────────
 const COLORS = ['#16a55a','#2563eb','#dc2626','#7c3aed','#ea580c','#0891b2','#65a30d','#c026d3','#b45309','#0f766e'];
@@ -1273,6 +1392,10 @@ async function poll() {
   const s = await apiFetch();
   if (!s) return;
   if (s.locked) {
+    // The locked GET surfaces the open game days so the lockscreen CTA can show
+    // even before the site code is entered. Update BEFORE either early return.
+    if (Array.isArray(s.socialGames)) lockedSocialGames = s.socialGames;
+    updateJoinCtaVisibility();
     // An authenticated admin must never be locked out of their own admin panel.
     if (!sessionStorage.getItem('adminPwd')) {
       // Only show the gate if it isn't already up. Re-showing every poll steals
@@ -1288,17 +1411,28 @@ async function poll() {
   // in-progress edit is silently rebased onto newly-synced server data.
   if (adminOpen && isEditing()) return;
   state = s;
+  updateJoinCtaVisibility();
   renderViewer();
   checkForNewSpin(state.luckyDraw);
   checkForNewMonthlyDraw(state.monthlyDraw);
+  checkForNewCourtSpin(state.courtSpins);
   if (adminOpen) {
+    // First poll after the panel opens (e.g. a reload that ran showAdmin() before
+    // state had loaded): do one full renderAdmin() so the Settings-tab cards —
+    // share link, site code, social game days — populate. Later ticks refresh
+    // only the live sections below to stay off the hot path.
+    if (!adminInitDone) { adminInitDone = true; renderAdmin(); }
     renderSessionDateSection();
     renderPlayersSection(); // B5: keep the admin player list fresh across devices
     renderCourtControls();
     renderRoundList();
     renderDrawPool();
     renderDrawResult();
+    renderCourtSpins();
     renderMonthlyTab();
+    // Keep the unread badge live every tick, but NOT the full list — re-rendering
+    // up to 500 rows (each running timeAgo) every 2s would be a hot-path regression.
+    renderSignupsBadge();
   }
 }
 
@@ -1487,9 +1621,12 @@ function renderAdmin() {
   renderCourtControls();
   renderRoundList();
   renderDrawPool();
+  renderCourtSpins();
   renderMonthlyTab();
+  renderSignupsBadge();
   document.getElementById('shareLink').textContent = window.location.origin + '/';
   renderSiteCodeSection();
+  renderSocialGamesCard();
 }
 
 function renderCourtControls() {
@@ -2285,6 +2422,7 @@ function showSiteGate() {
   document.getElementById('admin').style.display = 'none';
   document.getElementById('adminBtn').style.display = 'none';
   if (!alreadyOpen) initHeroGate();
+  updateJoinCtaVisibility();
   // Don't grab focus while the admin-access password modal is open.
   if (!document.getElementById('pwModal').classList.contains('open')) {
     setTimeout(() => document.getElementById('gateInput').focus(), 50);
@@ -2380,10 +2518,77 @@ async function saveSiteCode() {
   notify('Access code updated!');
 }
 
+// ── SOCIAL GAME DAYS (settings editor) ───────
+// DOM is the working copy: add/remove read the current rows back so unsaved edits
+// survive, then re-render. Save reads the DOM, posts, and re-syncs from state.
+function renderSocialGamesCard(rows) {
+  const list = document.getElementById('socialGamesList');
+  if (!list) return;
+  const games = Array.isArray(rows) ? rows : (state.socialGames || []);
+  if (!games.length) {
+    list.innerHTML = '<div class="signup-empty">No game days yet — add one below.</div>';
+    return;
+  }
+  list.innerHTML = games.map(g => {
+    const wd = Number.isFinite(g.weekday) ? g.weekday : WEEKDAY_NAMES.indexOf(g.day);
+    const options = WEEKDAY_NAMES.map((nm, w) =>
+      `<option value="${w}"${w === wd ? ' selected' : ''}>${nm}</option>`).join('');
+    return `<div class="social-games-row" data-id="${escHtml(g.id || '')}">
+      <label class="sg-toggle"><input type="checkbox" ${g.enabled ? 'checked' : ''} aria-label="Enable this day"></label>
+      <select class="admin-form-input sg-day" aria-label="Day of week">${options}</select>
+      <input type="text" class="admin-form-input sg-time" value="${escHtml(g.time || '')}" placeholder="9–11pm" aria-label="Time">
+      <button class="btn btn-ghost btn-sm sg-remove" onclick="removeSocialGameDay(this)" aria-label="Remove day">Remove</button>
+    </div>`;
+  }).join('');
+}
+
+function readSocialGamesFromDOM() {
+  return [...document.querySelectorAll('#socialGamesList .social-games-row')].map((row, idx) => {
+    const weekday = parseInt(row.querySelector('.sg-day').value, 10);
+    const enabled = row.querySelector('input[type="checkbox"]').checked;
+    const time = row.querySelector('.sg-time').value.trim();
+    const id = row.dataset.id || ('sg' + Date.now() + idx + Math.random().toString(36).slice(2, 5));
+    const day = WEEKDAY_NAMES[weekday] || '';
+    return { id, day, weekday, time, enabled };
+  });
+}
+
+function addSocialGameDay() {
+  const rows = readSocialGamesFromDOM();
+  rows.push({ id: 'sg' + Date.now() + Math.random().toString(36).slice(2, 5), day: 'Friday', weekday: 5, time: '9–11pm', enabled: true });
+  renderSocialGamesCard(rows);
+}
+
+function removeSocialGameDay(btn) {
+  const row = btn.closest('.social-games-row');
+  const id = row && row.dataset.id;
+  const rows = readSocialGamesFromDOM().filter(r => r.id !== id);
+  renderSocialGamesCard(rows);
+}
+
+async function saveSocialGames() {
+  // Capture the user's edits from the DOM first, before any await re-renders things.
+  const rows = readSocialGamesFromDOM().filter(r => r.day && r.time);
+  await refreshState();
+  if (await apiPost({ socialGames: rows }) === null) return;
+  state.socialGames = rows;
+  renderSocialGamesCard();      // re-sync the card from the saved state
+  updateJoinCtaVisibility();    // hide the public CTA if nothing is enabled now
+  notify('Game days saved');
+}
+
 // ── DATE UTILS ───────────────────────────────
 function todayISO() {
   // Local date (not UTC) so the day boundary matches the user's clock (B8).
   const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function maxSessionDateISO() {
+  // Furthest a session date may be set: one month ahead of today (local).
+  // Admins can schedule upcoming sessions; the past stays fully open.
+  const d = new Date();
+  d.setMonth(d.getMonth() + 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
@@ -2403,14 +2608,14 @@ function renderSessionDateSection() {
   const headerDate = document.getElementById('headerDate');
   const date = state.sessionDate || todayISO();
   if (display) display.textContent = formatDisplayDate(date);
-  if (inp) { inp.value = date; inp.max = todayISO(); }
+  if (inp) { inp.value = date; inp.max = maxSessionDateISO(); }
   if (headerDate) headerDate.textContent = formatDisplayDate(date);
 }
 
 async function setSessionDate() {
   const newDate = document.getElementById('sessionDateInput')?.value;
   if (!newDate) return notify('Select a date first.', 'warn');
-  if (newDate > todayISO()) return notify('Cannot set a future date.', 'warn');
+  if (newDate > maxSessionDateISO()) return notify('Cannot set a date more than a month ahead.', 'warn');
   if (newDate === state.sessionDate) return notify('Already set to this date.');
   const result = await apiPost({ sessionDate: newDate });
   if (!result) return;
@@ -2522,7 +2727,7 @@ function selectCalDate(iso) {
   const session = (state.sessions||{})[iso];
   const detail = document.getElementById('sessionDetail');
   if (!session) {
-    const isFuture = iso > todayISO();
+    const isFuture = iso > maxSessionDateISO();
     detail.innerHTML = `<div class="session-detail">
       <div style="font-size:14px;color:var(--muted);margin-bottom:10px">${formatDisplayDate(iso)}</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:12px">No session recorded for this date.</div>
@@ -3166,6 +3371,7 @@ function setAdminTab(name) {
     panel.classList.toggle('active', panel.dataset.tab === name);
   });
   if (name === 'monthly') renderMonthlyTab();
+  if (name === 'signups') renderSignupsTab();
 }
 
 // ── NAVIGATION ───────────────────────────────
@@ -3177,7 +3383,7 @@ function showAdmin() {
   document.getElementById('viewer').style.display = 'none';
   document.getElementById('admin').style.display = 'flex';
   document.getElementById('adminBtn').style.display = 'none';
-  if (state) renderAdmin();
+  if (state) { renderAdmin(); adminInitDone = true; }
   setAdminTab(currentAdminTab);
 }
 
@@ -3203,6 +3409,199 @@ function notify(msg, type) {
 
 function copyLink() {
   navigator.clipboard.writeText(window.location.origin + '/').then(() => notify('Link copied!'));
+}
+
+// ── SOCIAL SIGN-UP (public join flow) ────────
+// Enabled game days, preferring loaded state, then the locked-GET snapshot,
+// then the built-in defaults. Drives both CTAs and the modal's day chips.
+function getEnabledGameDays() {
+  const games = (state && Array.isArray(state.socialGames)) ? state.socialGames
+    : (Array.isArray(lockedSocialGames) ? lockedSocialGames : DEFAULT_SOCIAL_GAMES);
+  return games.filter(g => g && g.enabled);
+}
+
+// Hide both CTAs entirely when no day is open for sign-up.
+function updateJoinCtaVisibility() {
+  const show = getEnabledGameDays().length > 0;
+  const gateLink = document.getElementById('gateJoinLink');
+  const viewerBtn = document.getElementById('viewerJoinBtn');
+  if (gateLink) gateLink.style.display = show ? '' : 'none';
+  if (viewerBtn) viewerBtn.style.display = show ? '' : 'none';
+}
+
+function renderJoinDayChips() {
+  const wrap = document.getElementById('joinDayChips');
+  if (!wrap) return;
+  wrap.innerHTML = getEnabledGameDays().map(g =>
+    `<button type="button" class="join-day-chip" role="button" aria-pressed="false" data-day="${escHtml(g.day)}" onclick="toggleJoinDay(this)">${escHtml(g.day)} · ${escHtml(g.time || '')}</button>`
+  ).join('');
+}
+
+function toggleJoinDay(btn) {
+  const on = btn.classList.toggle('selected');
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+}
+
+function openJoinModal() {
+  if (getEnabledGameDays().length === 0) return; // CTA shouldn't be visible anyway
+  const form = document.getElementById('joinForm');
+  const thanks = document.getElementById('joinThanks');
+  const err = document.getElementById('joinError');
+  if (form) form.style.display = '';
+  if (thanks) thanks.style.display = 'none';
+  if (err) { err.style.display = 'none'; err.textContent = ''; }
+  document.getElementById('joinNameInput').value = '';
+  document.getElementById('joinPhoneInput').value = '';
+  document.getElementById('joinHp').value = '';
+  renderJoinDayChips();
+  document.getElementById('joinModal').classList.add('open');
+  setTimeout(() => document.getElementById('joinNameInput').focus(), 50);
+}
+
+function closeJoinModal() {
+  document.getElementById('joinModal').classList.remove('open');
+}
+
+async function submitJoinForm() {
+  const name = document.getElementById('joinNameInput').value;
+  const phone = document.getElementById('joinPhoneInput').value;
+  const hp = document.getElementById('joinHp').value;
+  const days = [...document.querySelectorAll('#joinDayChips .join-day-chip.selected')].map(c => c.dataset.day);
+  const errEl = document.getElementById('joinError');
+  const lib = window.MonthlyDraw;
+  const v = lib
+    ? lib.validateSignup({ name, phone, days }, getEnabledGameDays().map(g => g.day))
+    : { ok: !!(name.trim() && phone.trim() && days.length), error: 'Please complete the form.' };
+  if (!v.ok) {
+    errEl.textContent = v.error;
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  try {
+    const r = await fetch('/api/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'submitSignup', name, phone, days, hp }),
+    });
+    const res = await r.json().catch(() => null);
+    if (!r.ok || !res || !res.ok) throw new Error('submit failed');
+  } catch (e) {
+    errEl.textContent = "Sorry, that didn't go through. Please try again.";
+    errEl.style.display = 'block';
+    return;
+  }
+  document.getElementById('joinForm').style.display = 'none';
+  document.getElementById('joinThanks').style.display = 'block';
+  setTimeout(closeJoinModal, 1800);
+}
+
+// ── ADMIN SIGN-UPS REVIEW ────────────────────
+// Unread badge only — cheap enough to run on every 2s poll (O(n) over a ≤500 cap).
+function renderSignupsBadge() {
+  const badge = document.getElementById('signupBadge');
+  if (!badge) return;
+  const lib = window.MonthlyDraw;
+  const n = lib ? lib.unhandledCount(state.signups || []) : (state.signups || []).filter(s => s && !s.handled).length;
+  badge.textContent = n;
+  badge.style.display = n > 0 ? 'inline-flex' : 'none';
+}
+
+// Full list re-render — runs on tab activation and after each row action, NOT per poll.
+function renderSignupsTab() {
+  const list = document.getElementById('signupsList');
+  if (!list) return;
+  const lib = window.MonthlyDraw;
+  const signups = (state.signups || []).slice().sort((a, b) => (b.at || 0) - (a.at || 0));
+  if (!signups.length) {
+    list.innerHTML = '<div class="signup-empty">No sign-ups yet.</div>';
+    renderSignupsBadge();
+    return;
+  }
+  const now = clockNow();
+  list.innerHTML = signups.map(s => {
+    const days = Array.isArray(s.days) ? s.days : [];
+    const dayTags = days.map(d => `<span class="signup-day-tag">${escHtml(d)}</span>`).join('');
+    const ago = lib ? lib.timeAgo(s.at, now) : '';
+    const unhandled = !s.handled;
+    const id = escHtml(s.id);
+    const phone = escHtml(s.phone || '');
+    // s.id is server-generated ('su'+base36) so it's safe as an inline-handler arg;
+    // phone is NOT (it can hold quotes), so copy looks it up by id rather than
+    // interpolating the value into the onclick string.
+    const handleBtn = unhandled
+      ? `<button class="btn btn-secondary btn-sm" onclick="markSignupHandled('${id}')"><svg class="ic" viewBox="0 0 24 24"><path d="M5 12l5 5 9-9"/></svg> Mark contacted</button>`
+      : '';
+    return `<div class="signup-row${unhandled ? ' unhandled' : ''}">
+      <div class="signup-row-head">
+        <span class="signup-name">${escHtml(s.name || '')}</span>
+        ${unhandled ? '<span class="signup-new-pill">New</span>' : ''}
+        <span class="signup-time">${escHtml(ago)}</span>
+      </div>
+      <div class="signup-phone">${phone}</div>
+      <div class="signup-days">${dayTags}</div>
+      <div class="signup-actions">
+        <button class="btn btn-secondary btn-sm" onclick="copySignupPhone('${id}')"><svg class="ic" viewBox="0 0 24 24"><path d="M7 8h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2zM9 8V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/></svg> Copy phone</button>
+        <button class="btn btn-secondary btn-sm" onclick="addSignupToRoster('${id}')"><svg class="ic" viewBox="0 0 24 24"><path d="M15 19a4 4 0 0 0-8 0M11 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M18 8v6M21 11h-6"/></svg> Add to roster</button>
+        ${handleBtn}
+        <button class="signup-del" onclick="deleteSignup('${id}',this)" title="Delete sign-up" aria-label="Delete sign-up from ${escHtml(s.name || '')}">×</button>
+      </div>
+    </div>`;
+  }).join('');
+  renderSignupsBadge();
+}
+
+async function markSignupHandled(id) {
+  await refreshState();
+  const signups = (state.signups || []).map(s => s.id === id ? { ...s, handled: true } : s);
+  if (await apiPost({ signups }) === null) return;
+  state.signups = signups;
+  renderSignupsTab();
+}
+
+function copySignupPhone(id) {
+  const signup = (state.signups || []).find(s => s.id === id);
+  if (!signup || !signup.phone) return;
+  navigator.clipboard.writeText(signup.phone).then(() => notify('Phone copied'));
+}
+
+async function addSignupToRoster(id) {
+  await refreshState();
+  const signup = (state.signups || []).find(s => s.id === id);
+  if (!signup) return notify('Sign-up not found.', 'warn');
+  const name = String(signup.name || '').trim();
+  const dup = (state.roster || []).some(r => String(r.name || '').trim().toLowerCase() === name.toLowerCase());
+  if (dup) {
+    // Already on the roster — don't add a duplicate, but still clear the sign-up.
+    const signups = (state.signups || []).map(s => s.id === id ? { ...s, handled: true } : s);
+    if (await apiPost({ signups }) === null) return;
+    state.signups = signups;
+    renderSignupsTab();
+    return notify(name + ' is already on the roster — marked contacted.', 'warn');
+  }
+  const player = { id: 'p' + Date.now() + Math.random().toString(36).slice(2, 6), name, photo: null, points: 0 };
+  const roster = [...(state.roster || []), player];
+  const signups = (state.signups || []).map(s => s.id === id ? { ...s, handled: true } : s);
+  if (await apiPost({ roster, signups }) === null) return;
+  state.roster = roster;
+  state.signups = signups;
+  renderSignupsTab();
+  renderPlayersSection();
+  notify('Added to roster');
+}
+
+async function deleteSignup(id, btn) {
+  if (btn.dataset.confirmed !== 'yes') {
+    btn.textContent = '?'; btn.dataset.confirmed = 'yes'; btn.classList.add('confirm');
+    setTimeout(() => { if (btn.dataset.confirmed === 'yes') { btn.textContent = '×'; btn.dataset.confirmed = ''; btn.classList.remove('confirm'); } }, 3000);
+    return;
+  }
+  await refreshState();
+  const signups = (state.signups || []).filter(s => s.id !== id);
+  if (await apiPost({ signups }) === null) return;
+  state.signups = signups;
+  renderSignupsTab();
+  notify('Sign-up deleted.');
 }
 
 // ── MEMBERS MODAL ────────────────────────────
@@ -3573,6 +3972,162 @@ async function spinDraw() {
   renderDrawResult();
 }
 
+// ── COURT SPINS (engagement: one independent spin per court) ──
+const MAX_CSPIN_NAMES = 12;
+
+function csState() {
+  const cs = state.courtSpins || {};
+  return { courts: Array.isArray(cs.courts) ? cs.courts : [], spin: cs.spin || null };
+}
+// Build a fresh courts array of at least `n` slots, preserving any existing data
+// (incl. courts beyond n, so lowering the court count never drops their lists).
+function csCloneCourts(courts, n) {
+  const len = Math.max(n, courts.length);
+  const out = [];
+  for (let i = 0; i < len; i++) {
+    const c = courts[i] || {};
+    out.push({ names: Array.isArray(c.names) ? [...c.names] : [], lastWinner: c.lastWinner || '' });
+  }
+  return out;
+}
+function csNames(i) { const c = csState().courts[i]; return (c && Array.isArray(c.names)) ? c.names : []; }
+function csLastWinner(i) { const c = csState().courts[i]; return (c && c.lastWinner) || ''; }
+// One shared #pickerOverlay → block every court's SPIN while any court spin is live.
+function csSpinLive() {
+  const live = (state.courtSpins || {}).spin;
+  return !!(live && clockNow() < live.startAt + live.durationMs);
+}
+
+function renderCourtSpins() {
+  const grid = document.getElementById('courtSpins');
+  if (!grid) return;
+  const numCourts = state.numCourts || 1;
+  const live = csSpinLive();
+  // Preserve any unsubmitted text in the per-court add inputs across the 2s re-render.
+  const drafts = {};
+  grid.querySelectorAll('.cspin-input').forEach(inp => { drafts[inp.dataset.court] = inp.value; });
+  let html = '';
+  for (let i = 0; i < numCourts; i++) {
+    const names = csNames(i);
+    const winner = csLastWinner(i);
+    const full = names.length >= MAX_CSPIN_NAMES;
+    const canSpin = names.length >= 2 && !live;
+    const chips = names.length
+      ? names.map((name, idx) => {
+          const rp = (state.roster || []).find(r => r.name === name);
+          let av = '';
+          if (rp) {
+            if (rp.photo) av = `<img class="draw-chip-avatar" src="${rp.photo}" alt="" style="object-fit:cover">`;
+            else av = `<span class="draw-chip-avatar" style="background:${getColor(rp.id)}">${getInitials(name)}</span>`;
+          }
+          return `<div class="draw-chip">${av}<span>${escHtml(name)}</span><button onclick="removeCourtSpinName(${i},${idx})" title="Remove" aria-label="Remove ${escHtml(name)}">&#x00D7;</button></div>`;
+        }).join('')
+      : '<div class="draw-empty">No names yet &mdash; add players or pull this court.</div>';
+    html += `
+      <div class="cspin-court">
+        <div class="cspin-head">
+          <span class="cspin-title">Court ${i + 1}</span>
+          <span class="cspin-count">${names.length}/${MAX_CSPIN_NAMES}</span>
+        </div>
+        <div class="cspin-max">Max ${MAX_CSPIN_NAMES} names</div>
+        <div class="cspin-names">${chips}</div>
+        ${winner ? `<div class="cspin-winner"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg> Last winner: ${escHtml(winner)}</div>` : ''}
+        <div class="cspin-add-row">
+          <input class="admin-form-input admin-flex cspin-input" data-court="${i}" id="cspinInput${i}" type="text"
+            placeholder="${full ? 'Court is full (12)' : 'Add name…'}" ${full ? 'disabled' : ''}
+            onkeydown="if(event.key===&#x27;Enter&#x27;)addCourtSpinName(${i})">
+          <button class="btn btn-secondary btn-sm" onclick="addCourtSpinName(${i})" ${full ? 'disabled' : ''}>Add</button>
+        </div>
+        <div class="admin-btn-row admin-mb">
+          <button class="btn btn-ghost btn-sm" onclick="pullCourtPlayers(${i})">Pull court players</button>
+          ${names.length ? `<button class="btn btn-ghost btn-sm" onclick="clearCourtSpin(${i})">Clear</button>` : ''}
+        </div>
+        <button class="btn btn-primary admin-spin-btn" onclick="spinCourtDraw(${i})" ${canSpin ? '' : 'disabled'}><svg class="ic" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4z"/><path d="M9 6v12"/></svg> SPIN</button>
+      </div>`;
+  }
+  grid.innerHTML = html;
+  Object.keys(drafts).forEach(c => { const inp = document.getElementById('cspinInput' + c); if (inp && !inp.disabled) inp.value = drafts[c]; });
+}
+
+async function addCourtSpinName(i) {
+  const input = document.getElementById('cspinInput' + i);
+  const name = (input ? input.value : '').trim();
+  if (!name) return;
+  const cs = csState();
+  const courts = csCloneCourts(cs.courts, state.numCourts || 1);
+  if (courts[i].names.length >= MAX_CSPIN_NAMES) { notify(`Court ${i + 1} is full (max ${MAX_CSPIN_NAMES}).`); return; }
+  courts[i].names = [...courts[i].names, name];
+  const courtSpins = { ...cs, courts };
+  await apiPost({ courtSpins });
+  state.courtSpins = courtSpins;
+  if (input) input.value = '';
+  renderCourtSpins();
+  const again = document.getElementById('cspinInput' + i);
+  if (again && !again.disabled) again.focus();
+}
+
+async function removeCourtSpinName(i, idx) {
+  const cs = csState();
+  const courts = csCloneCourts(cs.courts, state.numCourts || 1);
+  if (!courts[i]) return;
+  courts[i].names = courts[i].names.filter((_, k) => k !== idx);
+  const courtSpins = { ...cs, courts };
+  await apiPost({ courtSpins });
+  state.courtSpins = courtSpins;
+  renderCourtSpins();
+}
+
+async function clearCourtSpin(i) {
+  const cs = csState();
+  const courts = csCloneCourts(cs.courts, state.numCourts || 1);
+  if (!courts[i]) return;
+  courts[i].names = [];
+  const courtSpins = { ...cs, courts };
+  await apiPost({ courtSpins });
+  state.courtSpins = courtSpins;
+  renderCourtSpins();
+}
+
+// Load Court i's currently-assigned players (its live round's two teams) into the pool.
+async function pullCourtPlayers(i) {
+  const rounds = state.rounds || [];
+  const cr = getCourtRounds();
+  const roundIdx = (cr[i] != null) ? cr[i] : (state.currentRound || 0);
+  const round = rounds[roundIdx];
+  const court = round && round.courts && round.courts[i];
+  const ids = court ? [...(court.team1 || []), ...(court.team2 || [])].filter(Boolean) : [];
+  if (!ids.length) { notify(`No players assigned to Court ${i + 1} yet.`); return; }
+  const names = ids.map(id => (playerById(id) || {}).name || id).slice(0, MAX_CSPIN_NAMES);
+  const cs = csState();
+  const courts = csCloneCourts(cs.courts, state.numCourts || 1);
+  courts[i].names = names;
+  const courtSpins = { ...cs, courts };
+  await apiPost({ courtSpins });
+  state.courtSpins = courtSpins;
+  renderCourtSpins();
+  notify(`Loaded ${names.length} players into Court ${i + 1}.`);
+}
+
+async function spinCourtDraw(i) {
+  const cs = csState();
+  const courts = csCloneCourts(cs.courts, state.numCourts || 1);
+  const names = (courts[i] && courts[i].names) || [];
+  if (names.length < 2) { notify(`Need at least 2 names on Court ${i + 1} to spin.`); return; }
+  if (csSpinLive()) { notify('A court spin is already in progress.'); return; }  // double-spin guard
+  const winnerIndex = Math.floor(Math.random() * names.length);
+  const winnerName = names[winnerIndex];
+  const spin = {
+    id: Date.now(), kind: 'court', courtIndex: i, title: `Court ${i + 1}`, hidePrize: true,
+    entries: [...names], winnerIndex, winnerName, startAt: clockNow() + 800, durationMs: 4500,
+  };
+  courts[i].lastWinner = winnerName;
+  const courtSpins = { ...cs, courts, spin };
+  await apiPost({ courtSpins });
+  state.courtSpins = courtSpins;
+  checkForNewCourtSpin(courtSpins);
+  renderCourtSpins();
+}
+
 // ── DRAW REVEAL (engagement: routes through the shared name-reel picker) ──
 let lastSpinId = null;
 const SPIN_GRACE_MS = 12000;
@@ -3590,6 +4145,28 @@ function checkForNewSpin(ld) {
   if (activeRevealKind && activeRevealKind !== 'engagement') return;
   lastSpinId = spin.id;
   activeRevealKind = 'engagement';
+  if (pickerRaf) { cancelAnimationFrame(pickerRaf); pickerRaf = null; }
+  showPickerOverlay(spin);
+  if (prefersReducedMotion() || now >= finishedAt) { displayPickerWinner(spin); return; }
+  animatePicker(spin);
+  clearTimeout(pickerSafetyTimer);
+  pickerSafetyTimer = setTimeout(() => displayPickerWinner(spin), Math.max(0, finishedAt - now) + 120);
+}
+
+// Court spins reuse the single shared #pickerOverlay; serialized against the
+// engagement + monthly reveals via activeRevealKind (F2).
+let lastCourtSpinId = null;
+function checkForNewCourtSpin(cs) {
+  const spin = cs && cs.spin;
+  if (!spin || !spin.id) return;
+  if (spin.id === lastCourtSpinId) return;
+  const now = clockNow();
+  const finishedAt = spin.startAt + spin.durationMs;
+  if (now > finishedAt + SPIN_GRACE_MS) { lastCourtSpinId = spin.id; return; }  // stale — consume silently
+  // Bail WITHOUT consuming the guard so this re-fires once the overlay is free.
+  if (activeRevealKind && activeRevealKind !== 'court') return;
+  lastCourtSpinId = spin.id;
+  activeRevealKind = 'court';
   if (pickerRaf) { cancelAnimationFrame(pickerRaf); pickerRaf = null; }
   showPickerOverlay(spin);
   if (prefersReducedMotion() || now >= finishedAt) { displayPickerWinner(spin); return; }
@@ -3627,6 +4204,7 @@ document.addEventListener('keydown', e => {
   if (isOpen('lbModal')) closeLbModal();
   if (isOpen('mdBoardModal')) closeMdBoard();
   if (isOpen('historyModal')) closeHistoryModal();
+  if (isOpen('joinModal')) closeJoinModal();
 });
 
 // ── MONTHLY DRAW REVEAL (viewer-synced shuffle) ──
@@ -3666,14 +4244,20 @@ function showPickerOverlay(spin) {
   if (titleEl) titleEl.textContent = (spin && spin.title) || 'Monthly Lucky Draw';
   const prizeEl = document.getElementById('pickerPrize');
   if (prizeEl) {
-    const rank = (spin && spin.rank) || 1;
-    // Cap the medal style at rank-3 so ranks >3 reuse a defined palette (F3);
-    // the medal number + label still show the true rank/ordinal.
-    prizeEl.className = 'picker-prize rank-' + Math.min(rank, 3);
-    if (spin && spin.noPrize) {
-      prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${escHtml(ordinalLbl(rank))} Winner</span>`;
+    if (spin && spin.hidePrize) {
+      // Court spins have no rank/prize — the court name in the title is enough.
+      prizeEl.className = 'picker-prize empty';
+      prizeEl.innerHTML = '';
     } else {
-      prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${mdRankLbl(rank)} Prize${spin && spin.prize ? ' &mdash; ' + escHtml(spin.prize) : ''}</span>`;
+      const rank = (spin && spin.rank) || 1;
+      // Cap the medal style at rank-3 so ranks >3 reuse a defined palette (F3);
+      // the medal number + label still show the true rank/ordinal.
+      prizeEl.className = 'picker-prize rank-' + Math.min(rank, 3);
+      if (spin && spin.noPrize) {
+        prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${escHtml(ordinalLbl(rank))} Winner</span>`;
+      } else {
+        prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${mdRankLbl(rank)} Prize${spin && spin.prize ? ' &mdash; ' + escHtml(spin.prize) : ''}</span>`;
+      }
     }
   }
   const nameEl = document.getElementById('pickerName');

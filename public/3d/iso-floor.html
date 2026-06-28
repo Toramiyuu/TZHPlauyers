@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TZH Badminton — Digital Twin</title>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  :root{
+    --blue:#0071e3; --blue-2:#0066cc; --blue-dark:#005bb5;
+    --blue-tint:rgba(0,113,227,.16); --blue-line:rgba(0,113,227,.42);
+    --bg:#eef4fd; --bg-2:#e8f0fb; --card:#ffffff; --card-2:#e2ecfa;
+    --ink:#1d1d1f; --ink-2:#5c6470; --ink-3:#5f6b7a; --line:#d4e2f5;
+
+    /* iso tuning */
+    --iso-rx:55deg;        /* camera pitch */
+    --iso-rz:-45deg;       /* camera yaw   */
+    --tile:258px;          /* court tile size */
+    --gap:96px;            /* gap between tiles */
+    --slab:30px;           /* extruded slab thickness */
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 620px at 50% -8%, #ffffff 0%, var(--bg) 46%, var(--bg-2) 100%);
+    min-height:100%;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* faint blueprint grid wash on the page backdrop */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      linear-gradient(rgba(0,113,227,.045) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,113,227,.045) 1px,transparent 1px);
+    background-size:48px 48px;
+    mask-image:radial-gradient(1000px 700px at 50% 42%, #000 0%, transparent 78%);
+    -webkit-mask-image:radial-gradient(1000px 700px at 50% 42%, #000 0%, transparent 78%);
+  }
+
+  /* ============== FLAT HUD HEADER ============== */
+  .hud-top{
+    position:fixed;top:0;left:0;right:0;z-index:40;
+    display:flex;align-items:center;gap:22px;
+    padding:16px 30px;
+    background:rgba(255,255,255,.72);
+    backdrop-filter:saturate(180%) blur(20px);
+    -webkit-backdrop-filter:saturate(180%) blur(20px);
+    border-bottom:1px solid var(--line);
+    box-shadow:0 1px 0 rgba(255,255,255,.7), 0 8px 24px rgba(0,89,179,.06);
+  }
+  .hud-top img{height:46px;width:auto;display:block;border-radius:9px}
+  .brand{display:flex;flex-direction:column;line-height:1.12}
+  .brand .t{font-size:21px;font-weight:680;letter-spacing:-.02em}
+  .brand .d{font-size:12.5px;font-weight:520;color:var(--ink-2);letter-spacing:.01em}
+
+  .live{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:12.5px;font-weight:640;color:var(--blue-2);letter-spacing:.04em;text-transform:uppercase;
+    padding:6px 13px;border:1px solid var(--blue-line);border-radius:999px;
+    background:linear-gradient(180deg,#fff,var(--card-2));
+  }
+  .live .dot{
+    width:9px;height:9px;border-radius:50%;background:var(--blue);
+    box-shadow:0 0 0 0 rgba(0,113,227,.55);
+    animation:pulse 1.9s infinite cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(0,113,227,.5)}
+    70%{box-shadow:0 0 0 11px rgba(0,113,227,0)}
+    100%{box-shadow:0 0 0 0 rgba(0,113,227,0)}
+  }
+
+  .spacer{flex:1}
+  .nav{display:flex;gap:10px}
+  .pill{
+    font-size:13px;font-weight:580;color:var(--ink);letter-spacing:-.01em;
+    padding:9px 17px;border-radius:999px;border:1px solid var(--line);
+    background:#fff;cursor:pointer;transition:.18s ease;
+    box-shadow:0 1px 2px rgba(0,89,179,.05);
+  }
+  .pill:hover{border-color:var(--blue-line);color:var(--blue-2);transform:translateY(-1px)}
+  .pill.alt{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 6px 16px rgba(0,113,227,.28)}
+  .pill.alt:hover{background:var(--blue-2);color:#fff}
+
+  /* ============== ISO STAGE ============== */
+  .stage{
+    position:fixed;inset:0;z-index:10;
+    display:flex;align-items:center;justify-content:center;
+    perspective:1700px;
+    perspective-origin:50% 42%;
+  }
+  /* parallax offset layer (animated by JS) */
+  .scene{
+    transform-style:preserve-3d;
+    transition:transform .14s ease-out;
+    will-change:transform;
+  }
+  /* the actual iso tilt */
+  .world{
+    --px:0deg; --py:0deg;
+    transform-style:preserve-3d;
+    transform:scale(.92) rotateX(var(--iso-rx)) rotateZ(var(--iso-rz));
+    margin-top:6px;
+  }
+  /* ground plane under the slabs (receives shadows) */
+  .ground{
+    position:absolute;left:50%;top:50%;
+    width:calc(var(--tile)*2 + var(--gap) + 230px);
+    height:calc(var(--tile)*2 + var(--gap) + 230px);
+    transform:translate(-50%,-50%) translateZ(-2px);
+    border-radius:34px;
+    background:
+      radial-gradient(120% 120% at 50% 50%, rgba(255,255,255,.9) 0%, rgba(226,236,250,.55) 60%, rgba(226,236,250,0) 100%);
+    box-shadow:inset 0 0 0 1px rgba(0,113,227,.06);
+  }
+
+  .grid{
+    transform-style:preserve-3d;
+    display:grid;
+    grid-template-columns:repeat(2, var(--tile));
+    grid-template-rows:repeat(2, var(--tile));
+    gap:var(--gap);
+  }
+
+  /* ---- one court = an extruded slab ---- */
+  .court{
+    position:relative;
+    width:var(--tile);height:var(--tile);
+    transform-style:preserve-3d;
+  }
+  /* contact shadow cast on ground */
+  .court .cast{
+    position:absolute;inset:-4px;
+    transform:translateZ(-3px);
+    background:rgba(0,70,150,.20);
+    filter:blur(15px);
+    border-radius:18px;
+    z-index:-1;
+  }
+  /* slab side faces (give real thickness) */
+  .side{position:absolute;transform-style:preserve-3d;background:linear-gradient(var(--c1),var(--c2));}
+  .side.s-bottom{
+    --c1:#dbe7f8; --c2:#c5d8f1;
+    left:0;bottom:0;width:var(--tile);height:var(--slab);
+    transform-origin:bottom;
+    transform:rotateX(-90deg);
+    border-bottom-left-radius:6px;border-bottom-right-radius:6px;
+  }
+  .side.s-right{
+    --c1:#cdddf4; --c2:#b6cdeb;
+    right:0;top:0;width:var(--slab);height:var(--tile);
+    transform-origin:right;
+    transform:rotateY(90deg);
+    border-top-right-radius:6px;border-bottom-right-radius:6px;
+  }
+  /* top floor of the court */
+  .floor{
+    position:absolute;inset:0;
+    background:
+      linear-gradient(180deg,#ffffff,#fbfdff);
+    border-radius:8px;
+    box-shadow:
+      inset 0 0 0 1px rgba(0,113,227,.10),
+      0 0 0 1px rgba(255,255,255,.6);
+    overflow:hidden;
+  }
+  /* court boundary lines (blueprint) */
+  .floor .lines{position:absolute;inset:22px;}
+  .floor .lines::before,
+  .floor .lines::after{content:"";position:absolute;background:var(--blue-line)}
+  /* outer rectangle via box */
+  .floor .lines{border:2px solid var(--blue-line);border-radius:3px}
+  /* singles side tramlines */
+  .ln{position:absolute;background:var(--blue-line)}
+  .ln.v1{left:14%;top:0;bottom:0;width:2px}
+  .ln.v2{right:14%;top:0;bottom:0;width:2px}
+  .ln.h-top{left:0;right:0;top:18%;height:2px;background:rgba(0,113,227,.30)}
+  .ln.h-bot{left:0;right:0;bottom:18%;height:2px;background:rgba(0,113,227,.30)}
+  /* faint center net line */
+  .ln.net{
+    left:0;right:0;top:50%;height:3px;transform:translateY(-1.5px);
+    background:repeating-linear-gradient(90deg,rgba(0,113,227,.55) 0 8px,rgba(0,113,227,.12) 8px 16px);
+  }
+  /* court id watermark on floor (kept upright) */
+  .floor .stamp{
+    position:absolute;left:14px;bottom:11px;
+    font-size:10.5px;font-weight:680;letter-spacing:.14em;color:rgba(0,113,227,.34);
+    transform:rotateZ(45deg) rotateX(-55deg);
+    transform-origin:left bottom;
+  }
+
+  /* ---- upright UI layer above each tile (counter-rotated) ---- */
+  .uplabel{
+    position:absolute;left:50%;top:50%;
+    transform-style:preserve-3d;
+    transform:translate(-50%,-50%) translateZ(1px) rotateZ(45deg) rotateX(-55deg);
+    width:calc(var(--tile) - 8px);height:calc(var(--tile) - 8px);
+    pointer-events:none;
+  }
+
+  /* round badge floating over the tile */
+  .badge{
+    position:absolute;left:50%;top:0;transform:translateX(-50%);
+    display:inline-flex;align-items:center;gap:7px;
+    padding:6px 12px;border-radius:999px;
+    white-space:nowrap;
+    background:rgba(255,255,255,.94);border:1px solid var(--blue-line);
+    box-shadow:0 8px 20px rgba(0,89,179,.16);
+    backdrop-filter:blur(6px);
+  }
+  .badge .ct{font-size:12px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+  .badge .rd{font-size:11px;font-weight:640;color:#fff;background:var(--blue);
+    padding:2px 8px;border-radius:999px;letter-spacing:.01em}
+
+  /* vs marker in middle */
+  .vs{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--ink-3);
+    background:#fff;border:1px solid var(--line);border-radius:999px;
+    padding:3px 10px;box-shadow:0 3px 10px rgba(0,89,179,.10);
+  }
+
+  /* ---- floating player chips ---- */
+  .chips{position:absolute;inset:0}
+  .chip-wrap{
+    position:absolute;left:50%;
+    transform-style:preserve-3d;
+    width:0;height:0;
+  }
+  /* chip body lifted on Z + counter-rotated to face camera */
+  .chip{
+    position:absolute;left:50%;top:50%;
+    transform-origin:center bottom;
+    transform:
+      translate(-50%,-100%)
+      translateZ(var(--lift,56px))
+      rotateZ(45deg) rotateX(-55deg);
+    display:flex;align-items:center;gap:9px;
+    padding:7px 13px 7px 7px;border-radius:999px;
+    background:rgba(255,255,255,.96);
+    border:1px solid var(--line);
+    box-shadow:0 10px 22px rgba(0,89,179,.18), 0 1px 0 rgba(255,255,255,.9) inset;
+    white-space:nowrap;
+    animation:bob 3.6s ease-in-out infinite;
+    animation-delay:var(--phase,0s);
+    will-change:transform;
+  }
+  .chip .av{
+    width:30px;height:30px;border-radius:50%;flex:0 0 auto;
+    display:grid;place-items:center;
+    font-size:11.5px;font-weight:700;letter-spacing:.02em;color:#fff;
+    background:linear-gradient(155deg,var(--blue),var(--blue-dark));
+    box-shadow:0 2px 6px rgba(0,113,227,.4), 0 0 0 2px #fff;
+  }
+  .chip .nm{font-size:12.5px;font-weight:600;letter-spacing:-.01em;color:var(--ink)}
+  .chip.t2 .av{background:linear-gradient(155deg,#3d92ee,var(--blue-2))}
+
+  /* contact shadow on floor below each chip */
+  .csh{
+    position:absolute;left:50%;top:50%;
+    width:46px;height:16px;border-radius:50%;
+    transform:translate(-50%,-50%) translateZ(.5px);
+    background:radial-gradient(50% 50% at 50% 50%, rgba(0,70,150,.30), rgba(0,70,150,0) 72%);
+    filter:blur(2px);
+    animation:shadowpulse 3.6s ease-in-out infinite;
+    animation-delay:var(--phase,0s);
+  }
+
+  @keyframes bob{
+    0%,100%{transform:translate(-50%,-100%) translateZ(var(--lift,56px)) rotateZ(45deg) rotateX(-55deg)}
+    50%{transform:translate(-50%,-100%) translateZ(calc(var(--lift,56px) + 12px)) rotateZ(45deg) rotateX(-55deg)}
+  }
+  @keyframes shadowpulse{
+    0%,100%{opacity:.55;transform:translate(-50%,-50%) translateZ(.5px) scale(1)}
+    50%{opacity:.32;transform:translate(-50%,-50%) translateZ(.5px) scale(.82)}
+  }
+
+  /* ============== FLAT HUD FOOTER ============== */
+  .hud-bot{
+    position:fixed;left:0;right:0;bottom:0;z-index:40;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:13px 30px;
+    font-size:12.5px;font-weight:540;color:var(--ink-2);letter-spacing:.005em;
+    background:rgba(255,255,255,.72);
+    backdrop-filter:saturate(180%) blur(20px);
+    -webkit-backdrop-filter:saturate(180%) blur(20px);
+    border-top:1px solid var(--line);
+  }
+  .hud-bot .l{color:var(--ink);font-weight:600}
+  .hud-bot .r{display:inline-flex;align-items:center;gap:9px;color:var(--ink-3)}
+  .hud-bot .r b{color:var(--blue-2);font-weight:680}
+  .hud-bot .sep{width:4px;height:4px;border-radius:50%;background:var(--line)}
+
+  @media (prefers-reduced-motion: reduce){
+    .chip,.csh{animation:none !important}
+    .scene{transition:none !important}
+    .live .dot{animation:none}
+  }
+</style>
+</head>
+<body>
+
+  <!-- FLAT HUD HEADER -->
+  <header class="hud-top">
+    <img src="logo.png" alt="TZH">
+    <div class="brand">
+      <span class="t">TZH Badminton</span>
+      <span class="d">Saturday 28 June 2026</span>
+    </div>
+    <span class="live"><span class="dot"></span>Live</span>
+    <div class="spacer"></div>
+    <nav class="nav">
+      <button class="pill">Members</button>
+      <button class="pill alt">Leaderboard</button>
+    </nav>
+  </header>
+
+  <!-- ISO WORLD -->
+  <div class="stage">
+    <div class="scene" id="scene">
+      <div class="world" id="world">
+        <div class="ground"></div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLAT HUD FOOTER -->
+  <footer class="hud-bot">
+    <span class="l">TZH Badminton — Live Court Display</span>
+    <span class="r"><b>4 courts</b><span class="sep"></span><b>Round 3</b><span class="sep"></span><b>16 players</b></span>
+  </footer>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---- data ----
+  const courts = [
+    { n:1, round:3, t1:[["TW","Thomas Wong"],["ML","Mei Lin"]],   t2:[["DP","David Park"],["SC","Sarah Chen"]] },
+    { n:2, round:3, t1:[["AL","Aiden Lee"],["PN","Priya Nair"]],  t2:[["MT","Marcus Tan"],["YS","Yuki Sato"]] },
+    { n:3, round:2, t1:[["CD","Carlos Diaz"],["HK","Hannah Kim"]],t2:[["LZ","Leo Zhang"],["NP","Nina Patel"]] },
+    { n:4, round:2, t1:[["RK","Ravi Kumar"],["SR","Sofia Reyes"]],t2:[["BC","Ben Carter"],["GL","Grace Lim"]] },
+  ];
+
+  const TILE = 280; // keep in sync with --tile
+
+  // chip anchor positions inside a tile (percentages of tile w/h).
+  // two players per team, top half = team1, bottom half = team2.
+  const slots = [
+    {x:33, y:29}, {x:67, y:29},   // team 1
+    {x:33, y:71}, {x:67, y:71},   // team 2
+  ];
+
+  const grid = document.getElementById("grid");
+
+  courts.forEach((c, ci) => {
+    const court = document.createElement("div");
+    court.className = "court";
+
+    // cast shadow + slab side faces + floor
+    court.innerHTML = `
+      <div class="cast"></div>
+      <div class="side s-bottom"></div>
+      <div class="side s-right"></div>
+      <div class="floor">
+        <div class="lines"></div>
+        <div class="ln v1"></div>
+        <div class="ln v2"></div>
+        <div class="ln h-top"></div>
+        <div class="ln h-bot"></div>
+        <div class="ln net"></div>
+        <div class="stamp">COURT ${c.n}</div>
+      </div>
+    `;
+
+    // upright label layer (counter-rotated container)
+    const up = document.createElement("div");
+    up.className = "uplabel";
+
+    // round badge
+    const badge = document.createElement("div");
+    badge.className = "badge";
+    badge.innerHTML = `<span class="ct">Court ${c.n}</span><span class="rd">Round ${c.round}</span>`;
+    up.appendChild(badge);
+
+    // vs marker
+    const vs = document.createElement("div");
+    vs.className = "vs";
+    vs.textContent = "vs";
+    up.appendChild(vs);
+
+    court.appendChild(up);
+
+    // chip layer (lives in 3D so chips can be lifted on Z)
+    const chips = document.createElement("div");
+    chips.className = "chips";
+
+    const players = [c.t1[0], c.t1[1], c.t2[0], c.t2[1]];
+    players.forEach((p, pi) => {
+      const slot = slots[pi];
+      // absolute position of the chip's ground anchor (in px, on the floor plane)
+      const ax = (slot.x/100)*TILE;
+      const ay = (slot.y/100)*TILE;
+
+      const wrap = document.createElement("div");
+      wrap.className = "chip-wrap";
+      wrap.style.left = ax + "px";
+      wrap.style.top  = ay + "px";
+
+      const phase = ((ci*0.45) + (pi*0.6)).toFixed(2) + "s";
+      const lift  = 50 + (pi % 2) * 10; // px
+
+      // contact shadow on floor
+      const csh = document.createElement("div");
+      csh.className = "csh";
+      csh.style.setProperty("--phase", phase);
+
+      // chip body
+      const chip = document.createElement("div");
+      chip.className = "chip" + (pi >= 2 ? " t2" : "");
+      chip.style.setProperty("--phase", phase);
+      chip.style.setProperty("--lift", lift + "px");
+      chip.innerHTML = `<span class="av">${p[0]}</span><span class="nm">${p[1]}</span>`;
+
+      wrap.appendChild(csh);
+      wrap.appendChild(chip);
+      chips.appendChild(wrap);
+    });
+
+    court.appendChild(chips);
+    grid.appendChild(court);
+  });
+
+  // ---- rAF-throttled mouse parallax (eased) ----
+  const scene = document.getElementById("scene");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if(!reduce){
+    let tx=0, ty=0, cx=0, cy=0, ticking=false;
+    const MAX = 5; // max degrees of parallax tilt
+
+    function onMove(e){
+      const w = window.innerWidth, h = window.innerHeight;
+      tx = ((e.clientX / w) - 0.5) * (MAX*2);   // -MAX..MAX
+      ty = ((e.clientY / h) - 0.5) * (MAX*2);
+      if(!ticking){ ticking = true; requestAnimationFrame(loop); }
+    }
+    function loop(){
+      cx += (tx - cx) * 0.08;
+      cy += (ty - cy) * 0.08;
+      // small extra rotate ON TOP of the iso world — applied to .scene wrapper
+      scene.style.transform = `rotateX(${(-cy).toFixed(2)}deg) rotateZ(${cx.toFixed(2)}deg)`;
+      if(Math.abs(tx-cx) > 0.02 || Math.abs(ty-cy) > 0.02){
+        requestAnimationFrame(loop);
+      } else {
+        ticking = false;
+      }
+    }
+    window.addEventListener("mousemove", onMove, {passive:true});
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TZH Badminton — Holo Tilt</title>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  :root{
+    --blue:#0071e3; --blue-2:#0066cc; --blue-dark:#005bb5;
+    --blue-tint:rgba(0,113,227,.16); --blue-line:rgba(0,113,227,.42);
+    --bg:#eef4fd; --bg-2:#e8f0fb; --card:#ffffff; --card-2:#e2ecfa;
+    --ink:#1d1d1f; --ink-2:#5c6470; --ink-3:#5f6b7a; --line:#d4e2f5;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html,body{ height:100%; }
+
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 1px 1px, var(--blue-tint) 1.1px, transparent 1.4px) 0 0 / 26px 26px,
+      linear-gradient(160deg, var(--bg) 0%, var(--bg-2) 100%);
+    background-attachment:fixed;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    padding:34px clamp(24px, 4vw, 64px) 26px;
+  }
+
+  .wrap{ max-width:1380px; margin:0 auto; }
+
+  /* ---------------- HEADER ---------------- */
+  header{
+    display:flex; align-items:center; gap:22px;
+    padding:0 4px 22px;
+    margin-bottom:30px;
+    border-bottom:1px solid var(--line);
+  }
+  .brand{ display:flex; align-items:center; gap:16px; }
+  .brand img{ height:48px; width:auto; display:block; }
+  .brand-text{ display:flex; flex-direction:column; line-height:1.1; }
+  .brand-text .title{
+    font-size:23px; font-weight:700; letter-spacing:-.02em; color:var(--ink);
+  }
+  .brand-text .date{
+    font-size:13.5px; font-weight:500; color:var(--ink-2); margin-top:3px;
+    letter-spacing:.01em;
+  }
+
+  .live{
+    display:flex; align-items:center; gap:8px;
+    padding:7px 14px 7px 12px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:999px;
+    box-shadow:0 1px 2px rgba(0,80,180,.06);
+    font-size:12.5px; font-weight:650; color:var(--blue-dark);
+    letter-spacing:.04em; text-transform:uppercase;
+  }
+  .live-dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--blue);
+    box-shadow:0 0 0 0 rgba(0,113,227,.55);
+    animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%   { box-shadow:0 0 0 0 rgba(0,113,227,.5); }
+    70%  { box-shadow:0 0 0 8px rgba(0,113,227,0); }
+    100% { box-shadow:0 0 0 0 rgba(0,113,227,0); }
+  }
+
+  .nav{ margin-left:auto; display:flex; gap:10px; }
+  .nav .pill{
+    padding:9px 18px;
+    border-radius:999px;
+    background:#fff;
+    border:1px solid var(--line);
+    font-size:13.5px; font-weight:600; color:var(--ink-2);
+    box-shadow:0 1px 2px rgba(0,80,180,.05);
+    cursor:default; user-select:none;
+    transition:color .2s ease, border-color .2s ease, transform .2s ease;
+  }
+  .nav .pill:first-child{
+    color:#fff;
+    background:linear-gradient(180deg, var(--blue) 0%, var(--blue-2) 100%);
+    border-color:var(--blue-2);
+    box-shadow:0 4px 12px rgba(0,113,227,.28);
+  }
+  .nav .pill:hover{ transform:translateY(-1px); }
+
+  /* ---------------- COURTS GRID ---------------- */
+  .courts{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:30px;
+    margin-bottom:34px;
+  }
+
+  /* parent gives perspective */
+  .scene{ perspective:1100px; }
+
+  .card{
+    position:relative;
+    border-radius:24px;
+    background:linear-gradient(168deg, var(--card) 0%, var(--card-2) 130%);
+    border:1px solid var(--line);
+    padding:26px 28px 28px;
+    transform-style:preserve-3d;
+    transform:rotateX(0deg) rotateY(0deg);
+    transition:transform .45s cubic-bezier(.22,.61,.36,1), box-shadow .45s ease;
+    box-shadow:
+      0 1px 1px rgba(0,70,160,.05),
+      0 14px 34px -18px rgba(0,80,180,.30);
+    will-change:transform;
+    overflow:hidden;
+    /* load-in */
+    opacity:0;
+    --enterY:18px;
+  }
+  .card.in{ animation:cardIn .8s cubic-bezier(.22,.7,.27,1) forwards; }
+  @keyframes cardIn{
+    from{ opacity:0; transform:translateY(var(--enterY)) scale(.965); }
+    to  { opacity:1; transform:translateY(0) scale(1); }
+  }
+  .card.tilting{ transition:transform .08s linear, box-shadow .3s ease; }
+  .card.active{
+    box-shadow:
+      0 1px 1px rgba(0,70,160,.05),
+      0 26px 54px -20px rgba(0,80,180,.42);
+  }
+
+  /* GLARE — follows cursor */
+  .glare{
+    position:absolute; inset:0; border-radius:inherit;
+    pointer-events:none; z-index:6;
+    opacity:0;
+    transition:opacity .4s ease;
+    background:radial-gradient(
+      220px circle at var(--mx,50%) var(--my,40%),
+      rgba(255,255,255,.55) 0%,
+      rgba(180,224,255,.22) 30%,
+      rgba(255,255,255,0) 62%
+    );
+    mix-blend-mode:screen;
+  }
+  .card.active .glare{ opacity:1; }
+
+  /* SHEEN — iridescent blue→cyan→white, shifts with tilt */
+  .sheen{
+    position:absolute; inset:-2px; border-radius:inherit;
+    pointer-events:none; z-index:5;
+    opacity:0;
+    transition:opacity .4s ease;
+    mix-blend-mode:screen;
+    background:
+      linear-gradient(
+        var(--sheen-angle,115deg),
+        rgba(0,113,227,0) 30%,
+        rgba(0,150,255,.16) 44%,
+        rgba(80,220,255,.22) 50%,
+        rgba(255,255,255,.30) 54%,
+        rgba(0,170,255,.14) 60%,
+        rgba(0,113,227,0) 74%
+      );
+    background-size:240% 240%;
+    background-position:var(--sheen-pos,50% 50%);
+  }
+  .card.active .sheen{ opacity:.9; }
+
+  /* inner content lifts in Z */
+  .card-inner{
+    position:relative; z-index:7;
+    transform-style:preserve-3d;
+  }
+
+  .court-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:22px;
+    transform:translateZ(34px);
+  }
+  .court-name{
+    font-size:17px; font-weight:700; letter-spacing:-.01em; color:var(--ink);
+    display:flex; align-items:center; gap:9px;
+  }
+  .court-name::before{
+    content:""; width:6px; height:18px; border-radius:3px;
+    background:linear-gradient(180deg, var(--blue), var(--blue-2));
+    box-shadow:0 2px 6px rgba(0,113,227,.4);
+  }
+  .round-badge{
+    transform:translateZ(54px);
+    padding:7px 15px;
+    border-radius:999px;
+    font-size:12px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+    color:#fff;
+    background:linear-gradient(180deg, var(--blue) 0%, var(--blue-dark) 100%);
+    border:1px solid rgba(255,255,255,.28);
+    box-shadow:0 6px 16px -4px rgba(0,113,227,.55), inset 0 1px 0 rgba(255,255,255,.35);
+  }
+
+  .team{
+    display:flex; align-items:center; gap:15px;
+    transform:translateZ(20px);
+  }
+  .player{ display:flex; align-items:center; gap:12px; min-width:0; }
+
+  .avatar{
+    flex:none;
+    width:48px; height:48px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; font-weight:700; letter-spacing:.02em;
+    color:var(--blue-dark);
+    position:relative;
+    transform:translateZ(40px);
+    /* white face painted via padding-box, conic ring via border-box */
+    background:
+      linear-gradient(#ffffff, #f3f8ff) padding-box,
+      conic-gradient(from 140deg, var(--blue), #38bdf8, #ffffff, var(--blue-2), var(--blue)) border-box;
+    border:2.5px solid transparent;
+    box-shadow:0 6px 14px -6px rgba(0,80,180,.45);
+  }
+  /* glossy highlight only — keeps the white face readable */
+  .avatar::after{
+    content:""; position:absolute; inset:0; border-radius:50%;
+    box-shadow:inset 0 1px 2px rgba(255,255,255,.95), inset 0 -2px 4px rgba(0,80,180,.07);
+    pointer-events:none;
+  }
+
+  .pname{
+    font-size:15px; font-weight:600; color:var(--ink); letter-spacing:-.01em;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    transform:translateZ(14px);
+  }
+
+  /* VS embossed pill */
+  .vs-row{
+    display:flex; align-items:center; gap:14px;
+    margin:16px 0;
+    transform:translateZ(28px);
+  }
+  .vs-line{ flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--blue-line), transparent); }
+  .vs{
+    flex:none;
+    width:48px; height:30px; border-radius:999px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--blue-dark);
+    background:linear-gradient(180deg, #f4f9ff 0%, #dbe9fc 100%);
+    border:1px solid var(--line);
+    box-shadow:
+      inset 0 1px 1px rgba(255,255,255,.95),
+      inset 0 -2px 3px rgba(0,80,180,.14),
+      0 2px 4px rgba(0,80,180,.10);
+  }
+
+  /* ---------------- UP NEXT ---------------- */
+  .up-next{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:22px;
+    padding:22px 26px;
+    margin-bottom:30px;
+    box-shadow:0 12px 30px -22px rgba(0,80,180,.4);
+  }
+  .up-next h2{
+    font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--blue-dark); margin-bottom:16px;
+    display:flex; align-items:center; gap:9px;
+  }
+  .up-next h2::before{
+    content:""; width:7px; height:7px; border-radius:50%; background:var(--blue);
+    box-shadow:0 0 0 3px var(--blue-tint);
+  }
+  .un-row{
+    display:flex; align-items:center; gap:16px;
+    padding:13px 4px;
+  }
+  .un-row + .un-row{ border-top:1px solid var(--line); }
+  .un-court{
+    flex:none; min-width:128px;
+    font-size:14px; font-weight:700; color:var(--ink);
+    display:flex; align-items:center; gap:8px;
+  }
+  .un-arrow{ color:var(--blue); font-weight:800; }
+  .un-tag{
+    flex:none;
+    font-size:11.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--blue-dark);
+    background:var(--blue-tint);
+    padding:5px 11px; border-radius:999px;
+  }
+  .un-match{
+    font-size:14.5px; font-weight:550; color:var(--ink-2); letter-spacing:-.01em;
+  }
+  .un-match .vsmini{ color:var(--blue); font-weight:700; padding:0 7px; }
+
+  /* ---------------- FOOTER ---------------- */
+  footer{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 6px 4px;
+    border-top:1px solid var(--line);
+    font-size:13px; color:var(--ink-3); font-weight:500;
+  }
+  footer .right{ font-weight:600; color:var(--ink-2); }
+
+  @media (max-width:1100px){
+    .courts{ grid-template-columns:1fr; }
+    .nav{ display:none; }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .card{ opacity:1; transform:none !important; transition:none !important; animation:none !important; }
+    .glare,.sheen{ display:none !important; }
+    .live-dot{ animation:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <img src="logo.png" alt="TZH logo">
+      <div class="brand-text">
+        <span class="title">TZH Badminton</span>
+        <span class="date">Saturday 28 June 2026</span>
+      </div>
+    </div>
+    <div class="live"><span class="live-dot"></span>Live</div>
+    <nav class="nav">
+      <span class="pill">Members</span>
+      <span class="pill">Leaderboard</span>
+    </nav>
+  </header>
+
+  <main class="courts" id="courts">
+    <!-- Court 1 -->
+    <div class="scene">
+      <article class="card" data-delay="0">
+        <div class="glare"></div>
+        <div class="sheen"></div>
+        <div class="card-inner">
+          <div class="court-head">
+            <span class="court-name">Court 1</span>
+            <span class="round-badge">Round 3</span>
+          </div>
+          <div class="team">
+            <span class="player"><span class="avatar">TW</span><span class="pname">Thomas Wong</span></span>
+            <span class="player"><span class="avatar">ML</span><span class="pname">Mei Lin</span></span>
+          </div>
+          <div class="vs-row"><span class="vs-line"></span><span class="vs">vs</span><span class="vs-line"></span></div>
+          <div class="team">
+            <span class="player"><span class="avatar">DP</span><span class="pname">David Park</span></span>
+            <span class="player"><span class="avatar">SC</span><span class="pname">Sarah Chen</span></span>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <!-- Court 2 -->
+    <div class="scene">
+      <article class="card" data-delay="1">
+        <div class="glare"></div>
+        <div class="sheen"></div>
+        <div class="card-inner">
+          <div class="court-head">
+            <span class="court-name">Court 2</span>
+            <span class="round-badge">Round 3</span>
+          </div>
+          <div class="team">
+            <span class="player"><span class="avatar">AL</span><span class="pname">Aiden Lee</span></span>
+            <span class="player"><span class="avatar">PN</span><span class="pname">Priya Nair</span></span>
+          </div>
+          <div class="vs-row"><span class="vs-line"></span><span class="vs">vs</span><span class="vs-line"></span></div>
+          <div class="team">
+            <span class="player"><span class="avatar">MT</span><span class="pname">Marcus Tan</span></span>
+            <span class="player"><span class="avatar">YS</span><span class="pname">Yuki Sato</span></span>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <!-- Court 3 -->
+    <div class="scene">
+      <article class="card" data-delay="2">
+        <div class="glare"></div>
+        <div class="sheen"></div>
+        <div class="card-inner">
+          <div class="court-head">
+            <span class="court-name">Court 3</span>
+            <span class="round-badge">Round 2</span>
+          </div>
+          <div class="team">
+            <span class="player"><span class="avatar">CD</span><span class="pname">Carlos Diaz</span></span>
+            <span class="player"><span class="avatar">HK</span><span class="pname">Hannah Kim</span></span>
+          </div>
+          <div class="vs-row"><span class="vs-line"></span><span class="vs">vs</span><span class="vs-line"></span></div>
+          <div class="team">
+            <span class="player"><span class="avatar">LZ</span><span class="pname">Leo Zhang</span></span>
+            <span class="player"><span class="avatar">NP</span><span class="pname">Nina Patel</span></span>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <!-- Court 4 -->
+    <div class="scene">
+      <article class="card" data-delay="3">
+        <div class="glare"></div>
+        <div class="sheen"></div>
+        <div class="card-inner">
+          <div class="court-head">
+            <span class="court-name">Court 4</span>
+            <span class="round-badge">Round 2</span>
+          </div>
+          <div class="team">
+            <span class="player"><span class="avatar">RK</span><span class="pname">Ravi Kumar</span></span>
+            <span class="player"><span class="avatar">SR</span><span class="pname">Sofia Reyes</span></span>
+          </div>
+          <div class="vs-row"><span class="vs-line"></span><span class="vs">vs</span><span class="vs-line"></span></div>
+          <div class="team">
+            <span class="player"><span class="avatar">BC</span><span class="pname">Ben Carter</span></span>
+            <span class="player"><span class="avatar">GL</span><span class="pname">Grace Lim</span></span>
+          </div>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <section class="up-next">
+    <h2>Up Next</h2>
+    <div class="un-row">
+      <span class="un-court">Court 1 <span class="un-arrow">→</span></span>
+      <span class="un-tag">Round 4</span>
+      <span class="un-match">Thomas Wong &amp; Sarah Chen <span class="vsmini">vs</span> Aiden Lee &amp; Nina Patel</span>
+    </div>
+    <div class="un-row">
+      <span class="un-court">Court 3 <span class="un-arrow">→</span></span>
+      <span class="un-tag">Round 3</span>
+      <span class="un-match">Carlos Diaz &amp; Grace Lim <span class="vsmini">vs</span> Leo Zhang &amp; Mei Lin</span>
+    </div>
+  </section>
+
+  <footer>
+    <span class="left">TZH Badminton — Live Court Display</span>
+    <span class="right">4 courts · Round 3 · 16 players</span>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---- staggered load-in ---- */
+  var cards = Array.prototype.slice.call(document.querySelectorAll(".card"));
+  if (!reduce){
+    cards.forEach(function(card){
+      var delay = parseInt(card.getAttribute("data-delay"), 10) || 0;
+      setTimeout(function(){ card.classList.add("in"); }, 90 + delay * 110);
+    });
+  } else {
+    cards.forEach(function(card){ card.style.opacity = "1"; });
+  }
+
+  if (reduce) return; // no tilt for reduced motion
+
+  var MAX = 12; // max degrees
+
+  cards.forEach(function(card){
+    var rafId = null;
+    var pending = null;
+    var glare = card.querySelector(".glare");
+    var sheen = card.querySelector(".sheen");
+
+    function apply(){
+      rafId = null;
+      if (!pending) return;
+      var rect = pending.rect, x = pending.x, y = pending.y;
+
+      var px = x / rect.width;   // 0..1
+      var py = y / rect.height;  // 0..1
+      var cx = px - 0.5;         // -0.5..0.5
+      var cy = py - 0.5;
+
+      var ry = cx * MAX * 2;     // rotateY follows horizontal
+      var rx = -cy * MAX * 2;    // rotateX follows vertical (inverted)
+
+      card.style.transform = "rotateX(" + rx.toFixed(2) + "deg) rotateY(" + ry.toFixed(2) + "deg)";
+
+      // glare position follows cursor
+      glare.style.setProperty("--mx", (px * 100).toFixed(1) + "%");
+      glare.style.setProperty("--my", (py * 100).toFixed(1) + "%");
+
+      // sheen: angle + position shift stay in blue→cyan→white band
+      var angle = 110 + cx * 40;          // ~90..130deg
+      var posX = 50 + cx * 60;            // pan the gradient
+      var posY = 50 + cy * 60;
+      sheen.style.setProperty("--sheen-angle", angle.toFixed(1) + "deg");
+      sheen.style.setProperty("--sheen-pos", posX.toFixed(1) + "% " + posY.toFixed(1) + "%");
+    }
+
+    card.addEventListener("pointermove", function(e){
+      var rect = card.getBoundingClientRect();
+      pending = { rect:rect, x:e.clientX - rect.left, y:e.clientY - rect.top };
+      if (rafId === null) rafId = requestAnimationFrame(apply);
+    });
+
+    card.addEventListener("pointerenter", function(){
+      card.classList.add("tilting", "active");
+    });
+
+    card.addEventListener("pointerleave", function(){
+      if (rafId !== null){ cancelAnimationFrame(rafId); rafId = null; }
+      pending = null;
+      card.classList.remove("tilting");
+      card.classList.remove("active");
+      // ease back to flat (the non-tilting transition handles the easing)
+      card.style.transform = "rotateX(0deg) rotateY(0deg)";
+    });
+  });
+})();
+</script>
+</body>
+</html>

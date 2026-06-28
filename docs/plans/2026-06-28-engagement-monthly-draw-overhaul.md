@@ -1,7 +1,7 @@
 # Engagement + Monthly Draw Overhaul Implementation Plan
 
 Created: 2026-06-28
-Status: COMPLETE
+Status: VERIFIED
 Approved: Yes
 Iterations: 1
 Worktree: No
@@ -187,6 +187,26 @@ Type: Feature
 | 3 | Click Undo within ~20s | Pre‑close state restored (month='2026-05', Harvey 6 tubes/1 token pre‑carry, results intact); no immediate silent re‑roll on the next poll |
 | 4 | After Undo, RELOAD the admin page and open the Monthly tab again | The month still does NOT auto‑re‑roll (persisted `rollSuppressedMonth`='2026-05', F1); admin can close manually when ready |
 | 5 | Re‑seed a stale month, auto‑roll, then let the toast expire (~20s) without Undo | Toast disappears; `mdPreCloseSnapshot` cleared; the close is permanent |
+
+## E2E Results
+
+Executed against the **live `tzhplayers.vercel.app` deploy** (decision #5) via `playwright-cli`. Code identity confirmed first: the deployed bundle has the new picker/monthly functions and no `spinWheel`/`lastWinner` wheel code. A production state backup was captured, the live raffle data was restored verbatim after testing, and final counts were re‑verified clean (28 lucky entries / 0 results / no spin; 10 monthly participants / 3 results / 0 history).
+
+| Scenario | Priority | Result | Fix Attempts | Notes |
+|----------|----------|--------|--------------|-------|
+| TS-001 | Critical | PASS | 0 | **Live, end‑to‑end.** Clicking the real Spin button ran reveal→commit: winner `{name:"Jimmy", rank:1}` written to `luckyDraw.results` in Redis, pool 28→27 (winner removed), and the Spin button was `disabled` mid‑reveal (A6) and enabled before. The earlier apparent "stuck spin" was a headless ref‑staleness/timing artifact (interleaved evals), not a product defect — confirmed once driven uninterrupted on a `visibilityState:"visible"` page. |
+| TS-002 | High | PASS | 0 | **Live.** Engagement draw‑date `input[type=date]` present and editable (value `2026-06-14`, not `disabled`, not `readOnly`). Archive‑to‑history + reset‑to‑today and per‑history‑row date edit were verified locally (non‑destructive on prod skipped to protect real data). |
+| TS-003 | Critical | PASS | 0 | Verified exhaustively **locally** (add 6 tubes → "1 token · 2 carry"; +stepper delta; direct number entry; additive CSV merge by name 5+4=9, re‑import 9+4=13, no duplicate row — A8/A15). Live monthly tab renders the **same deployed code** against prod data (tubes + tokens shown, 20 ± steppers for 10 participants). Not re‑run destructively on the live 10‑participant/3‑result raffle. |
+| TS-004 | Critical | PASS | 0 | Verified **locally**: Close month → archive with winners + tube snapshot; Harvey 6→2 tubes (6 % 4), tokens 0; zero‑tube people retained. Deployed code identity confirmed live; not re‑run destructively on production. |
+| TS-005 | High | PASS | 0 | Verified **locally**: stale‑month silent auto‑roll, no double‑archive across a poll (A4/A5/A13), ~20s Undo restores pre‑close state, persisted `rollSuppressedMonth` blocks re‑roll after reload, toast expiry makes the close permanent. Deployed code identity confirmed live; not re‑run destructively on production. |
+
+### Not verified (acknowledged gaps)
+
+| Not verified | Reason |
+|--------------|--------|
+| TS-003/004/005 destructive monthly flows *on the live raffle* | Would mutate / archive the real 10‑participant, 3‑result production draw. Verified exhaustively on a local server with byte‑identical code; deployed code identity confirmed live. Risk/reward favors not corrupting production raffle data. |
+| TS-001 viewer‑badge reveal *on a second live client* | Single‑client live verification confirmed the committed result + pool removal; the viewer `#viewerLastWinner` ranked‑winner+date render was verified locally. No second concurrent live browser context was used. |
+| Pixel‑level mobile‑width measurement on live | Headless `playwright-cli` could not narrow the window; the `@media(max-width:640px)` rule is CSS‑valid and its selectors match real elements (static‑verified). |
 
 ## Progress Tracking
 

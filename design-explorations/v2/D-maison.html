@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TZH · Style D — Maison</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..700&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --paper:#f3ecdd;          /* aged ivory */
+    --paper-2:#ece2cd;
+    --ox:#5b1d27;             /* oxblood */
+    --ox-deep:#46141d;
+    --ink:#241b16;            /* warm sepia ink */
+    --ink-soft:#6b5c4d;
+    --gold:#a8803d;           /* antique gold */
+    --foil-1:#d9b25b;
+    --foil-2:#9c7331;
+    --line:#241b1622;
+    --navy:#1e2c4a;           /* brand feather navy */
+  }
+  html,body{background:#2a1014}
+  body{
+    font-family:"Spectral",Georgia,serif;color:var(--ink);
+    -webkit-font-smoothing:antialiased;display:flex;justify-content:center;
+    min-height:100vh;
+  }
+  .frame{
+    width:430px;max-width:100%;min-height:100vh;position:relative;overflow:hidden;
+    background:
+      radial-gradient(120% 60% at 50% -10%, #fbf6ea 0%, transparent 60%),
+      linear-gradient(180deg,var(--paper) 0%,var(--paper-2) 100%);
+  }
+  /* faint laid-paper grain */
+  .frame::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:multiply;
+    background-image:
+      repeating-linear-gradient(0deg,#0000 0 3px,#00000005 3px 4px),
+      radial-gradient(#00000008 1px,transparent 1px);
+    background-size:auto, 4px 4px;}
+  .pad{position:relative;z-index:2;padding:0 30px 40px}
+
+  /* ── crest band ── */
+  .crest{position:relative;background:
+      radial-gradient(140% 90% at 50% 0,#6e2630 0,var(--ox) 45%,var(--ox-deep) 100%);
+    color:#f3e4cf;text-align:center;padding:30px 24px 26px;
+    border-bottom:2px solid var(--foil-2);}
+  .crest::after{content:"";position:absolute;left:18px;right:18px;bottom:9px;height:1px;
+    background:linear-gradient(90deg,transparent,#e9c97e88,transparent)}
+  .mark{width:30px;height:64px;margin:0 auto 10px;
+    -webkit-mask:url(logo.png) center/contain no-repeat;mask:url(logo.png) center/contain no-repeat;
+    background:linear-gradient(180deg,var(--foil-1),var(--foil-2));}
+  .crest h1{font-family:"Bodoni Moda",serif;font-weight:500;font-size:30px;letter-spacing:.02em;line-height:1}
+  .crest .cn{font-size:15px;letter-spacing:.5em;color:#e6cfa3;margin:7px 0 0;padding-left:.5em}
+  .rule-sc{font-size:10.5px;letter-spacing:.42em;text-transform:uppercase;color:#dcb9818c;margin-top:12px}
+  .rule-sc b{color:#f0d29e;font-weight:500}
+
+  /* small-caps section label */
+  .label{display:flex;align-items:center;gap:14px;margin:34px 0 16px;
+    font-size:11px;letter-spacing:.4em;text-transform:uppercase;color:var(--gold)}
+  .label::before,.label::after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+  .label span{flex:0 0 auto}
+
+  /* ── membership card ── */
+  .card{position:relative;margin-top:26px;padding:22px 22px 20px;color:#f3e4cf;
+    background:linear-gradient(155deg,#6a2731,#511820);
+    border:1px solid #00000040;box-shadow:0 18px 34px -22px #2a0e11, inset 0 0 0 1px #d9b25b3a;}
+  .card::before{content:"";position:absolute;inset:7px;border:1px solid #d9b25b55;pointer-events:none}
+  .card .top{display:flex;justify-content:space-between;align-items:flex-start}
+  .card .mini{font-size:9.5px;letter-spacing:.34em;text-transform:uppercase;color:#e3c594bb}
+  .card .name{font-family:"Bodoni Moda",serif;font-size:27px;font-weight:500;margin-top:3px;letter-spacing:.01em}
+  .card .feather{width:16px;height:34px;-webkit-mask:url(logo.png) center/contain no-repeat;mask:url(logo.png) center/contain no-repeat;background:#e9c97e;opacity:.85}
+  .tier-row{display:flex;align-items:baseline;gap:10px;margin-top:18px}
+  .tier-name{font-family:"Bodoni Moda",serif;font-size:20px;
+    background:linear-gradient(180deg,#f3d790,#caa14e 55%,#9c7331);-webkit-background-clip:text;background-clip:text;color:transparent;
+    letter-spacing:.04em;font-weight:600}
+  .tier-row .pts{margin-left:auto;font-family:"Bodoni Moda",serif;font-size:23px;color:#f6ead2;letter-spacing:.01em}
+  .tier-row .pts small{font-size:10px;letter-spacing:.2em;color:#e3c594aa;font-family:"Spectral"}
+  .meter{margin-top:13px;height:3px;background:#2a0e1199;position:relative;border:1px solid #00000033}
+  .meter i{position:absolute;inset:0 31% 0 0;background:linear-gradient(90deg,#9c7331,#e9c97e)}
+  .toprog{margin-top:8px;font-size:10.5px;letter-spacing:.06em;color:#e3c594cc;font-style:italic}
+
+  /* ── honours / standing ── */
+  .standing{margin-top:4px}
+  .row{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:12px;
+    padding:11px 4px;border-bottom:1px solid var(--line)}
+  .row:first-child{border-top:1px solid var(--line)}
+  .rk{font-family:"Bodoni Moda",serif;font-size:20px;color:var(--ink);width:30px;text-align:right;font-variant-numeric:tabular-nums}
+  .who{display:flex;flex-direction:column;gap:2px}
+  .who b{font-weight:500;font-size:16px;letter-spacing:.01em}
+  .who .t{font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--ink-soft)}
+  .dot{display:inline-block;width:6px;height:6px;border-radius:50%;vertical-align:middle;margin-right:6px;transform:translateY(-1px)}
+  .sc{font-family:"Bodoni Moda",serif;font-size:18px;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .row.me{background:linear-gradient(90deg,#a8803d18,transparent)}
+  .row.me .rk,.row.me .sc{color:var(--ox)}
+  .row.me .who b::after{content:" — You";font-family:"Spectral";font-style:italic;font-size:11px;color:var(--gold);letter-spacing:0;font-weight:400}
+
+  /* tier dot colours (reinterpreted, warm) */
+  .c-vip{background:#7a4cc0}.c-plat{background:#5a7da8}.c-gold{background:#caa14e}
+  .c-silv{background:#9a9488}.c-brz{background:#b0743f}
+
+  /* ── tier ladder ── */
+  .ladder{display:flex;flex-direction:column;gap:0;border:1px solid var(--line)}
+  .step{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px}
+  .step:last-child{border-bottom:0}
+  .step .nm{font-family:"Bodoni Moda",serif;font-size:15px;letter-spacing:.03em;flex:0 0 96px}
+  .step .req{margin-left:auto;font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft)}
+  .step.cur{background:#5b1d2710;color:var(--ox)}
+  .step.cur .req{color:var(--ox)}
+
+  /* ── ballot ── */
+  .ballot{position:relative;margin-top:4px;background:#fbf6ea;border:1px solid var(--gold);
+    box-shadow:0 14px 28px -22px #5b1d27;padding:20px 22px 22px}
+  .ballot::before,.ballot::after{content:"";position:absolute;top:50%;width:16px;height:16px;border-radius:50%;
+    background:#2a1014;transform:translateY(-50%)}
+  .ballot::before{left:-9px}.ballot::after{right:-9px}
+  .ballot .bt{display:flex;justify-content:space-between;align-items:baseline}
+  .ballot h3{font-family:"Bodoni Moda",serif;font-weight:500;font-size:21px}
+  .ballot .close{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+  .tok{display:flex;align-items:baseline;gap:9px;margin:14px 0 4px}
+  .tok .n{font-family:"Bodoni Moda",serif;font-size:40px;line-height:.9;color:var(--ox)}
+  .tok .l{font-size:11px;letter-spacing:.06em;font-style:italic;color:var(--ink-soft)}
+  .prz{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:9px}
+  .prz div{display:flex;justify-content:space-between;font-size:13px}
+  .prz .pl{color:var(--ink)}.prz .pr{font-style:italic;color:var(--gold)}
+  .entered{margin-top:14px;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-soft);text-align:center}
+
+  footer{margin-top:34px;text-align:center;font-size:10px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold)}
+  footer .yr{color:var(--ink-soft);display:block;margin-top:6px;letter-spacing:.18em}
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <div class="crest">
+    <div class="mark"></div>
+    <h1>TZH Badminton</h1>
+    <div class="cn">冰&nbsp;城</div>
+    <div class="rule-sc">Est. Ipoh &nbsp;·&nbsp; <b>The Members' Court</b> &nbsp;·&nbsp; MMXXVI</div>
+  </div>
+
+  <div class="pad">
+
+    <!-- membership card -->
+    <div class="card">
+      <div class="top">
+        <div>
+          <div class="mini">Member No. 0047 · since 2024</div>
+          <div class="name">Desmond</div>
+        </div>
+        <div class="feather"></div>
+      </div>
+      <div class="tier-row">
+        <span class="tier-name">Gold Member</span>
+        <span class="pts">1,240 <small>PTS</small></span>
+      </div>
+      <div class="meter"><i></i></div>
+      <div class="toprog">560 points to Platinum — earned by play, not by paying.</div>
+    </div>
+
+    <!-- standing -->
+    <div class="label"><span>Member Standing · June</span></div>
+    <div class="standing">
+      <div class="row"><div class="rk">1</div><div class="who"><b>Kokyan</b><span class="t"><i class="dot c-vip"></i>VIP</span></div><div class="sc">2,310</div></div>
+      <div class="row"><div class="rk">2</div><div class="who"><b>Thomas</b><span class="t"><i class="dot c-plat"></i>Platinum</span></div><div class="sc">1,980</div></div>
+      <div class="row"><div class="rk">3</div><div class="who"><b>Yit&nbsp;Fung</b><span class="t"><i class="dot c-gold"></i>Gold</span></div><div class="sc">1,540</div></div>
+      <div class="row me"><div class="rk">4</div><div class="who"><b>Desmond</b><span class="t"><i class="dot c-gold"></i>Gold</span></div><div class="sc">1,240</div></div>
+      <div class="row"><div class="rk">5</div><div class="who"><b>Celine</b><span class="t"><i class="dot c-gold"></i>Gold</span></div><div class="sc">1,080</div></div>
+      <div class="row"><div class="rk">6</div><div class="who"><b>Terence</b><span class="t"><i class="dot c-gold"></i>Gold</span></div><div class="sc">940</div></div>
+      <div class="row"><div class="rk">7</div><div class="who"><b>Sharmin</b><span class="t"><i class="dot c-silv"></i>Silver</span></div><div class="sc">620</div></div>
+      <div class="row"><div class="rk">8</div><div class="who"><b>Alex</b><span class="t"><i class="dot c-silv"></i>Silver</span></div><div class="sc">410</div></div>
+    </div>
+
+    <!-- ladder -->
+    <div class="label"><span>Orders of Membership</span></div>
+    <div class="ladder">
+      <div class="step"><span class="nm">Visitor</span><i class="dot c-silv" style="background:#8b8478"></i><span class="req">Open Door</span></div>
+      <div class="step"><span class="nm">Bronze</span><i class="dot c-brz"></i><span class="req">50 pts</span></div>
+      <div class="step"><span class="nm">Silver</span><i class="dot c-silv"></i><span class="req">300 pts</span></div>
+      <div class="step cur"><span class="nm">Gold</span><i class="dot c-gold"></i><span class="req">900 pts · You</span></div>
+      <div class="step"><span class="nm">Platinum</span><i class="dot c-plat"></i><span class="req">1,800 pts</span></div>
+      <div class="step"><span class="nm">VIP</span><i class="dot c-vip"></i><span class="req">By Invitation</span></div>
+    </div>
+
+    <!-- ballot -->
+    <div class="label"><span>The June Ballot</span></div>
+    <div class="ballot">
+      <div class="bt"><h3>Monthly Prize Draw</h3><span class="close">Closes 30 Jun</span></div>
+      <div class="tok"><span class="n">14</span><span class="l">tokens entered in your name</span></div>
+      <div class="prz">
+        <div><span class="pl">First Draw</span><span class="pr">RM150 pro-shop credit</span></div>
+        <div><span class="pl">Second Draw</span><span class="pr">Yonex restring × 3</span></div>
+        <div><span class="pl">Third Draw</span><span class="pr">One month court pass</span></div>
+      </div>
+      <div class="entered">84 members entered · drawn live on court</div>
+    </div>
+
+    <footer>
+      TZH Badminton · Ipoh · Members Only
+      <span class="yr">A house of play, kept by its members</span>
+    </footer>
+
+  </div>
+</div>
+</body>
+</html>

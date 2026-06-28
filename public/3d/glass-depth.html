@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TZH Badminton — Live Court Display</title>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  :root{
+    --blue:#0071e3; --blue-2:#0066cc; --blue-dark:#005bb5;
+    --blue-tint:rgba(0,113,227,.16); --blue-line:rgba(0,113,227,.42);
+    --bg:#eef4fd; --bg-2:#e8f0fb; --card:#ffffff; --card-2:#e2ecfa;
+    --ink:#1d1d1f; --ink-2:#5c6470; --ink-3:#5f6b7a; --line:#d4e2f5;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+    --glass:rgba(255,255,255,.55);
+    --glass-hi:rgba(255,255,255,.72);
+    --glass-border:rgba(0,113,227,.20);
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html,body{ height:100%; }
+
+  body{
+    font-family:var(--font);
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 800px at 12% -10%, #f4f8ff 0%, rgba(244,248,255,0) 60%),
+      radial-gradient(1000px 700px at 105% 0%, #e6f0ff 0%, rgba(230,240,255,0) 55%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    min-height:100vh;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* ===== 3D SCENE ===== */
+  .scene{
+    perspective:1400px;
+    perspective-origin:50% 38%;
+    min-height:100vh;
+    position:relative;
+    overflow:hidden;
+  }
+
+  .stage{
+    transform-style:preserve-3d;
+    will-change:transform;
+    transition:transform .5s cubic-bezier(.22,.61,.36,1);
+    position:relative;
+    min-height:100vh;
+  }
+
+  /* ===== BACKGROUND ORBS (parallax at depth) ===== */
+  .orbs{
+    position:absolute;
+    inset:-20% -10%;
+    transform-style:preserve-3d;
+    pointer-events:none;
+    z-index:0;
+  }
+  .orb{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(70px);
+    opacity:.6;
+    will-change:transform;
+  }
+  .orb.o1{
+    width:620px; height:620px;
+    top:-6%; left:-4%;
+    background:radial-gradient(circle at 35% 35%, rgba(0,113,227,.55), rgba(0,113,227,0) 70%);
+    transform:translateZ(-400px) scale(1.45);
+  }
+  .orb.o2{
+    width:520px; height:520px;
+    top:30%; right:-6%;
+    background:radial-gradient(circle at 50% 50%, rgba(0,102,204,.5), rgba(0,102,204,0) 70%);
+    transform:translateZ(-200px) scale(1.2);
+  }
+  .orb.o3{
+    width:460px; height:460px;
+    bottom:-12%; left:24%;
+    background:radial-gradient(circle at 50% 40%, rgba(64,150,255,.45), rgba(64,150,255,0) 72%);
+    transform:translateZ(-50px) scale(1.05);
+  }
+  .orb.o4{
+    width:340px; height:340px;
+    top:8%; left:52%;
+    background:radial-gradient(circle at 50% 50%, rgba(120,180,255,.4), rgba(120,180,255,0) 70%);
+    transform:translateZ(-120px) scale(1);
+  }
+
+  /* ===== LAYOUT ===== */
+  .wrap{
+    position:relative;
+    z-index:2;
+    transform-style:preserve-3d;
+    max-width:1320px;
+    margin:0 auto;
+    padding:34px clamp(20px,3.4vw,52px) 48px;
+  }
+
+  /* ===== HEADER ===== */
+  .header{
+    display:flex;
+    align-items:center;
+    gap:clamp(14px,2vw,26px);
+    padding:16px clamp(18px,2vw,26px);
+    border-radius:24px;
+    background:var(--glass);
+    -webkit-backdrop-filter:blur(24px) saturate(160%);
+    backdrop-filter:blur(24px) saturate(160%);
+    border:1px solid var(--glass-border);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.7) inset,
+      0 18px 40px -22px rgba(0,72,160,.45),
+      0 2px 10px rgba(0,72,160,.08);
+    transform:translateZ(28px);
+  }
+  .header img{ height:48px; width:auto; display:block; border-radius:12px; }
+
+  .brand{ display:flex; flex-direction:column; gap:3px; min-width:0; }
+  .brand h1{
+    font-size:clamp(20px,1.7vw,25px);
+    font-weight:700;
+    letter-spacing:-.018em;
+    line-height:1;
+  }
+  .brand .date{
+    font-size:clamp(12px,1vw,13.5px);
+    color:var(--ink-2);
+    letter-spacing:.01em;
+    font-weight:500;
+  }
+
+  .live{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:7px 14px 7px 12px;
+    border-radius:999px;
+    background:var(--blue-tint);
+    border:1px solid var(--blue-line);
+    color:var(--blue-dark);
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    margin-left:6px;
+  }
+  .live .dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--blue);
+    box-shadow:0 0 0 0 rgba(0,113,227,.55);
+    animation:pulse 2s ease-out infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(0,113,227,.5); }
+    70%{ box-shadow:0 0 0 9px rgba(0,113,227,0); }
+    100%{ box-shadow:0 0 0 0 rgba(0,113,227,0); }
+  }
+
+  .nav{ margin-left:auto; display:flex; gap:10px; }
+  .pill{
+    appearance:none;
+    border:1px solid var(--glass-border);
+    background:rgba(255,255,255,.5);
+    -webkit-backdrop-filter:blur(10px);
+    backdrop-filter:blur(10px);
+    color:var(--ink);
+    font-family:inherit;
+    font-size:13.5px;
+    font-weight:600;
+    letter-spacing:-.01em;
+    padding:10px 18px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:transform .25s cubic-bezier(.22,.61,.36,1), background .25s, box-shadow .25s, color .25s;
+  }
+  .pill:hover{
+    background:var(--blue);
+    color:#fff;
+    border-color:transparent;
+    transform:translateY(-2px);
+    box-shadow:0 12px 26px -12px rgba(0,113,227,.65);
+  }
+
+  /* ===== SECTION TITLE ===== */
+  .section-title{
+    display:flex; align-items:baseline; gap:14px;
+    margin:38px 4px 18px;
+  }
+  .section-title h2{
+    font-size:clamp(13px,1.05vw,14px);
+    font-weight:700;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--ink-3);
+  }
+  .section-title .rule{
+    flex:1; height:1px;
+    background:linear-gradient(90deg, var(--line), rgba(212,226,245,0));
+  }
+
+  /* ===== COURTS GRID ===== */
+  .courts{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:clamp(18px,2vw,26px);
+    transform-style:preserve-3d;
+  }
+
+  .court{
+    position:relative;
+    border-radius:26px;
+    padding:24px clamp(20px,1.8vw,28px) 26px;
+    background:var(--glass);
+    -webkit-backdrop-filter:blur(24px) saturate(160%);
+    backdrop-filter:blur(24px) saturate(160%);
+    border:1px solid var(--glass-border);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.75) inset,
+      0 24px 48px -28px rgba(0,72,160,.5),
+      0 6px 18px rgba(0,72,160,.08);
+    transform:translateZ(10px);
+    transition:transform .45s cubic-bezier(.22,.61,.36,1), box-shadow .45s, background .45s;
+    will-change:transform;
+  }
+  .court:hover{
+    transform:translateZ(48px);
+    background:var(--glass-hi);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.85) inset,
+      0 40px 70px -30px rgba(0,72,160,.55),
+      0 10px 26px rgba(0,72,160,.12);
+  }
+  /* subtle top sheen */
+  .court::before{
+    content:"";
+    position:absolute; inset:0;
+    border-radius:26px;
+    background:linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0) 38%);
+    pointer-events:none;
+  }
+
+  .court-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:22px;
+    position:relative;
+  }
+  .court-name{
+    font-size:clamp(16px,1.35vw,19px);
+    font-weight:700;
+    letter-spacing:-.015em;
+  }
+  .round-badge{
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:var(--blue-dark);
+    background:var(--blue-tint);
+    border:1px solid var(--blue-line);
+    padding:6px 12px;
+    border-radius:999px;
+  }
+
+  .team{
+    display:flex;
+    gap:clamp(12px,1.4vw,18px);
+    justify-content:center;
+  }
+  .player{
+    display:flex; flex-direction:column; align-items:center;
+    gap:9px;
+    width:50%;
+    max-width:140px;
+  }
+  .avatar{
+    width:clamp(54px,4.4vw,62px);
+    height:clamp(54px,4.4vw,62px);
+    border-radius:50%;
+    display:grid; place-items:center;
+    font-size:clamp(16px,1.35vw,18px);
+    font-weight:700;
+    letter-spacing:.02em;
+    color:var(--blue-dark);
+    background:
+      radial-gradient(120% 120% at 30% 22%, rgba(255,255,255,.95), rgba(255,255,255,.45) 60%),
+      var(--card-2);
+    border:1px solid rgba(255,255,255,.7);
+    box-shadow:
+      0 0 0 2px rgba(0,113,227,.32),
+      0 10px 22px -12px rgba(0,72,160,.55),
+      0 2px 6px rgba(0,72,160,.1);
+    transition:transform .35s cubic-bezier(.22,.61,.36,1), box-shadow .35s;
+  }
+  .court:hover .avatar{
+    box-shadow:
+      0 0 0 2px rgba(0,113,227,.5),
+      0 14px 26px -12px rgba(0,72,160,.6),
+      0 2px 6px rgba(0,72,160,.12);
+  }
+  .player .pname{
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:-.01em;
+    color:var(--ink);
+    text-align:center;
+    line-height:1.2;
+  }
+
+  .vs{
+    display:flex; align-items:center; gap:14px;
+    margin:18px 0;
+  }
+  .vs .line{ flex:1; height:1px; background:linear-gradient(90deg, rgba(212,226,245,0), var(--line), rgba(212,226,245,0)); }
+  .vs .label{
+    font-size:11px; font-weight:700;
+    letter-spacing:.18em; text-transform:uppercase;
+    color:var(--ink-3);
+    padding:0 2px;
+  }
+
+  /* ===== UP NEXT PANEL ===== */
+  .upnext{
+    margin-top:18px;
+    border-radius:26px;
+    padding:8px clamp(18px,1.8vw,26px) 18px;
+    background:var(--glass);
+    -webkit-backdrop-filter:blur(24px) saturate(160%);
+    backdrop-filter:blur(24px) saturate(160%);
+    border:1px solid var(--glass-border);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.7) inset,
+      0 24px 48px -30px rgba(0,72,160,.45),
+      0 4px 14px rgba(0,72,160,.07);
+    transform:translateZ(16px);
+  }
+  .upnext .un-row{
+    display:flex; align-items:center;
+    gap:clamp(12px,1.6vw,22px);
+    padding:18px 6px;
+    flex-wrap:wrap;
+  }
+  .upnext .un-row + .un-row{ border-top:1px solid var(--line); }
+  .un-court{
+    display:flex; flex-direction:column; gap:2px;
+    min-width:120px;
+  }
+  .un-court .c{ font-size:15px; font-weight:700; letter-spacing:-.015em; }
+  .un-court .r{
+    font-size:11.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--blue-dark);
+  }
+  .un-arrow{
+    color:var(--blue);
+    font-size:18px; font-weight:700;
+    flex:0 0 auto;
+  }
+  .un-match{
+    display:flex; align-items:center;
+    gap:clamp(10px,1.3vw,18px);
+    flex:1;
+    flex-wrap:wrap;
+    font-size:14.5px;
+    font-weight:600;
+    letter-spacing:-.01em;
+    color:var(--ink);
+  }
+  .un-match .grp{ display:inline-flex; align-items:center; gap:9px; }
+  .un-chip{
+    display:inline-grid; place-items:center;
+    width:34px; height:34px; border-radius:50%;
+    font-size:12px; font-weight:700;
+    color:var(--blue-dark);
+    background:var(--card-2);
+    border:1px solid rgba(255,255,255,.7);
+    box-shadow:0 0 0 1.5px rgba(0,113,227,.3), 0 6px 14px -8px rgba(0,72,160,.5);
+  }
+  .un-match .mini-vs{
+    font-size:10.5px; font-weight:700; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--ink-3);
+    padding:0 2px;
+  }
+
+  /* ===== FOOTER ===== */
+  .footer{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:18px; flex-wrap:wrap;
+    margin-top:30px;
+    padding:18px clamp(16px,2vw,24px);
+    border-radius:20px;
+    background:rgba(255,255,255,.4);
+    -webkit-backdrop-filter:blur(16px) saturate(150%);
+    backdrop-filter:blur(16px) saturate(150%);
+    border:1px solid var(--glass-border);
+    transform:translateZ(8px);
+    font-size:13px;
+    color:var(--ink-2);
+    font-weight:500;
+    letter-spacing:.01em;
+  }
+  .footer .right{ color:var(--ink-3); font-weight:600; }
+
+  /* ===== PAGE LOAD: rise + fade from depth ===== */
+  .lift{
+    opacity:0;
+    transform:translateZ(-120px) translateY(34px);
+    animation:rise .95s cubic-bezier(.22,.61,.36,1) forwards;
+  }
+  @keyframes rise{
+    to{ opacity:1; transform:translateZ(var(--rest,10px)) translateY(0); }
+  }
+  .header.lift{ --rest:28px; }
+  .upnext.lift{ --rest:16px; }
+  .footer.lift{ --rest:8px; }
+
+  @media (prefers-reduced-motion: reduce){
+    .stage{ transition:none !important; transform:none !important; }
+    .lift{ opacity:1 !important; transform:none !important; animation:none !important; }
+    .live .dot{ animation:none; }
+    .court:hover{ transform:translateZ(10px); }
+  }
+
+  @media (max-width:1100px){
+    .courts{ grid-template-columns:1fr; }
+    .nav{ display:none; }
+  }
+  @media (max-width:640px){
+    .live{ display:none; }
+    .un-match{ width:100%; }
+  }
+</style>
+</head>
+<body>
+  <div class="scene">
+    <div class="stage" id="stage">
+
+      <div class="orbs" id="orbs" aria-hidden="true">
+        <div class="orb o1"></div>
+        <div class="orb o2"></div>
+        <div class="orb o3"></div>
+        <div class="orb o4"></div>
+      </div>
+
+      <div class="wrap">
+
+        <!-- HEADER -->
+        <header class="header lift" style="animation-delay:.05s">
+          <img src="logo.png" alt="TZH Badminton logo" />
+          <div class="brand">
+            <h1>TZH Badminton</h1>
+            <span class="date">Saturday 28 June 2026</span>
+          </div>
+          <span class="live"><span class="dot"></span>Live</span>
+          <nav class="nav" aria-label="Primary">
+            <button class="pill" type="button">Members</button>
+            <button class="pill" type="button">Leaderboard</button>
+          </nav>
+        </header>
+
+        <!-- COURTS -->
+        <div class="section-title">
+          <h2>On Court</h2>
+          <span class="rule"></span>
+        </div>
+
+        <div class="courts" id="courts"><!-- injected --></div>
+
+        <!-- UP NEXT -->
+        <div class="section-title">
+          <h2>Up Next</h2>
+          <span class="rule"></span>
+        </div>
+
+        <section class="upnext lift" style="animation-delay:.55s" id="upnext"><!-- injected --></section>
+
+        <!-- FOOTER -->
+        <footer class="footer lift" style="animation-delay:.62s">
+          <span class="left">TZH Badminton — Live Court Display</span>
+          <span class="right">4 courts · Round 3 · 16 players</span>
+        </footer>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---- DATA ---- */
+  var courts = [
+    { name:"Court 1", round:"Round 3",
+      team1:[["TW","Thomas Wong"],["ML","Mei Lin"]],
+      team2:[["DP","David Park"],["SC","Sarah Chen"]] },
+    { name:"Court 2", round:"Round 3",
+      team1:[["AL","Aiden Lee"],["PN","Priya Nair"]],
+      team2:[["MT","Marcus Tan"],["YS","Yuki Sato"]] },
+    { name:"Court 3", round:"Round 2",
+      team1:[["CD","Carlos Diaz"],["HK","Hannah Kim"]],
+      team2:[["LZ","Leo Zhang"],["NP","Nina Patel"]] },
+    { name:"Court 4", round:"Round 2",
+      team1:[["RK","Ravi Kumar"],["SR","Sofia Reyes"]],
+      team2:[["BC","Ben Carter"],["GL","Grace Lim"]] }
+  ];
+
+  var upnext = [
+    { court:"Court 1", round:"Round 4",
+      a:[["TW","Thomas Wong"],["SC","Sarah Chen"]],
+      b:[["AL","Aiden Lee"],["NP","Nina Patel"]] },
+    { court:"Court 3", round:"Round 3",
+      a:[["CD","Carlos Diaz"],["GL","Grace Lim"]],
+      b:[["LZ","Leo Zhang"],["ML","Mei Lin"]] }
+  ];
+
+  function el(tag, cls){ var n=document.createElement(tag); if(cls) n.className=cls; return n; }
+  function txt(node, t){ node.textContent=t; return node; }
+
+  function playerNode(p){
+    var wrap = el("div","player");
+    var av = el("div","avatar"); av.textContent = p[0];
+    var nm = el("div","pname"); nm.textContent = p[1];
+    wrap.appendChild(av); wrap.appendChild(nm);
+    return wrap;
+  }
+
+  function teamNode(team){
+    var t = el("div","team");
+    t.appendChild(playerNode(team[0]));
+    t.appendChild(playerNode(team[1]));
+    return t;
+  }
+
+  /* ---- RENDER COURTS ---- */
+  var courtsRoot = document.getElementById("courts");
+  courts.forEach(function(c, i){
+    var card = el("article","court lift");
+    card.style.animationDelay = (0.18 + i*0.09) + "s";
+
+    var head = el("div","court-head");
+    head.appendChild(txt(el("div","court-name"), c.name));
+    head.appendChild(txt(el("div","round-badge"), c.round));
+    card.appendChild(head);
+
+    card.appendChild(teamNode(c.team1));
+
+    var vs = el("div","vs");
+    vs.appendChild(el("span","line"));
+    vs.appendChild(txt(el("span","label"), "vs"));
+    vs.appendChild(el("span","line"));
+    card.appendChild(vs);
+
+    card.appendChild(teamNode(c.team2));
+
+    courtsRoot.appendChild(card);
+  });
+
+  /* ---- RENDER UP NEXT ---- */
+  function chipGroup(pair){
+    var grp = el("div","grp");
+    pair.forEach(function(p){
+      var chip = el("span","un-chip"); chip.textContent = p[0]; chip.title = p[1];
+      grp.appendChild(chip);
+    });
+    var names = el("span"); names.textContent = pair[0][1] + " & " + pair[1][1];
+    grp.appendChild(names);
+    return grp;
+  }
+
+  var upRoot = document.getElementById("upnext");
+  upnext.forEach(function(u){
+    var row = el("div","un-row");
+
+    var court = el("div","un-court");
+    court.appendChild(txt(el("span","c"), u.court));
+    court.appendChild(txt(el("span","r"), u.round));
+    row.appendChild(court);
+
+    row.appendChild(txt(el("span","un-arrow"), "→"));
+
+    var match = el("div","un-match");
+    match.appendChild(chipGroup(u.a));
+    match.appendChild(txt(el("span","mini-vs"), "vs"));
+    match.appendChild(chipGroup(u.b));
+    row.appendChild(match);
+
+    upRoot.appendChild(row);
+  });
+
+  /* ---- PARALLAX TILT (rAF-throttled, reduced-motion aware) ---- */
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(!reduce){
+    var stage = document.getElementById("stage");
+    var orbs  = document.getElementById("orbs");
+    var targetX = 0, targetY = 0, curX = 0, curY = 0;
+    var ticking = false;
+
+    function onMove(e){
+      var w = window.innerWidth || 1, h = window.innerHeight || 1;
+      // -1 .. 1 normalized from center
+      targetX = (e.clientX / w) * 2 - 1;
+      targetY = (e.clientY / h) * 2 - 1;
+      if(!ticking){ ticking = true; requestAnimationFrame(frame); }
+    }
+
+    function frame(){
+      // ease toward target
+      curX += (targetX - curX) * 0.08;
+      curY += (targetY - curY) * 0.08;
+
+      var rotY = curX * 4.5;   // few degrees max
+      var rotX = -curY * 3.5;
+      stage.style.transform = "rotateX(" + rotX.toFixed(3) + "deg) rotateY(" + rotY.toFixed(3) + "deg)";
+      // orbs drift opposite for parallax feel
+      orbs.style.transform = "translate3d(" + (-curX*18).toFixed(2) + "px," + (-curY*18).toFixed(2) + "px,0)";
+
+      if(Math.abs(targetX-curX) > 0.001 || Math.abs(targetY-curY) > 0.001){
+        requestAnimationFrame(frame);
+      } else {
+        ticking = false;
+      }
+    }
+
+    window.addEventListener("mousemove", onMove, { passive:true });
+    window.addEventListener("mouseleave", function(){
+      targetX = 0; targetY = 0;
+      if(!ticking){ ticking = true; requestAnimationFrame(frame); }
+    });
+  }
+})();
+</script>
+</body>
+</html>

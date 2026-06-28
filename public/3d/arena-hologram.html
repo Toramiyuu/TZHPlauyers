@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TZH Badminton — Hologram Table</title>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  :root{
+    /* Blue / cyan accent tokens — the ONLY accent family */
+    --blue:#0071e3; --blue-2:#0066cc; --blue-dark:#005bb5;
+    --blue-bright:#4f97ff; --cyan:#67d3ff;
+    --blue-tint:rgba(79,151,255,.18); --blue-line:rgba(79,151,255,.42);
+    /* Dark holographic environment */
+    --bg:#040d1f; --bg-2:#020812; --card:rgba(8,20,42,.6);
+    /* Light HUD ink on dark */
+    --ink:#eaf2ff; --ink-2:#aebfd8; --ink-3:#8fa3c4;
+    --line:rgba(110,170,255,.22);
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 760px at 70% -12%, #0a1f3e 0%, rgba(10,31,62,0) 60%),
+      radial-gradient(900px 620px at 22% 110%, #06182f 0%, rgba(6,24,47,0) 60%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* ---------- WebGL canvas backdrop ---------- */
+  #scene{
+    position:fixed; inset:0; width:100%; height:100%;
+    display:block; z-index:0;
+  }
+  /* CSS fallback backdrop (visible if WebGL fails or behind transparent canvas) — deep navy */
+  #backdrop{
+    position:fixed; inset:0; z-index:-1;
+    background:
+      radial-gradient(900px 540px at 30% 22%, rgba(79,151,255,.16), rgba(79,151,255,0) 60%),
+      radial-gradient(1000px 620px at 78% 86%, rgba(0,113,227,.16), rgba(0,113,227,0) 62%),
+      radial-gradient(700px 480px at 50% 60%, rgba(103,211,255,.10), rgba(103,211,255,0) 64%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+  }
+
+  /* ---------- HUD overlay ---------- */
+  #hud{
+    position:fixed; inset:0; z-index:10;
+    display:flex; flex-direction:column;
+    padding:26px clamp(24px,3.4vw,56px) 22px;
+    pointer-events:none; /* let drags pass to scene; panels re-enable */
+  }
+  .hud-panel{ pointer-events:auto; }
+
+  /* dark frosted holographic glass surface */
+  .glass{
+    background:linear-gradient(180deg, rgba(8,20,42,.62), rgba(6,14,32,.5));
+    border:1px solid rgba(110,170,255,.22);
+    box-shadow:
+      0 1px 0 rgba(120,180,255,.14) inset,
+      0 0 0 1px rgba(79,151,255,.05),
+      0 18px 50px -22px rgba(0,0,0,.7),
+      0 0 34px -8px rgba(79,151,255,.28);
+    -webkit-backdrop-filter:saturate(1.3) blur(18px);
+    backdrop-filter:saturate(1.3) blur(18px);
+  }
+
+  /* ===== Header ===== */
+  header{
+    display:flex; align-items:center; gap:18px;
+    padding:12px 18px; border-radius:18px;
+  }
+  header img{ height:46px; width:auto; display:block;
+    filter:drop-shadow(0 0 10px rgba(79,151,255,.55)); }
+  .brand{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .brand h1{
+    font-size:19px; font-weight:650; letter-spacing:-.02em; color:var(--ink);
+    line-height:1; text-shadow:0 0 18px rgba(79,151,255,.3);
+  }
+  .brand .date{ font-size:12.5px; color:var(--ink-2); font-weight:480; letter-spacing:.01em; }
+  .header-spacer{ flex:1 1 auto; }
+
+  .live{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:7px 13px 7px 11px; border-radius:999px;
+    background:var(--blue-tint); border:1px solid var(--blue-line);
+    font-size:12px; font-weight:600; color:var(--cyan); letter-spacing:.04em;
+    text-transform:uppercase;
+    box-shadow:0 0 18px -4px rgba(79,151,255,.5) inset, 0 0 14px -6px rgba(103,211,255,.5);
+  }
+  .live .dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--cyan);
+    box-shadow:0 0 0 0 rgba(103,211,255,.6), 0 0 10px 1px rgba(103,211,255,.8);
+    animation:pulse 1.8s ease-out infinite;
+  }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(103,211,255,.6), 0 0 10px 1px rgba(103,211,255,.8); }
+    70%{ box-shadow:0 0 0 9px rgba(103,211,255,0), 0 0 10px 1px rgba(103,211,255,.8); }
+    100%{ box-shadow:0 0 0 0 rgba(103,211,255,0), 0 0 10px 1px rgba(103,211,255,.8); }
+  }
+  .nav{ display:flex; gap:9px; }
+  .pill{
+    padding:8px 16px; border-radius:999px;
+    font-size:13px; font-weight:550; color:var(--ink-2);
+    background:rgba(20,40,74,.42);
+    border:1px solid var(--line);
+    transition:.18s ease;
+  }
+  .pill:hover{ color:var(--cyan); border-color:var(--blue-line); background:var(--blue-tint); }
+  .pill.active{
+    color:#fff;
+    background:linear-gradient(180deg,var(--blue-bright),var(--blue-2));
+    border-color:transparent;
+    box-shadow:0 6px 16px -6px rgba(79,151,255,.7), 0 0 18px -4px rgba(103,211,255,.5);
+  }
+
+  /* ===== Center stage spacer ===== */
+  .stage{ flex:1 1 auto; min-height:0; }
+
+  /* ===== Match cards (bottom strip) ===== */
+  .cards{
+    pointer-events:none;
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:16px;
+  }
+  .card{
+    pointer-events:auto;
+    border-radius:18px; padding:15px 16px 14px;
+    display:flex; flex-direction:column; gap:12px;
+    position:relative; overflow:hidden;
+  }
+  .card::before{ /* top accent hairline — holographic glow */
+    content:""; position:absolute; left:16px; right:16px; top:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+    box-shadow:0 0 10px rgba(103,211,255,.6);
+  }
+  .card-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .court-id{ display:flex; align-items:center; gap:8px; }
+  .court-num{
+    font-size:13px; font-weight:680; letter-spacing:-.01em; color:var(--ink);
+  }
+  .court-num span{ color:var(--ink-3); font-weight:520; }
+  .round-badge{
+    font-size:10.5px; font-weight:650; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--cyan);
+    padding:4px 9px; border-radius:999px;
+    background:var(--blue-tint); border:1px solid var(--blue-line);
+    box-shadow:0 0 12px -4px rgba(103,211,255,.55);
+  }
+
+  .team{ display:flex; align-items:center; gap:10px; }
+  .avatars{ display:flex; }
+  .avatars .av:nth-child(2){ margin-left:-9px; }
+  .av{
+    width:32px; height:32px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:670; letter-spacing:.01em; color:#fff;
+    background:linear-gradient(155deg, var(--blue-bright) 0%, var(--blue-dark) 100%);
+    border:2px solid rgba(14,30,58,.9);
+    box-shadow:0 3px 8px -3px rgba(0,0,0,.6), 0 0 12px -3px rgba(79,151,255,.7);
+    flex:0 0 auto;
+  }
+  .av.alt{ background:linear-gradient(155deg, var(--cyan) 0%, var(--blue-2) 100%); }
+  .names{ display:flex; flex-direction:column; gap:1px; min-width:0; line-height:1.18; }
+  .names .n{ font-size:12.5px; font-weight:560; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .vs-row{ display:flex; align-items:center; gap:10px; }
+  .vs-line{ flex:1; height:1px; background:linear-gradient(90deg,transparent,var(--line),transparent); }
+  .vs{
+    font-size:10.5px; font-weight:700; letter-spacing:.12em; color:var(--cyan);
+    text-transform:uppercase; text-shadow:0 0 10px rgba(103,211,255,.5);
+  }
+
+  /* ===== Footer ===== */
+  footer{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:16px;
+    font-size:12px; color:var(--ink-2); letter-spacing:.01em;
+    padding:0 4px;
+  }
+  footer .right{ color:var(--ink-3); font-weight:520; }
+  footer strong{ color:var(--ink); font-weight:600; }
+
+  @media (max-width:1080px){
+    .cards{ grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width:620px){
+    .cards{ grid-template-columns:1fr; }
+    .nav{ display:none; }
+  }
+</style>
+</head>
+<body>
+  <div id="backdrop"></div>
+  <canvas id="scene"></canvas>
+
+  <div id="hud">
+    <!-- Header -->
+    <header class="hud-panel glass">
+      <img src="logo.png" alt="TZH" onerror="this.style.display='none'" />
+      <div class="brand">
+        <h1>TZH Badminton</h1>
+        <div class="date">Saturday 28 June 2026</div>
+      </div>
+      <div class="header-spacer"></div>
+      <div class="live"><span class="dot"></span>Live</div>
+      <nav class="nav">
+        <span class="pill">Members</span>
+        <span class="pill active">Leaderboard</span>
+      </nav>
+    </header>
+
+    <div class="stage"></div>
+
+    <!-- Match cards -->
+    <div class="cards" id="cards"></div>
+
+    <!-- Footer -->
+    <footer class="hud-panel">
+      <div class="left">TZH Badminton — Live Court Display</div>
+      <div class="right"><strong>4 courts</strong> · Round 3 · 16 players</div>
+    </footer>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* =========================================================
+   CONTENT MODEL  (unchanged — same roster, initials, copy)
+   ========================================================= */
+function initials(name){
+  return name.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+}
+var MATCHES = [
+  { court:1, round:3, t1:["Thomas Wong","Mei Lin"],   t2:["David Park","Sarah Chen"] },
+  { court:2, round:3, t1:["Aiden Lee","Priya Nair"],  t2:["Marcus Tan","Yuki Sato"] },
+  { court:3, round:2, t1:["Carlos Diaz","Hannah Kim"],t2:["Leo Zhang","Nina Patel"] },
+  { court:4, round:2, t1:["Ravi Kumar","Sofia Reyes"],t2:["Ben Carter","Grace Lim"] }
+];
+
+function teamHTML(players, alt){
+  var avs = players.map(function(p,i){
+    return '<div class="av'+((alt|| i===1)?' alt':'')+'">'+initials(p)+'</div>';
+  }).join('');
+  var nms = players.map(function(p){ return '<div class="n">'+p+'</div>'; }).join('');
+  return '<div class="team"><div class="avatars">'+avs+'</div><div class="names">'+nms+'</div></div>';
+}
+
+(function renderCards(){
+  var el = document.getElementById('cards');
+  el.innerHTML = MATCHES.map(function(m){
+    return ''+
+    '<div class="card glass">'+
+      '<div class="card-top">'+
+        '<div class="court-id"><span class="court-num">Court '+m.court+' <span>·</span></span>'+
+          '<span class="round-badge">Round '+m.round+'</span></div>'+
+      '</div>'+
+      teamHTML(m.t1, false)+
+      '<div class="vs-row"><span class="vs-line"></span><span class="vs">vs</span><span class="vs-line"></span></div>'+
+      teamHTML(m.t2, true)+
+    '</div>';
+  }).join('');
+})();
+
+/* =========================================================
+   THREE.JS — HOLOGRAM TABLE SCENE
+   Wireframe hologram courts projected above a dark control table.
+   Strictly blue / cyan. No green, no purple, no orange.
+   ========================================================= */
+(function buildScene(){
+  if(typeof THREE === 'undefined'){
+    console.warn('THREE not available — using CSS backdrop only.');
+    return; // CSS backdrop (deep navy) already visible
+  }
+
+  var reduceMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var canvas = document.getElementById('scene');
+  var renderer, scene, camera;
+
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas: canvas, antialias:true, alpha:true
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  } catch(err){
+    console.warn('WebGL init failed — CSS backdrop fallback active.', err);
+    canvas.style.display = 'none';
+    return;
+  }
+
+  scene = new THREE.Scene();
+  var FOG = 0x040d1f;                 // deep navy
+  scene.background = new THREE.Color(FOG);
+  scene.fog = new THREE.Fog(FOG, 28, 96);
+
+  camera = new THREE.PerspectiveCamera(46, window.innerWidth/window.innerHeight, 0.1, 400);
+
+  var CENTER = new THREE.Vector3(0, 1.2, 0);
+
+  /* ---- Color palette (blue family only) ---- */
+  var BLUE        = 0x0071e3;
+  var BLUE_BRIGHT = 0x4f97ff;
+  var CYAN        = 0x67d3ff;
+  var GRID_BLUE   = 0x2f6fd0;
+  var GRID_FAINT  = 0x163a72;
+
+  /* ---- Lights (cool, low key — the holograms are self-lit) ---- */
+  scene.add(new THREE.HemisphereLight(0x4a78c8, 0x02060f, 0.55));
+  var dir = new THREE.DirectionalLight(0x8fc0ff, 0.35);
+  dir.position.set(10, 24, 14);
+  scene.add(dir);
+  var fill = new THREE.PointLight(0x4f97ff, 0.8, 120, 2);
+  fill.position.set(0, 8, 0);
+  scene.add(fill);
+
+  /* =========================================================
+     THE TABLE — dark glossy surface + projected blue grids
+     ========================================================= */
+  var TABLE_Y = -0.02;
+  var tableGeo = new THREE.PlaneGeometry(240, 240);
+  var tableMat = new THREE.MeshStandardMaterial({
+    color:0x040c1c, roughness:0.35, metalness:0.6
+  });
+  var table = new THREE.Mesh(tableGeo, tableMat);
+  table.rotation.x = -Math.PI/2;
+  table.position.y = TABLE_Y;
+  scene.add(table);
+
+  /* coarse bright grid */
+  var grid = new THREE.GridHelper(170, 60, BLUE_BRIGHT, GRID_BLUE);
+  grid.material.opacity = 0.42;
+  grid.material.transparent = true;
+  grid.position.y = 0.001;
+  scene.add(grid);
+
+  /* finer secondary grid */
+  var gridFine = new THREE.GridHelper(170, 240, GRID_FAINT, GRID_FAINT);
+  gridFine.material.opacity = 0.16;
+  gridFine.material.transparent = true;
+  gridFine.position.y = 0.0005;
+  scene.add(gridFine);
+
+  /* faint circular "projector" glow on the table under the courts */
+  var projGlow = new THREE.Mesh(
+    new THREE.CircleGeometry(34, 96),
+    new THREE.MeshBasicMaterial({ color:0x123a7a, transparent:true, opacity:0.22 })
+  );
+  projGlow.rotation.x = -Math.PI/2;
+  projGlow.position.y = 0.004;
+  scene.add(projGlow);
+  var projRing = new THREE.Mesh(
+    new THREE.RingGeometry(33.4, 34.2, 120),
+    new THREE.MeshBasicMaterial({ color:CYAN, transparent:true, opacity:0.18, side:THREE.DoubleSide })
+  );
+  projRing.rotation.x = -Math.PI/2;
+  projRing.position.y = 0.006;
+  scene.add(projRing);
+
+  /* =========================================================
+     COURT FACTORY — hologram wireframe edition
+     (same geometry layout as the source: boundary, singles,
+     service, back-service, center lines, net + posts)
+     ========================================================= */
+  var COURT_L = 13.4;   // along z
+  var COURT_W = 6.1;    // along x
+  var LIFT    = 2.4;    // courts float ABOVE the table (projected)
+
+  /* emissive, bright holographic line material */
+  var lineMat = new THREE.LineBasicMaterial({ color:CYAN,        transparent:true, opacity:0.96 });
+  var lineMat2= new THREE.LineBasicMaterial({ color:BLUE_BRIGHT, transparent:true, opacity:0.82 });
+  /* barely-there hologram court "fill" */
+  var glowMat = new THREE.MeshBasicMaterial({ color:BLUE_BRIGHT, transparent:true, opacity:0.07 });
+
+  function makeRect(w, l, y, mat){
+    var hw=w/2, hl=l/2;
+    var pts = [
+      new THREE.Vector3(-hw,y,-hl), new THREE.Vector3( hw,y,-hl),
+      new THREE.Vector3( hw,y,-hl), new THREE.Vector3( hw,y, hl),
+      new THREE.Vector3( hw,y, hl), new THREE.Vector3(-hw,y, hl),
+      new THREE.Vector3(-hw,y, hl), new THREE.Vector3(-hw,y,-hl)
+    ];
+    var g = new THREE.BufferGeometry().setFromPoints(pts);
+    return new THREE.LineSegments(g, mat || lineMat);
+  }
+  function makeLine(x1,z1,x2,z2,y,mat){
+    var g = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(x1,y,z1), new THREE.Vector3(x2,y,z2)
+    ]);
+    return new THREE.LineSegments(g, mat || lineMat2);
+  }
+
+  /* registries for animation */
+  var scanlines = [];   // drifting hologram scanline planes
+  var courtZones = [];  // {x, z} centres for shuttle arcs
+
+  function buildCourt(cx, cz){
+    var grp = new THREE.Group();
+    grp.position.set(cx, LIFT, cz);   // floats above table
+    var y = 0.04;
+    var hw=COURT_W/2, hl=COURT_L/2;
+
+    /* barely-there hologram court surface */
+    var surfGeo = new THREE.PlaneGeometry(COURT_W, COURT_L);
+    var surfMat = new THREE.MeshBasicMaterial({
+      color:0x0e2c5c, transparent:true, opacity:0.18, side:THREE.DoubleSide
+    });
+    var surf = new THREE.Mesh(surfGeo, surfMat);
+    surf.rotation.x = -Math.PI/2;
+    surf.position.y = 0.015;
+    grp.add(surf);
+
+    /* up-glow halo beneath the floating court (projection beam footprint) */
+    var halo = new THREE.Mesh(new THREE.PlaneGeometry(COURT_W+1.6, COURT_L+1.6), glowMat);
+    halo.rotation.x = -Math.PI/2;
+    halo.position.y = 0.006;
+    grp.add(halo);
+
+    /* outer boundary */
+    grp.add(makeRect(COURT_W, COURT_L, y, lineMat));
+    /* inner singles side-lines */
+    grp.add(makeLine(-hw+0.55,-hl,-hw+0.55,hl,y));
+    grp.add(makeLine( hw-0.55,-hl, hw-0.55,hl,y));
+    /* service lines (short of net) */
+    grp.add(makeLine(-hw,-1.95, hw,-1.95,y));
+    grp.add(makeLine(-hw, 1.95, hw, 1.95,y));
+    /* back service / long service line */
+    grp.add(makeLine(-hw,-hl+0.75, hw,-hl+0.75,y));
+    grp.add(makeLine(-hw, hl-0.75, hw, hl-0.75,y));
+    /* center service line (two halves) */
+    grp.add(makeLine(0,-1.95,0,-hl+0.75,y));
+    grp.add(makeLine(0, 1.95,0, hl-0.75,y));
+
+    /* ---- Net at center ---- */
+    var netH = 1.05;
+    var netMat = new THREE.MeshBasicMaterial({
+      color:CYAN, transparent:true, opacity:0.06, side:THREE.DoubleSide
+    });
+    var net = new THREE.Mesh(new THREE.PlaneGeometry(COURT_W, netH), netMat);
+    net.position.set(0, netH/2, 0);
+    grp.add(net);
+    /* net mesh lines */
+    var netLineMat = new THREE.LineBasicMaterial({ color:BLUE_BRIGHT, transparent:true, opacity:0.5 });
+    var npts = [];
+    var cols = 14;
+    for(var i=0;i<=cols;i++){
+      var xx = -hw + (COURT_W*i/cols);
+      npts.push(new THREE.Vector3(xx,0,0), new THREE.Vector3(xx,netH,0));
+    }
+    var rows = 4;
+    for(var r=0;r<=rows;r++){
+      var yy = netH*r/rows;
+      npts.push(new THREE.Vector3(-hw,yy,0), new THREE.Vector3(hw,yy,0));
+    }
+    var netGrid = new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints(npts), netLineMat);
+    grp.add(netGrid);
+    /* bright net tape (top) */
+    var tape = makeLine(-hw,0,hw,0,netH, lineMat);
+    grp.add(tape);
+    /* net posts — emissive blue */
+    var postMat = new THREE.MeshStandardMaterial({
+      color:BLUE_BRIGHT, roughness:0.35, metalness:0.3,
+      emissive:0x2f6fd0, emissiveIntensity:0.8
+    });
+    [-hw,hw].forEach(function(px){
+      var post = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,netH+0.18,12), postMat);
+      post.position.set(px,(netH+0.18)/2,0);
+      grp.add(post);
+    });
+
+    /* ---- HOLOGRAM SCANLINES ---- thin translucent planes drifting up ---- */
+    var scanMat = new THREE.MeshBasicMaterial({
+      color:CYAN, transparent:true, opacity:0.0, side:THREE.DoubleSide,
+      depthWrite:false
+    });
+    for(var s=0;s<2;s++){
+      var scan = new THREE.Mesh(new THREE.PlaneGeometry(COURT_W*0.98, COURT_L*0.98), scanMat.clone());
+      scan.rotation.x = -Math.PI/2;
+      scanlines.push({ mesh:scan, group:grp, base:s/2, span:1.7 });
+      grp.add(scan);
+    }
+
+    courtZones.push({ x:cx, z:cz, y:LIFT });
+    return grp;
+  }
+
+  /* ---- Lay out 2x2 ---- */
+  var GX = (COURT_W/2) + 3.0;  // half-gap on x
+  var GZ = (COURT_L/2) + 3.0;  // half-gap on z
+  var positions = [
+    [-GX, -GZ],[ GX, -GZ],
+    [-GX,  GZ],[ GX,  GZ]
+  ];
+  positions.forEach(function(p){ scene.add(buildCourt(p[0], p[1])); });
+
+  /* ---- vertical projection "beam" pillars at the table corners of the rig ---- */
+  var beamMat = new THREE.MeshBasicMaterial({ color:CYAN, transparent:true, opacity:0.05, side:THREE.DoubleSide, depthWrite:false });
+  courtZones.forEach(function(z){
+    var beam = new THREE.Mesh(new THREE.CylinderGeometry(COURT_W*0.62, COURT_W*0.42, LIFT, 24, 1, true), beamMat);
+    beam.position.set(z.x, LIFT/2, z.z);
+    scene.add(beam);
+  });
+
+  /* =========================================================
+     SHUTTLE LIGHT-TRAILS — signature motion
+     Bright blue points flying parabolic arcs, leaving a short
+     fading trail (a THREE.Line with rolling history points).
+     ========================================================= */
+  var shuttles = [];
+  var TRAIL_LEN = 26;
+
+  function makeShuttle(zoneA, zoneB, speed, phase, color){
+    /* head: glowing sprite-ish point */
+    var headGeo = new THREE.BufferGeometry();
+    headGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3), 3));
+    var headMat = new THREE.PointsMaterial({
+      color:color, size:0.55, transparent:true, opacity:1.0,
+      sizeAttenuation:true, depthWrite:false
+    });
+    var head = new THREE.Points(headGeo, headMat);
+    scene.add(head);
+
+    /* trail line with per-vertex fading colors */
+    var trailGeo = new THREE.BufferGeometry();
+    var tpos = new Float32Array(TRAIL_LEN*3);
+    var tcol = new Float32Array(TRAIL_LEN*3);
+    trailGeo.setAttribute('position', new THREE.BufferAttribute(tpos, 3));
+    trailGeo.setAttribute('color', new THREE.BufferAttribute(tcol, 3));
+    var trailMat = new THREE.LineBasicMaterial({
+      vertexColors:true, transparent:true, opacity:0.9, depthWrite:false,
+      blending:THREE.AdditiveBlending
+    });
+    var trail = new THREE.Line(trailGeo, trailMat);
+    scene.add(trail);
+
+    var c = new THREE.Color(color);
+    return {
+      a:zoneA, b:zoneB, speed:speed, t:phase,
+      head:head, headGeo:headGeo,
+      trail:trail, tpos:tpos, tcol:tcol,
+      history:[], color:c
+    };
+  }
+
+  function shuttlePoint(s, t){
+    /* eased parabolic arc from A to B, peaking above the table */
+    var a=s.a, b=s.b;
+    var x = a.x + (b.x-a.x)*t;
+    var z = a.z + (b.z-a.z)*t;
+    var baseY = LIFT + 0.6;
+    var peak  = 6.5;                       // arc height
+    var y = baseY + Math.sin(Math.PI*t)*peak;
+    return new THREE.Vector3(x, y, z);
+  }
+
+  /* build a few staggered shuttles between different court zones */
+  (function buildShuttles(){
+    if(courtZones.length < 4) return;
+    var pairs = [
+      [0,3, 0.30, 0.00, CYAN],
+      [1,2, 0.26, 0.42, BLUE_BRIGHT],
+      [0,1, 0.34, 0.18, CYAN],
+      [2,3, 0.22, 0.66, BLUE_BRIGHT]
+    ];
+    pairs.forEach(function(p){
+      shuttles.push(makeShuttle(courtZones[p[0]], courtZones[p[1]], p[2], p[3], p[4]));
+    });
+  })();
+
+  function updateShuttle(s, dt){
+    s.t += dt * s.speed;
+    if(s.t > 1){
+      s.t -= 1;
+      var tmp = s.a; s.a = s.b; s.b = tmp;   // bounce back along the arc
+      s.history.length = 0;
+    }
+    var p = shuttlePoint(s, s.t);
+
+    /* head position */
+    s.headGeo.attributes.position.array[0] = p.x;
+    s.headGeo.attributes.position.array[1] = p.y;
+    s.headGeo.attributes.position.array[2] = p.z;
+    s.headGeo.attributes.position.needsUpdate = true;
+
+    /* push to history (newest first) */
+    s.history.unshift(p);
+    if(s.history.length > TRAIL_LEN) s.history.length = TRAIL_LEN;
+
+    /* write trail buffer with fade */
+    for(var i=0;i<TRAIL_LEN;i++){
+      var src = s.history[i] || s.history[s.history.length-1] || p;
+      s.tpos[i*3]   = src.x;
+      s.tpos[i*3+1] = src.y;
+      s.tpos[i*3+2] = src.z;
+      var f = 1 - (i/TRAIL_LEN);          // head bright -> tail dark
+      f = f*f;
+      s.tcol[i*3]   = s.color.r * f;
+      s.tcol[i*3+1] = s.color.g * f;
+      s.tcol[i*3+2] = s.color.b * f;
+    }
+    s.trail.geometry.attributes.position.needsUpdate = true;
+    s.trail.geometry.attributes.color.needsUpdate = true;
+  }
+
+  function renderShuttlesOnce(){
+    /* for reduced-motion: place head + a short static trail */
+    shuttles.forEach(function(s){
+      for(var k=0;k<6;k++){ s.history.unshift(shuttlePoint(s, Math.max(0, s.t - k*0.012))); }
+      updateShuttle(s, 0);
+    });
+  }
+
+  /* =========================================================
+     FLOATING PARTICLE FIELD — faint blue atmosphere specks
+     ========================================================= */
+  var particleCount = 520;
+  var pGeo = new THREE.BufferGeometry();
+  var pPos = new Float32Array(particleCount*3);
+  var pSpeed = new Float32Array(particleCount);
+  for(var i=0;i<particleCount;i++){
+    pPos[i*3]   = (Math.random()-0.5)*90;
+    pPos[i*3+1] = Math.random()*30 + 0.5;
+    pPos[i*3+2] = (Math.random()-0.5)*90;
+    pSpeed[i]   = 0.25 + Math.random()*0.7;
+  }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  var pMat = new THREE.PointsMaterial({
+    color:0x9cc8ff, size:0.12, transparent:true, opacity:0.55,
+    sizeAttenuation:true, depthWrite:false, blending:THREE.AdditiveBlending
+  });
+  var particles = new THREE.Points(pGeo, pMat);
+  scene.add(particles);
+
+  function updateParticles(dt){
+    var arr = pGeo.attributes.position.array;
+    for(var i=0;i<particleCount;i++){
+      arr[i*3+1] += dt * pSpeed[i];      // drift upward
+      if(arr[i*3+1] > 31){ arr[i*3+1] = 0.4; }
+    }
+    pGeo.attributes.position.needsUpdate = true;
+  }
+
+  /* ---- floating accent ring on the table edge (ambiance) ---- */
+  var ring = new THREE.Mesh(
+    new THREE.RingGeometry(40, 40.3, 120),
+    new THREE.MeshBasicMaterial({ color:BLUE_BRIGHT, transparent:true, opacity:0.12, side:THREE.DoubleSide })
+  );
+  ring.rotation.x = -Math.PI/2; ring.position.y = 0.01;
+  scene.add(ring);
+
+  /* =========================================================
+     HOLOGRAM SCANLINE ANIMATION
+     ========================================================= */
+  function updateScanlines(elapsed){
+    for(var i=0;i<scanlines.length;i++){
+      var sc = scanlines[i];
+      var t = (elapsed*0.22 + sc.base) % 1;        // 0..1 loop, drifting up
+      sc.mesh.position.y = 0.03 + t * sc.span;     // local Y within the lifted court group
+      /* fade in at bottom, out at top */
+      var op = Math.sin(Math.PI*t) * 0.16;
+      sc.mesh.material.opacity = op;
+    }
+  }
+  function renderScanlinesOnce(){
+    updateScanlines(0.5);
+  }
+
+  /* =========================================================
+     RENDER LOOP — slow auto-orbit (lower for a lean-over feel)
+     ========================================================= */
+  var angle = Math.PI * 0.18;
+  var RADIUS = 33;
+  var HEIGHT = 13;
+  var clock = new THREE.Clock();
+
+  function positionCamera(){
+    camera.position.set(
+      Math.cos(angle) * RADIUS,
+      HEIGHT,
+      Math.sin(angle) * RADIUS
+    );
+    camera.lookAt(CENTER);
+  }
+
+  function frame(){
+    var dt = clock.getDelta();
+    var elapsed = clock.getElapsedTime();
+    if(!reduceMotion){
+      angle += dt * 0.06; // gentle cinematic orbit
+      HEIGHT = 13 + Math.sin(angle*0.6) * 1.6; // subtle vertical breathing
+      updateScanlines(elapsed);
+      for(var i=0;i<shuttles.length;i++){ updateShuttle(shuttles[i], dt); }
+      updateParticles(dt);
+    }
+    positionCamera();
+    renderer.render(scene, camera);
+    if(!reduceMotion) requestAnimationFrame(frame);
+  }
+
+  /* ---- Resize ---- */
+  function onResize(){
+    var w = window.innerWidth, h = window.innerHeight;
+    camera.aspect = w/h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  }
+  window.addEventListener('resize', onResize);
+
+  positionCamera();
+  if(reduceMotion){
+    /* freeze: build a static frame of every animated element, render once */
+    renderScanlinesOnce();
+    renderShuttlesOnce();
+    renderer.render(scene, camera);
+  } else {
+    requestAnimationFrame(frame);
+  }
+})();
+</script>
+</body>
+</html>

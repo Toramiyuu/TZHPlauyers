@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TZH Players · 5 Design Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#15140f;
+    --bg-2:#1c1b14;
+    --panel:#211f17;
+    --line:#ffffff14;
+    --ink:#efe9d8;
+    --dim:#9a9483;
+    --gold:#f0b429;          /* TZH brand accent */
+  }
+  html,body{background:var(--bg)}
+  body{font-family:"Hanken Grotesk",system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;min-height:100vh}
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:46px 46px;-webkit-mask:radial-gradient(120% 90% at 50% 0,#000,transparent 75%);mask:radial-gradient(120% 90% at 50% 0,#000,transparent 75%)}
+  .sg{font-family:"Space Grotesk",sans-serif}
+
+  header{position:relative;z-index:2;max-width:1240px;margin:0 auto;padding:46px 30px 14px}
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
+  .eyebrow .mk{width:13px;height:27px;-webkit-mask:url(logo.png) center/contain no-repeat;mask:url(logo.png) center/contain no-repeat;background:var(--gold)}
+  header h1{font-family:"Space Grotesk";font-weight:600;font-size:clamp(30px,4.4vw,46px);line-height:1.02;letter-spacing:-.015em;margin:16px 0 0}
+  header h1 b{color:var(--gold);font-weight:600}
+  header p{max-width:680px;margin:14px 0 0;font-size:15.5px;line-height:1.6;color:var(--dim)}
+  header p b{color:var(--ink);font-weight:500}
+  .note{margin-top:18px;display:inline-flex;gap:10px;align-items:center;font-size:12.5px;color:var(--dim);
+    border:1px solid var(--line);background:#ffffff06;padding:8px 13px;border-radius:8px}
+  .note .d{width:7px;height:7px;border-radius:50%;background:var(--gold)}
+
+  .rail{position:relative;z-index:2;max-width:1240px;margin:0 auto;padding:30px 30px 60px;
+    display:flex;gap:26px;flex-wrap:wrap;justify-content:center;align-items:flex-start}
+
+  .card{flex:0 0 300px;display:flex;flex-direction:column}
+  .meta{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+  .meta .ltr{font-family:"Space Grotesk";font-weight:700;font-size:13px;color:var(--bg);background:var(--gold);
+    width:24px;height:24px;border-radius:6px;display:grid;place-items:center;flex:0 0 24px}
+  .meta .nm{font-family:"Space Grotesk";font-weight:600;font-size:18px;letter-spacing:-.01em}
+  .meta .nm small{display:block;font-family:"Hanken Grotesk";font-weight:400;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-top:2px}
+
+  /* phone */
+  .phone{position:relative;width:300px;height:614px;border-radius:34px;padding:8px;
+    background:linear-gradient(160deg,#33312a,#0f0e0a);
+    box-shadow:0 30px 60px -28px #000, inset 0 0 0 1px #ffffff10;cursor:pointer}
+  .phone .screen{position:relative;width:100%;height:100%;border-radius:27px;overflow:hidden;background:#000}
+  .phone iframe{width:430px;height:880px;border:0;transform:scale(.6604);transform-origin:top left;pointer-events:none}
+  .phone .open{position:absolute;z-index:3;bottom:14px;left:50%;transform:translateX(-50%);
+    display:inline-flex;align-items:center;gap:7px;font-family:"Space Grotesk";font-weight:600;font-size:12.5px;
+    color:var(--bg);background:var(--gold);padding:9px 16px;border-radius:30px;text-decoration:none;
+    box-shadow:0 8px 18px -6px #000a;opacity:0;transition:opacity .2s,transform .2s;white-space:nowrap}
+  .phone:hover .open{opacity:1;transform:translateX(-50%) translateY(-2px)}
+  .phone::after{content:"";position:absolute;inset:8px;border-radius:27px;pointer-events:none;box-shadow:inset 0 0 30px #0006}
+
+  .desc{margin-top:15px;font-size:13.5px;line-height:1.55;color:var(--dim)}
+  .desc b{color:var(--ink);font-weight:500}
+  .sw{display:flex;gap:6px;margin-top:13px}
+  .sw i{width:22px;height:22px;border-radius:6px;box-shadow:inset 0 0 0 1px #ffffff1f}
+
+  footer{position:relative;z-index:2;max-width:1240px;margin:0 auto;padding:0 30px 60px;color:var(--dim);font-size:13px;line-height:1.6}
+  footer .hr{height:1px;background:var(--line);margin-bottom:22px}
+  footer b{color:var(--ink);font-weight:500}
+  footer a{color:var(--gold);text-decoration:none}
+
+  @media(max-width:700px){
+    .rail{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;justify-content:flex-start;padding-bottom:30px}
+    .card{scroll-snap-align:center}
+  }
+</style>
+</head>
+<body>
+
+  <header>
+    <span class="eyebrow"><span class="mk"></span>TZH Players · Member Home</span>
+    <h1>Five original directions,<br>past the <b>Apple</b> look.</h1>
+    <p>The current app leans on system fonts and Apple-blue minimalism — clean, but it could be any tech product.
+      Here are <b>five distinct visual languages</b> for the same member home (welcome, leaderboard, tiers, prize draw),
+      each built from the real brand: the <b>feather mark</b> and warm gold. Tap any screen to open it full-size.</p>
+    <span class="note"><span class="d"></span>Concept mockups · same real data across all five for a fair comparison</span>
+  </header>
+
+  <div class="rail">
+
+    <!-- D -->
+    <div class="card">
+      <div class="meta"><span class="ltr">D</span><span class="nm">Maison<small>Heritage Members' Club</small></span></div>
+      <a class="phone" href="D-maison.html" target="_blank" aria-label="Open Maison full screen">
+        <span class="screen"><iframe src="D-maison.html" scrolling="no" title="Maison" loading="lazy"></iframe></span>
+        <span class="open">Open full ↗</span>
+      </a>
+      <div class="desc"><b>Quietly expensive.</b> Didone serif, oxblood &amp; antique gold, an embossed membership card and an engraved honours board. Reads like a private racquet club.</div>
+      <div class="sw"><i style="background:#5b1d27"></i><i style="background:#f3ecdd"></i><i style="background:#a8803d"></i><i style="background:#1e2c4a"></i></div>
+    </div>
+
+    <!-- E -->
+    <div class="card">
+      <div class="meta"><span class="ltr">E</span><span class="nm">Bauhaus Court<small>Geometric Modernist</small></span></div>
+      <a class="phone" href="E-bauhaus.html" target="_blank" aria-label="Open Bauhaus full screen">
+        <span class="screen"><iframe src="E-bauhaus.html" scrolling="no" title="Bauhaus" loading="lazy"></iframe></span>
+        <span class="open">Open full ↗</span>
+      </a>
+      <div class="desc"><b>Bold &amp; confident.</b> Futura-style geometry, primary red/cobalt/yellow, thick rules and shuttle-circle / court-triangle shapes. Playful but serious.</div>
+      <div class="sw"><i style="background:#e23b2c"></i><i style="background:#214bbf"></i><i style="background:#f4b71a"></i><i style="background:#15120c"></i></div>
+    </div>
+
+    <!-- F -->
+    <div class="card">
+      <div class="meta"><span class="ltr">F</span><span class="nm">Arcade<small>Retro Game Scoreboard</small></span></div>
+      <a class="phone" href="F-arcade.html" target="_blank" aria-label="Open Arcade full screen">
+        <span class="screen"><iframe src="F-arcade.html" scrolling="no" title="Arcade" loading="lazy"></iframe></span>
+        <span class="open">Open full ↗</span>
+      </a>
+      <div class="desc"><b>Pure gamification.</b> Tiers become ranks, points become XP, the draw becomes a gacha. CRT scanlines, pixel type, warm neon. The most fun, most polarising.</div>
+      <div class="sw"><i style="background:#160f2b"></i><i style="background:#ffc24a"></i><i style="background:#ff3d8b"></i><i style="background:#3fe6d2"></i></div>
+    </div>
+
+    <!-- G -->
+    <div class="card">
+      <div class="meta"><span class="ltr">G</span><span class="nm">Riso Zine<small>Risograph Sports Poster</small></span></div>
+      <a class="phone" href="G-riso.html" target="_blank" aria-label="Open Riso full screen">
+        <span class="screen"><iframe src="G-riso.html" scrolling="no" title="Riso" loading="lazy"></iframe></span>
+        <span class="open">Open full ↗</span>
+      </a>
+      <div class="desc"><b>Print-shop energy.</b> Spot-ink overprint, halftone dots, registration marks and huge condensed type. Young, loud, very shareable on social.</div>
+      <div class="sw"><i style="background:#243bb0"></i><i style="background:#ff5a1f"></i><i style="background:#ff3f93"></i><i style="background:#f0e9d6"></i></div>
+    </div>
+
+    <!-- H -->
+    <div class="card">
+      <div class="meta"><span class="ltr">H</span><span class="nm">Terroir<small>Malaysian Tropical Heritage</small></span></div>
+      <a class="phone" href="H-terroir.html" target="_blank" aria-label="Open Terroir full screen">
+        <span class="screen"><iframe src="H-terroir.html" scrolling="no" title="Terroir" loading="lazy"></iframe></span>
+        <span class="open">Open full ↗</span>
+      </a>
+      <div class="desc"><b>Rooted &amp; local.</b> Jade, terracotta and gold, the feather used as foliage, fully bilingual EN&nbsp;+&nbsp;中文. Feels like an Ipoh institution, not a generic app.</div>
+      <div class="sw"><i style="background:#11463a"></i><i style="background:#c0613a"></i><i style="background:#cf9c3a"></i><i style="background:#efe5cf"></i></div>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="hr"></div>
+    <p>Each screen is a standalone HTML file in this folder (<b>D–H</b>). They share identical content — the same eight members,
+      tier thresholds and June prize draw — so you're comparing <b>design</b>, not data. None use SF&nbsp;Pro, Apple&nbsp;blue or the
+      GitHub-style palette of the live app.</p>
+    <p style="margin-top:12px">Your earlier court-display concepts (<b>A&nbsp;broadsheet · B&nbsp;stadium · C&nbsp;shuttle</b>) live one folder up in
+      <b>design-explorations/</b> and are a different screen — these five are the member home you flagged as feeling too Apple.</p>
+  </footer>
+
+</body>
+</html>

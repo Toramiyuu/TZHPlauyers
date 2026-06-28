@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TZH Badminton — Live Court Display</title>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  :root{
+    --blue:#0071e3;
+    --blue-2:#0066cc;
+    --blue-bright:#4f97ff;
+    --blue-tint:rgba(0,113,227,.22);
+    --blue-line:rgba(79,151,255,.45);
+
+    --bg-0:#04122b;
+    --bg-1:#071a3a;
+    --bg-2:#0a2350;
+
+    --ink:#eaf2ff;       /* primary text */
+    --ink-2:#aebfd8;     /* secondary text */
+
+    --glass:rgba(10,30,60,.45);
+    --glass-hi:rgba(16,42,80,.55);
+    --glass-border:rgba(79,151,255,.22);
+
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+
+  body{
+    font-family:var(--font);
+    color:var(--ink);
+    background:
+      linear-gradient(160deg, var(--bg-0) 0%, var(--bg-1) 48%, var(--bg-2) 100%);
+    min-height:100vh;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    position:relative;
+  }
+
+  /* ===================== AURORA / MESH BACKDROP ===================== */
+  .aurora{
+    position:fixed;
+    inset:-15%;
+    z-index:0;
+    pointer-events:none;
+    overflow:hidden;
+    filter:saturate(1.05);
+  }
+  .blob{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(90px);
+    opacity:.55;
+    mix-blend-mode:screen;
+    will-change:transform;
+  }
+  .blob.b1{
+    width:60vw; height:60vw; left:-10vw; top:-12vh;
+    background:radial-gradient(circle at 40% 40%, rgba(79,151,255,.85), rgba(79,151,255,0) 62%);
+    animation:drift1 26s ease-in-out infinite;
+  }
+  .blob.b2{
+    width:52vw; height:52vw; right:-8vw; top:6vh;
+    background:radial-gradient(circle at 50% 50%, rgba(0,113,227,.80), rgba(0,113,227,0) 60%);
+    animation:drift2 32s ease-in-out infinite;
+  }
+  .blob.b3{
+    width:46vw; height:46vw; left:18vw; bottom:-18vh;
+    background:radial-gradient(circle at 50% 50%, rgba(34,196,255,.55), rgba(34,196,255,0) 62%);
+    animation:drift3 38s ease-in-out infinite;
+  }
+  .blob.b4{
+    width:40vw; height:40vw; right:14vw; bottom:-10vh;
+    background:radial-gradient(circle at 50% 50%, rgba(13,86,200,.70), rgba(13,86,200,0) 60%);
+    animation:drift4 30s ease-in-out infinite;
+  }
+
+  @keyframes drift1{
+    0%,100%{ transform:translate3d(0,0,0) scale(1); }
+    33%{ transform:translate3d(8vw,6vh,0) scale(1.12); }
+    66%{ transform:translate3d(-5vw,3vh,0) scale(.95); }
+  }
+  @keyframes drift2{
+    0%,100%{ transform:translate3d(0,0,0) scale(1); }
+    40%{ transform:translate3d(-7vw,8vh,0) scale(1.1); }
+    70%{ transform:translate3d(4vw,-4vh,0) scale(.92); }
+  }
+  @keyframes drift3{
+    0%,100%{ transform:translate3d(0,0,0) scale(1); }
+    50%{ transform:translate3d(9vw,-7vh,0) scale(1.15); }
+  }
+  @keyframes drift4{
+    0%,100%{ transform:translate3d(0,0,0) scale(1); }
+    45%{ transform:translate3d(-6vw,-5vh,0) scale(1.08); }
+    75%{ transform:translate3d(5vw,4vh,0) scale(.96); }
+  }
+
+  /* faint moving grain + vignette */
+  .grain{
+    position:fixed;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    opacity:.05;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation:grainShift 7s steps(6) infinite;
+  }
+  @keyframes grainShift{
+    0%{ transform:translate(0,0); }
+    20%{ transform:translate(-4%,3%); }
+    40%{ transform:translate(3%,-2%); }
+    60%{ transform:translate(-2%,-4%); }
+    80%{ transform:translate(4%,2%); }
+    100%{ transform:translate(0,0); }
+  }
+  .vignette{
+    position:fixed;
+    inset:0;
+    z-index:1;
+    pointer-events:none;
+    background:radial-gradient(120% 90% at 50% 30%, rgba(2,8,20,0) 45%, rgba(2,8,20,.55) 100%);
+  }
+
+  /* ===================== 3D SCENE ===================== */
+  .scene{
+    position:relative;
+    z-index:2;
+    perspective:1500px;
+    perspective-origin:50% 36%;
+    min-height:100vh;
+  }
+  .stage{
+    transform-style:preserve-3d;
+    will-change:transform;
+    transition:transform .45s cubic-bezier(.22,.61,.36,1);
+    max-width:1320px;
+    margin:0 auto;
+    padding:40px 44px 30px;
+  }
+
+  /* ===================== HEADER ===================== */
+  header{
+    display:flex;
+    align-items:center;
+    gap:22px;
+    margin-bottom:38px;
+    transform-style:preserve-3d;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:18px;
+  }
+  .logo-wrap{
+    position:relative;
+    display:grid;
+    place-items:center;
+    width:74px; height:74px;
+    border-radius:20px;
+    background:linear-gradient(160deg, rgba(255,255,255,.10), rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.14);
+    box-shadow:
+      0 0 0 1px rgba(79,151,255,.18) inset,
+      0 14px 40px rgba(0,40,110,.45),
+      0 0 34px rgba(79,151,255,.30);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+  }
+  .logo-wrap::after{
+    content:"";
+    position:absolute; inset:-8px;
+    border-radius:26px;
+    background:radial-gradient(circle, rgba(79,151,255,.35), rgba(79,151,255,0) 70%);
+    z-index:-1;
+  }
+  .logo-wrap img{ height:48px; display:block; }
+
+  .titles h1{
+    font-size:30px;
+    font-weight:700;
+    letter-spacing:-.02em;
+    line-height:1.05;
+    color:var(--ink);
+    text-shadow:0 0 26px rgba(79,151,255,.30);
+  }
+  .titles .date{
+    margin-top:5px;
+    font-size:14px;
+    color:var(--ink-2);
+    letter-spacing:.01em;
+  }
+
+  .live{
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    padding:8px 16px;
+    border-radius:999px;
+    background:rgba(0,113,227,.14);
+    border:1px solid var(--blue-line);
+    box-shadow:0 0 22px rgba(0,113,227,.28);
+    font-size:12.5px;
+    font-weight:650;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:#d7e7ff;
+  }
+  .live .dot{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--blue-bright);
+    box-shadow:0 0 0 0 rgba(79,151,255,.7);
+    animation:livePulse 1.8s ease-out infinite;
+  }
+  @keyframes livePulse{
+    0%{ box-shadow:0 0 0 0 rgba(79,151,255,.55); }
+    70%{ box-shadow:0 0 0 11px rgba(79,151,255,0); }
+    100%{ box-shadow:0 0 0 0 rgba(79,151,255,0); }
+  }
+
+  nav{ display:flex; gap:10px; margin-left:auto; }
+  .pill{
+    padding:10px 20px;
+    border-radius:999px;
+    font-size:14px;
+    font-weight:600;
+    letter-spacing:.01em;
+    color:#cfe0fb;
+    background:var(--glass);
+    border:1px solid var(--glass-border);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    cursor:pointer;
+    transition:transform .25s ease, box-shadow .25s ease, color .25s ease, border-color .25s ease;
+  }
+  .pill:hover{
+    transform:translateY(-2px);
+    color:#fff;
+    border-color:var(--blue-line);
+    box-shadow:0 8px 26px rgba(0,60,160,.45), 0 0 22px rgba(79,151,255,.30);
+  }
+
+  /* ===================== COURT GRID ===================== */
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px;
+    transform-style:preserve-3d;
+  }
+
+  .court{
+    position:relative;
+    border-radius:22px;
+    padding:26px 26px 24px;
+    background:linear-gradient(160deg, var(--glass-hi), var(--glass));
+    border:1px solid var(--glass-border);
+    backdrop-filter:blur(18px) saturate(1.1);
+    -webkit-backdrop-filter:blur(18px) saturate(1.1);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.08) inset,
+      0 20px 50px rgba(0,18,55,.55),
+      0 0 0 1px rgba(79,151,255,.10),
+      0 0 30px rgba(0,90,200,.18);
+    transform-style:preserve-3d;
+    transition:transform .4s cubic-bezier(.22,.61,.36,1), box-shadow .4s ease, border-color .4s ease;
+    /* emerge-from-depth initial state */
+    opacity:0;
+    transform:translateZ(-340px) translateY(26px);
+  }
+  .court::before{
+    /* neon rim highlight along the top edge */
+    content:"";
+    position:absolute; inset:0;
+    border-radius:22px;
+    padding:1px;
+    background:linear-gradient(140deg, rgba(79,151,255,.55), rgba(79,151,255,0) 40%, rgba(0,113,227,0) 60%, rgba(0,113,227,.35));
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;
+            mask-composite:exclude;
+    pointer-events:none;
+    opacity:.9;
+  }
+  .reveal .court{
+    animation:emerge .9s cubic-bezier(.22,.61,.36,1) forwards;
+  }
+  .court:nth-child(1){ animation-delay:.05s; }
+  .court:nth-child(2){ animation-delay:.16s; }
+  .court:nth-child(3){ animation-delay:.27s; }
+  .court:nth-child(4){ animation-delay:.38s; }
+
+  @keyframes emerge{
+    0%{ opacity:0; transform:translateZ(-340px) translateY(26px); filter:blur(6px); }
+    60%{ filter:blur(0); }
+    100%{ opacity:1; transform:translateZ(0) translateY(0); filter:blur(0); }
+  }
+
+  .court:hover{
+    transform:translateZ(46px) translateY(-4px);
+    border-color:var(--blue-line);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.12) inset,
+      0 34px 70px rgba(0,18,55,.62),
+      0 0 0 1px rgba(79,151,255,.30),
+      0 0 50px rgba(79,151,255,.42);
+  }
+
+  .court-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:20px;
+  }
+  .court-name{
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:#bcd2f4;
+  }
+  .court-name b{ color:var(--ink); font-weight:800; }
+  .badge{
+    font-size:11.5px;
+    font-weight:700;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:#dcebff;
+    padding:6px 13px;
+    border-radius:999px;
+    background:rgba(0,113,227,.18);
+    border:1px solid var(--blue-line);
+    box-shadow:0 0 18px rgba(0,113,227,.32), 0 0 0 1px rgba(79,151,255,.12) inset;
+  }
+
+  .team{ display:flex; flex-direction:column; gap:13px; }
+  .player{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .avatar{
+    flex:0 0 auto;
+    width:46px; height:46px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    font-size:14.5px;
+    font-weight:700;
+    letter-spacing:.02em;
+    color:#eaf2ff;
+    background:
+      radial-gradient(circle at 35% 30%, rgba(79,151,255,.45), rgba(8,28,60,.85) 70%);
+    border:1.5px solid rgba(79,151,255,.55);
+    box-shadow:
+      0 0 0 3px rgba(79,151,255,.10),
+      0 0 18px rgba(79,151,255,.40),
+      0 6px 16px rgba(0,20,55,.5);
+  }
+  .pname{
+    font-size:16px;
+    font-weight:600;
+    color:var(--ink);
+    letter-spacing:.005em;
+  }
+
+  .vs{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin:16px 0;
+    color:#7e97c4;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.28em;
+    text-transform:uppercase;
+  }
+  .vs::before, .vs::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:linear-gradient(90deg, rgba(79,151,255,0), rgba(79,151,255,.45), rgba(79,151,255,0));
+  }
+
+  /* ===================== UP NEXT ===================== */
+  .upnext{
+    margin-top:30px;
+    border-radius:20px;
+    padding:22px 26px;
+    background:linear-gradient(160deg, rgba(10,35,75,.55), rgba(8,26,58,.42));
+    border:1px solid var(--glass-border);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.07) inset,
+      0 18px 44px rgba(0,16,50,.5),
+      0 0 34px rgba(0,90,200,.16);
+    transform-style:preserve-3d;
+    opacity:0;
+    transform:translateZ(-220px) translateY(22px);
+  }
+  .reveal .upnext{ animation:emerge .9s cubic-bezier(.22,.61,.36,1) .5s forwards; }
+
+  .upnext h2{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:#9fb8e4;
+    margin-bottom:16px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .upnext h2::before{
+    content:"";
+    width:6px; height:6px; border-radius:50%;
+    background:var(--blue-bright);
+    box-shadow:0 0 12px var(--blue-bright);
+  }
+  .next-row{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:13px 0;
+    border-top:1px solid rgba(79,151,255,.14);
+    flex-wrap:wrap;
+  }
+  .next-row:first-of-type{ border-top:none; }
+  .next-court{
+    font-size:12.5px;
+    font-weight:700;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:#bcd2f4;
+    min-width:130px;
+  }
+  .next-court em{ color:var(--blue-bright); font-style:normal; }
+  .next-match{
+    font-size:15px;
+    color:var(--ink);
+    font-weight:500;
+  }
+  .next-match .mid{ color:#7e97c4; font-weight:700; padding:0 8px; font-size:12px; letter-spacing:.1em; }
+
+  /* ===================== FOOTER ===================== */
+  footer{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:30px;
+    padding-top:18px;
+    font-size:13px;
+    color:var(--ink-2);
+    letter-spacing:.01em;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  footer .r b{ color:#cfe0fb; font-weight:650; }
+
+  @media (max-width:900px){
+    .grid{ grid-template-columns:1fr; }
+    .stage{ padding:28px 22px; }
+    header{ flex-wrap:wrap; }
+    nav{ margin-left:0; width:100%; }
+  }
+
+  /* ===================== REDUCED MOTION ===================== */
+  @media (prefers-reduced-motion:reduce){
+    .blob, .grain, .live .dot{ animation:none !important; }
+    .stage{ transition:none !important; }
+    .court, .upnext{
+      opacity:1 !important;
+      transform:none !important;
+      animation:none !important;
+      filter:none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Aurora mesh backdrop -->
+  <div class="aurora" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+    <div class="blob b4"></div>
+  </div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <div class="scene">
+    <div class="stage" id="stage">
+
+      <!-- ===== HEADER ===== -->
+      <header>
+        <div class="brand">
+          <div class="logo-wrap">
+            <img src="logo.png" alt="TZH Badminton logo" />
+          </div>
+          <div class="titles">
+            <h1>TZH Badminton</h1>
+            <div class="date">Saturday 28 June 2026</div>
+          </div>
+        </div>
+        <span class="live"><span class="dot"></span>Live</span>
+        <nav>
+          <button class="pill" type="button">Members</button>
+          <button class="pill" type="button">Leaderboard</button>
+        </nav>
+      </header>
+
+      <!-- ===== COURT GRID ===== -->
+      <main class="grid">
+
+        <!-- Court 1 -->
+        <section class="court">
+          <div class="court-top">
+            <div class="court-name"><b>Court 1</b></div>
+            <div class="badge">Round 3</div>
+          </div>
+          <div class="team">
+            <div class="player"><span class="avatar">TW</span><span class="pname">Thomas Wong</span></div>
+            <div class="player"><span class="avatar">ML</span><span class="pname">Mei Lin</span></div>
+          </div>
+          <div class="vs">vs</div>
+          <div class="team">
+            <div class="player"><span class="avatar">DP</span><span class="pname">David Park</span></div>
+            <div class="player"><span class="avatar">SC</span><span class="pname">Sarah Chen</span></div>
+          </div>
+        </section>
+
+        <!-- Court 2 -->
+        <section class="court">
+          <div class="court-top">
+            <div class="court-name"><b>Court 2</b></div>
+            <div class="badge">Round 3</div>
+          </div>
+          <div class="team">
+            <div class="player"><span class="avatar">AL</span><span class="pname">Aiden Lee</span></div>
+            <div class="player"><span class="avatar">PN</span><span class="pname">Priya Nair</span></div>
+          </div>
+          <div class="vs">vs</div>
+          <div class="team">
+            <div class="player"><span class="avatar">MT</span><span class="pname">Marcus Tan</span></div>
+            <div class="player"><span class="avatar">YS</span><span class="pname">Yuki Sato</span></div>
+          </div>
+        </section>
+
+        <!-- Court 3 -->
+        <section class="court">
+          <div class="court-top">
+            <div class="court-name"><b>Court 3</b></div>
+            <div class="badge">Round 2</div>
+          </div>
+          <div class="team">
+            <div class="player"><span class="avatar">CD</span><span class="pname">Carlos Diaz</span></div>
+            <div class="player"><span class="avatar">HK</span><span class="pname">Hannah Kim</span></div>
+          </div>
+          <div class="vs">vs</div>
+          <div class="team">
+            <div class="player"><span class="avatar">LZ</span><span class="pname">Leo Zhang</span></div>
+            <div class="player"><span class="avatar">NP</span><span class="pname">Nina Patel</span></div>
+          </div>
+        </section>
+
+        <!-- Court 4 -->
+        <section class="court">
+          <div class="court-top">
+            <div class="court-name"><b>Court 4</b></div>
+            <div class="badge">Round 2</div>
+          </div>
+          <div class="team">
+            <div class="player"><span class="avatar">RK</span><span class="pname">Ravi Kumar</span></div>
+            <div class="player"><span class="avatar">SR</span><span class="pname">Sofia Reyes</span></div>
+          </div>
+          <div class="vs">vs</div>
+          <div class="team">
+            <div class="player"><span class="avatar">BC</span><span class="pname">Ben Carter</span></div>
+            <div class="player"><span class="avatar">GL</span><span class="pname">Grace Lim</span></div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- ===== UP NEXT ===== -->
+      <section class="upnext">
+        <h2>Up Next</h2>
+        <div class="next-row">
+          <div class="next-court">Court 1 → <em>Round 4</em></div>
+          <div class="next-match">Thomas Wong &amp; Sarah Chen<span class="mid">vs</span>Aiden Lee &amp; Nina Patel</div>
+        </div>
+        <div class="next-row">
+          <div class="next-court">Court 3 → <em>Round 3</em></div>
+          <div class="next-match">Carlos Diaz &amp; Grace Lim<span class="mid">vs</span>Leo Zhang &amp; Mei Lin</div>
+        </div>
+      </section>
+
+      <!-- ===== FOOTER ===== -->
+      <footer>
+        <div class="l">TZH Badminton — Live Court Display</div>
+        <div class="r"><b>4 courts</b> · Round 3 · <b>16 players</b></div>
+      </footer>
+
+    </div>
+  </div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var stage = document.getElementById('stage');
+
+  // Trigger emerge-from-depth reveal on load
+  if(reduce){
+    document.querySelector('.scene').classList.add('reveal');
+  } else {
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        document.querySelector('.scene').classList.add('reveal');
+      });
+    });
+  }
+
+  if(reduce) return; // freeze parallax for reduced-motion
+
+  // rAF-throttled, eased parallax toward cursor
+  var targetX = 0, targetY = 0, curX = 0, curY = 0;
+  var ticking = false;
+
+  function onMove(e){
+    var w = window.innerWidth, h = window.innerHeight;
+    targetX = (e.clientX / w - 0.5);   // -0.5 .. 0.5
+    targetY = (e.clientY / h - 0.5);
+    if(!ticking){ ticking = true; requestAnimationFrame(loop); }
+  }
+
+  function loop(){
+    // ease toward target
+    curX += (targetX - curX) * 0.08;
+    curY += (targetY - curY) * 0.08;
+
+    var rotY = curX * 7;    // degrees
+    var rotX = -curY * 5;
+    var tx   = curX * 14;   // px
+    var ty   = curY * 10;
+
+    stage.style.transform =
+      'rotateX(' + rotX.toFixed(2) + 'deg) rotateY(' + rotY.toFixed(2) + 'deg)' +
+      ' translate3d(' + tx.toFixed(1) + 'px,' + ty.toFixed(1) + 'px,0)';
+
+    if(Math.abs(targetX - curX) > 0.001 || Math.abs(targetY - curY) > 0.001){
+      requestAnimationFrame(loop);
+    } else {
+      ticking = false;
+    }
+  }
+
+  window.addEventListener('mousemove', onMove, { passive:true });
+  window.addEventListener('mouseleave', function(){
+    targetX = 0; targetY = 0;
+    if(!ticking){ ticking = true; requestAnimationFrame(loop); }
+  });
+})();
+</script>
+</body>
+</html>
