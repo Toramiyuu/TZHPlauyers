@@ -35,6 +35,12 @@ const ACCOUNT_ACTIONS = new Set([
   'registerAccount', 'loginAccount', 'accountSession', 'updateAccount', 'logoutAccount',
 ]);
 
+// Admin-console verbs. Unlike ACCOUNT_ACTIONS (public, site-code gated), these
+// are dispatched only AFTER the POST endpoint has checked the admin password.
+const ADMIN_ACCOUNT_ACTIONS = new Set([
+  'adminListAccounts', 'adminResetPin', 'adminDeleteAccount',
+]);
+
 // ── validators (pure) ────────────────────────────────────────────────
 function validateUsername(u) {
   const v = (u == null ? '' : String(u)).trim();
@@ -93,6 +99,27 @@ function publicAccount(account, roster) {
     playerId: account.playerId,
     name: (player && player.name) || account.name || account.username,
     photo: (player && player.photo) || null,
+  };
+}
+
+// Richer account view for the admin console. Like publicAccount it resolves the
+// live name/photo from the roster and NEVER includes pinHash / salt / token,
+// but it also surfaces points, link status, timestamps, and a hasPin flag so an
+// admin can see the full picture without ever receiving a credential.
+function adminAccount(account, roster) {
+  const player = Array.isArray(roster) ? roster.find(r => r && r.id === account.playerId) : null;
+  return {
+    id: account.id,
+    username: account.username,
+    name: (player && player.name) || account.name || account.username,
+    photo: (player && player.photo) || null,
+    playerId: account.playerId || null,
+    points: player ? (Number(player.points) || 0) : null,
+    hasPlayer: !!player,
+    hasPin: !!(account.pinHash && account.salt),
+    createdAt: account.createdAt || null,
+    updatedAt: account.updatedAt || null,
+    lastLoginAt: account.lastLoginAt || null,
   };
 }
 
@@ -159,6 +186,7 @@ function doRegister(state, body) {
     name: nm.value,           // mirror — recreation fallback if the roster row is deleted
     createdAt: now,
     updatedAt: now,
+    lastLoginAt: now,         // registering signs you straight in
   };
   const player = { id: playerId, name: nm.value, photo: ph.value || null, points: 0, accountId: account.id };
   state.accounts = [...state.accounts, account];
@@ -171,9 +199,9 @@ function doLogin(state, body) {
   if (!account || !verifyPin(body.pin, account)) {
     return { status: 401, body: { error: 'Wrong username or PIN.' }, changed: false };
   }
-  let changed = false;
-  if (!account.token) { account.token = makeToken(); changed = true; } // heal legacy/cleared
-  return { status: 200, body: { ok: true, token: account.token, account: publicAccount(account, state.roster) }, changed };
+  if (!account.token) account.token = makeToken(); // heal legacy/cleared
+  account.lastLoginAt = Date.now();
+  return { status: 200, body: { ok: true, token: account.token, account: publicAccount(account, state.roster) }, changed: true };
 }
 
 function doSession(state, body) {
@@ -252,9 +280,62 @@ function handleAccountAction(state, body) {
   }
 }
 
+// ── admin-console actions (admin-password gated by the POST endpoint) ──
+function doAdminList(state) {
+  const accounts = state.accounts
+    .map(a => adminAccount(a, state.roster))
+    .sort((x, y) => (y.createdAt || 0) - (x.createdAt || 0)); // newest first
+  return { status: 200, body: { ok: true, accounts }, changed: false };
+}
+
+function doAdminResetPin(state, body) {
+  const account = state.accounts.find(a => a && a.id === (body && body.id));
+  if (!account) return { status: 404, body: { error: 'Account not found.' }, changed: false };
+  const pin = validatePin(body.pin);
+  if (!pin.ok) return { status: 400, body: { error: pin.error }, changed: false };
+  account.salt = makeSalt();
+  account.pinHash = hashPin(pin.value, account.salt);
+  account.token = null;            // revoke open sessions — they must sign in with the new PIN
+  account.updatedAt = Date.now();
+  return { status: 200, body: { ok: true, account: adminAccount(account, state.roster) }, changed: true };
+}
+
+function doAdminDelete(state, body) {
+  const id = body && body.id;
+  const account = state.accounts.find(a => a && a.id === id);
+  if (!account) return { status: 404, body: { error: 'Account not found.' }, changed: false };
+  state.accounts = state.accounts.filter(a => a.id !== id);
+  // "Account = player": deleting the account also removes the roster player it
+  // created and drops them from today's session. Historical rounds reference
+  // players by id and already tolerate a missing id, so we leave them as-is.
+  if (account.playerId) {
+    state.roster = (state.roster || []).filter(p => !(p && p.id === account.playerId));
+    if (Array.isArray(state.players)) {
+      state.players = state.players.filter(p => !(p && p.id === account.playerId));
+    }
+  }
+  return { status: 200, body: { ok: true }, changed: true };
+}
+
+function handleAdminAccountAction(state, body) {
+  try {
+    if (!state || typeof state !== 'object') return { status: 400, body: { error: 'Invalid request.' }, changed: false };
+    ensureArrays(state);
+    switch (body && body.action) {
+      case 'adminListAccounts':  return doAdminList(state);
+      case 'adminResetPin':      return doAdminResetPin(state, body);
+      case 'adminDeleteAccount': return doAdminDelete(state, body);
+      default:                   return { status: 400, body: { error: 'Unknown action.' }, changed: false };
+    }
+  } catch (e) {
+    return { status: 400, body: { error: 'Invalid request.' }, changed: false };
+  }
+}
+
 module.exports = {
   validateUsername, validatePin, validateName, validatePhoto,
-  findByUsername, findByToken, publicAccount,
+  findByUsername, findByToken, publicAccount, adminAccount,
   hashPin, verifyPin, redactState,
   ACCOUNT_ACTIONS, handleAccountAction, MAX_ACCOUNTS,
+  ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction,
 };

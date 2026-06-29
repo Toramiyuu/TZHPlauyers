@@ -11,9 +11,10 @@
 'use strict';
 const {
   validateUsername, validatePin, validateName, validatePhoto,
-  findByUsername, findByToken, publicAccount,
+  findByUsername, findByToken, publicAccount, adminAccount,
   hashPin, verifyPin, redactState,
   ACCOUNT_ACTIONS, handleAccountAction, MAX_ACCOUNTS,
+  ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction,
 } = require('../api/accounts.js');
 
 let pass = 0, fail = 0;
@@ -274,6 +275,91 @@ check('handleAccountAction: unknown action -> 400', handleAccountAction(freshSta
   const r = handleAccountAction(noArrays, { action: 'registerAccount', username: 'harvey', pin: '123456', name: 'Harvey' });
   check('handleAccountAction: tolerates state without arrays', r.status === 200 && Array.isArray(noArrays.accounts) && Array.isArray(noArrays.roster));
 }
+
+// ── lastLoginAt: stamped on register + login, NOT on a session check ──
+{
+  const state = freshState();
+  const reg = handleAccountAction(state, { action: 'registerAccount', username: 'harvey', pin: '123456', name: 'Harvey' });
+  check('lastLogin: stamped at register', typeof state.accounts[0].lastLoginAt === 'number' && state.accounts[0].lastLoginAt > 0);
+  state.accounts[0].lastLoginAt = 1; // force a low value so a real login must bump it
+  const log = handleAccountAction(state, { action: 'loginAccount', username: 'harvey', pin: '123456' });
+  check('lastLogin: bumped on login', state.accounts[0].lastLoginAt > 1);
+  check('lastLogin: login persists (changed=true)', log.changed === true);
+  const stamp = state.accounts[0].lastLoginAt;
+  handleAccountAction(state, { action: 'accountSession', token: reg.body.token });
+  check('lastLogin: session check does NOT bump it (no write storm)', state.accounts[0].lastLoginAt === stamp);
+}
+
+// ── ADMIN_ACCOUNT_ACTIONS: distinct from the public set ──
+check('ADMIN_ACCOUNT_ACTIONS: has list/resetPin/delete',
+  ADMIN_ACCOUNT_ACTIONS.has('adminListAccounts') && ADMIN_ACCOUNT_ACTIONS.has('adminResetPin') && ADMIN_ACCOUNT_ACTIONS.has('adminDeleteAccount'));
+check('ADMIN_ACCOUNT_ACTIONS: does not overlap public ACCOUNT_ACTIONS',
+  !ADMIN_ACCOUNT_ACTIONS.has('registerAccount') && !ACCOUNT_ACTIONS.has('adminListAccounts'));
+
+// ── adminAccount: rich admin view, still NO secrets ──
+{
+  const account = { id: 'a1', username: 'harvey', playerId: 'p1', name: 'Cache', token: 'secret', pinHash: 'h', salt: 's', createdAt: 10, updatedAt: 20, lastLoginAt: 30 };
+  const roster = [{ id: 'p1', name: 'Harvey Live', photo: 'data:image/jpeg;base64,XX', points: 7 }];
+  const a = adminAccount(account, roster);
+  check('adminAccount: id + username', a.id === 'a1' && a.username === 'harvey');
+  check('adminAccount: live name + photo from roster', a.name === 'Harvey Live' && a.photo === 'data:image/jpeg;base64,XX');
+  check('adminAccount: points + hasPlayer from roster', a.points === 7 && a.hasPlayer === true);
+  check('adminAccount: hasPin true when hash present', a.hasPin === true);
+  check('adminAccount: timestamps surfaced', a.createdAt === 10 && a.updatedAt === 20 && a.lastLoginAt === 30);
+  check('adminAccount: NEVER leaks pinHash/salt/token', a.pinHash === undefined && a.salt === undefined && a.token === undefined);
+  const orphan = adminAccount(account, []);
+  check('adminAccount: orphaned -> hasPlayer false, points null, name from cache',
+    orphan.hasPlayer === false && orphan.points === null && orphan.name === 'Cache');
+}
+
+// ── adminListAccounts: lists all, newest first, no secrets ──
+{
+  const state = freshState();
+  handleAccountAction(state, { action: 'registerAccount', username: 'aaa', pin: '111111', name: 'Aaa' });
+  handleAccountAction(state, { action: 'registerAccount', username: 'bbb', pin: '222222', name: 'Bbb' });
+  const r = handleAdminAccountAction(state, { action: 'adminListAccounts' });
+  check('adminList: 200 + ok', r.status === 200 && r.body.ok === true);
+  check('adminList: returns every account', Array.isArray(r.body.accounts) && r.body.accounts.length === 2);
+  check('adminList: read-only (changed=false)', r.changed === false);
+  check('adminList: items carry no secrets', r.body.accounts.every(a => a.pinHash === undefined && a.salt === undefined && a.token === undefined));
+  check('adminList: items carry username + createdAt', r.body.accounts.every(a => typeof a.username === 'string' && typeof a.createdAt === 'number'));
+}
+
+// ── adminResetPin: sets a new PIN, revokes the old session ──
+{
+  const state = freshState();
+  const reg = handleAccountAction(state, { action: 'registerAccount', username: 'harvey', pin: '123456', name: 'Harvey' });
+  const id = state.accounts[0].id;
+  const oldToken = reg.body.token;
+  const r = handleAdminAccountAction(state, { action: 'adminResetPin', id, pin: '777777' });
+  check('adminResetPin: 200 + changed', r.status === 200 && r.changed === true);
+  check('adminResetPin: revokes existing session token', handleAccountAction(state, { action: 'accountSession', token: oldToken }).status === 401);
+  check('adminResetPin: old PIN no longer works', handleAccountAction(state, { action: 'loginAccount', username: 'harvey', pin: '123456' }).status === 401);
+  check('adminResetPin: new PIN works', handleAccountAction(state, { action: 'loginAccount', username: 'harvey', pin: '777777' }).status === 200);
+  check('adminResetPin: response carries no secrets', r.body.account && r.body.account.pinHash === undefined && r.body.account.salt === undefined && r.body.account.token === undefined);
+  check('adminResetPin: bad PIN -> 400', handleAdminAccountAction(state, { action: 'adminResetPin', id, pin: '12' }).status === 400);
+  check('adminResetPin: unknown id -> 404', handleAdminAccountAction(state, { action: 'adminResetPin', id: 'nope', pin: '777777' }).status === 404);
+}
+
+// ── adminDeleteAccount: removes account + linked player + today's slot ──
+{
+  const state = freshState();
+  handleAccountAction(state, { action: 'registerAccount', username: 'harvey', pin: '123456', name: 'Harvey' });
+  const id = state.accounts[0].id;
+  const playerId = state.accounts[0].playerId;
+  state.players = [{ id: playerId, name: 'Harvey' }, { id: 'p0', name: 'Thomas' }];
+  const r = handleAdminAccountAction(state, { action: 'adminDeleteAccount', id });
+  check('adminDelete: 200 + changed', r.status === 200 && r.changed === true);
+  check('adminDelete: account removed', state.accounts.length === 0);
+  check('adminDelete: linked roster player removed', !state.roster.some(p => p.id === playerId));
+  check('adminDelete: dropped from today\'s players', !state.players.some(p => p.id === playerId));
+  check('adminDelete: other players untouched', state.players.some(p => p.id === 'p0'));
+  check('adminDelete: unknown id -> 404', handleAdminAccountAction(state, { action: 'adminDeleteAccount', id: 'nope' }).status === 404);
+}
+
+// ── admin dispatch robustness: garbage never throws ──
+check('handleAdminAccountAction: unknown action -> 400', handleAdminAccountAction(freshState(), { action: 'whatever' }).status === 400);
+check('handleAdminAccountAction: null body -> 400 (no throw)', handleAdminAccountAction(freshState(), null).status === 400);
 
 console.log(`\naccount tests: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

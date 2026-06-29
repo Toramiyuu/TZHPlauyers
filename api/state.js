@@ -1,5 +1,5 @@
 const { Redis } = require('@upstash/redis');
-const { ACCOUNT_ACTIONS, handleAccountAction, redactState } = require('./accounts.js');
+const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction } = require('./accounts.js');
 
 // Accepts env vars from Vercel Marketplace (KV_REST_API_URL) or direct Upstash (UPSTASH_REDIS_REST_URL)
 let redis = null;
@@ -353,6 +353,15 @@ const handler = async function handler(req, res) {
     // bypass the site lock and reach the admin panel even without the site code.
     if (Object.keys(updates).length === 0) {
       return res.json({ ok: true, state: { ...redactState(state), serverTime: Date.now() } });
+    }
+
+    // Handle admin account-management actions (list / reset PIN / delete)
+    if (updates.action && ADMIN_ACCOUNT_ACTIONS.has(updates.action)) {
+      const result = handleAdminAccountAction(state, updates);
+      if (result.changed) {
+        try { await kv.set(STATE_KEY, state); } catch (e) { return res.status(500).json({ error: 'Storage error.' }); }
+      }
+      return res.status(result.status).json(result.body);
     }
 
     // Handle deleteSession action

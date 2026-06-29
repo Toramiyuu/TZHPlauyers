@@ -288,6 +288,28 @@ body.in-3d #joinModal{z-index:1300}
 .signup-empty{color:var(--muted);font-size:var(--fs-sm);padding:10px 0}
 .signup-del{margin-left:auto;width:44px;min-width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;transition:var(--transition)}
 .signup-del:hover,.signup-del.confirm{background:var(--red);border-color:var(--red);color:#fff}
+/* Admin accounts control tab */
+.acct-row{border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:10px;background:var(--card);display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.acct-row .avatar{width:46px;height:46px;flex:0 0 auto;font-size:15px}
+.acct-main{flex:1;min-width:180px;display:flex;flex-direction:column;gap:5px}
+.acct-name-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.acct-name{font-size:var(--fs-md);font-weight:600;color:var(--text)}
+.acct-uname{font-size:var(--fs-sm);color:var(--muted)}
+.acct-pin-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:100px;background:var(--a-blue-tint);border:1px solid var(--border2);color:var(--text-2);font-size:12px;font-weight:600;line-height:1.2}
+.acct-pin-badge.none{color:var(--red)}
+.acct-meta{display:flex;flex-wrap:wrap;gap:3px 14px;font-size:var(--fs-xs);color:var(--text-2)}
+.acct-meta b{color:var(--text);font-weight:600}
+.acct-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.acct-actions .btn{min-height:44px}
+.acct-del{width:44px;min-width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;transition:var(--transition)}
+.acct-del:hover,.acct-del.confirm{background:var(--red);border-color:var(--red);color:#fff}
+.acct-pin-form{flex:1 0 100%;display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;padding-top:10px;border-top:1px solid var(--border)}
+.acct-pin-form.show{display:flex}
+.acct-pin-input{width:130px;background:var(--card2);border:1px solid var(--border2);color:var(--text);padding:9px 12px;border-radius:var(--radius-sm);font-size:var(--fs-base);outline:none;font-family:inherit;letter-spacing:3px;text-align:center}
+.acct-pin-input:focus{border-color:var(--a-blue)}
+.acct-pin-err{flex:1 0 100%;color:var(--red);font-size:var(--fs-sm);display:none}
+.acct-pin-err.show{display:block}
+.acct-empty{color:var(--muted);font-size:var(--fs-sm);padding:10px 0}
 /* Settings: Social Game Days editor */
 .social-games-row{display:flex;align-items:center;gap:var(--sp-sm);flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border)}
 .social-games-row:last-child{border-bottom:none}
@@ -1281,6 +1303,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <button class="admin-tab-btn" data-tab="engagement" onclick="setAdminTab('engagement')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg></span><span class="tab-label">Lucky Draw</span></button>
     <button class="admin-tab-btn" data-tab="monthly" onclick="setAdminTab('monthly')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span><span class="tab-label">Monthly Draw</span></button>
     <button class="admin-tab-btn" data-tab="signups" onclick="setAdminTab('signups')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M15 19a4 4 0 0 0-8 0M11 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M18 8v6M21 11h-6"/></svg></span><span class="tab-label">Sign-ups</span><span class="signup-badge" id="signupBadge" style="display:none"></span></button>
+    <button class="admin-tab-btn" data-tab="accounts" onclick="setAdminTab('accounts')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16.2c.6-1.9 2-2.9 3.5-2.9s2.9 1 3.5 2.9"/></svg></span><span class="tab-label">Accounts</span></button>
     <button class="admin-tab-btn" data-tab="settings" onclick="setAdminTab('settings')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 2h-4l-.5 2.4a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 22h4l.5-2.4a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg></span><span class="tab-label">Settings</span></button>
   </div>
 
@@ -1504,6 +1527,15 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div id="signupsList"></div>
   </div>
   </div><!-- /signups tab -->
+
+  <!-- ── ACCOUNTS TAB (control system) ───────── -->
+  <div class="admin-tab-panel" data-tab="accounts">
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16.2c.6-1.9 2-2.9 3.5-2.9s2.9 1 3.5 2.9"/></svg></span> Member Accounts</div>
+    <div class="admin-helper-text">Everyone who created a login, newest first. PINs are encrypted and can never be shown — reset one to issue a new 6-digit code. Deleting an account also removes its linked roster player.</div>
+    <div id="accountsList"></div>
+  </div>
+  </div><!-- /accounts tab -->
 
   <!-- ── SETTINGS TAB ───────────────────────── -->
   <div class="admin-tab-panel" data-tab="settings">
@@ -3839,6 +3871,7 @@ function setAdminTab(name) {
   });
   if (name === 'monthly') renderMonthlyTab();
   if (name === 'signups') renderSignupsTab();
+  if (name === 'accounts') loadAccountsTab();
 }
 
 // ── NAVIGATION ───────────────────────────────
@@ -4235,6 +4268,130 @@ async function deleteSignup(id, btn) {
   state.signups = signups;
   renderSignupsTab();
   notify('Sign-up deleted.');
+}
+
+// ── ADMIN: ACCOUNTS CONTROL TAB ──────────────
+// Admins see every member login here. The list comes from the admin-only
+// `adminListAccounts` action (POST with admin password) — never from the public
+// GET state, which strips the accounts array entirely. PIN hashes/salts/tokens
+// are never sent to the client; the row shows "PIN set ✓" and offers a reset.
+let adminAccountsCache = [];
+
+function acctFmtTs(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+}
+function acctFmtTsTime(ts) {
+  if (!ts) return 'Never';
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return 'Never';
+  return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + ', ' +
+         d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
+async function loadAccountsTab() {
+  const list = document.getElementById('accountsList');
+  if (!list) return;
+  list.innerHTML = '<div class="acct-empty">Loading accounts…</div>';
+  const res = await apiPost({ action: 'adminListAccounts' });
+  if (res === null) return; // 401 already handled inside apiPost
+  if (!res.ok || !Array.isArray(res.accounts)) {
+    list.innerHTML = '<div class="acct-empty">Could not load accounts.</div>';
+    return;
+  }
+  adminAccountsCache = res.accounts;
+  renderAccountsTab();
+}
+
+function renderAccountsTab() {
+  const list = document.getElementById('accountsList');
+  if (!list) return;
+  const accounts = adminAccountsCache;
+  if (!accounts.length) {
+    list.innerHTML = '<div class="acct-empty">No accounts yet. Members create one from the top-right of the viewer.</div>';
+    return;
+  }
+  list.innerHTML = accounts.map(a => {
+    const id = escHtml(a.id);
+    const name = escHtml(a.name || a.username);
+    const avatar = avatarHTML({ id: a.playerId || a.id, name: a.name || a.username, photo: a.photo }, 46);
+    const pinBadge = a.hasPin
+      ? '<span class="acct-pin-badge">PIN set ✓</span>'
+      : '<span class="acct-pin-badge none">No PIN</span>';
+    const linked = a.hasPlayer
+      ? `<span><b>${escHtml(String(a.points))}</b> pts</span>`
+      : '<span>No linked player</span>';
+    return `<div class="acct-row">
+      ${avatar}
+      <div class="acct-main">
+        <div class="acct-name-row">
+          <span class="acct-name">${name}</span>
+          <span class="acct-uname">@${escHtml(a.username)}</span>
+          ${pinBadge}
+        </div>
+        <div class="acct-meta">
+          ${linked}
+          <span>Joined <b>${escHtml(acctFmtTs(a.createdAt))}</b></span>
+          <span>Updated <b>${escHtml(acctFmtTs(a.updatedAt))}</b></span>
+          <span>Last login <b>${escHtml(acctFmtTsTime(a.lastLoginAt))}</b></span>
+        </div>
+      </div>
+      <div class="acct-actions">
+        <button class="btn btn-secondary btn-sm" onclick="toggleResetPin('${id}')"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> Reset PIN</button>
+        <button class="acct-del" onclick="deleteAccountAdmin('${id}',this)" title="Delete account" aria-label="Delete account ${name}">×</button>
+      </div>
+      <div class="acct-pin-form" id="pinForm_${id}">
+        <input class="acct-pin-input" id="pinInput_${id}" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="off">
+        <button class="btn btn-primary btn-sm" onclick="submitResetPin('${id}')">Set new PIN</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleResetPin('${id}')">Cancel</button>
+        <div class="acct-pin-err" id="pinErr_${id}"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleResetPin(id) {
+  const form = document.getElementById('pinForm_' + id);
+  if (!form) return;
+  const showing = form.classList.toggle('show');
+  const err = document.getElementById('pinErr_' + id);
+  if (err) { err.classList.remove('show'); err.textContent = ''; }
+  const input = document.getElementById('pinInput_' + id);
+  if (input) { input.value = ''; if (showing) input.focus(); }
+}
+
+async function submitResetPin(id) {
+  const input = document.getElementById('pinInput_' + id);
+  const err = document.getElementById('pinErr_' + id);
+  const pin = (input ? input.value : '').trim();
+  const showErr = (m) => { if (err) { err.textContent = m; err.classList.add('show'); } };
+  if (!/^\d{6}$/.test(pin)) return showErr('PIN must be exactly 6 digits.');
+  const res = await apiPost({ action: 'adminResetPin', id, pin });
+  if (res === null) return;
+  if (!res.ok) return showErr(res.error || 'Could not reset PIN.');
+  if (res.account) adminAccountsCache = adminAccountsCache.map(a => a.id === id ? res.account : a);
+  renderAccountsTab();
+  notify('PIN reset. New code is active.');
+}
+
+async function deleteAccountAdmin(id, btn) {
+  if (btn.dataset.confirmed !== 'yes') {
+    btn.textContent = '?'; btn.dataset.confirmed = 'yes'; btn.classList.add('confirm');
+    setTimeout(() => { if (btn.dataset.confirmed === 'yes') { btn.textContent = '×'; btn.dataset.confirmed = ''; btn.classList.remove('confirm'); } }, 3000);
+    return;
+  }
+  const res = await apiPost({ action: 'adminDeleteAccount', id });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not delete account.', 'warn'); return; }
+  adminAccountsCache = adminAccountsCache.filter(a => a.id !== id);
+  renderAccountsTab();
+  // Linked roster player was removed server-side — refresh live state so the
+  // roster and leaderboard reflect the deletion everywhere.
+  await refreshState();
+  if (typeof renderPlayersSection === 'function') renderPlayersSection();
+  notify('Account deleted.');
 }
 
 // ── MEMBERS MODAL ────────────────────────────
