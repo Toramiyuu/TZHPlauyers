@@ -57,6 +57,7 @@ const DEFAULT_STATE = {
   numCourts: 2,
   rounds: [],
   currentRound: 0,
+  endingSoon: [],
   sessionDate: todayISO(),
   sessions: {},
   luckyDraw: { entries: [], drawDate: todayISO(), spin: null, results: [], history: [] },
@@ -238,6 +239,7 @@ const handler = async function handler(req, res) {
       if (current.monthlySpin === undefined) current.monthlySpin = null;
       if (!Array.isArray(current.socialGames)) current.socialGames = DEFAULT_STATE.socialGames.map(g => ({ ...g }));
       if (!Array.isArray(current.signups)) current.signups = [];
+      if (!Array.isArray(current.endingSoon)) current.endingSoon = [];
       if (current.siteCode) {
         const provided = (req.query && req.query.code) ? req.query.code : '';
         if (provided !== current.siteCode) {
@@ -366,6 +368,7 @@ const handler = async function handler(req, res) {
       state.rounds = [];
       state.currentRound = 0;
       state.courtRounds = [];
+      state.endingSoon = [];
     }
 
     state = { ...state, ...updates };

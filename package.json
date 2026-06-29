@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node scripts/verify-redesign.js && node scripts/test-monthly-draw.js && node scripts/test-state-normalize.js && node scripts/test-session-court.js && node scripts/test-next-up.js && node scripts/test-court-edit.js && node scripts/test-signups.js && node scripts/test-arena-data.js && node scripts/test-3d-gallery-links.js"
+    "test": "node scripts/verify-redesign.js && node scripts/test-monthly-draw.js && node scripts/test-state-normalize.js && node scripts/test-session-court.js && node scripts/test-next-up.js && node scripts/test-ending-soon.js && node scripts/test-court-edit.js && node scripts/test-signups.js && node scripts/test-arena-data.js && node scripts/test-3d-gallery-links.js"
   },
   "dependencies": {
     "@upstash/redis": "^1.34.9",

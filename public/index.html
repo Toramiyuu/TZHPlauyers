@@ -42,6 +42,7 @@
   --a-ink:#1d1d1f;--a-ink-2:#5c6470;--a-ink-3:#5f6b7a;/* WCAG AA: 4.9:1 on page bg, 5.4:1 on white cards */
   --a-line:#d4e2f5;--a-line-2:#c0d4ee;
   --a-blue:#0071e3;--a-blue-2:#0066cc;--a-blue-tint:rgba(0,113,227,.16);
+  --a-amber:#9a4d00;--a-amber-tint:rgba(255,149,0,.18);/* "Ending Soon" — WCAG AA on the amber tint over a white card */
   --font-apple:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
   /* ── motion easing (animated lockscreen) ─── */
   --ease-out:cubic-bezier(.16,1,.3,1);--ease-soft:cubic-bezier(.4,0,.2,1);
@@ -75,6 +76,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .acourt-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .acourt-label{font-size:clamp(13px,1.4vw,15px);font-weight:600;color:var(--a-ink-3)}
 .acourt-round{font-size:clamp(12px,1.3vw,13px);font-weight:500;color:var(--a-blue);background:var(--a-blue-tint);padding:5px 12px;border-radius:980px;white-space:nowrap}
+.acourt-tags{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.acourt.ending{border-color:var(--a-amber);box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(154,77,0,.13)}
+.acourt-ending{display:inline-flex;align-items:center;gap:7px;font-size:clamp(12px,1.3vw,13px);font-weight:600;color:var(--a-amber);background:var(--a-amber-tint);padding:5px 12px;border-radius:980px;white-space:nowrap;letter-spacing:.01em}
+.acourt-ending::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--a-amber);flex-shrink:0;animation:pulse 1.8s infinite}
+@media(prefers-reduced-motion:reduce){.acourt-ending::before{animation:none}}
 .ateam{display:flex;justify-content:center;gap:clamp(20px,4vw,52px);flex-wrap:wrap}
 .aplayer{display:flex;flex-direction:column;align-items:center;gap:12px;max-width:160px;text-align:center}
 .aname{font-size:clamp(18px,1.9vw,24px);font-weight:600;letter-spacing:-.02em;color:var(--a-ink);line-height:1.15;word-break:break-word}
@@ -289,11 +295,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .hist-nav-btns{display:flex;gap:8px}
 
 /* ── COURTS CTRL ─────────────────────────── */
-.court-ctrl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:10px}
-.court-ctrl-card{background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px}
+.court-ctrl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-top:10px}
+.court-ctrl-card{background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
 .cc-label{font-size:var(--fs-sm);color:var(--green-light);font-weight:600;white-space:nowrap}
 .cc-round{flex:1;text-align:center;font-size:var(--fs-base);font-weight:600;color:var(--text)}
 .cc-round small{display:block;font-size:var(--fs-xs);color:var(--muted);font-weight:400}
+.cc-ending{flex:1 0 100%;margin-top:2px;background:transparent;color:var(--warn);border:1px solid var(--warn);white-space:nowrap}
+.cc-ending:hover{background:rgba(205,125,44,.1)}
+.cc-ending.active{background:var(--warn);color:#fff;border-color:var(--warn)}
+.cc-ending.active:hover{background:#b86e22}
 .court-round-tag{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
 
 /* ── MISC ────────────────────────────────── */
@@ -1694,6 +1704,40 @@ function nextCourtRounds(courtRounds, total) {
   return (courtRounds || []).map(r => Math.min(max, (r ?? 0) + 1));
 }
 
+// ── ENDING SOON ───────────────────────────────
+// Per-court boolean flags (aligned to court index) the admin sets so resting
+// players know which court is about to free up. The three helpers below hold
+// all the non-DOM logic and are unit tested in scripts/test-ending-soon.js.
+
+// Pure: coerce an arbitrary stored value into a boolean[] of length numCourts,
+// padding missing entries with false and truncating extras. Tolerant of
+// undefined/garbage input — never throws.
+function normalizeEndingSoon(endingSoon, numCourts) {
+  const n = Math.max(0, numCourts || 0);
+  const out = new Array(n).fill(false);
+  if (Array.isArray(endingSoon)) for (let i = 0; i < n; i++) out[i] = !!endingSoon[i];
+  return out;
+}
+
+// Pure: return a NEW normalized flag array with court `courtIdx` set to `value`,
+// or TOGGLED when `value` is undefined. Out-of-range courtIdx is a no-op.
+function setEndingSoon(endingSoon, courtIdx, numCourts, value) {
+  const out = normalizeEndingSoon(endingSoon, numCourts);
+  if (courtIdx < 0 || courtIdx >= out.length) return out;
+  out[courtIdx] = (value === undefined) ? !out[courtIdx] : !!value;
+  return out;
+}
+
+// Pure: clear court `courtIdx`'s flag (used when a court advances to a fresh
+// game). Returns a NEW normalized array, or null when nothing was set to clear
+// so callers can skip a needless write.
+function clearEndingSoonForCourt(endingSoon, courtIdx, numCourts) {
+  const cur = normalizeEndingSoon(endingSoon, numCourts);
+  if (courtIdx < 0 || courtIdx >= cur.length || !cur[courtIdx]) return null;
+  cur[courtIdx] = false;
+  return cur;
+}
+
 // Pure: apply per-court next-round edits onto a CLONE of rounds and report
 // duplicate player ids scoped PER next-round index. A player in two courts that
 // SHARE a next-round index is a duplicate; the same player in two DIFFERENT
@@ -1739,7 +1783,7 @@ function renderViewer() {
   // Skip the court-card rebuild (the visible flicker source) when nothing changed.
   // snu/adm are included so the Up Next panel rebuilds when the toggle flips or
   // the device's admin login state changes (clickable rows in Task 4).
-  const courtSig = stateSig({ nc: numCourts, crs: courtRounds, rounds: state.rounds, players: state.players, snu: state.showNextUp, adm: !!sessionStorage.getItem('adminPwd') });
+  const courtSig = stateSig({ nc: numCourts, crs: courtRounds, rounds: state.rounds, players: state.players, snu: state.showNextUp, es: state.endingSoon, adm: !!sessionStorage.getItem('adminPwd') });
   if (courtSig !== __lastCourtSig) {
     __lastCourtSig = courtSig;
     const container = document.getElementById('courtsDisplay');
@@ -1748,7 +1792,7 @@ function renderViewer() {
       const round = state.rounds?.[courtRounds[i]];
       const court = round?.courts?.[i];
       if (court) {
-        container.appendChild(buildCourtCard(i + 1, court, round?.label || null));
+        container.appendChild(buildCourtCard(i + 1, court, round?.label || null, !!state.endingSoon?.[i]));
       }
     }
     const stats = document.getElementById('viewerFootStats');
@@ -1773,9 +1817,9 @@ function aAvatarHTML(p) {
   return `<div class="aav">${getInitials(p.name)}</div>`;
 }
 
-function buildCourtCard(num, court, roundLabel) {
+function buildCourtCard(num, court, roundLabel, endingSoon) {
   const el = document.createElement('div');
-  el.className = 'acourt';
+  el.className = 'acourt' + (endingSoon ? ' ending' : '');
 
   const player = (p) => `<div class="aplayer">${aAvatarHTML(p)}<span class="aname">${p ? escHtml(p.name) : 'TBD'}</span></div>`;
   // doubles → two players, singles → one, empty → a single TBD slot
@@ -1788,7 +1832,10 @@ function buildCourtCard(num, court, roundLabel) {
   el.innerHTML = `
     <div class="acourt-top">
       <span class="acourt-label">Court ${num}</span>
-      ${roundLabel ? `<span class="acourt-round">${escHtml(roundLabel)}</span>` : ''}
+      <div class="acourt-tags">
+        ${endingSoon ? '<span class="acourt-ending">Ending Soon</span>' : ''}
+        ${roundLabel ? `<span class="acourt-round">${escHtml(roundLabel)}</span>` : ''}
+      </div>
     </div>
     <div class="ateam">${team(court.team1)}</div>
     <div class="avs"><span>vs</span></div>
@@ -1849,6 +1896,7 @@ function renderCourtControls() {
     const ri = courtRounds[i] ?? 0;
     const label = state.rounds?.[ri]?.label || `Round ${ri + 1}`;
     const summary = roundCourtSummary(state.rounds?.[ri], i);
+    const ending = !!state.endingSoon?.[i];
     const card = document.createElement('div');
     card.className = 'court-ctrl-card';
     card.innerHTML = `
@@ -1856,6 +1904,7 @@ function renderCourtControls() {
       <button class="btn btn-ghost btn-sm" onclick="advanceCourt(${i},-1)" ${ri <= 0 ? 'disabled' : ''}>←</button>
       <div class="cc-round">${label}<small>${summary}</small></div>
       <button class="btn btn-accent btn-sm" onclick="advanceCourt(${i},1)" ${ri >= totalRounds - 1 ? 'disabled' : ''}>→</button>
+      <button class="btn btn-sm cc-ending${ending ? ' active' : ''}" onclick="toggleEndingSoon(${i})" aria-pressed="${ending}" title="${ending ? 'Remove the ending-soon flag from Court ' + (i + 1) : 'Tell viewers Court ' + (i + 1) + ' is ending soon'}">Ending Soon</button>
     `;
     grid.appendChild(card);
   }
@@ -1961,6 +2010,20 @@ async function toggleNextUp(on) {
   state.showNextUp = on;
   renderViewer();
   notify(on ? 'Up Next shown on viewer' : 'Up Next hidden on viewer');
+}
+
+// Toggle one court's "ending soon" flag, persist it, and refresh both panels.
+// Auto-cleared when that court advances (see advanceCourt).
+async function toggleEndingSoon(courtIdx) {
+  const numCourts = state.numCourts || 1;
+  const endingSoon = setEndingSoon(state.endingSoon, courtIdx, numCourts);
+  await apiPost({ endingSoon });
+  state.endingSoon = endingSoon;
+  renderCourtControls();
+  renderViewer();
+  notify(endingSoon[courtIdx]
+    ? `Court ${courtIdx + 1} marked ending soon`
+    : `Court ${courtIdx + 1} no longer ending soon`);
 }
 
 // ── ROSTER & PLAYERS ─────────────────────────
@@ -2350,8 +2413,13 @@ async function advanceCourt(courtIdx, delta) {
   const courtRounds = [...getCourtRounds()];
   const next = Math.max(0, Math.min((state.rounds?.length || 1) - 1, courtRounds[courtIdx] + delta));
   courtRounds[courtIdx] = next;
-  await apiPost({ courtRounds });
+  // A fresh game on this court means it is no longer "ending soon" — clear the
+  // flag in the same write (null when there was nothing set, so no extra churn).
+  const cleared = clearEndingSoonForCourt(state.endingSoon, courtIdx, state.numCourts || 1);
+  const updates = cleared ? { courtRounds, endingSoon: cleared } : { courtRounds };
+  await apiPost(updates);
   state.courtRounds = courtRounds;
+  if (cleared) state.endingSoon = cleared;
   renderCourtControls();
   renderRoundList();
   renderViewer(); // refresh the viewer (and its Up Next panel) immediately, incl. clicks from the viewer
