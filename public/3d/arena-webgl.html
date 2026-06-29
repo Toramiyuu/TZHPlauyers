@@ -94,14 +94,19 @@
   }
   .nav{ display:flex; gap:9px; }
   .pill{
+    display:inline-flex; align-items:center; gap:6px;
     padding:8px 16px; border-radius:999px;
     font-size:13px; font-weight:550; color:var(--ink-2);
     background:rgba(255,255,255,.6);
     border:1px solid var(--line);
     transition:.18s ease;
+    cursor:pointer; font-family:inherit; line-height:1;
   }
+  .pill svg{ width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto; }
   .pill:hover{ color:var(--blue-dark); border-color:var(--blue-line); background:var(--blue-tint); }
-  .pill.active{ color:#fff; background:linear-gradient(180deg,var(--blue),var(--blue-2)); border-color:transparent; box-shadow:0 6px 16px -6px rgba(0,113,227,.6); }
+  .pill:active{ transform:translateY(1px); }
+  .pill.admin{ color:var(--blue-dark); border-color:var(--blue-line); background:var(--blue-tint); }
+  .pill.admin:hover{ color:#fff; background:linear-gradient(180deg,var(--blue),var(--blue-2)); border-color:transparent; box-shadow:0 6px 16px -6px rgba(0,113,227,.6); }
 
   /* ===== Exit-3D button (returns to the normal 2D viewer) ===== */
   .exit3d{
@@ -212,8 +217,18 @@
       <div class="header-spacer"></div>
       <div class="live"><span class="dot"></span>Live</div>
       <nav class="nav">
-        <span class="pill">Members</span>
-        <span class="pill active">Leaderboard</span>
+        <button id="navMembers" class="pill" type="button" title="Open the members list">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6M10 20l.5-4M14 20l-.5-4"/></svg>Members
+        </button>
+        <button id="navLeaderboard" class="pill" type="button" title="Open the leaderboard">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="5"/><path d="M8.5 12 7 21l5-2.8 5 2.8-1.5-9"/></svg>Leaderboard
+        </button>
+        <button id="navJoin" class="pill" type="button" title="Sign up for social games">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Join social games
+        </button>
+        <button id="navAdmin" class="pill admin" type="button" title="Open the admin panel">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 2h-4l-.5 2.4a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 22h4l.5-2.4a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg>Admin
+        </button>
       </nav>
     </header>
 
@@ -408,6 +423,17 @@ function exitArena(){
     try { window.parent.postMessage({ type:'tzh-exit-3d' }, '*'); return; } catch(e){}
   }
   location.href = '/';
+}
+
+// Header nav (Members / Leaderboard / Join / Admin). The modals + admin panel
+// live in the parent viewer (index.html), so when embedded we ask it to leave
+// 3D and open the SAME feature the 2D nav opens. Standalone, we fall back to the
+// main app (admin deep-links via ?admin, which index.html already honours).
+function arenaNav(action){
+  if (isEmbedded()){
+    try { window.parent.postMessage({ type:'tzh-nav', action:action }, '*'); return; } catch(e){}
+  }
+  location.href = (action === 'admin') ? '/?admin' : '/';
 }
 
 /* =========================================================
@@ -1047,6 +1073,12 @@ async function refreshArena(){
 (function initArena(){
   var exitBtn = document.getElementById('exit3d');
   if(exitBtn) exitBtn.addEventListener('click', exitArena);
+  // header nav → open the matching feature in the parent viewer
+  [['navMembers','members'],['navLeaderboard','leaderboard'],['navJoin','join'],['navAdmin','admin']]
+    .forEach(function(pair){
+      var b = document.getElementById(pair[0]);
+      if(b) b.addEventListener('click', function(){ arenaNav(pair[1]); });
+    });
   // allow the embedding viewer (or a keyboard user) to leave with Escape
   window.addEventListener('keydown', function(e){ if(e.key === 'Escape') exitArena(); });
   refreshArena();
