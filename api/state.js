@@ -121,6 +121,102 @@ function normalizeDrawState(current) {
   return current;
 }
 
+// ── Calendar join-flow validation ────────────────────────────────────
+// Mirrors public/monthly-draw.js. Inlined (not require('../public/...')) to
+// avoid Vercel function-bundling path surprises — keep the two copies in sync;
+// the logic is covered by scripts/test-signups.js (which tests both copies).
+const SKILLS = ['Beginner', 'Intermediate', 'Advanced'];
+const WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const ISO_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function isValidISO(s) {
+  if (typeof s !== 'string') return false;
+  const m = ISO_RE.exec(s);
+  if (!m) return false;
+  const y = +m[1], mo = +m[2], d = +m[3];
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return false;
+  const dt = new Date(y, mo - 1, d);
+  return dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d;
+}
+function isoWeekday(iso) {
+  const m = ISO_RE.exec(String(iso));
+  if (!m) return -1;
+  return new Date(+m[1], +m[2] - 1, +m[3]).getDay();
+}
+function weekdayName(iso) {
+  const w = isoWeekday(iso);
+  return w >= 0 ? WEEKDAY_NAMES[w] : '';
+}
+function addMonthsISO(iso, n) {
+  const m = ISO_RE.exec(String(iso));
+  if (!m) return String(iso);
+  const y = +m[1], mo = +m[2] - 1, d = +m[3];
+  const total = y * 12 + mo + Math.trunc(Number(n) || 0);
+  const ny = Math.floor(total / 12);
+  const nmo = ((total % 12) + 12) % 12;
+  const lastDay = new Date(ny, nmo + 1, 0).getDate();
+  const nd = Math.min(d, lastDay);
+  return ny + '-' + String(nmo + 1).padStart(2, '0') + '-' + String(nd).padStart(2, '0');
+}
+
+/**
+ * Validate a public sign-up and return {ok, error?, fields?}. `fields` holds
+ * ONLY sanitized values (name, phone, days, [skill, dates]); the handler stamps
+ * id/at/handled. NEVER trusts arbitrary body keys, so submitSignup can never
+ * write anything but one sanitized signup. New path: {name,phone,skill,dates[]};
+ * legacy path (old cached client): {name,phone,days[]} validated vs day names.
+ */
+function buildSignup(body, ctx) {
+  body = body || {};
+  ctx = ctx || {};
+  const games = Array.isArray(ctx.socialGames) ? ctx.socialGames : DEFAULT_STATE.socialGames;
+  const enabledGames = games.filter((g) => g && g.enabled);
+  const today = ctx.todayISO || todayISO();
+  const maxISO = addMonthsISO(today, 3);
+
+  const name = String(body.name == null ? '' : body.name).trim().slice(0, 80);
+  const phone = String(body.phone == null ? '' : body.phone).trim().slice(0, 40);
+  if (!name) return { ok: false, error: 'Please enter your name.' };
+  if (!phone || !/\d/.test(phone)) return { ok: false, error: 'Please enter a valid phone number.' };
+
+  // New calendar path: specific dates + skill
+  if (Array.isArray(body.dates)) {
+    const skill = String(body.skill == null ? '' : body.skill).trim();
+    if (SKILLS.indexOf(skill) === -1) return { ok: false, error: 'Please choose a skill level.' };
+    const wdSet = new Set(
+      enabledGames
+        .map((g) => (Number.isFinite(g.weekday) ? g.weekday : WEEKDAY_NAMES.indexOf(g.day)))
+        .filter((w) => w >= 0)
+    );
+    const raw = body.dates.slice(0, 60); // DoS bound before per-item work
+    if (raw.length === 0) return { ok: false, error: 'Please pick at least one date.' };
+    const seen = new Set();
+    const clean = [];
+    for (let i = 0; i < raw.length; i++) {
+      const iso = String(raw[i] == null ? '' : raw[i]);
+      if (!isValidISO(iso)) return { ok: false, error: 'Please pick a valid date.' };
+      if (iso < today || iso > maxISO) return { ok: false, error: 'That date is out of range.' };
+      if (!wdSet.has(isoWeekday(iso))) return { ok: false, error: 'Please pick a valid game day.' };
+      if (!seen.has(iso)) { seen.add(iso); clean.push(iso); }
+    }
+    clean.sort();
+    const dates = clean.slice(0, 12); // payload-growth guard
+    const days = [];
+    const dseen = new Set();
+    dates.forEach((iso) => { const nm = weekdayName(iso); if (nm && !dseen.has(nm)) { dseen.add(nm); days.push(nm); } });
+    return { ok: true, fields: { name, phone, skill, dates, days } };
+  }
+
+  // Legacy days-only path (old cached client) — validate vs enabled day NAMES
+  const rawDays = Array.isArray(body.days)
+    ? body.days.slice(0, 7).map((d) => String(d == null ? '' : d).slice(0, 20))
+    : [];
+  const allowed = new Set(enabledGames.map((g) => g.day));
+  const validDays = rawDays.filter((d) => allowed.has(d));
+  if (validDays.length === 0) return { ok: false, error: 'Please pick at least one game day.' };
+  return { ok: true, fields: { name, phone, days: validDays } };
+}
+
 const handler = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -150,13 +246,15 @@ const handler = async function handler(req, res) {
           const openGames = current.socialGames
             .filter(g => g && g.enabled)
             .map(g => ({ id: g.id, day: g.day, weekday: g.weekday, time: g.time, enabled: true }));
-          return res.status(200).json({ locked: true, socialGames: openGames });
+          // `today` lets the locked join calendar use the SERVER's day boundary
+          // (not the visitor's browser clock) as its lower bound.
+          return res.status(200).json({ locked: true, socialGames: openGames, today: todayISO() });
         }
       }
-      return res.json({ ...current, serverTime: Date.now() });
+      return res.json({ ...current, serverTime: Date.now(), today: todayISO() });
     } catch (e) {
       console.error('KV read error:', e.message);
-      return res.json({ ...DEFAULT_STATE, serverTime: Date.now() });
+      return res.json({ ...DEFAULT_STATE, serverTime: Date.now(), today: todayISO() });
     }
   }
 
@@ -173,15 +271,6 @@ const handler = async function handler(req, res) {
       // Honeypot: bots fill hidden fields. Pretend success, store nothing.
       if (String(b.hp || '').trim()) return res.json({ ok: true });
 
-      const name = String(b.name == null ? '' : b.name).trim().slice(0, 80);
-      const phone = String(b.phone == null ? '' : b.phone).trim().slice(0, 40);
-      const days = Array.isArray(b.days)
-        ? b.days.slice(0, 7).map(d => String(d == null ? '' : d).slice(0, 20))
-        : [];
-      if (!name || !phone || !/\d/.test(phone) || days.length === 0) {
-        return res.status(400).json({ error: 'Please enter your name, phone and at least one game day.' });
-      }
-
       let s;
       try {
         s = (await kv.get(STATE_KEY)) || { ...DEFAULT_STATE };
@@ -189,17 +278,18 @@ const handler = async function handler(req, res) {
         s = { ...DEFAULT_STATE };
       }
 
-      const games = Array.isArray(s.socialGames) ? s.socialGames : DEFAULT_STATE.socialGames;
-      const allowed = new Set(games.filter(g => g && g.enabled).map(g => g.day));
-      const validDays = days.filter(d => allowed.has(d));
-      if (validDays.length === 0) {
-        return res.status(400).json({ error: 'Please pick a valid game day.' });
+      // buildSignup self-builds a sanitized signup from name/phone/skill/dates
+      // (or legacy days) validated against the server's enabled days + clock.
+      // It NEVER spreads req.body, so this path can only ever append one signup.
+      const built = buildSignup(b, { socialGames: s.socialGames, todayISO: todayISO() });
+      if (!built.ok) {
+        return res.status(400).json({ error: built.error || 'Please complete the form.' });
       }
 
-      const signup = {
-        id: 'su' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-        name, phone, days: validDays, at: Date.now(), handled: false,
-      };
+      const signup = Object.assign(
+        { id: 'su' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at: Date.now(), handled: false },
+        built.fields
+      );
       const existing = Array.isArray(s.signups) ? s.signups : [];
       // Append-only, newest first, hard-capped at 500 (drop oldest). This slice
       // is the LAST mutation on every append — the array can never grow unbounded.
@@ -295,3 +385,6 @@ const handler = async function handler(req, res) {
 
 module.exports = handler;
 module.exports.normalizeDrawState = normalizeDrawState;
+module.exports.buildSignup = buildSignup;
+module.exports.addMonthsISO = addMonthsISO;
+module.exports.todayISO = todayISO;

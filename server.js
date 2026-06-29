@@ -1,6 +1,8 @@
 const express = require('express');
 const path = require('path');
 const os = require('os');
+// Reuse the serverless submit validator + clock so local dev matches production.
+const { buildSignup, todayISO } = require('./api/state.js');
 
 const app = express();
 app.use(express.json({ limit: '50mb' })); // large limit for base64 photos
@@ -53,10 +55,10 @@ app.get('/api/state', (req, res) => {
       const openGames = games
         .filter(g => g && g.enabled)
         .map(g => ({ id: g.id, day: g.day, weekday: g.weekday, time: g.time, enabled: true }));
-      return res.json({ locked: true, socialGames: openGames });
+      return res.json({ locked: true, socialGames: openGames, today: todayISO() });
     }
   }
-  res.json({ ...state, serverTime: Date.now() });
+  res.json({ ...state, serverTime: Date.now(), today: todayISO() });
 });
 
 // POST state — admin only, merges updates
@@ -71,26 +73,15 @@ app.post('/api/state', (req, res) => {
   if (b.action === 'submitSignup') {
     if (String(b.hp || '').trim()) return res.json({ ok: true }); // honeypot
 
-    const name = String(b.name == null ? '' : b.name).trim().slice(0, 80);
-    const phone = String(b.phone == null ? '' : b.phone).trim().slice(0, 40);
-    const days = Array.isArray(b.days)
-      ? b.days.slice(0, 7).map(d => String(d == null ? '' : d).slice(0, 20))
-      : [];
-    if (!name || !phone || !/\d/.test(phone) || days.length === 0) {
-      return res.status(400).json({ error: 'Please enter your name, phone and at least one game day.' });
-    }
+    // Same validator as api/state.js: self-builds one sanitized signup from
+    // name/phone/skill/dates (or legacy days), never spreads req.body.
+    const built = buildSignup(b, { socialGames: state.socialGames, todayISO: todayISO() });
+    if (!built.ok) return res.status(400).json({ error: built.error || 'Please complete the form.' });
 
-    const games = Array.isArray(state.socialGames) ? state.socialGames : DEFAULT_STATE.socialGames;
-    const allowed = new Set(games.filter(g => g && g.enabled).map(g => g.day));
-    const validDays = days.filter(d => allowed.has(d));
-    if (validDays.length === 0) {
-      return res.status(400).json({ error: 'Please pick a valid game day.' });
-    }
-
-    const signup = {
-      id: 'su' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      name, phone, days: validDays, at: Date.now(), handled: false,
-    };
+    const signup = Object.assign(
+      { id: 'su' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at: Date.now(), handled: false },
+      built.fields
+    );
     const existing = Array.isArray(state.signups) ? state.signups : [];
     state.signups = [signup, ...existing].slice(0, 500); // append-only, cap 500
     return res.json({ ok: true });

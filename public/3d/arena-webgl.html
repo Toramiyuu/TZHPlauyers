@@ -103,6 +103,20 @@
   .pill:hover{ color:var(--blue-dark); border-color:var(--blue-line); background:var(--blue-tint); }
   .pill.active{ color:#fff; background:linear-gradient(180deg,var(--blue),var(--blue-2)); border-color:transparent; box-shadow:0 6px 16px -6px rgba(0,113,227,.6); }
 
+  /* ===== Exit-3D button (returns to the normal 2D viewer) ===== */
+  .exit3d{
+    pointer-events:auto;
+    display:inline-flex; align-items:center; gap:6px;
+    padding:8px 14px 8px 11px; border-radius:999px;
+    font-size:13px; font-weight:600; color:var(--blue-dark); letter-spacing:.01em;
+    background:rgba(255,255,255,.7); border:1px solid var(--blue-line);
+    cursor:pointer; transition:.18s ease; font-family:inherit;
+  }
+  .exit3d svg{ width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+  .exit3d:hover{ background:var(--blue-tint); border-color:var(--blue); color:var(--blue); }
+  .exit3d:active{ transform:translateY(1px); }
+  @media (max-width:620px){ .exit3d span{ display:none; } .exit3d{ padding:8px; } }
+
   /* ===== Center stage spacer ===== */
   .stage{ flex:1 1 auto; min-height:0; }
 
@@ -148,6 +162,8 @@
     flex:0 0 auto;
   }
   .av.alt{ background:linear-gradient(155deg, #4a9bf0 0%, var(--blue-2) 100%); }
+  .av.has-photo{ overflow:hidden; background:#dce7f7; }
+  .av.has-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
   .names{ display:flex; flex-direction:column; gap:1px; min-width:0; line-height:1.18; text-align:center; }
   .names .n{ font-size:12.5px; font-weight:560; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
@@ -184,10 +200,14 @@
   <div id="hud">
     <!-- Header -->
     <header class="hud-panel glass">
+      <button id="exit3d" class="exit3d" type="button" title="Back to the normal (2D) view">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        <span>Normal view</span>
+      </button>
       <img src="logo.png" alt="TZH" onerror="this.style.display='none'" />
       <div class="brand">
         <h1>TZH Badminton</h1>
-        <div class="date">Saturday 28 June 2026</div>
+        <div class="date" id="arenaDate"></div>
       </div>
       <div class="header-spacer"></div>
       <div class="live"><span class="dot"></span>Live</div>
@@ -205,56 +225,198 @@
     <!-- Footer -->
     <footer class="hud-panel">
       <div class="left">TZH Badminton — Live Court Display</div>
-      <div class="right"><strong>4 courts</strong> · Round 3 · 16 players</div>
+      <div class="right" id="arenaStats"><strong>—</strong></div>
     </footer>
   </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* =========================================================
-   CONTENT MODEL
+   CONTENT MODEL — driven by the LIVE court state (/api/state)
+   ---------------------------------------------------------
+   This page is the "3D mode" of the main viewer. The pure helpers below map the
+   server state into the arena's MATCHES model (one entry per active court). They
+   mirror index.html's playerById/getCourtRounds so the 2D and 3D views always
+   show the same matches. Unit-tested in scripts/test-arena-data.js.
    ========================================================= */
 function initials(name){
-  return name.trim().split(/\s+/).map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  return String(name||'?').trim().split(/\s+/).map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase() || '?';
 }
-var MATCHES = [
-  { court:1, round:3, t1:["Thomas Wong","Mei Lin"],   t2:["David Park","Sarah Chen"] },
-  { court:2, round:3, t1:["Aiden Lee","Priya Nair"],  t2:["Marcus Tan","Yuki Sato"] },
-  { court:3, round:2, t1:["Carlos Diaz","Hannah Kim"],t2:["Leo Zhang","Nina Patel"] },
-  { court:4, round:2, t1:["Ravi Kumar","Sofia Reyes"],t2:["Ben Carter","Grace Lim"] }
-];
+
+// id → { id, name, photo }; prefer the roster's name/photo (always current),
+// fall back to the players entry. Mirrors index.html playerById(). Returns null
+// for ids present in neither collection.
+function resolvePlayer(state, id){
+  var players = (state && state.players) || [];
+  var roster  = (state && state.roster)  || [];
+  var fromPlayers = null, fromRoster = null;
+  for (var i=0;i<players.length;i++){ if (players[i] && players[i].id === id){ fromPlayers = players[i]; break; } }
+  for (var j=0;j<roster.length;j++){ if (roster[j] && roster[j].id === id){ fromRoster = roster[j]; break; } }
+  if (!fromPlayers && !fromRoster) return null;
+  if (!fromPlayers) return { id:id, name:fromRoster.name, photo:fromRoster.photo || null };
+  if (!fromRoster)  return { id:id, name:fromPlayers.name, photo:fromPlayers.photo || null };
+  return { id:id, name:fromRoster.name, photo:(fromRoster.photo || fromPlayers.photo || null) };
+}
+
+// Per-court round index: the explicit courtRounds array when long enough, else
+// numCourts copies of currentRound.
+function getArenaCourtRounds(state){
+  var numCourts = (state && state.numCourts) || 1;
+  var base = (state && state.currentRound) || 0;
+  var cr = state && state.courtRounds;
+  if (Array.isArray(cr) && cr.length >= numCourts) return cr.slice(0, numCourts);
+  var out = []; for (var i=0;i<numCourts;i++) out.push(base); return out;
+}
+
+// state → [{ court, round, roundLabel, t1:[names], t2:[names], photos1, photos2 }]
+// One entry per court that has a court slot in its current round. Unknown/empty
+// player ids are dropped from a team rather than rendered as ghosts.
+function buildMatchesFromState(state){
+  if (!state) return [];
+  var numCourts = state.numCourts || 1;
+  var courtRounds = getArenaCourtRounds(state);
+  var rounds = state.rounds || [];
+  var out = [];
+  for (var i=0;i<numCourts;i++){
+    var ri = (courtRounds[i] != null) ? courtRounds[i] : 0;
+    var round = rounds[ri];
+    var court = (round && round.courts) ? round.courts[i] : null;
+    if (!court) continue;
+    var resolved = function(ids){
+      return (ids || []).map(function(id){ return resolvePlayer(state, id); }).filter(Boolean);
+    };
+    var r1 = resolved(court.team1), r2 = resolved(court.team2);
+    out.push({
+      court: i + 1,
+      round: ri + 1,
+      roundLabel: (round && round.label) || ('Round ' + (ri + 1)),
+      t1: r1.map(function(p){ return p.name; }),
+      t2: r2.map(function(p){ return p.name; }),
+      photos1: r1.map(function(p){ return p.photo || null; }),
+      photos2: r2.map(function(p){ return p.photo || null; })
+    });
+  }
+  return out;
+}
+
+// The arena's working set, refreshed from the server every few seconds.
+var MATCHES = [];
+var PLAYER_PHOTOS = {};   // name → photo data-URL, fed into the 3D avatar tokens
 
 function teamHTML(players, alt){
   var avs = players.map(function(p,i){
-    return '<div class="av'+((alt|| i===1)?' alt':'')+'">'+initials(p)+'</div>';
+    var photo = PLAYER_PHOTOS[p];
+    var inner = photo
+      ? '<img src="'+photo+'" alt="">'
+      : initials(p);
+    return '<div class="av'+((alt|| i===1)?' alt':'')+(photo?' has-photo':'')+'">'+inner+'</div>';
   }).join('');
-  var nms = players.map(function(p){ return '<div class="n">'+p+'</div>'; }).join('');
+  var nms = players.map(function(p){ return '<div class="n">'+escapeHtml(p)+'</div>'; }).join('');
   return '<div class="team"><div class="avatars">'+avs+'</div><div class="names">'+nms+'</div></div>';
 }
+function escapeHtml(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+  });
+}
 
-(function renderCards(){
+// ── DOM: bottom match-card strip ──────────────────────────────────────────
+function renderCards(matches){
   var el = document.getElementById('cards');
-  el.innerHTML = MATCHES.map(function(m){
+  if (!el) return;
+  if (!matches.length){
+    el.innerHTML = '<div class="card glass" style="grid-column:1/-1;text-align:center;color:var(--ink-2)">No live matches yet — set up a round in the admin panel.</div>';
+    return;
+  }
+  el.innerHTML = matches.map(function(m){
     return ''+
     '<div class="card glass">'+
       '<div class="card-top">'+
         '<div class="court-id"><span class="court-num">Court '+m.court+' <span>·</span></span>'+
-          '<span class="round-badge">Round '+m.round+'</span></div>'+
+          '<span class="round-badge">'+escapeHtml(m.roundLabel)+'</span></div>'+
       '</div>'+
       teamHTML(m.t1, false)+
       '<div class="vs-row"><span class="vs-line"></span><span class="vs">vs</span><span class="vs-line"></span></div>'+
       teamHTML(m.t2, true)+
     '</div>';
   }).join('');
-})();
+}
+
+// ── DOM: header date + footer stats ───────────────────────────────────────
+function formatArenaDate(iso){
+  if (!iso) return '';
+  var parts = String(iso).split('-');
+  if (parts.length !== 3) return '';
+  var d = new Date(Date.UTC(+parts[0], +parts[1]-1, +parts[2]));
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric', timeZone:'UTC' });
+}
+function updateHud(state, matches){
+  var dateEl = document.getElementById('arenaDate');
+  if (dateEl) dateEl.textContent = formatArenaDate(state && state.sessionDate) || '';
+  var statsEl = document.getElementById('arenaStats');
+  if (statsEl){
+    var ids = {};
+    matches.forEach(function(m){
+      m.t1.concat(m.t2).forEach(function(n){ if (n) ids[n] = 1; });
+    });
+    var nc = matches.length;
+    var np = Object.keys(ids).length;
+    statsEl.innerHTML = '<strong>'+nc+' court'+(nc===1?'':'s')+'</strong> · '+np+' player'+(np===1?'':'s');
+  }
+}
+
+// name → photo map for the 3D avatar tokens
+function buildPhotoMap(matches){
+  var map = {};
+  matches.forEach(function(m){
+    m.t1.forEach(function(n,i){ if (m.photos1[i]) map[n] = m.photos1[i]; });
+    m.t2.forEach(function(n,i){ if (m.photos2[i]) map[n] = m.photos2[i]; });
+  });
+  return map;
+}
+
+// ── DATA: fetch the live state (same gate code as the main app) ───────────
+function getArenaCode(){
+  try {
+    var qs = new URLSearchParams(location.search);
+    var fromUrl = qs.get('code');
+    if (fromUrl) return fromUrl;
+  } catch(e){}
+  try { return localStorage.getItem('siteCode') || ''; } catch(e){ return ''; }
+}
+function isEmbedded(){
+  try {
+    if (window.parent && window.parent !== window) return true;
+    var qs = new URLSearchParams(location.search);
+    return qs.get('embed') === '1';
+  } catch(e){ return false; }
+}
+async function fetchArenaState(){
+  try {
+    var code = getArenaCode();
+    var url = code ? '/api/state?code=' + encodeURIComponent(code) : '/api/state';
+    var r = await fetch(url);
+    return await r.json();
+  } catch(e){ return null; }
+}
+
+// Leave 3D mode: tell the parent viewer to switch back, or go to the main app
+// when opened standalone.
+function exitArena(){
+  if (isEmbedded()){
+    try { window.parent.postMessage({ type:'tzh-exit-3d' }, '*'); return; } catch(e){}
+  }
+  location.href = '/';
+}
 
 /* =========================================================
    THREE.JS ARENA SCENE
    ========================================================= */
-(function buildScene(){
+var sceneApi = (function buildScene(){
   if(typeof THREE === 'undefined'){
     console.warn('THREE not available — using CSS backdrop only.');
-    return; // CSS backdrop already visible
+    return null; // CSS backdrop already visible; cards still render
   }
 
   var reduceMotion = window.matchMedia &&
@@ -272,7 +434,7 @@ function teamHTML(players, alt){
   } catch(err){
     console.warn('WebGL init failed — CSS backdrop fallback active.', err);
     canvas.style.display = 'none';
-    return;
+    return null;
   }
 
   scene = new THREE.Scene();
@@ -345,11 +507,9 @@ function teamHTML(players, alt){
   }
 
   /* ---- Player profile avatars (billboarded tokens standing inside each court) ----
-     Drop a real photo (data URL or URL) into PLAYER_PHOTOS[name] to swap the initials
-     disc for the player's actual profile picture — clipped into the same circle.       */
-  var PLAYER_PHOTOS = {
-    // "Thomas Wong": "data:image/jpeg;base64,...",   // ← wire live player.photo here
-  };
+     Live photos arrive via the SHARED top-level PLAYER_PHOTOS map (name → data URL),
+     populated by the data layer each refresh; missing → initials disc. avatarTexCache
+     is cleared (clearAvatarCache) whenever the photo set changes so tokens re-render. */
   var avatarTexCache = {};
   function makeAvatarTexture(name){
     if(avatarTexCache[name]) return avatarTexCache[name];
@@ -724,51 +884,98 @@ function teamHTML(players, alt){
     return g;
   }
 
-  /* ---- Lay out a single row:  Store · Court 1 · Court 2 · Court 3 · Court 4 ----
-     The camera frames the row from the front (−z), where world +x renders on the
-     LEFT of screen — so the Store goes to +2·PITCH and the courts descend, giving a
-     left→right read of:  Store · Court 1 · Court 2 · Court 3 · Court 4              */
-  var PITCH = 9.4;
-  // Courts stay exactly as they are (user: "courts are fine")
-  MATCHES.forEach(function(m, i){
-    var x = (1 - i) * PITCH;                       // Court 1 → +9.4 … Court 4 → −18.8
-    scene.add(buildCourt(x, 0, m));
-    var lbl = makeLabelSprite('COURT ' + m.court, {});
-    lbl.position.set(x, 4.7, 0);
-    scene.add(lbl);
-  });
-
-  /* ---- One straight line, left→right:  Stage · Store · Entrance · Court 1–4 · Toilet ----
-     Facilities sit in line with the courts (z = 0); world +x renders on screen-LEFT.   */
-  /* Stage · Store · Entrance treated as ONE cluster, turned to read VERTICALLY from the
-     viewer — stacked along depth (z) at the head of the courts. Each building keeps its
-     original facing (toward the camera); only the cluster's line was rotated.           */
-  var CX = 18;
-  function faceCourts(obj){ obj.rotation.y = Math.PI / 2; scene.add(obj); }  // front → −x, toward the courts
-  faceCourts(buildStage(CX, -7.5));     // Stage — front (nearest viewer / lower on screen)
-  faceCourts(buildStore(CX, 0));        // Store — middle
-  faceCourts(buildEntrance(CX, 6.5));   // Entrance — back (further from viewer / higher on screen)
-  var toilet = buildToilet(-27, -10);   // bottom-right corner, mirroring the Stage's spot on the left
-  toilet.rotation.y = -Math.PI / 2;     // face down the row toward the Stage & courts (front → +x)
-  scene.add(toilet);
-
-  /* ---- floating soft accent rings (premium ambiance) ---- */
+  /* ---- floating soft accent ring (premium ambiance) — static, court-independent ---- */
   var ringMat = new THREE.MeshBasicMaterial({ color:BLUE, transparent:true, opacity:0.08, side:THREE.DoubleSide });
   var ring = new THREE.Mesh(new THREE.RingGeometry(33, 33.3, 120), ringMat);
-  ring.rotation.x = -Math.PI/2; ring.position.set(-2, 0.02, 0);
+  ring.rotation.x = -Math.PI/2; ring.position.set(0, 0.02, 0);
   scene.add(ring);
+
+  /* =========================================================
+     LIVE LAYOUT — courts + facilities are (re)built from the
+     current match list so the arena always tracks real state.
+       · Courts are centred on x=0 (Court 1 → +x … last → −x).
+       · The Stage/Store/Entrance cluster flanks +x; Toilet flanks −x.
+       · Facilities only rebuild when the court COUNT changes; courts
+         rebuild whenever the matches change (round advance, edits…).
+     ========================================================= */
+  var PITCH = 9.4;
+  var courtObjects = [];      // per-rebuild: court groups + their COURT labels
+  var facilityObjects = [];   // rebuilt only when the court count changes
+  var lastCourtCount = -1;
+
+  // camera framing — mutated by reframe(), read by positionCamera()
+  var R = 45, BASE_H = 28, CENTER_X = 0, SWEEP_MAX = 0.4;
+
+  function disposeObject(obj){
+    if(!obj) return;
+    scene.remove(obj);
+    obj.traverse && obj.traverse(function(o){
+      if(o.geometry && o.geometry.dispose) o.geometry.dispose();
+      if(o.material){
+        var mats = Array.isArray(o.material) ? o.material : [o.material];
+        mats.forEach(function(mm){ if(mm){ if(mm.map && mm.map.dispose) mm.map.dispose(); if(mm.dispose) mm.dispose(); } });
+      }
+    });
+  }
+
+  function rebuildFacilities(spanHalf){
+    facilityObjects.forEach(disposeObject);
+    facilityObjects = [];
+    var CX = spanHalf + 13;                          // cluster just off the +x flank
+    function add(obj, rotY){ obj.rotation.y = rotY; scene.add(obj); facilityObjects.push(obj); }
+    add(buildStage(CX, -7.5),   Math.PI/2);          // Stage    — front
+    add(buildStore(CX, 0),      Math.PI/2);          // Store    — middle
+    add(buildEntrance(CX, 6.5), Math.PI/2);          // Entrance — back
+    add(buildToilet(-(spanHalf + 16), -10), -Math.PI/2); // Toilet — opposite flank
+  }
+
+  // Adapt camera + facility layout to the number of courts on screen.
+  function reframe(n){
+    var spanHalf = (n - 1) / 2 * PITCH;              // courts centred on x=0
+    CENTER_X  = 0;
+    R         = Math.max(33, 30 + n * 4);
+    BASE_H    = Math.max(22, 22 + n * 1.5);
+    SWEEP_MAX = Math.min(0.42, 0.15 + n * 0.06);
+    if(n !== lastCourtCount){
+      lastCourtCount = n;
+      rebuildFacilities(spanHalf);
+    }
+    return spanHalf;
+  }
+
+  // Rebuild courts (+ labels) from a fresh match list. Static scene (floor,
+  // lights, ring) is untouched. Always renders one frame so the change is
+  // visible immediately, even under prefers-reduced-motion.
+  function rebuildCourts(matches){
+    courtObjects.forEach(disposeObject);
+    courtObjects = [];
+    var n = matches.length;
+    if(n === 0){ positionCamera(); renderer.render(scene, camera); return; }
+    var spanHalf = reframe(n);
+    matches.forEach(function(m, i){
+      var x = spanHalf - i * PITCH;                  // Court 1 → +spanHalf … last → −spanHalf
+      var court = buildCourt(x, 0, m);
+      scene.add(court); courtObjects.push(court);
+      var lbl = makeLabelSprite('COURT ' + m.court, {});
+      lbl.position.set(x, 4.7, 0);
+      scene.add(lbl); courtObjects.push(lbl);
+    });
+    positionCamera();
+    renderer.render(scene, camera);
+  }
+
+  // Photo set changed → drop cached avatar textures so tokens repaint with the
+  // latest PLAYER_PHOTOS (the shared top-level map).
+  function clearAvatarCache(){ avatarTexCache = {}; }
 
   /* =========================================================
      RENDER LOOP — manual slow auto-orbit
      ========================================================= */
-  var R = 45, BASE_H = 28, CENTER_X = -2;  // content: cluster(+24)…Toilet(−27), centre ≈ −2
-  var SWEEP_MAX = 0.4;        // each side of centre
   var sweep = 0, sweepT = 0;
   var clock = new THREE.Clock();
 
   function positionCamera(){
-    // front-of-row camera that gently dollies left↔right so the whole
-    // Store · Court 1–4 line stays framed (no full 360 — the row is wide & shallow)
+    // front-of-row camera that gently dollies left↔right so the whole row stays framed
     camera.position.set(
       CENTER_X + Math.sin(sweep) * R,
       BASE_H + Math.cos(sweep) * 2.0,
@@ -802,6 +1009,48 @@ function teamHTML(players, alt){
   } else {
     requestAnimationFrame(frame);
   }
+
+  return { rebuildCourts: rebuildCourts, clearAvatarCache: clearAvatarCache, hasWebGL: true };
+})();
+
+/* =========================================================
+   ORCHESTRATOR — pull live state, render cards + 3D, keep polling
+   ========================================================= */
+function applyArenaState(state){
+  if(!state) return;
+  if(state.locked){
+    var el = document.getElementById('cards');
+    if(el) el.innerHTML = '<div class="card glass" style="grid-column:1/-1;text-align:center;color:var(--ink-2)">This display is locked. Open it from the main viewer.</div>';
+    return;
+  }
+  var matches = buildMatchesFromState(state);
+  PLAYER_PHOTOS = buildPhotoMap(matches);   // shared map: cards + 3D tokens
+  renderCards(matches);
+  updateHud(state, matches);
+  if(sceneApi && sceneApi.rebuildCourts){
+    sceneApi.clearAvatarCache();
+    sceneApi.rebuildCourts(matches);
+  }
+}
+
+var __arenaSig = null;
+async function refreshArena(){
+  var state = await fetchArenaState();
+  if(!state) return;
+  // cheap signature so we only rebuild when the live matches/date actually change
+  var sig = state.locked ? 'locked' : JSON.stringify({ m: buildMatchesFromState(state), d: state.sessionDate });
+  if(sig === __arenaSig) return;
+  __arenaSig = sig;
+  applyArenaState(state);
+}
+
+(function initArena(){
+  var exitBtn = document.getElementById('exit3d');
+  if(exitBtn) exitBtn.addEventListener('click', exitArena);
+  // allow the embedding viewer (or a keyboard user) to leave with Escape
+  window.addEventListener('keydown', function(e){ if(e.key === 'Escape') exitArena(); });
+  refreshArena();
+  setInterval(refreshArena, 3000);
 })();
 </script>
 </body>

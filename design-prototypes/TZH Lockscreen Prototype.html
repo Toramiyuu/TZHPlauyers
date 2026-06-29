@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TZH · Animated Lockscreen Prototype</title>
+<style>
+/* =====================================================================
+   TZH BADMINTON — ANIMATED LOCKSCREEN PROTOTYPE  (design exploration)
+   Apple-light premium · matches production tokens from public/index.html
+   Standalone: vanilla JS + CSS only, so it ports straight into index.html
+   ===================================================================== */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --a-bg:#eef4fd;--a-card:#ffffff;--a-card-2:#e2ecfa;
+  --a-ink:#1d1d1f;--a-ink-2:#5c6470;--a-ink-3:#5f6b7a;
+  --a-line:#d4e2f5;--a-line-2:#c0d4ee;
+  --a-blue:#0071e3;--a-blue-2:#0066cc;--a-blue-tint:rgba(0,113,227,.16);
+  --muted:#86868b;--red:#e5484d;
+  --radius-md:12px;--radius-lg:18px;--radius-xl:24px;
+  --shadow-md:0 4px 16px rgba(0,0,0,.08);--shadow-lg:0 12px 40px rgba(0,0,0,.12);
+  --font-apple:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --font-mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ease-out:cubic-bezier(.16,1,.3,1);          /* expo-out, the Apple feel */
+  --ease-soft:cubic-bezier(.4,0,.2,1);
+}
+html,body{height:100%}
+body{font-family:var(--font-apple);background:var(--a-bg);color:var(--a-ink);
+  -webkit-font-smoothing:antialiased;letter-spacing:-.01em;overflow:hidden}
+
+/* ======================= MOCK MAIN SITE (revealed on unlock) ========= */
+#site{position:fixed;inset:0;background:var(--a-bg);padding:clamp(28px,4vw,56px) clamp(24px,5vw,80px);
+  display:flex;flex-direction:column;gap:32px;opacity:0;transform:scale(1.04);pointer-events:none}
+#site.revealed{opacity:1;transform:none;pointer-events:auto;transition:opacity .9s var(--ease-out),transform 1.1s var(--ease-out)}
+.s-head{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.s-head-left{display:flex;align-items:center;gap:16px}
+.s-logo{height:52px;width:52px;border-radius:14px;background:linear-gradient(135deg,#fff,#dfeafb);border:1px solid var(--a-line);
+  display:flex;align-items:center;justify-content:center;color:var(--a-blue);box-shadow:var(--shadow-md)}
+.s-title{font-size:clamp(24px,3vw,38px);font-weight:600;letter-spacing:-.022em}
+.s-date{font-size:14px;color:var(--a-ink-3);margin-top:3px}
+.s-live{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--a-ink-2);font-weight:500}
+.s-dot{width:8px;height:8px;border-radius:50%;background:var(--a-blue);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.s-courts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(380px,100%),1fr));gap:24px}
+.s-court{background:var(--a-card);border:1px solid var(--a-line);border-radius:24px;padding:34px 30px;
+  box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(0,0,0,.05)}
+.s-court-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:26px}
+.s-court-label{font-size:14px;font-weight:600;color:var(--a-ink-3)}
+.s-court-round{font-size:12px;font-weight:500;color:var(--a-blue);background:var(--a-blue-tint);padding:5px 12px;border-radius:980px}
+.s-team{display:flex;justify-content:center;gap:42px}
+.s-player{display:flex;flex-direction:column;align-items:center;gap:11px}
+.s-av{width:74px;height:74px;border-radius:50%;background:var(--a-card-2);display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:600;color:var(--a-ink)}
+.s-name{font-size:19px;font-weight:600;letter-spacing:-.02em}
+.s-vs{display:flex;align-items:center;gap:16px;color:var(--a-ink-3);margin:16px 0}
+.s-vs::before,.s-vs::after{content:"";height:1px;flex:1;background:var(--a-line)}
+.s-vs span{font-size:14px;font-weight:500}
+
+/* ======================= LOCKSCREEN ================================= */
+#lock{position:fixed;inset:0;z-index:100;overflow:hidden;
+  background:radial-gradient(130% 90% at 50% -10%,rgba(0,113,227,.10),transparent 55%),
+             radial-gradient(90% 70% at 85% 110%,rgba(0,113,227,.07),transparent 60%),
+             var(--a-bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+#lock.unlocking{animation:lock-bloom 1s var(--ease-out) forwards}
+@keyframes lock-bloom{
+  0%{opacity:1;transform:scale(1);filter:blur(0)}
+  35%{opacity:1;transform:scale(1.015);filter:blur(0)}
+  100%{opacity:0;transform:scale(1.09);filter:blur(6px)}
+}
+#lock.joinopen .lock-inner{opacity:0;transform:translateY(-16px) scale(.96);filter:blur(3px);pointer-events:none}
+
+/* ambient floating shuttle motes */
+.mote{position:absolute;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,rgba(0,113,227,.35));
+  box-shadow:0 0 12px rgba(0,113,227,.25);opacity:0;pointer-events:none}
+.lit .mote{animation:mote-drift linear infinite}
+@keyframes mote-drift{
+  0%{opacity:0;transform:translateY(40px) scale(.6)}
+  15%{opacity:.7}
+  85%{opacity:.5}
+  100%{opacity:0;transform:translateY(-120px) scale(1)}
+}
+/* a single court-line light beam sweeps once on intro */
+.beam{position:absolute;top:50%;left:-40%;width:40%;height:1.5px;
+  background:linear-gradient(90deg,transparent,rgba(0,113,227,.55),transparent);opacity:0}
+.lit .beam{animation:beam-sweep 1.7s .15s var(--ease-out) forwards}
+@keyframes beam-sweep{0%{left:-40%;opacity:0}20%{opacity:1}100%{left:120%;opacity:0}}
+
+.lock-inner{position:relative;z-index:5;display:flex;flex-direction:column;align-items:center;width:100%;max-width:640px;
+  transition:opacity .55s var(--ease-out),transform .6s var(--ease-out),filter .55s var(--ease-out)}
+
+/* intro stagger primitives */
+.reveal{opacity:0;transform:translateY(14px);filter:blur(4px)}
+.lit .reveal{animation:reveal-in .9s var(--ease-out) forwards;animation-delay:var(--d,0s)}
+@keyframes reveal-in{to{opacity:1;transform:none;filter:blur(0)}}
+
+.brandmark{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:30px}
+.brand-logo{height:60px;width:60px;border-radius:16px;background:linear-gradient(135deg,#fff,#dbe8fb);
+  border:1px solid var(--a-line);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;color:var(--a-blue)}
+.brand-logo svg{width:34px;height:34px}
+.brand-eyebrow{font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.34em;
+  text-transform:uppercase;color:var(--a-blue)}
+
+/* THE HERO — main key part, tappable */
+.hero{appearance:none;background:none;border:none;cursor:pointer;color:inherit;font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:18px;padding:14px 10px;border-radius:28px;
+  transition:transform .4s var(--ease-out)}
+.hero:hover{transform:translateY(-3px)}
+.hero:active{transform:translateY(0) scale(.99)}
+.hero-line{font-size:clamp(34px,7.2vw,70px);font-weight:600;line-height:1.02;letter-spacing:-.03em;
+  position:relative;overflow:hidden}
+.hero-line.accent{color:var(--a-blue);display:inline-flex;align-items:center;gap:.28em;justify-content:center;flex-wrap:wrap}
+.hero-arrow{width:.62em;height:.62em;flex-shrink:0;transition:transform .4s var(--ease-out)}
+.hero:hover .hero-arrow{transform:translateX(8px)}
+/* each hero word slides up from a clip mask */
+.word{display:inline-block;will-change:transform}
+.lit .hero .word{animation:word-up 1s var(--ease-out) forwards;transform:translateY(110%);opacity:0;animation-delay:var(--wd,0s)}
+@keyframes word-up{to{transform:none;opacity:1}}
+/* gentle continuous breathing + invitation shimmer once intro settles */
+.lit .hero{animation:hero-float 6s 1.8s ease-in-out infinite}
+@keyframes hero-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.hero-cta{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:500;color:var(--a-ink-2);
+  background:var(--a-card);border:1px solid var(--a-line);padding:9px 18px;border-radius:980px;box-shadow:var(--shadow-md);
+  position:relative;overflow:hidden}
+.hero-cta::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 30%,rgba(0,113,227,.16) 50%,transparent 70%);
+  transform:translateX(-120%)}
+.lit .hero-cta::after{animation:shimmer 4.5s 2.6s ease-in-out infinite}
+@keyframes shimmer{0%{transform:translateX(-120%)}40%,100%{transform:translateX(120%)}}
+
+/* PASSWORD — secondary, below hero */
+.passcard{margin-top:44px;background:var(--a-card);border:1px solid var(--a-line);border-radius:var(--radius-xl);
+  padding:24px 28px;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;align-items:center;gap:12px;width:min(360px,92vw)}
+.pass-eyebrow{font-family:var(--font-mono);font-size:10.5px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--a-ink-3)}
+.pass-input{background:var(--a-bg);border:1px solid var(--a-line-2);color:var(--a-ink);padding:13px 16px;border-radius:var(--radius-md);
+  font-size:24px;font-family:var(--font-mono);letter-spacing:.4em;width:220px;text-align:center;outline:none;
+  transition:border-color .15s,box-shadow .15s}
+.pass-input::placeholder{color:var(--a-line-2);letter-spacing:.3em}
+.pass-input:focus{border-color:var(--a-blue);box-shadow:0 0 0 3px rgba(0,113,227,.18)}
+.pass-input.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+.pass-err{color:var(--red);font-size:13px;min-height:16px;opacity:0;transition:opacity .2s}
+.pass-err.show{opacity:1}
+.pass-btn{width:100%;background:var(--a-blue);color:#fff;border:none;padding:13px;border-radius:var(--radius-md);
+  font-family:var(--font-apple);font-size:16px;font-weight:500;cursor:pointer;transition:background .18s,transform .1s}
+.pass-btn:hover{background:#0077ed}
+.pass-btn:active{transform:translateY(.5px)}
+.lock-foot{margin-top:26px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--a-ink-3);opacity:.7}
+
+/* ======================= JOIN FLOW (calendar + form) =============== */
+#join{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:20px;
+  background:rgba(20,40,70,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#join.open{display:flex}
+.join-panel{background:var(--a-card);border:1px solid var(--a-line);border-radius:var(--radius-xl);
+  width:min(440px,96vw);max-height:92vh;overflow:hidden;box-shadow:var(--shadow-lg);display:flex;flex-direction:column;
+  transform:translateY(24px) scale(.94);opacity:0}
+#join.open .join-panel{animation:panel-in .6s var(--ease-out) forwards}
+@keyframes panel-in{to{transform:none;opacity:1}}
+.join-head{padding:22px 24px 16px;border-bottom:1px solid var(--a-line);position:relative}
+.join-head h2{font-size:21px;font-weight:600;letter-spacing:-.02em}
+.join-head p{font-size:13px;color:var(--muted);margin-top:4px}
+.join-close{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:50%;border:1px solid var(--a-line);
+  background:var(--a-bg);color:var(--muted);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.join-close:hover{color:var(--a-ink);background:var(--a-card-2)}
+/* step progress dots */
+.join-steps{display:flex;gap:6px;margin-top:14px}
+.join-step-dot{height:4px;flex:1;border-radius:4px;background:var(--a-line);transition:background .4s var(--ease-out)}
+.join-step-dot.active{background:var(--a-blue)}
+.join-body{padding:22px 24px;overflow-y:auto}
+.join-stage{display:none}
+.join-stage.active{display:block;animation:stage-in .45s var(--ease-out)}
+@keyframes stage-in{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+
+/* calendar */
+.cal-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-month{font-size:16px;font-weight:600}
+.cal-nav{display:flex;gap:6px}
+.cal-chev{width:34px;height:34px;border-radius:9px;border:1px solid var(--a-line);background:var(--a-bg);color:var(--a-ink-2);
+  cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.cal-chev:hover:not(:disabled){border-color:var(--a-blue);color:var(--a-blue)}
+.cal-chev:disabled{opacity:.35;cursor:not-allowed}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal-dow{font-size:11px;font-weight:600;color:var(--muted);text-align:center;padding-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.cal-cell{aspect-ratio:1;border:none;background:none;border-radius:11px;font-family:inherit;font-size:14px;color:var(--a-ink);
+  position:relative;display:flex;align-items:center;justify-content:center;cursor:default}
+.cal-cell.muted{color:var(--a-line-2)}
+.cal-cell.open{cursor:pointer;color:var(--a-ink);font-weight:500;background:var(--a-bg);border:1px solid var(--a-line)}
+.cal-cell.open:hover{border-color:var(--a-blue);background:var(--a-blue-tint)}
+.cal-cell.open::after{content:"";position:absolute;bottom:6px;width:5px;height:5px;border-radius:50%;background:var(--a-blue);opacity:.55}
+.cal-cell.sel{background:var(--a-blue);color:#fff;font-weight:600;border-color:var(--a-blue);animation:pop .3s var(--ease-out)}
+.cal-cell.sel::after{background:#fff}
+@keyframes pop{0%{transform:scale(.8)}55%{transform:scale(1.12)}100%{transform:scale(1)}}
+.cal-legend{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:12px;color:var(--muted)}
+.cal-legend .dot{width:7px;height:7px;border-radius:50%;background:var(--a-blue)}
+.cal-hint{font-size:12.5px;color:var(--a-ink-3);margin-top:6px}
+
+/* form */
+.f-label{display:block;font-size:13px;color:var(--muted);font-weight:500;margin:14px 0 6px}
+.f-input{width:100%;background:var(--a-bg);border:1px solid var(--a-line-2);color:var(--a-ink);padding:12px 14px;
+  border-radius:var(--radius-md);font-size:16px;font-family:inherit;outline:none;transition:border-color .15s}
+.f-input:focus{border-color:var(--a-blue)}
+.skill-row{display:flex;gap:8px}
+.skill-chip{flex:1;min-height:46px;border:1px solid var(--a-line-2);background:var(--a-bg);color:var(--a-ink-2);
+  border-radius:var(--radius-md);font-family:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:.18s}
+.skill-chip:hover{border-color:var(--a-blue)}
+.skill-chip.sel{background:var(--a-blue-tint);border-color:var(--a-blue);color:var(--a-blue-2);font-weight:600}
+.date-summary{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.date-pill{display:inline-flex;align-items:center;gap:6px;background:var(--a-blue-tint);color:var(--a-blue-2);
+  border-radius:980px;padding:5px 12px;font-size:13px;font-weight:500}
+.date-pill button{background:none;border:none;color:var(--a-blue-2);cursor:pointer;font-size:14px;line-height:1;opacity:.7}
+.date-pill button:hover{opacity:1}
+.f-err{color:var(--red);font-size:13px;margin-top:10px;min-height:16px;opacity:0}
+.f-err.show{opacity:1}
+
+.join-foot{padding:16px 24px 22px;border-top:1px solid var(--a-line);display:flex;gap:10px;justify-content:space-between;align-items:center}
+.btn{padding:12px 22px;border-radius:var(--radius-md);border:none;font-family:inherit;font-size:15px;font-weight:500;cursor:pointer;transition:.18s}
+.btn-ghost{background:var(--a-bg);color:var(--a-ink-2);border:1px solid var(--a-line)}
+.btn-ghost:hover{border-color:var(--a-line-2);color:var(--a-ink)}
+.btn-primary{background:var(--a-blue);color:#fff}
+.btn-primary:hover{background:#0077ed}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+
+/* thank-you */
+.thanks{text-align:center;padding:26px 10px 14px}
+.thanks-check{width:74px;height:74px;border-radius:50%;background:var(--a-blue-tint);margin:0 auto 18px;
+  display:flex;align-items:center;justify-content:center}
+.thanks-check svg{width:38px;height:38px;color:var(--a-blue)}
+.thanks-check svg path{stroke-dasharray:30;stroke-dashoffset:30;animation:draw .6s .2s var(--ease-out) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.thanks h2{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:8px}
+.thanks p{font-size:14px;color:var(--a-ink-2);line-height:1.55}
+
+/* ======================= DEMO CONTROLS (prototype only) ============ */
+#demo{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:900;display:flex;gap:8px;align-items:center;
+  background:rgba(255,255,255,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--a-line);border-radius:980px;padding:7px 9px 7px 16px;box-shadow:var(--shadow-lg);
+  font-size:13px;color:var(--a-ink-2)}
+#demo b{color:var(--a-ink);font-weight:600}
+#demo button{font-family:inherit;font-size:12.5px;font-weight:500;border:1px solid var(--a-line);background:#fff;color:var(--a-ink);
+  padding:7px 13px;border-radius:980px;cursor:pointer;transition:.15s}
+#demo button:hover{border-color:var(--a-blue);color:var(--a-blue)}
+#demo .demo-tag{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+@media(max-width:520px){
+  .passcard{margin-top:34px}
+  #demo{flex-wrap:wrap;justify-content:center;max-width:94vw;border-radius:18px;padding:10px 12px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.001s!important;transition-duration:.05s!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ MOCK MAIN SITE (revealed after correct code) ======== -->
+<div id="site">
+  <div class="s-head">
+    <div class="s-head-left">
+      <div class="s-logo"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14l7-9 9 4-3 9z"/><circle cx="16" cy="16" r="2.2"/></svg></div>
+      <div>
+        <div class="s-title">TZH Badminton</div>
+        <div class="s-date">Monday 29 June 2026</div>
+      </div>
+    </div>
+    <div class="s-live"><span class="s-dot"></span> Live · 2 courts</div>
+  </div>
+  <div class="s-courts">
+    <div class="s-court">
+      <div class="s-court-top"><span class="s-court-label">Court 1</span><span class="s-court-round">Round 3</span></div>
+      <div class="s-team"><div class="s-player"><div class="s-av">T</div><div class="s-name">Thomas</div></div><div class="s-player"><div class="s-av">D</div><div class="s-name">Desmond</div></div></div>
+      <div class="s-vs"><span>VS</span></div>
+      <div class="s-team"><div class="s-player"><div class="s-av">A</div><div class="s-name">Alex</div></div><div class="s-player"><div class="s-av">S</div><div class="s-name">Shane</div></div></div>
+    </div>
+    <div class="s-court">
+      <div class="s-court-top"><span class="s-court-label">Court 2</span><span class="s-court-round">Round 2</span></div>
+      <div class="s-team"><div class="s-player"><div class="s-av">K</div><div class="s-name">Kenn</div></div><div class="s-player"><div class="s-av">Y</div><div class="s-name">Yao</div></div></div>
+      <div class="s-vs"><span>VS</span></div>
+      <div class="s-team"><div class="s-player"><div class="s-av">S</div><div class="s-name">Seng</div></div><div class="s-player"><div class="s-av">G</div><div class="s-name">Gp</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== LOCKSCREEN ================================== -->
+<div id="lock">
+  <span class="beam"></span>
+  <div class="lock-inner">
+    <div class="brandmark">
+      <div class="brand-logo reveal" style="--d:.05s"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14l7-9 9 4-3 9z"/><circle cx="16" cy="16" r="2.2"/></svg></div>
+      <div class="brand-eyebrow reveal" style="--d:.18s">TZH Badminton</div>
+    </div>
+
+    <button class="hero" id="heroBtn" aria-label="Want to join our social games? Open sign-up">
+      <span class="hero-line"><span class="word" style="--wd:.30s">Want</span> <span class="word" style="--wd:.38s">to</span> <span class="word" style="--wd:.46s">join</span> <span class="word" style="--wd:.54s">our</span></span>
+      <span class="hero-line accent"><span class="word" style="--wd:.66s">social&nbsp;games?</span>
+        <svg class="hero-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </span>
+      <span class="hero-cta reveal" style="--d:1.0s">Tap to pick your dates</span>
+    </button>
+
+    <div class="passcard reveal" style="--d:1.15s">
+      <span class="pass-eyebrow">Members · enter access code</span>
+      <input class="pass-input" id="passInput" type="text" placeholder="XXX-XXX" maxlength="7" autocomplete="off" spellcheck="false" inputmode="text">
+      <div class="pass-err" id="passErr">Incorrect code. Try again.</div>
+      <button class="pass-btn" id="passBtn">Enter</button>
+    </div>
+
+    <div class="lock-foot reveal" style="--d:1.3s">Members only · Authorised access</div>
+  </div>
+</div>
+
+<!-- ===================== JOIN FLOW =================================== -->
+<div id="join" aria-modal="true" role="dialog">
+  <div class="join-panel">
+    <div class="join-head">
+      <h2 id="joinTitle">Join our social games</h2>
+      <p id="joinSub">Friday · Sunday · Monday · 9–11pm — pick the dates you'd like to play.</p>
+      <button class="join-close" id="joinClose" aria-label="Close">&#x2715;</button>
+      <div class="join-steps">
+        <div class="join-step-dot active" data-s="1"></div>
+        <div class="join-step-dot" data-s="2"></div>
+        <div class="join-step-dot" data-s="3"></div>
+      </div>
+    </div>
+
+    <div class="join-body">
+      <!-- STEP 1 — calendar -->
+      <div class="join-stage active" data-stage="1">
+        <div class="cal-top">
+          <div class="cal-month" id="calMonth">June 2026</div>
+          <div class="cal-nav">
+            <button class="cal-chev" id="calPrev" aria-label="Previous month">&#8249;</button>
+            <button class="cal-chev" id="calNext" aria-label="Next month">&#8250;</button>
+          </div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-legend"><span class="dot"></span> Open game days — Mon · Fri · Sun</div>
+        <div class="cal-hint" id="calHint">Select one or more dates to continue.</div>
+      </div>
+
+      <!-- STEP 2 — details -->
+      <div class="join-stage" data-stage="2">
+        <label class="f-label" for="nameInput">Your name</label>
+        <input class="f-input" id="nameInput" type="text" maxlength="80" placeholder="e.g. Jordan Lee" autocomplete="name">
+        <label class="f-label" for="phoneInput">Phone number</label>
+        <input class="f-input" id="phoneInput" type="tel" inputmode="numeric" maxlength="40" placeholder="e.g. 9123 4567" autocomplete="tel">
+        <label class="f-label">Skill level</label>
+        <div class="skill-row" id="skillRow">
+          <button class="skill-chip" data-skill="Beginner">Beginner</button>
+          <button class="skill-chip" data-skill="Intermediate">Intermediate</button>
+          <button class="skill-chip" data-skill="Advanced">Advanced</button>
+        </div>
+        <label class="f-label">Your dates</label>
+        <div class="date-summary" id="dateSummary"></div>
+        <!-- honeypot -->
+        <input id="hp" type="text" name="hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+        <div class="f-err" id="formErr"></div>
+      </div>
+
+      <!-- STEP 3 — thanks -->
+      <div class="join-stage" data-stage="3">
+        <div class="thanks">
+          <div class="thanks-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
+          <h2>You're on the list!</h2>
+          <p id="thanksMsg">Thanks — we've got your details and we'll be in touch about our social games.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="join-foot" id="joinFoot">
+      <button class="btn btn-ghost" id="joinBack">Back</button>
+      <button class="btn btn-primary" id="joinNext" disabled>Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== DEMO CONTROLS =============================== -->
+<div id="demo">
+  <span class="demo-tag">Prototype</span>
+  <span>Code: <b>TZH-678</b></span>
+  <button id="dReplay">Replay intro</button>
+  <button id="dJoin">Open join flow</button>
+  <button id="dUnlock">Demo unlock</button>
+</div>
+
+<script>
+/* ================= INTRO ================= */
+const lock = document.getElementById('lock');
+function spawnMotes(){
+  document.querySelectorAll('.mote').forEach(m=>m.remove());
+  for(let i=0;i<10;i++){
+    const m=document.createElement('span');m.className='mote';
+    const s=4+Math.random()*9;
+    m.style.width=s+'px';m.style.height=s+'px';
+    m.style.left=(Math.random()*100)+'%';
+    m.style.top=(60+Math.random()*40)+'%';
+    m.style.animationDuration=(7+Math.random()*7)+'s';
+    m.style.animationDelay=(Math.random()*6)+'s';
+    lock.appendChild(m);
+  }
+}
+function playIntro(){
+  lock.classList.remove('lit');
+  spawnMotes();
+  void lock.offsetWidth;          // reflow so animations restart
+  requestAnimationFrame(()=>lock.classList.add('lit'));
+}
+playIntro();
+
+/* ================= PASSWORD ================= */
+const CODE='TZH-678';
+const passInput=document.getElementById('passInput');
+const passErr=document.getElementById('passErr');
+const passBtn=document.getElementById('passBtn');
+function formatCode(el){
+  let v=el.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);
+  if(v.length>3)v=v.slice(0,3)+'-'+v.slice(3);
+  el.value=v;
+}
+passInput.addEventListener('input',()=>{passErr.classList.remove('show');formatCode(passInput);});
+passInput.addEventListener('keydown',e=>{if(e.key==='Enter')trySubmitCode();});
+passBtn.addEventListener('click',trySubmitCode);
+function trySubmitCode(){
+  if(passInput.value.trim().toUpperCase()===CODE){ unlock(); }
+  else{
+    passErr.classList.add('show');
+    passInput.classList.add('shake');
+    setTimeout(()=>passInput.classList.remove('shake'),420);
+  }
+}
+function unlock(){
+  document.getElementById('site').classList.add('revealed');
+  lock.classList.add('unlocking');
+  setTimeout(()=>{lock.style.display='none';},1000);
+}
+
+/* ================= JOIN FLOW ================= */
+const join=document.getElementById('join');
+const heroBtn=document.getElementById('heroBtn');
+const GAME_WEEKDAYS={0:'Sunday',1:'Monday',5:'Friday'};   // Sun, Mon, Fri (matches socialGames)
+const TIME='9–11pm';
+const today=new Date(); today.setHours(0,0,0,0);
+let viewY=today.getFullYear(), viewM=today.getMonth();
+let step=1;
+const selected=new Set();           // ISO date strings
+let skill=null;
+
+function isoOf(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
+function prettyDate(iso){
+  const [y,m,d]=iso.split('-').map(Number);
+  const dt=new Date(y,m-1,d);
+  return dt.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+}
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+function renderCalendar(){
+  document.getElementById('calMonth').textContent=MONTHS[viewM]+' '+viewY;
+  const grid=document.getElementById('calGrid');grid.innerHTML='';
+  DOW.forEach(d=>{const h=document.createElement('div');h.className='cal-dow';h.textContent=d;grid.appendChild(h);});
+  const first=new Date(viewY,viewM,1).getDay();
+  const days=new Date(viewY,viewM+1,0).getDate();
+  for(let i=0;i<first;i++){grid.appendChild(document.createElement('div'));}
+  for(let d=1;d<=days;d++){
+    const cell=document.createElement('button');
+    cell.className='cal-cell';cell.textContent=d;
+    const dt=new Date(viewY,viewM,d);dt.setHours(0,0,0,0);
+    const wd=dt.getDay();const iso=isoOf(viewY,viewM,d);
+    const isGameDay=GAME_WEEKDAYS.hasOwnProperty(wd);
+    if(dt>=today && isGameDay){
+      cell.classList.add('open');
+      cell.title=GAME_WEEKDAYS[wd]+' · '+TIME;
+      if(selected.has(iso))cell.classList.add('sel');
+      cell.addEventListener('click',()=>toggleDate(iso,cell));
+    }else{
+      cell.classList.add('muted');cell.disabled=true;
+    }
+    grid.appendChild(cell);
+  }
+  // disable prev when at/earlier than the current real month
+  const prevDisabled=(viewY<today.getFullYear())||(viewY===today.getFullYear()&&viewM<=today.getMonth());
+  document.getElementById('calPrev').disabled=prevDisabled;
+}
+function toggleDate(iso,cell){
+  if(selected.has(iso)){selected.delete(iso);cell.classList.remove('sel');}
+  else{selected.add(iso);cell.classList.add('sel');}
+  updateCalState();
+}
+function updateCalState(){
+  const n=selected.size;
+  document.getElementById('calHint').textContent=
+    n===0?'Select one or more dates to continue.':n+' date'+(n>1?'s':'')+' selected · '+TIME;
+  if(step===1)document.getElementById('joinNext').disabled=(n===0);
+}
+document.getElementById('calPrev').addEventListener('click',()=>{viewM--;if(viewM<0){viewM=11;viewY--;}renderCalendar();});
+document.getElementById('calNext').addEventListener('click',()=>{viewM++;if(viewM>11){viewM=0;viewY++;}renderCalendar();});
+
+/* skill chips */
+document.querySelectorAll('.skill-chip').forEach(ch=>{
+  ch.addEventListener('click',()=>{
+    document.querySelectorAll('.skill-chip').forEach(c=>c.classList.remove('sel'));
+    ch.classList.add('sel');skill=ch.dataset.skill;validateForm();
+  });
+});
+['nameInput','phoneInput'].forEach(id=>document.getElementById(id).addEventListener('input',validateForm));
+function validateForm(){
+  const name=document.getElementById('nameInput').value.trim();
+  const phone=document.getElementById('phoneInput').value.trim();
+  const ok=name && /\d/.test(phone) && skill && selected.size>0;
+  if(step===2)document.getElementById('joinNext').disabled=!ok;
+  return ok;
+}
+function renderDateSummary(){
+  const wrap=document.getElementById('dateSummary');wrap.innerHTML='';
+  if(selected.size===0){wrap.innerHTML='<span style="font-size:13px;color:var(--muted)">No dates yet — go back to add some.</span>';return;}
+  [...selected].sort().forEach(iso=>{
+    const pill=document.createElement('span');pill.className='date-pill';
+    pill.innerHTML='<span></span><button aria-label="Remove">&#x2715;</button>';
+    pill.querySelector('span').textContent=prettyDate(iso);
+    pill.querySelector('button').addEventListener('click',()=>{selected.delete(iso);renderDateSummary();validateForm();});
+    wrap.appendChild(pill);
+  });
+}
+
+/* step navigation */
+function setStep(n){
+  step=n;
+  document.querySelectorAll('.join-stage').forEach(s=>s.classList.toggle('active',+s.dataset.stage===n));
+  document.querySelectorAll('.join-step-dot').forEach(d=>d.classList.toggle('active',+d.dataset.s<=n));
+  const back=document.getElementById('joinBack');
+  const next=document.getElementById('joinNext');
+  const foot=document.getElementById('joinFoot');
+  if(n===1){back.style.visibility='hidden';next.textContent='Next';updateCalState();}
+  if(n===2){back.style.visibility='visible';next.textContent='Submit';renderDateSummary();validateForm();}
+  if(n===3){foot.style.display='none';}
+  else{foot.style.display='flex';}
+}
+document.getElementById('joinNext').addEventListener('click',()=>{
+  if(step===1)setStep(2);
+  else if(step===2){if(validateForm())submitJoin();}
+});
+document.getElementById('joinBack').addEventListener('click',()=>{if(step===2)setStep(1);});
+
+function submitJoin(){
+  /* Prototype: no network. Production maps to POST {action:'submitSignup',
+     name, phone, skill, dates, days} — see /spec implementation. */
+  const name=document.getElementById('nameInput').value.trim();
+  document.getElementById('thanksMsg').textContent=
+    'Thanks '+name.split(' ')[0]+' — we’ve saved your '+selected.size+
+    ' date'+(selected.size>1?'s':'')+' ('+skill+') and will be in touch about our social games.';
+  setStep(3);
+  setTimeout(closeJoin,3200);
+}
+
+function openJoin(){
+  lock.classList.add('joinopen');
+  join.classList.add('open');
+  viewY=today.getFullYear();viewM=today.getMonth();
+  renderCalendar();setStep(1);
+}
+function closeJoin(){
+  join.classList.remove('open');
+  lock.classList.remove('joinopen');
+  // reset for next demo run
+  selected.clear();skill=null;
+  document.getElementById('nameInput').value='';
+  document.getElementById('phoneInput').value='';
+  document.querySelectorAll('.skill-chip').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('joinFoot').style.display='flex';
+}
+heroBtn.addEventListener('click',openJoin);
+document.getElementById('joinClose').addEventListener('click',closeJoin);
+join.addEventListener('click',e=>{if(e.target===join)closeJoin();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&join.classList.contains('open'))closeJoin();});
+
+/* ================= DEMO CONTROLS ================= */
+document.getElementById('dReplay').addEventListener('click',()=>{
+  document.getElementById('site').classList.remove('revealed');
+  lock.style.display='';lock.classList.remove('unlocking');playIntro();
+});
+document.getElementById('dJoin').addEventListener('click',openJoin);
+document.getElementById('dUnlock').addEventListener('click',()=>{passInput.value=CODE;unlock();});
+</script>
+</body>
+</html>

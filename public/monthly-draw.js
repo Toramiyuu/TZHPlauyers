@@ -307,10 +307,104 @@
     return Math.round(diff / 86400000) + 'd ago';
   }
 
+  // ── Calendar join flow (2026-06-29) — dates + skill validation ─────────
+  // Shared by the browser calendar and the server submit endpoint so both
+  // enforce identical rules. All date math is deterministic (no clock reads):
+  // the caller injects today/max derived from the SERVER clock.
+
+  const SKILLS = ['Beginner', 'Intermediate', 'Advanced'];
+  const WD_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const _ISO_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+  /** True only for a real YYYY-MM-DD that round-trips (rejects 2026-02-30 etc.). */
+  function isValidISO(s) {
+    if (typeof s !== 'string') return false;
+    const m = _ISO_RE.exec(s);
+    if (!m) return false;
+    const y = +m[1], mo = +m[2], d = +m[3];
+    if (mo < 1 || mo > 12 || d < 1 || d > 31) return false;
+    const dt = new Date(y, mo - 1, d);
+    return dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d;
+  }
+
+  /** JS weekday 0=Sun..6=Sat for an ISO date; -1 if unparseable. */
+  function isoWeekday(iso) {
+    const m = _ISO_RE.exec(String(iso));
+    if (!m) return -1;
+    return new Date(+m[1], +m[2] - 1, +m[3]).getDay();
+  }
+
+  /** Weekday name ('Sunday'..'Saturday') for an ISO date; '' if unparseable. */
+  function weekdayName(iso) {
+    const w = isoWeekday(iso);
+    return w >= 0 ? WD_NAMES[w] : '';
+  }
+
+  /**
+   * Add n months to an ISO date, clamping the day to the target month's last
+   * day (2026-11-30 + 3 -> 2027-02-28, never overflowing into March). Pure +
+   * deterministic so client and server compute the SAME booking window bound.
+   */
+  function addMonthsISO(iso, n) {
+    const m = _ISO_RE.exec(String(iso));
+    if (!m) return String(iso);
+    const y = +m[1], mo = +m[2] - 1, d = +m[3];
+    const total = y * 12 + mo + Math.trunc(Number(n) || 0);
+    const ny = Math.floor(total / 12);
+    const nmo = ((total % 12) + 12) % 12;
+    const lastDay = new Date(ny, nmo + 1, 0).getDate();
+    const nd = Math.min(d, lastDay);
+    return ny + '-' + String(nmo + 1).padStart(2, '0') + '-' + String(nd).padStart(2, '0');
+  }
+
+  /**
+   * Validate a calendar join request. Returns {ok, error, clean?} where clean =
+   * {name, phone, skill, dates:uniqueSorted(≤12), days:uniqueWeekdayNames}.
+   * First failing rule wins; error is user-facing.
+   * @param {{name?,phone?,skill?,dates?:string[]}} input
+   * @param {{enabledWeekdays?:number[], todayISO?:string, maxISO?:string}} opts
+   */
+  function validateJoinRequest(input, opts) {
+    input = input || {};
+    opts = opts || {};
+    const name = String(input.name == null ? '' : input.name).trim();
+    const phone = String(input.phone == null ? '' : input.phone).trim();
+    const skill = String(input.skill == null ? '' : input.skill).trim();
+    const dates = input.dates;
+    const enabled = new Set(Array.isArray(opts.enabledWeekdays) ? opts.enabledWeekdays : []);
+    const todayISO = String(opts.todayISO || '');
+    const maxISO = String(opts.maxISO || '');
+
+    if (!name) return { ok: false, error: 'Please enter your name.' };
+    if (name.length > 80) return { ok: false, error: 'Name is too long.' };
+    if (!phone) return { ok: false, error: 'Please enter your phone number.' };
+    if (!/\d/.test(phone)) return { ok: false, error: 'Please enter a valid phone number.' };
+    if (SKILLS.indexOf(skill) === -1) return { ok: false, error: 'Please choose your skill level.' };
+    if (!Array.isArray(dates) || dates.length === 0) return { ok: false, error: 'Please pick at least one date.' };
+
+    const seen = new Set();
+    const cleanDates = [];
+    for (let i = 0; i < dates.length; i++) {
+      const iso = String(dates[i] == null ? '' : dates[i]);
+      if (!isValidISO(iso)) return { ok: false, error: 'Please pick a valid date.' };
+      if (todayISO && iso < todayISO) return { ok: false, error: 'That date has already passed.' };
+      if (maxISO && iso > maxISO) return { ok: false, error: 'That date is too far ahead.' };
+      if (!enabled.has(isoWeekday(iso))) return { ok: false, error: 'Please pick a valid game day.' };
+      if (!seen.has(iso)) { seen.add(iso); cleanDates.push(iso); }
+    }
+    cleanDates.sort();
+    const capped = cleanDates.slice(0, 12); // payload-growth guard
+    const days = [];
+    const dseen = new Set();
+    capped.forEach((iso) => { const nm = weekdayName(iso); if (nm && !dseen.has(nm)) { dseen.add(nm); days.push(nm); } });
+    return { ok: true, error: '', clean: { name, phone, skill, dates: capped, days } };
+  }
+
   return {
     drawTokens, drawLeftover, tokensRemaining, spinOutcome, parseDrawCsv, buildBallot, pickWinnerIndex,
     ordinal, withTokens, carryOverParticipants, matchParticipant, participantKey, mergeParticipants,
     nextMonthKey, monthLabel, reindexRanks,
     validateSignup, unhandledCount, timeAgo,
+    SKILLS, isValidISO, isoWeekday, weekdayName, addMonthsISO, validateJoinRequest,
   };
 });
