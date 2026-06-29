@@ -3,6 +3,7 @@ const path = require('path');
 const os = require('os');
 // Reuse the serverless submit validator + clock so local dev matches production.
 const { buildSignup, todayISO } = require('./api/state.js');
+const { ACCOUNT_ACTIONS, handleAccountAction, redactState } = require('./api/accounts.js');
 
 const app = express();
 app.use(express.json({ limit: '50mb' })); // large limit for base64 photos
@@ -58,7 +59,9 @@ app.get('/api/state', (req, res) => {
       return res.json({ locked: true, socialGames: openGames, today: todayISO() });
     }
   }
-  res.json({ ...state, serverTime: Date.now(), today: todayISO() });
+  // redactState strips the accounts array (PIN hashes, salts, tokens) so the
+  // GET payload can never leak account credentials.
+  res.json({ ...redactState(state), serverTime: Date.now(), today: todayISO() });
 });
 
 // POST state — admin only, merges updates
@@ -87,6 +90,15 @@ app.post('/api/state', (req, res) => {
     return res.json({ ok: true });
   }
 
+  // Public, UNAUTHENTICATED account actions (register / login / session /
+  // update profile / logout) — same contract as api/state.js: returns in every
+  // branch, never reaches the admin-password logic, only ever touches the
+  // accounts array and the roster player it owns.
+  if (b.action && ACCOUNT_ACTIONS.has(b.action)) {
+    const result = handleAccountAction(state, b);
+    return res.status(result.status).json(result.body);
+  }
+
   const { password, ...updates } = req.body;
   if (password !== ADMIN_PASSWORD) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -94,7 +106,7 @@ app.post('/api/state', (req, res) => {
   // Auth-only ping (no updates): return state so an authenticated admin can
   // bypass the site lock and reach the admin panel even without the site code.
   if (Object.keys(updates).length === 0) {
-    return res.json({ ok: true, state: { ...state, serverTime: Date.now() } });
+    return res.json({ ok: true, state: { ...redactState(state), serverTime: Date.now() } });
   }
   state = { ...state, ...updates };
   res.json({ ok: true });

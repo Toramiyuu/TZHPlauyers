@@ -1,4 +1,5 @@
 const { Redis } = require('@upstash/redis');
+const { ACCOUNT_ACTIONS, handleAccountAction, redactState } = require('./accounts.js');
 
 // Accepts env vars from Vercel Marketplace (KV_REST_API_URL) or direct Upstash (UPSTASH_REDIS_REST_URL)
 let redis = null;
@@ -240,6 +241,7 @@ const handler = async function handler(req, res) {
       if (!Array.isArray(current.socialGames)) current.socialGames = DEFAULT_STATE.socialGames.map(g => ({ ...g }));
       if (!Array.isArray(current.signups)) current.signups = [];
       if (!Array.isArray(current.endingSoon)) current.endingSoon = [];
+      if (!Array.isArray(current.accounts)) current.accounts = [];
       if (current.siteCode) {
         const provided = (req.query && req.query.code) ? req.query.code : '';
         if (provided !== current.siteCode) {
@@ -253,10 +255,12 @@ const handler = async function handler(req, res) {
           return res.status(200).json({ locked: true, socialGames: openGames, today: todayISO() });
         }
       }
-      return res.json({ ...current, serverTime: Date.now(), today: todayISO() });
+      // redactState strips the accounts array (PIN hashes, salts, tokens) so a
+      // GET payload can never leak account credentials to any client.
+      return res.json({ ...redactState(current), serverTime: Date.now(), today: todayISO() });
     } catch (e) {
       console.error('KV read error:', e.message);
-      return res.json({ ...DEFAULT_STATE, serverTime: Date.now(), today: todayISO() });
+      return res.json({ ...redactState(DEFAULT_STATE), serverTime: Date.now(), today: todayISO() });
     }
   }
 
@@ -306,6 +310,32 @@ const handler = async function handler(req, res) {
       return res.json({ ok: true });
     }
 
+    // Public, UNAUTHENTICATED account actions (register / login / session /
+    // update profile / logout). Like submitSignup, this path is gated only by
+    // the site-access code on the client; it never reaches the admin-password
+    // logic below (it returns in every branch). handleAccountAction mutates a
+    // freshly-loaded state copy and tells us whether to persist; it self-builds
+    // every record and never spreads req.body, so it can only ever touch the
+    // accounts array and the roster player it owns.
+    if (b.action && ACCOUNT_ACTIONS.has(b.action)) {
+      let s;
+      try {
+        s = (await kv.get(STATE_KEY)) || { ...DEFAULT_STATE };
+      } catch (e) {
+        s = { ...DEFAULT_STATE };
+      }
+      const result = handleAccountAction(s, b);
+      if (result.changed) {
+        try {
+          await kv.set(STATE_KEY, s);
+        } catch (e) {
+          console.error('KV write error (account):', e.message);
+          return res.status(500).json({ error: 'Storage error.' });
+        }
+      }
+      return res.status(result.status).json(result.body);
+    }
+
     const { password, ...updates } = req.body || {};
 
     if (password !== ADMIN_PASSWORD) {
@@ -322,7 +352,7 @@ const handler = async function handler(req, res) {
     // Auth-only ping (no updates): return state so an authenticated admin can
     // bypass the site lock and reach the admin panel even without the site code.
     if (Object.keys(updates).length === 0) {
-      return res.json({ ok: true, state: { ...state, serverTime: Date.now() } });
+      return res.json({ ok: true, state: { ...redactState(state), serverTime: Date.now() } });
     }
 
     // Handle deleteSession action

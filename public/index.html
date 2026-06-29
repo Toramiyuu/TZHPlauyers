@@ -70,6 +70,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 #arena3d{position:fixed;inset:0;z-index:1200;background:#eef4fd;display:none}
 #arena3d.open{display:block}
 #arena3d #arenaFrame{border:0;width:100%;height:100%;display:block}
+/* While the 3D arena is open, its nav buttons open these panels as overlays ON
+   TOP of the iframe (which is z-1200) so the user stays in the 3D scene. */
+body.in-3d #membersModal,
+body.in-3d #lbModal,
+body.in-3d #joinModal{z-index:1300}
 /* courts as clean cards */
 #courtsDisplay{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(440px,100%),1fr));gap:clamp(20px,2.5vw,32px);flex:1;width:100%;margin:0 auto;align-content:start;min-height:0}
 .acourt{background:var(--a-card);border:1px solid var(--a-line);border-radius:24px;padding:clamp(26px,3vw,42px) clamp(22px,2.6vw,38px);display:flex;flex-direction:column;gap:clamp(18px,2.4vw,30px);box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(0,0,0,.05)}
@@ -810,6 +815,37 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   #gateInput.shake{animation:none}
   *{scroll-behavior:auto!important}
 }
+/* ── USER ACCOUNTS — header widget, dropdown, auth/profile modals ── */
+.vh-acct{position:relative;display:inline-flex;align-items:center}
+.vh-acct-btn{font-family:var(--font-apple);font-size:14px;font-weight:500;letter-spacing:-.01em;padding:5px 12px 5px 6px;border-radius:980px;border:none;background:var(--a-card-2);color:var(--a-ink);cursor:pointer;transition:background .2s ease;display:inline-flex;align-items:center;gap:8px;min-height:36px}
+.vh-acct-btn.signed-out{padding:8px 16px}
+.vh-acct-btn:hover{background:#d6e3f7}
+.vh-acct-btn .ic{width:16px;height:16px;color:var(--a-ink-2);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.vh-acct-av{width:26px;height:26px;border-radius:50%;object-fit:cover;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;line-height:1}
+.vh-acct-name{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vh-acct-chev{width:13px;height:13px;color:var(--a-ink-3);transition:transform .2s ease;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.vh-acct.open .vh-acct-chev{transform:scaleY(-1)}
+.acct-menu{position:absolute;top:calc(100% + 8px);right:0;min-width:206px;background:var(--a-card);border:1px solid var(--a-line);border-radius:14px;box-shadow:var(--shadow-lg);padding:6px;display:none;flex-direction:column;z-index:320}
+.vh-acct.open .acct-menu{display:flex}
+.acct-menu-head{padding:8px 10px 10px;border-bottom:1px solid var(--a-card-2);margin-bottom:6px}
+.acct-menu-name{font-size:14px;font-weight:600;color:var(--a-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acct-menu-uname{font-size:12px;color:var(--a-ink-3);margin-top:1px}
+.acct-menu-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border:none;background:none;border-radius:9px;font-family:var(--font-apple);font-size:14px;color:var(--a-ink);cursor:pointer;text-align:left;width:100%}
+.acct-menu-item:hover{background:var(--a-card-2)}
+.acct-menu-item .ic{width:16px;height:16px;color:var(--a-ink-2);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.acct-menu-item.danger{color:var(--red)}
+.acct-menu-item.danger .ic{color:var(--red)}
+/* auth + profile modals reuse the .modal-* shell */
+#authModal .modal-input,#profileModal .modal-input{margin-bottom:10px}
+.pin-input{letter-spacing:.4em;text-align:center;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.pin-input::placeholder{letter-spacing:normal;font-family:var(--font-apple)}
+.auth-error{color:var(--red);font-size:var(--fs-sm);margin:2px 0 6px;display:none}
+.auth-error.show{display:block}
+.auth-switch{display:block;width:100%;margin-top:14px;background:none;border:none;color:var(--a-blue);font-family:var(--font-apple);font-size:13px;cursor:pointer;padding:8px;text-align:center}
+.auth-switch:hover{text-decoration:underline;text-underline-offset:3px}
+.acct-photo-prev{width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid var(--a-blue);display:block}
+.acct-photo-ph{width:84px;height:84px;border-radius:50%;background:var(--a-card-2);border:3px solid var(--a-line);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:300;color:var(--a-ink-3)}
+.prof-uname{font-size:13px;color:var(--a-ink-3);margin:-2px 0 10px;text-align:center}
 </style>
 </head>
 <body>
@@ -868,6 +904,70 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeGuestModal()">Cancel</button>
       <button class="btn btn-primary" onclick="confirmAddGuest()">Add Guest</button>
+    </div>
+  </div>
+</div>
+
+<!-- Account auth modal (public self-signup: username + 6-digit PIN) -->
+<div id="authModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="authTitle"
+  onclick="if(event.target===this)closeAuthModal()">
+  <div class="modal-box modal-center">
+    <h2 id="authTitle" style="margin-bottom:6px">Welcome back</h2>
+    <!-- Sign in -->
+    <div id="authSignin">
+      <p class="modal-desc">Sign in to your TZH account.</p>
+      <input id="siUsername" class="modal-input" type="text" placeholder="Username" autocomplete="username"
+        maxlength="20" onkeydown="if(event.key==='Enter')document.getElementById('siPin').focus()">
+      <input id="siPin" class="modal-input pin-input" type="password" inputmode="numeric" maxlength="6"
+        placeholder="6-digit PIN" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')submitSignin()">
+      <div class="auth-error" id="siError" role="alert"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" style="width:100%" onclick="submitSignin()">Sign in</button>
+      </div>
+      <button type="button" class="auth-switch" onclick="setAuthMode('register')">New here? Create an account</button>
+    </div>
+    <!-- Create account -->
+    <div id="authRegister" style="display:none">
+      <p class="modal-desc">Create your TZH account.</p>
+      <div class="modal-photo-wrap" onclick="document.getElementById('regPhotoFile').click()">
+        <div id="regPhotoPreview"></div>
+      </div>
+      <input type="file" id="regPhotoFile" accept="image/*" style="display:none" onchange="previewRegPhoto(this)">
+      <span class="modal-photo-hint">Add a profile photo (optional)</span>
+      <input id="regName" class="modal-input" type="text" placeholder="Display name" maxlength="40" autocomplete="name">
+      <input id="regUsername" class="modal-input" type="text" placeholder="Username (letters, numbers, _)"
+        maxlength="20" autocomplete="username">
+      <input id="regPin" class="modal-input pin-input" type="password" inputmode="numeric" maxlength="6"
+        placeholder="Choose a 6-digit PIN" autocomplete="new-password"
+        onkeydown="if(event.key==='Enter')submitRegister()">
+      <div class="auth-error" id="regError" role="alert"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" style="width:100%" onclick="submitRegister()">Create account</button>
+      </div>
+      <button type="button" class="auth-switch" onclick="setAuthMode('signin')">Have an account? Sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- Account profile modal (edit name / PIN / photo — token-authed) -->
+<div id="profileModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="profileTitle"
+  onclick="if(event.target===this)closeProfileModal()">
+  <div class="modal-box modal-center">
+    <h2 id="profileTitle">Your profile</h2>
+    <div class="modal-photo-wrap" onclick="document.getElementById('profPhotoFile').click()">
+      <div id="profPhotoPreview"></div>
+    </div>
+    <input type="file" id="profPhotoFile" accept="image/*" style="display:none" onchange="previewProfPhoto(this)">
+    <span class="modal-photo-hint">Tap photo to change</span>
+    <input id="profName" class="modal-input" type="text" placeholder="Display name" maxlength="40" autocomplete="name">
+    <div class="prof-uname" id="profUsername"></div>
+    <input id="profPin" class="modal-input pin-input" type="password" inputmode="numeric" maxlength="6"
+      placeholder="New 6-digit PIN (leave blank to keep)" autocomplete="new-password">
+    <div class="auth-error" id="profError" role="alert"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeProfileModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitProfile()">Save changes</button>
     </div>
   </div>
 </div>
@@ -1110,6 +1210,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <button id="viewerJoinBtn" onclick="openJoinModal()"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Join social games</button>
         <button id="td3Btn" type="button" onclick="enter3D()" title="Switch to the 3D arena view (best on desktop)"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg> 3D View</button>
       </div>
+      <div class="vh-acct" id="accountWidget"></div>
     </div>
   </div>
   <div id="viewerWinners" style="display:none;margin-top:8px"></div>
@@ -1649,6 +1750,7 @@ function enter3D() {
   }
   overlay.classList.add('open');
   overlay.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('in-3d'); // lets modals layer above the arena
   document.body.style.overflow = 'hidden';
 }
 
@@ -1657,16 +1759,31 @@ function exit3D() {
   if (!overlay) return;
   overlay.classList.remove('open');
   overlay.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('in-3d');
   document.body.style.overflow = '';
 }
 
 // The arena's "Normal view" button (and its Escape handler) post this message
-// up to the host so the user can leave 3D mode without a page reload. The arena
-// iframe is same-origin (/3d/arena-webgl.html), so only accept messages whose
-// origin matches this page — ignore anything posted from a foreign frame.
+// up to the host so the user can leave 3D mode without a page reload. Its nav
+// buttons (Members / Leaderboard / Join / Admin) post a 'tzh-nav' message and
+// open the SAME feature the 2D nav opens. Members/Leaderboard/Join are modals,
+// so they layer ON TOP of the arena (body.in-3d bumps them above z-1200) — the
+// user stays in 3D. Admin is a full management screen that replaces the viewer,
+// so it leaves 3D first. The arena iframe is same-origin (/3d/arena-webgl.html),
+// so only accept messages whose origin matches this page.
 window.addEventListener('message', (e) => {
   if (e.origin !== window.location.origin) return;
-  if (e && e.data && e.data.type === 'tzh-exit-3d') exit3D();
+  const d = e && e.data;
+  if (!d || typeof d.type !== 'string') return;
+  if (d.type === 'tzh-exit-3d') { exit3D(); return; }
+  if (d.type === 'tzh-nav') {
+    switch (d.action) {
+      case 'members':     openMembersModal(); break;
+      case 'leaderboard': openLbModal();      break;
+      case 'join':        openJoinModal();    break;
+      case 'admin':       exit3D(); requestAdmin(); break;
+    }
+  }
 });
 
 // ── VIEWER ───────────────────────────────────
@@ -1775,6 +1892,7 @@ function stateSig(obj) {
 
 function renderViewer() {
   if (!state) return;
+  renderAccountWidget(); // poll-safe (sig-guarded) — keeps the avatar/name live
   const dateEl = document.getElementById('viewerDate');
   if (dateEl) dateEl.textContent = state.sessionDate ? formatDisplayDate(state.sessionDate) : '';
   const courtRounds = getCourtRounds();
@@ -4855,6 +4973,262 @@ function displayPickerWinner(spin) {
   pickerAutoHideTimer = setTimeout(() => hidePickerOverlay(), 8000);
 }
 
+// ── USER ACCOUNTS ─────────────────────────────
+// Simple self-signup accounts: username + 6-digit PIN. Each account is linked to
+// a roster player (created at signup), so editing name/photo flows straight to
+// the live court display. Session = a random token from the server, kept in
+// localStorage and replayed for profile edits. PIN hashing + redaction of the
+// accounts array from every GET live server-side (api/accounts.js).
+let acctSession = null;        // { token, id, username, playerId }
+let regPhotoData = null;       // pending registration photo (dataURL)
+let profPhotoData = null;      // current/edited profile photo (dataURL or null)
+let profPhotoTouched = false;  // only send `photo` on update if the user changed it
+let __acctSig = null;          // last-rendered widget signature (poll-safe)
+
+function loadAcctSession() {
+  try {
+    const raw = localStorage.getItem('tzhAccount');
+    const s = raw ? JSON.parse(raw) : null;
+    acctSession = (s && s.token && s.playerId) ? s : null;
+  } catch { acctSession = null; }
+}
+
+function saveAcctSession(s) {
+  acctSession = s || null;
+  try {
+    if (acctSession) localStorage.setItem('tzhAccount', JSON.stringify(acctSession));
+    else localStorage.removeItem('tzhAccount');
+  } catch {}
+  __acctSig = null; // force the widget to repaint on the next render
+}
+
+// Account actions are public (no admin password, no site code) — same contract
+// as the server: POST { action, ... } -> { status, ok, data }.
+async function acctPost(action, payload) {
+  try {
+    const r = await fetch('/api/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ action }, payload || {})),
+    });
+    const data = await r.json().catch(() => ({}));
+    return { status: r.status, ok: r.ok, data: data || {} };
+  } catch {
+    return { status: 0, ok: false, data: { error: 'Network error — please try again.' } };
+  }
+}
+
+// The account's live roster player (source of truth for name/photo), or null.
+function acctPlayer() {
+  if (!acctSession || !state || !Array.isArray(state.roster)) return null;
+  return state.roster.find(r => r && r.id === acctSession.playerId) || null;
+}
+
+function acctAvatarHtml(player, cls) {
+  if (player && player.photo) return `<img class="${cls}" src="${player.photo}" alt="">`;
+  const name = (player && player.name) || (acctSession && acctSession.username) || '?';
+  const id = (player && player.id) || (acctSession && acctSession.playerId) || name;
+  return `<span class="${cls}" style="background:${getColor(id)}">${escHtml(getInitials(name))}</span>`;
+}
+
+// Poll-safe: only repaint when the logged-in identity or the linked player's
+// name/photo actually changed, so a 2s poll tick never collapses an open menu.
+function renderAccountWidget() {
+  const wrap = document.getElementById('accountWidget');
+  if (!wrap) return;
+  const player = acctPlayer();
+  const sig = acctSession
+    ? 'in|' + acctSession.username + '|' + acctSession.playerId + '|'
+      + ((player && player.name) || acctSession.username) + '|'
+      + ((player && player.photo) ? 'P' + player.photo.length : '0')
+    : 'out';
+  if (sig === __acctSig) return;
+  __acctSig = sig;
+  if (!acctSession) {
+    wrap.classList.remove('open');
+    wrap.innerHTML =
+      '<button class="vh-acct-btn signed-out" type="button" onclick="openAuthModal()">'
+      + '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>'
+      + ' Sign in</button>';
+    return;
+  }
+  const name = (player && player.name) || acctSession.username;
+  wrap.innerHTML =
+    '<button class="vh-acct-btn" type="button" onclick="toggleAcctMenu(event)" aria-haspopup="true">'
+      + acctAvatarHtml(player, 'vh-acct-av')
+      + '<span class="vh-acct-name">' + escHtml(name) + '</span>'
+      + '<svg class="vh-acct-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>'
+    + '</button>'
+    + '<div class="acct-menu" id="acctMenu">'
+      + '<div class="acct-menu-head">'
+        + '<div class="acct-menu-name">' + escHtml(name) + '</div>'
+        + '<div class="acct-menu-uname">@' + escHtml(acctSession.username) + '</div>'
+      + '</div>'
+      + '<button class="acct-menu-item" type="button" onclick="openProfileModal()">'
+        + '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg> Edit profile</button>'
+      + '<button class="acct-menu-item danger" type="button" onclick="acctLogout()">'
+        + '<svg class="ic" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg> Log out</button>'
+    + '</div>';
+}
+
+function toggleAcctMenu(e) {
+  if (e) e.stopPropagation();
+  const wrap = document.getElementById('accountWidget');
+  if (wrap) wrap.classList.toggle('open');
+}
+// Close the dropdown on any outside click.
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('accountWidget');
+  if (wrap && wrap.classList.contains('open') && !wrap.contains(e.target)) wrap.classList.remove('open');
+});
+
+// ── auth modal ────────────────────────────────
+function showErr(id, msg) { const el = document.getElementById(id); if (el) { el.textContent = msg; el.classList.add('show'); } }
+function hideErr(id) { const el = document.getElementById(id); if (el) { el.textContent = ''; el.classList.remove('show'); } }
+
+function renderPhotoPreview(elId, photo) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.innerHTML = photo
+    ? '<img class="acct-photo-prev" src="' + photo + '" alt="">'
+    : '<div class="acct-photo-ph">+</div>';
+}
+
+function setAuthMode(mode) {
+  const reg = mode === 'register';
+  document.getElementById('authSignin').style.display = reg ? 'none' : '';
+  document.getElementById('authRegister').style.display = reg ? '' : 'none';
+  document.getElementById('authTitle').textContent = reg ? 'Create account' : 'Welcome back';
+  hideErr('siError'); hideErr('regError');
+  setTimeout(() => { const f = document.getElementById(reg ? 'regName' : 'siUsername'); if (f) f.focus(); }, 60);
+}
+
+function openAuthModal() {
+  const wrap = document.getElementById('accountWidget');
+  if (wrap) wrap.classList.remove('open');
+  ['siUsername', 'siPin', 'regName', 'regUsername', 'regPin'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  regPhotoData = null;
+  renderPhotoPreview('regPhotoPreview', null);
+  document.getElementById('authModal').classList.add('open');
+  setAuthMode('signin');
+}
+function closeAuthModal() { document.getElementById('authModal').classList.remove('open'); }
+
+async function previewRegPhoto(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  regPhotoData = await compressPhoto(file);
+  renderPhotoPreview('regPhotoPreview', regPhotoData);
+}
+
+async function submitSignin() {
+  const username = document.getElementById('siUsername').value.trim();
+  const pin = document.getElementById('siPin').value.trim();
+  hideErr('siError');
+  if (!username || !/^\d{6}$/.test(pin)) { showErr('siError', 'Enter your username and 6-digit PIN.'); return; }
+  const res = await acctPost('loginAccount', { username, pin });
+  if (!res.ok) { showErr('siError', (res.data && res.data.error) || 'Could not sign in.'); return; }
+  onAuthSuccess(res.data);
+  notify('Signed in!');
+}
+
+async function submitRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const username = document.getElementById('regUsername').value.trim();
+  const pin = document.getElementById('regPin').value.trim();
+  hideErr('regError');
+  if (!name) { showErr('regError', 'Enter a display name.'); return; }
+  if (username.length < 3) { showErr('regError', 'Username must be at least 3 characters.'); return; }
+  if (!/^[A-Za-z0-9_]+$/.test(username)) { showErr('regError', 'Username can only use letters, numbers and _.'); return; }
+  if (!/^\d{6}$/.test(pin)) { showErr('regError', 'PIN must be exactly 6 digits.'); return; }
+  const res = await acctPost('registerAccount', { name, username, pin, photo: regPhotoData || null });
+  if (!res.ok) { showErr('regError', (res.data && res.data.error) || 'Could not create account.'); return; }
+  onAuthSuccess(res.data);
+  notify('Account created!');
+}
+
+function onAuthSuccess(data) {
+  const acc = (data && data.account) || {};
+  saveAcctSession({ token: data.token, id: acc.id, username: acc.username, playerId: acc.playerId });
+  closeAuthModal();
+  renderAccountWidget();
+  // Pull fresh state so the new roster player (and any name/photo) shows at once.
+  refreshState().then(() => { renderViewer(); renderAccountWidget(); });
+}
+
+// Validate a stored token on load; clears the session if the server rejects it.
+async function refreshAccountSession() {
+  if (!acctSession || !acctSession.token) return;
+  const res = await acctPost('accountSession', { token: acctSession.token });
+  if (res.status === 401) { saveAcctSession(null); renderAccountWidget(); return; }
+  if (res.ok && res.data && res.data.account) {
+    const acc = res.data.account;
+    saveAcctSession({ token: acctSession.token, id: acc.id, username: acc.username, playerId: acc.playerId });
+    renderAccountWidget();
+  }
+}
+
+function acctLogout() {
+  const token = acctSession && acctSession.token;
+  saveAcctSession(null);
+  renderAccountWidget();
+  notify('Logged out.');
+  if (token) acctPost('logoutAccount', { token }); // best-effort server-side invalidation
+}
+
+// ── profile modal ─────────────────────────────
+function openProfileModal() {
+  const wrap = document.getElementById('accountWidget');
+  if (wrap) wrap.classList.remove('open');
+  if (!acctSession) return openAuthModal();
+  const player = acctPlayer();
+  document.getElementById('profName').value = (player && player.name) || acctSession.username || '';
+  document.getElementById('profPin').value = '';
+  document.getElementById('profUsername').textContent = '@' + acctSession.username;
+  profPhotoData = (player && player.photo) || null;
+  profPhotoTouched = false;
+  renderPhotoPreview('profPhotoPreview', profPhotoData);
+  hideErr('profError');
+  document.getElementById('profileModal').classList.add('open');
+  setTimeout(() => { const f = document.getElementById('profName'); if (f) f.focus(); }, 60);
+}
+function closeProfileModal() { document.getElementById('profileModal').classList.remove('open'); }
+
+async function previewProfPhoto(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  profPhotoData = await compressPhoto(file);
+  profPhotoTouched = true;
+  renderPhotoPreview('profPhotoPreview', profPhotoData);
+}
+
+async function submitProfile() {
+  if (!acctSession) return;
+  const name = document.getElementById('profName').value.trim();
+  const pin = document.getElementById('profPin').value.trim();
+  hideErr('profError');
+  if (!name) { showErr('profError', 'Enter a display name.'); return; }
+  if (pin && !/^\d{6}$/.test(pin)) { showErr('profError', 'New PIN must be exactly 6 digits.'); return; }
+  const payload = { token: acctSession.token, name };
+  if (pin) payload.pin = pin;
+  if (profPhotoTouched) payload.photo = profPhotoData || null; // null clears the photo
+  const res = await acctPost('updateAccount', payload);
+  if (res.status === 401) {
+    saveAcctSession(null); renderAccountWidget(); closeProfileModal();
+    notify('Session expired — please sign in again.', 'warn');
+    return;
+  }
+  if (!res.ok) { showErr('profError', (res.data && res.data.error) || 'Could not save changes.'); return; }
+  closeProfileModal();
+  renderAccountWidget();
+  refreshState().then(() => { renderViewer(); renderAccountWidget(); });
+  notify('Profile updated!');
+}
+
+// ── account init ──────────────────────────────
+loadAcctSession();
+renderAccountWidget();
+refreshAccountSession();
 startPolling();
 </script>
 </body>
