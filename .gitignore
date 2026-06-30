@@ -7,3 +7,10 @@ node_modules/
 .vercel
 .env*
 .playwright-cli/
+
+# Local-only docs & artifacts — keep out of the repo (root-anchored so
+# design-makeovers/ and promo-mockup/ assets are unaffected)
+/CLAUDE_PROMPT_*.md
+/BUG_REPORT.md
+/TZH_*.pdf
+/WhatsApp Image*
