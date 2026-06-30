@@ -8,9 +8,18 @@ node_modules/
 .env*
 .playwright-cli/
 
-# Local-only docs & artifacts — keep out of the repo (root-anchored so
-# design-makeovers/ and promo-mockup/ assets are unaffected)
+# Local-only docs & artifacts — kept on disk, never committed.
+# Root working notes / private documents:
 /CLAUDE_PROMPT_*.md
 /BUG_REPORT.md
 /TZH_*.pdf
+/TZH_*.html
 /WhatsApp Image*
+# Promo-mockup private docs + photos (logo_tzh.png and the .html pages stay):
+promo-mockup/*.pdf
+promo-mockup/assets/thomas.jpg
+promo-mockup/assets/cert_*.jpg
+promo-mockup/assets/pw-001.jpg
+# Design-makeover venue reference photos (logo.png stays):
+design-makeovers/IMG_*.HEIC
+design-makeovers/_refs/IMG_*.jpg
