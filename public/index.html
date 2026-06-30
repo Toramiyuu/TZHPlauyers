@@ -1808,6 +1808,11 @@ window.addEventListener('message', (e) => {
   const d = e && e.data;
   if (!d || typeof d.type !== 'string') return;
   if (d.type === 'tzh-exit-3d') { exit3D(); return; }
+  // Escape pressed inside the arena iframe. A nav panel (Members / Leaderboard /
+  // Join) may be open ON TOP of the arena — close it and STAY in 3D; only leave
+  // 3D when nothing is open. (Clicking a nav button moves focus into the iframe,
+  // so the host's own keydown listener never sees this Escape — hence the relay.)
+  if (d.type === 'tzh-escape') { if (!closeOpenOverlays()) exit3D(); return; }
   if (d.type === 'tzh-nav') {
     switch (d.action) {
       case 'members':     openMembersModal(); break;
@@ -4994,18 +4999,28 @@ function launchConfetti(containerId) {
   }
 }
 
+// Close any open overlay/modal (picker, Members / Leaderboard / Prize Draw /
+// History / Join). Returns true if it closed at least one. Shared by the global
+// Escape key handler AND the arena's forwarded Escape (tzh-escape) so that
+// pressing Escape inside 3D closes the panel layered over the arena rather than
+// dropping out of 3D — the host only leaves 3D when nothing was open.
+function closeOpenOverlays() {
+  let closed = false;
+  const pov = document.getElementById('pickerOverlay');
+  if (pov && pov.classList.contains('active')) { hidePickerOverlay(); closed = true; }
+  const isOpen = id => { const el = document.getElementById(id); return el && el.classList.contains('open'); };
+  if (isOpen('membersModal')) { closeMembersModal(); closed = true; }
+  if (isOpen('lbModal'))      { closeLbModal();      closed = true; }
+  if (isOpen('mdBoardModal')) { closeMdBoard();      closed = true; }
+  if (isOpen('historyModal')) { closeHistoryModal(); closed = true; }
+  if (isOpen('joinModal'))    { closeJoinModal();    closed = true; }
+  return closed;
+}
+
 // Keyboard dismiss for overlays and modals
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  const pov = document.getElementById('pickerOverlay');
-  if (pov && pov.classList.contains('active')) hidePickerOverlay();
-  // Close any open .open modal (Members / Leaderboard / Prize Draw / History)
-  const isOpen = id => { const el = document.getElementById(id); return el && el.classList.contains('open'); };
-  if (isOpen('membersModal')) closeMembersModal();
-  if (isOpen('lbModal')) closeLbModal();
-  if (isOpen('mdBoardModal')) closeMdBoard();
-  if (isOpen('historyModal')) closeHistoryModal();
-  if (isOpen('joinModal')) closeJoinModal();
+  closeOpenOverlays();
 });
 
 // ── MONTHLY DRAW REVEAL (viewer-synced shuffle) ──

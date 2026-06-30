@@ -1079,8 +1079,16 @@ async function refreshArena(){
       var b = document.getElementById(pair[0]);
       if(b) b.addEventListener('click', function(){ arenaNav(pair[1]); });
     });
-  // allow the embedding viewer (or a keyboard user) to leave with Escape
-  window.addEventListener('keydown', function(e){ if(e.key === 'Escape') exitArena(); });
+  // Escape: when embedded, hand it to the host viewer (tzh-escape) — it closes
+  // any nav panel open over the arena and only leaves 3D when nothing is open,
+  // so Escape no longer drops you to 2D mid-panel. Standalone, just leave.
+  window.addEventListener('keydown', function(e){
+    if(e.key !== 'Escape') return;
+    if(isEmbedded()){
+      try { window.parent.postMessage({ type:'tzh-escape' }, '*'); return; } catch(err){}
+    }
+    exitArena();
+  });
   refreshArena();
   setInterval(refreshArena, 3000);
 })();
