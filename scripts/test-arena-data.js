@@ -20,6 +20,11 @@
  *        one entry per court that HAS a match in its current round; courts with
  *        no court slot are omitted. Names are resolved; unknown ids dropped.
  *
+ *   buildNextUpFromState(state)
+ *     -> [{ court, text }]   (mirrors index.html's computeNextUp + row text: one
+ *        entry per court that HAS a NEXT round; courts on their last round or
+ *        without a court slot next round are omitted; unknown/empty id -> 'TBD')
+ *
  * Pattern matches the other pure-helper guards: extract each function's source
  * from the HTML by brace-matching, eval the trio together, assert behaviour.
  * Exit 0 = green, exit 1 = red.
@@ -52,14 +57,14 @@ function extractFn(name, src) {
 
 // buildMatchesFromState depends on the other two — eval all three in one scope.
 function loadHelpers() {
-  const names = ['resolvePlayer', 'getArenaCourtRounds', 'buildMatchesFromState'];
+  const names = ['resolvePlayer', 'getArenaCourtRounds', 'buildMatchesFromState', 'buildNextUpFromState'];
   const sources = names.map(n => {
     const s = extractFn(n, html);
     if (!s) throw new Error(`MISSING helper in arena-webgl.html: ${n}`);
     return s;
   });
   // eslint-disable-next-line no-new-func
-  return new Function(`${sources.join('\n')}; return { resolvePlayer, getArenaCourtRounds, buildMatchesFromState };`)();
+  return new Function(`${sources.join('\n')}; return { resolvePlayer, getArenaCourtRounds, buildMatchesFromState, buildNextUpFromState };`)();
 }
 
 const failures = [];
@@ -155,6 +160,46 @@ check('buildMatches drops empty ids', mu[0].t2.join(',') === 'Ann');
 // empty / malformed state never throws
 check('buildMatches handles null state', Array.isArray(H.buildMatchesFromState(null)) && H.buildMatchesFromState(null).length === 0);
 check('buildMatches handles empty rounds', H.buildMatchesFromState({ numCourts: 2, rounds: [] }).length === 0);
+
+// ── buildNextUpFromState ──────────────────────────────────────────────────
+// The main `state` fixture has 2 rounds; courtRounds=[0,1]. Court 0 has a next
+// round (index 1); court 1 is already on the last round → omitted.
+const nu = H.buildNextUpFromState(state);
+check('nextUp → one row (court on its last round omitted)', nu.length === 1);
+check('nextUp uses the court number', nu[0].court === 1);
+check('nextUp text is the next-round matchup', nu[0].text === 'Desmond & Celine vs Sharmin & Terence');
+
+// a court whose NEXT round has no court slot is omitted; the other still shows
+const nuSparse = {
+  numCourts: 2, currentRound: 0, courtRounds: [0, 0],
+  roster: [{ id: 'a', name: 'Ann' }, { id: 'b', name: 'Ben' }, { id: 'c', name: 'Cy' }, { id: 'd', name: 'Di' }],
+  rounds: [
+    { label: 'R1', courts: [{ team1: ['a', 'b'], team2: ['c', 'd'] }, { team1: ['c', 'd'], team2: ['a', 'b'] }] },
+    { label: 'R2', courts: [{ team1: ['a', 'c'], team2: ['b', 'd'] }] }, // only court 0 has a next slot
+  ],
+};
+const nu2 = H.buildNextUpFromState(nuSparse);
+check('nextUp omits a court with no next slot', nu2.length === 1 && nu2[0].court === 1);
+check('nextUp resolves the next-round names', nu2[0].text === 'Ann & Cy vs Ben & Di');
+
+// singles (missing partner) shows TBD — matches the 2D viewer's row text
+const nuSingles = {
+  numCourts: 1, currentRound: 0, courtRounds: [0],
+  roster: [{ id: 'a', name: 'Ann' }, { id: 'b', name: 'Ben' }],
+  rounds: [
+    { label: 'R1', courts: [{ team1: ['a'], team2: ['b'] }] },
+    { label: 'R2', courts: [{ team1: ['a'], team2: ['b'] }] },
+  ],
+};
+check('nextUp shows TBD for a missing partner (2D parity)',
+  H.buildNextUpFromState(nuSingles)[0].text === 'Ann & TBD vs Ben & TBD');
+
+// last round → nothing up next; null/empty state never throws
+check('nextUp empty when no next round exists',
+  H.buildNextUpFromState({ numCourts: 1, currentRound: 0, courtRounds: [0],
+    roster: [{ id: 'a', name: 'Ann' }, { id: 'b', name: 'Ben' }],
+    rounds: [{ label: 'R1', courts: [{ team1: ['a'], team2: ['b'] }] }] }).length === 0);
+check('nextUp handles null state', Array.isArray(H.buildNextUpFromState(null)) && H.buildNextUpFromState(null).length === 0);
 
 // ── report ────────────────────────────────────────────────────────────────
 if (failures.length) {

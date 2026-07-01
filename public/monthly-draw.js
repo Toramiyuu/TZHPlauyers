@@ -400,11 +400,46 @@
     return { ok: true, error: '', clean: { name, phone, skill, dates: capped, days } };
   }
 
+  // Group sign-up: one person brings friends, everyone shares one set of dates.
+  const MAX_PARTY = 5; // 1 organiser + up to 4 friends
+
+  /**
+   * Validate a multi-person group join request. `input.people` is an array of
+   * {name,phone,skill}; `input.dates` is the ONE date set they all share. Each
+   * person is validated with validateJoinRequest (so the rules live in one
+   * place). Returns {ok, error, clean:{list:[{name,phone,skill,dates,days,
+   * broughtBy?}]}}. Person 0 is the organiser (no broughtBy); friends carry
+   * broughtBy = organiser's name. With no `people[]`, falls back to a single
+   * validateJoinRequest so old single-person callers keep working.
+   * @param {{people?:Array,dates?:string[],name?,phone?,skill?}} input
+   * @param {{enabledWeekdays?:number[], todayISO?:string, maxISO?:string}} opts
+   */
+  function validateJoinRequests(input, opts) {
+    input = input || {};
+    if (!Array.isArray(input.people)) {
+      const one = validateJoinRequest(input, opts);
+      return one.ok ? { ok: true, error: '', clean: { list: [one.clean] } } : one;
+    }
+    if (input.people.length === 0) return { ok: false, error: 'Please add at least one person.' };
+    const people = input.people.slice(0, MAX_PARTY);
+    const list = [];
+    let organiser = '';
+    for (let i = 0; i < people.length; i++) {
+      const p = people[i] || {};
+      const one = validateJoinRequest({ name: p.name, phone: p.phone, skill: p.skill, dates: input.dates }, opts);
+      if (!one.ok) return one;
+      if (i === 0) organiser = one.clean.name;
+      else one.clean.broughtBy = organiser;
+      list.push(one.clean);
+    }
+    return { ok: true, error: '', clean: { list } };
+  }
+
   return {
     drawTokens, drawLeftover, tokensRemaining, spinOutcome, parseDrawCsv, buildBallot, pickWinnerIndex,
     ordinal, withTokens, carryOverParticipants, matchParticipant, participantKey, mergeParticipants,
     nextMonthKey, monthLabel, reindexRanks,
     validateSignup, unhandledCount, timeAgo,
-    SKILLS, isValidISO, isoWeekday, weekdayName, addMonthsISO, validateJoinRequest,
+    SKILLS, isValidISO, isoWeekday, weekdayName, addMonthsISO, validateJoinRequest, validateJoinRequests,
   };
 });

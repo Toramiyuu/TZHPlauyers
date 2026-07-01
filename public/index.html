@@ -259,6 +259,16 @@ body.in-3d #joinModal{z-index:1300}
 .skill-chip{flex:1;min-height:46px;border:1px solid var(--border2);background:var(--dark);color:var(--text-2);border-radius:var(--radius-md);font-family:inherit;font-size:var(--fs-base);font-weight:500;cursor:pointer;transition:var(--transition)}
 .skill-chip:hover{border-color:var(--a-blue)}
 .skill-chip.sel{background:var(--a-blue-tint);border-color:var(--a-blue);color:var(--a-blue);font-weight:600}
+/* Group sign-up: one person card per player (you + friends) */
+.join-person{border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:12px;background:var(--card)}
+.join-person:first-child{background:var(--dark)}
+.join-person-head{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+.join-person-title{font-size:var(--fs-sm);font-weight:700;color:var(--text);letter-spacing:.01em}
+.join-person-del{margin-left:auto;width:32px;height:32px;min-width:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;transition:var(--transition)}
+.join-person-del:hover{background:var(--red);border-color:var(--red);color:#fff}
+.join-add-person{display:inline-flex;align-items:center;gap:7px;margin:2px 0 6px;padding:9px 14px;min-height:44px;border:1px dashed var(--border2);background:transparent;color:var(--a-blue);border-radius:var(--radius-md);font-family:inherit;font-size:var(--fs-sm);font-weight:600;cursor:pointer;transition:var(--transition)}
+.join-add-person:hover{border-color:var(--a-blue);background:var(--a-blue-tint)}
+.join-add-person .ic{width:16px;height:16px}
 .date-summary{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;min-height:24px}
 .date-pill{display:inline-flex;align-items:center;gap:6px;background:var(--a-blue-tint);color:var(--a-blue-2);border-radius:980px;padding:5px 12px;font-size:var(--fs-sm);font-weight:500}
 .date-pill button{background:none;border:none;color:var(--a-blue-2);cursor:pointer;font-size:14px;line-height:1;opacity:.7;padding:0;min-height:auto}
@@ -279,6 +289,7 @@ body.in-3d #joinModal{z-index:1300}
 .signup-name{font-size:var(--fs-md);font-weight:600;color:var(--text)}
 .signup-new-pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;background:var(--a-blue);color:#fff;font-size:13px;font-weight:700;line-height:1.2}
 .signup-skill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;background:var(--card2);border:1px solid var(--border2);color:var(--text-2);font-size:12px;font-weight:600;line-height:1.2}
+.signup-brought{display:inline-flex;align-items:center;padding:2px 9px;border-radius:100px;background:var(--a-blue-tint);border:1px solid var(--border2);color:var(--a-blue-2);font-size:12px;font-weight:600;line-height:1.2}
 .signup-time{margin-left:auto;font-size:var(--fs-xs);color:var(--muted);white-space:nowrap}
 .signup-phone{font-size:var(--fs-sm);color:var(--text-2);margin-bottom:8px}
 .signup-days{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
@@ -331,6 +342,14 @@ body.in-3d #joinModal{z-index:1300}
 .cc-ending:hover{background:rgba(205,125,44,.1)}
 .cc-ending.active{background:var(--warn);color:#fff;border-color:var(--warn)}
 .cc-ending.active:hover{background:#b86e22}
+.court-select{display:flex;gap:var(--sp-sm);align-items:center;flex-wrap:wrap}
+.court-select-chips{display:flex;gap:6px;flex-wrap:wrap}
+.court-chip{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:44px;padding:0 8px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--dark);color:var(--text-2);font-size:var(--fs-md);font-weight:600;cursor:pointer;user-select:none;transition:var(--transition)}
+.court-chip:hover{border-color:var(--green-light);color:var(--green-light)}
+.court-chip input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.court-chip.on{background:var(--green-tint);border-color:var(--green-line);color:var(--green-light)}
+.court-chip:focus-within{outline:2px solid var(--green-line);outline-offset:2px}
+.court-select-hint{font-size:var(--fs-xs);color:var(--muted);margin-top:6px}
 .court-round-tag{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
 
 /* ── MISC ────────────────────────────────── */
@@ -787,18 +806,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .rl-delete{padding:4px 8px;font-size:14px;line-height:1}
 /* Engagement tab */
 .admin-spin-btn{width:100%;font-size:var(--fs-md);padding:11px}
-/* Court Spins — one self-contained spin per court */
-.cspin-grid{display:grid;grid-template-columns:1fr;gap:var(--sp-md)}
-.cspin-court{background:var(--dark);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--sp-md)}
-.cspin-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.cspin-title{font-size:var(--fs-md);font-weight:700;color:var(--text)}
-.cspin-count{font-size:var(--fs-xs);font-weight:700;color:var(--green-light);background:rgba(0,113,227,.12);padding:2px 8px;border-radius:100px;white-space:nowrap}
-.cspin-max{font-size:var(--fs-xs);color:var(--muted);margin-top:2px}
-.cspin-names{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;min-height:32px}
-.cspin-add-row{display:flex;gap:var(--sp-sm);align-items:center;margin-bottom:8px}
-.cspin-winner{margin:2px 0 8px;font-size:var(--fs-sm);color:var(--green-light);font-weight:600;display:flex;align-items:center;gap:6px}
-.cspin-winner .ic{width:14px;height:14px;color:var(--accent)}
-@media(min-width:640px){.cspin-grid{grid-template-columns:1fr 1fr}}
 /* Settings tab */
 .admin-code-input{font-size:16px;font-family:monospace;letter-spacing:4px;width:136px}
 .admin-remove-btn{font-size:var(--fs-xs);color:var(--muted)}
@@ -820,7 +827,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   .md-tube-step input{width:56px;height:44px;font-size:16px}
   .md-cust-del{min-width:44px;min-height:44px;font-size:22px}
   .draw-rank-del{min-width:44px;min-height:44px}
-  .md-add-tubes,.md-add-phone,.draw-date-input,.draw-history-date-input,.cspin-input{font-size:16px;min-height:44px}
+  .md-add-tubes,.md-add-phone,.draw-date-input,.draw-history-date-input{font-size:16px;min-height:44px}
   .md-undo-btn{min-height:44px}
 }
 /* Desktop multi-column helpers */
@@ -1041,19 +1048,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <div class="jcal-legend"><span class="jcal-dot"></span> <span id="jcalLegend">Open game days</span></div>
         <div class="jcal-hint" id="jcalHint">Select one or more dates to continue.</div>
       </div>
-      <!-- Step 2 — details -->
+      <!-- Step 2 — details (you + any friends; everyone shares the dates) -->
       <div class="join-stage" data-stage="2">
-        <label class="join-field-label" for="joinNameInput">Your name</label>
-        <input id="joinNameInput" class="modal-input" type="text" maxlength="80" placeholder="Your name" autocomplete="name" oninput="joinValidate()">
-        <label class="join-field-label" for="joinPhoneInput">Phone number</label>
-        <input id="joinPhoneInput" class="modal-input" type="tel" inputmode="numeric" maxlength="40" placeholder="Your phone number" autocomplete="tel" oninput="joinValidate()">
-        <label class="join-field-label">Skill level</label>
-        <div class="skill-row" id="joinSkillRow" role="group" aria-label="Skill level">
-          <button type="button" class="skill-chip" data-skill="Beginner" aria-pressed="false" onclick="joinPickSkill(this)">Beginner</button>
-          <button type="button" class="skill-chip" data-skill="Intermediate" aria-pressed="false" onclick="joinPickSkill(this)">Intermediate</button>
-          <button type="button" class="skill-chip" data-skill="Advanced" aria-pressed="false" onclick="joinPickSkill(this)">Advanced</button>
-        </div>
-        <label class="join-field-label">Your dates</label>
+        <div id="joinPeopleList"></div>
+        <button type="button" class="join-add-person" id="joinAddPerson" onclick="joinAddPerson()">
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Add another person
+        </button>
+        <label class="join-field-label">Dates for everyone</label>
         <div class="date-summary" id="joinDateSummary"></div>
         <input id="joinHp" type="text" name="hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
         <div id="joinError" class="join-error" role="alert"></div>
@@ -1379,11 +1380,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg></span> Courts &amp; Schedule</div>
 
     <!-- Settings row -->
-    <div class="admin-btn-row">
-      <label class="admin-form-label">Courts:</label>
-      <input id="numCourtsInput" type="number" min="1" max="8" class="admin-form-input" style="width:56px">
-      <button class="btn btn-secondary btn-sm" onclick="saveNumCourts()">Save</button>
+    <div class="court-select">
+      <label class="admin-form-label">Active courts:</label>
+      <div class="court-select-chips" id="courtSelectChips" role="group" aria-label="Select which courts are active"></div>
+      <button class="btn btn-secondary btn-sm" onclick="saveActiveCourts()">Save</button>
     </div>
+    <div class="court-select-hint">Tick the courts your games are on today &mdash; e.g. just 3 &amp; 4. Court numbers show on the viewer.</div>
 
     <!-- Quick round nav -->
     <div class="quick-nav admin-mt">
@@ -1477,13 +1479,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
     <!-- Ranked winners + draw history -->
     <div id="drawResult"></div>
-  </div>
-
-  <!-- Court Spins -->
-  <div class="admin-card">
-    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg></span> Court Spins</div>
-    <div class="admin-helper-text">A separate spin for each court &mdash; add up to 12 names, then spin to reveal that court&#x2019;s winner live on the viewer screen.</div>
-    <div class="cspin-grid" id="courtSpins"></div>
   </div>
 
   </div><!-- /engagement tab -->
@@ -1758,7 +1753,6 @@ async function poll() {
   renderViewer();
   checkForNewSpin(state.luckyDraw);
   checkForNewMonthlyDraw(state.monthlyDraw);
-  checkForNewCourtSpin(state.courtSpins);
   if (adminOpen) {
     // First poll after the panel opens (e.g. a reload that ran showAdmin() before
     // state had loaded): do one full renderAdmin() so the Settings-tab cards —
@@ -1771,7 +1765,6 @@ async function poll() {
     renderRoundList();
     renderDrawPool();
     renderDrawResult();
-    renderCourtSpins();
     renderMonthlyTab();
     // Keep the unread badge live every tick, but NOT the full list — re-rendering
     // up to 500 rows (each running timeAgo) every 2s would be a hot-path regression.
@@ -1856,6 +1849,30 @@ function getCourtRounds() {
   const cr = state.courtRounds;
   if (Array.isArray(cr) && cr.length >= numCourts) return cr.slice(0, numCourts);
   return new Array(numCourts).fill(base);
+}
+
+// Pure: the physical court NUMBER shown for each active court slot (0-based).
+// Active courts are stored as internal slots 0..numCourts-1 exactly as before;
+// state.courtNumbers just maps each slot to the real court it's played on
+// (e.g. [3,4] when the social game runs on courts 3 & 4). Any missing/invalid
+// entry falls back to slot+1, so pre-feature state (numCourts only) keeps its
+// original "Court 1..N" labels. Unit tested in scripts/test-court-numbers.js.
+function normalizeCourtNumbers(courtNumbers, numCourts) {
+  const n = Math.max(0, numCourts || 0);
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const v = Array.isArray(courtNumbers) ? Number(courtNumbers[i]) : NaN;
+    out.push(Number.isFinite(v) && v > 0 ? Math.floor(v) : i + 1);
+  }
+  return out;
+}
+function getCourtNumbers() {
+  return normalizeCourtNumbers(state.courtNumbers, state.numCourts || 1);
+}
+// Display label for one court slot — O(1) sibling of normalizeCourtNumbers.
+function courtLabel(i) {
+  const v = Array.isArray(state?.courtNumbers) ? Number(state.courtNumbers[i]) : NaN;
+  return Number.isFinite(v) && v > 0 ? Math.floor(v) : (i + 1);
 }
 
 // Pure: for each court that HAS a next round (current index + 1 < total), return
@@ -1964,7 +1981,7 @@ function renderViewer() {
   // Skip the court-card rebuild (the visible flicker source) when nothing changed.
   // snu/adm are included so the Up Next panel rebuilds when the toggle flips or
   // the device's admin login state changes (clickable rows in Task 4).
-  const courtSig = stateSig({ nc: numCourts, crs: courtRounds, rounds: state.rounds, players: state.players, snu: state.showNextUp, es: state.endingSoon, adm: !!sessionStorage.getItem('adminPwd') });
+  const courtSig = stateSig({ nc: numCourts, cn: state.courtNumbers, crs: courtRounds, rounds: state.rounds, players: state.players, snu: state.showNextUp, es: state.endingSoon, adm: !!sessionStorage.getItem('adminPwd') });
   if (courtSig !== __lastCourtSig) {
     __lastCourtSig = courtSig;
     const container = document.getElementById('courtsDisplay');
@@ -1973,7 +1990,7 @@ function renderViewer() {
       const round = state.rounds?.[courtRounds[i]];
       const court = round?.courts?.[i];
       if (court) {
-        container.appendChild(buildCourtCard(i + 1, court, round?.label || null, !!state.endingSoon?.[i]));
+        container.appendChild(buildCourtCard(courtLabel(i), court, round?.label || null, !!state.endingSoon?.[i]));
       }
     }
     const stats = document.getElementById('viewerFootStats');
@@ -2041,9 +2058,9 @@ function renderUpNext() {
     const matchTxt = `${nameOf(c.team1?.[0])} & ${nameOf(c.team1?.[1])} vs ${nameOf(c.team2?.[0])} & ${nameOf(c.team2?.[1])}`;
     const cls = 'upnext-row' + (isAdmin ? ' clickable' : '');
     const attrs = isAdmin
-      ? ` role="button" tabindex="0" title="Advance Court ${r.court + 1} to this round" onclick="advanceCourt(${r.court},1)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();advanceCourt(${r.court},1);}"`
+      ? ` role="button" tabindex="0" title="Advance Court ${courtLabel(r.court)} to this round" onclick="advanceCourt(${r.court},1)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();advanceCourt(${r.court},1);}"`
       : '';
-    return `<div class="${cls}"${attrs}><span class="upnext-court">Court ${r.court + 1}</span><span class="upnext-arrow" aria-hidden="true">→</span><span class="upnext-match">${escHtml(matchTxt)}</span></div>`;
+    return `<div class="${cls}"${attrs}><span class="upnext-court">Court ${courtLabel(r.court)}</span><span class="upnext-arrow" aria-hidden="true">→</span><span class="upnext-match">${escHtml(matchTxt)}</span></div>`;
   }).join('');
   panel.style.display = '';
   panel.innerHTML = `<div class="upnext-head">Up Next</div>${rowHtml}`;
@@ -2054,11 +2071,10 @@ function renderAdmin() {
   if (!state) return;
   renderSessionDateSection();
   renderPlayersSection();
-  document.getElementById('numCourtsInput').value = state.numCourts || 1;
+  renderCourtSelector();
   renderCourtControls();
   renderRoundList();
   renderDrawPool();
-  renderCourtSpins();
   renderMonthlyTab();
   renderSignupsBadge();
   document.getElementById('shareLink').textContent = window.location.origin + '/';
@@ -2081,11 +2097,11 @@ function renderCourtControls() {
     const card = document.createElement('div');
     card.className = 'court-ctrl-card';
     card.innerHTML = `
-      <span class="cc-label">C${i + 1}</span>
+      <span class="cc-label">C${courtLabel(i)}</span>
       <button class="btn btn-ghost btn-sm" onclick="advanceCourt(${i},-1)" ${ri <= 0 ? 'disabled' : ''}>←</button>
       <div class="cc-round">${label}<small>${summary}</small></div>
       <button class="btn btn-accent btn-sm" onclick="advanceCourt(${i},1)" ${ri >= totalRounds - 1 ? 'disabled' : ''}>→</button>
-      <button class="btn btn-sm cc-ending${ending ? ' active' : ''}" onclick="toggleEndingSoon(${i})" aria-pressed="${ending}" title="${ending ? 'Remove the ending-soon flag from Court ' + (i + 1) : 'Tell viewers Court ' + (i + 1) + ' is ending soon'}">Ending Soon</button>
+      <button class="btn btn-sm cc-ending${ending ? ' active' : ''}" onclick="toggleEndingSoon(${i})" aria-pressed="${ending}" title="${ending ? 'Remove the ending-soon flag from Court ' + courtLabel(i) : 'Tell viewers Court ' + courtLabel(i) + ' is ending soon'}">Ending Soon</button>
     `;
     grid.appendChild(card);
   }
@@ -2203,8 +2219,8 @@ async function toggleEndingSoon(courtIdx) {
   renderCourtControls();
   renderViewer();
   notify(endingSoon[courtIdx]
-    ? `Court ${courtIdx + 1} marked ending soon`
-    : `Court ${courtIdx + 1} no longer ending soon`);
+    ? `Court ${courtLabel(courtIdx)} marked ending soon`
+    : `Court ${courtLabel(courtIdx)} no longer ending soon`);
 }
 
 // ── ROSTER & PLAYERS ─────────────────────────
@@ -2522,12 +2538,48 @@ async function confirmBulkImport() {
 }
 
 // ── COURTS & ROUNDS ──────────────────────────
-async function saveNumCourts() {
-  const n = parseInt(document.getElementById('numCourtsInput').value) || 1;
-  const numCourts = Math.max(1, Math.min(8, n));
-  await apiPost({ numCourts });
+// Physical courts the venue has (the pool the admin ticks from). The venue has 4.
+const COURT_POOL = 4;
+
+// Build the tick-chips (1..COURT_POOL) with the currently-active courts marked.
+// Rendered from renderAdmin (once per panel open, like the old number input),
+// so the 2s poll never wipes an in-progress selection before Save is pressed.
+function renderCourtSelector() {
+  const wrap = document.getElementById('courtSelectChips');
+  if (!wrap) return;
+  const active = new Set(getCourtNumbers());
+  let html = '';
+  for (let n = 1; n <= COURT_POOL; n++) {
+    const on = active.has(n);
+    html += `<label class="court-chip${on ? ' on' : ''}">`
+      + `<input type="checkbox" value="${n}"${on ? ' checked' : ''} onchange="onCourtChipToggle(this)" aria-label="Court ${n}">`
+      + `<span>${n}</span></label>`;
+  }
+  wrap.innerHTML = html;
+}
+
+// Reflect a tick immediately (the checkbox itself is visually hidden).
+function onCourtChipToggle(input) {
+  const chip = input.closest('.court-chip');
+  if (chip) chip.classList.toggle('on', input.checked);
+}
+
+// Persist the ticked courts. numCourts stays the COUNT of active courts (so the
+// rest of the scheduling logic is untouched); courtNumbers is the sorted list of
+// real court numbers used only for display labels.
+async function saveActiveCourts() {
+  const nums = [...document.querySelectorAll('#courtSelectChips input:checked')]
+    .map(el => parseInt(el.value, 10))
+    .filter(n => Number.isFinite(n))
+    .sort((a, b) => a - b);
+  if (!nums.length) return notify('Pick at least one court.', 'warn');
+  const numCourts = nums.length;
+  await apiPost({ numCourts, courtNumbers: nums });
   state.numCourts = numCourts;
-  notify(`Courts set to ${numCourts}`);
+  state.courtNumbers = nums;
+  renderCourtControls();
+  renderViewer();
+  notify(nums.length === 1 ? `Active court: ${nums[0]}` : `Active courts: ${nums.join(', ')}`);
 }
 
 // Inline generate confirmation
@@ -2604,7 +2656,7 @@ async function advanceCourt(courtIdx, delta) {
   renderCourtControls();
   renderRoundList();
   renderViewer(); // refresh the viewer (and its Up Next panel) immediately, incl. clicks from the viewer
-  notify(`Court ${courtIdx + 1} → ${state.rounds?.[next]?.label || 'Round ' + (next + 1)}`);
+  notify(`Court ${courtLabel(courtIdx)} → ${state.rounds?.[next]?.label || 'Round ' + (next + 1)}`);
 }
 
 async function setCurrentRound(i) {
@@ -2696,7 +2748,7 @@ function renderRoundList() {
     (round.courts || []).forEach((court, c) => {
       courtEditorsHTML += `
         <div class="court-editor">
-          <h4>Court ${c + 1}</h4>
+          <h4>Court ${courtLabel(c)}</h4>
           <div class="selectors-row">
             <span class="rl-team-label">Team A:</span>
             ${buildPlayerSelect(`rl_${i}_c${c}_t1p1`, court.team1[0])}
@@ -2761,19 +2813,19 @@ function renderNextUpEditor() {
   for (let i = 0; i < numCourts; i++) {
     const ni = (courtRounds[i] ?? 0) + 1;
     if (ni >= total) {
-      html += `<div class="court-editor"><h4>Court ${i + 1}</h4><div class="admin-helper-text">On last round — no next round. Add or generate more rounds.</div></div>`;
+      html += `<div class="court-editor"><h4>Court ${courtLabel(i)}</h4><div class="admin-helper-text">On last round — no next round. Add or generate more rounds.</div></div>`;
       continue;
     }
     const court = state.rounds?.[ni]?.courts?.[i];
     if (!court) {
-      html += `<div class="court-editor"><h4>Court ${i + 1}</h4><div class="admin-helper-text">No match slot in the next round.</div></div>`;
+      html += `<div class="court-editor"><h4>Court ${courtLabel(i)}</h4><div class="admin-helper-text">No match slot in the next round.</div></div>`;
       continue;
     }
     anyEditable = true;
     const label = state.rounds?.[ni]?.label || `Round ${ni + 1}`;
     html += `
       <div class="court-editor">
-        <h4>Court ${i + 1} <span class="upnext-edit-round">${escHtml(label)}</span></h4>
+        <h4>Court ${courtLabel(i)} <span class="upnext-edit-round">${escHtml(label)}</span></h4>
         <div class="selectors-row">
           <span class="rl-team-label">Team A:</span>
           ${buildPlayerSelect(`un_c${i}_t1p1`, court.team1?.[0])}
@@ -3962,8 +4014,12 @@ function updateJoinCtaVisibility() {
 
 // ── Calendar join flow (3-step: dates → details → thanks) ────
 let joinSelectedDates = new Set();   // ISO date strings
-let joinSkill = null;
 let joinStep = 1;
+const JOIN_SKILLS = ['Beginner', 'Intermediate', 'Advanced'];
+const JOIN_MAX_PARTY = 5;            // organiser + up to 4 friends (matches server MAX_PARTY)
+// One entry per person in a group sign-up. Index 0 is the organiser ("You");
+// the rest are friends they're bringing. Everyone shares joinSelectedDates.
+let joinPeople = [{ name: '', phone: '', skill: null }];
 let jcalY = 0, jcalM = 0;            // calendar view year / month (0-based)
 const JCAL_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const JCAL_DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -4076,18 +4132,83 @@ function joinRenderDateSummary() {
   });
 }
 
-function joinPickSkill(btn) {
-  document.querySelectorAll('#joinSkillRow .skill-chip').forEach(c => { c.classList.remove('sel'); c.setAttribute('aria-pressed', 'false'); });
-  btn.classList.add('sel');
-  btn.setAttribute('aria-pressed', 'true');
-  joinSkill = btn.dataset.skill;
+// Rebuild the person cards from joinPeople. User-entered values are NOT
+// interpolated into the HTML string (only the numeric index is) — they're set
+// afterwards via the .value property, so this render is XSS-safe by construction.
+function joinRenderPeople() {
+  const wrap = document.getElementById('joinPeopleList');
+  if (!wrap) return;
+  wrap.innerHTML = joinPeople.map((p, i) => {
+    const title = i === 0 ? 'You' : 'Friend ' + i;
+    const del = i === 0 ? ''
+      : `<button type="button" class="join-person-del" onclick="joinRemovePerson(${i})" aria-label="Remove ${title}">&#215;</button>`;
+    const chips = JOIN_SKILLS.map(s =>
+      `<button type="button" class="skill-chip" data-skill="${s}" aria-pressed="false" onclick="joinPersonSkill(${i},this)">${s}</button>`
+    ).join('');
+    return `<div class="join-person" data-idx="${i}">
+      <div class="join-person-head"><span class="join-person-title">${title}</span>${del}</div>
+      <label class="join-field-label">Name</label>
+      <input class="modal-input jp-name" type="text" maxlength="80" placeholder="Name" autocomplete="off" oninput="joinPersonField(${i},'name',this.value)">
+      <label class="join-field-label">Phone number</label>
+      <input class="modal-input jp-phone" type="tel" inputmode="numeric" maxlength="40" placeholder="Phone number" autocomplete="off" oninput="joinPersonField(${i},'phone',this.value)">
+      <label class="join-field-label">Skill level</label>
+      <div class="skill-row" role="group" aria-label="Skill level for ${title}">${chips}</div>
+    </div>`;
+  }).join('');
+  // Fill values + skill selection from state (no user data ever entered the HTML above).
+  joinPeople.forEach((p, i) => {
+    const card = wrap.querySelector(`.join-person[data-idx="${i}"]`);
+    if (!card) return;
+    card.querySelector('.jp-name').value = p.name || '';
+    card.querySelector('.jp-phone').value = p.phone || '';
+    card.querySelectorAll('.skill-chip').forEach(chip => {
+      const sel = chip.dataset.skill === p.skill;
+      chip.classList.toggle('sel', sel);
+      chip.setAttribute('aria-pressed', sel ? 'true' : 'false');
+    });
+  });
+  const add = document.getElementById('joinAddPerson');
+  if (add) add.style.display = joinPeople.length >= JOIN_MAX_PARTY ? 'none' : '';
+}
+
+function joinPersonField(i, key, val) {
+  if (joinPeople[i]) { joinPeople[i][key] = val; joinValidate(); }
+}
+
+function joinPersonSkill(i, btn) {
+  if (!joinPeople[i]) return;
+  joinPeople[i].skill = btn.dataset.skill;
+  btn.closest('.skill-row').querySelectorAll('.skill-chip').forEach(c => {
+    const sel = c === btn;
+    c.classList.toggle('sel', sel);
+    c.setAttribute('aria-pressed', sel ? 'true' : 'false');
+  });
   joinValidate();
 }
 
+function joinAddPerson() {
+  if (joinPeople.length >= JOIN_MAX_PARTY) return;
+  joinPeople.push({ name: '', phone: '', skill: null });
+  joinRenderPeople();
+  const cards = document.querySelectorAll('#joinPeopleList .join-person');
+  const nameInput = cards.length ? cards[cards.length - 1].querySelector('.jp-name') : null;
+  if (nameInput) nameInput.focus();
+  joinValidate();
+}
+
+function joinRemovePerson(i) {
+  if (i <= 0 || i >= joinPeople.length) return; // never remove the organiser
+  joinPeople.splice(i, 1);
+  joinRenderPeople();
+  joinValidate();
+}
+
+function joinPersonValid(p) {
+  return !!(p && p.name && p.name.trim() && /\d/.test(p.phone || '') && p.skill);
+}
+
 function joinValidate() {
-  const name = document.getElementById('joinNameInput').value.trim();
-  const phone = document.getElementById('joinPhoneInput').value.trim();
-  const ok = !!name && /\d/.test(phone) && !!joinSkill && joinSelectedDates.size > 0;
+  const ok = joinPeople.length > 0 && joinPeople.every(joinPersonValid) && joinSelectedDates.size > 0;
   if (joinStep === 2) document.getElementById('joinNext').disabled = !ok;
   return ok;
 }
@@ -4107,9 +4228,10 @@ function joinSetStep(n) {
   } else if (n === 2) {
     back.style.visibility = 'visible';
     next.textContent = 'Submit';
+    joinRenderPeople();
     joinRenderDateSummary();
     joinValidate();
-    setTimeout(() => document.getElementById('joinNameInput').focus(), 40);
+    setTimeout(() => { const el = document.querySelector('#joinPeopleList .jp-name'); if (el) el.focus(); }, 40);
   }
 }
 
@@ -4122,11 +4244,9 @@ function joinBack() { if (joinStep === 2) joinSetStep(1); }
 function openJoinModal() {
   if (getEnabledGameDays().length === 0) return; // CTA shouldn't be visible anyway
   joinSelectedDates = new Set();
-  joinSkill = null;
-  document.getElementById('joinNameInput').value = '';
-  document.getElementById('joinPhoneInput').value = '';
+  joinPeople = [{ name: '', phone: '', skill: null }];
   document.getElementById('joinHp').value = '';
-  document.querySelectorAll('#joinSkillRow .skill-chip').forEach(c => { c.classList.remove('sel'); c.setAttribute('aria-pressed', 'false'); });
+  joinRenderPeople();
   const err = document.getElementById('joinError');
   err.style.display = 'none'; err.textContent = '';
   const games = getEnabledGameDays();
@@ -4147,24 +4267,22 @@ function closeJoinModal() {
 }
 
 async function submitJoinForm() {
-  const name = document.getElementById('joinNameInput').value;
-  const phone = document.getElementById('joinPhoneInput').value;
   const hp = document.getElementById('joinHp').value;
   const dates = [...joinSelectedDates];
+  const people = joinPeople.map(p => ({ name: p.name, phone: p.phone, skill: p.skill }));
   const errEl = document.getElementById('joinError');
   const lib = window.MonthlyDraw;
-  const today = getJoinToday();
-  const opts = { enabledWeekdays: getEnabledWeekdays(), todayISO: today, maxISO: getJoinMaxISO() };
+  const opts = { enabledWeekdays: getEnabledWeekdays(), todayISO: getJoinToday(), maxISO: getJoinMaxISO() };
   const v = lib
-    ? lib.validateJoinRequest({ name, phone, skill: joinSkill, dates }, opts)
-    : { ok: !!(name.trim() && /\d/.test(phone) && joinSkill && dates.length), error: 'Please complete the form.' };
+    ? lib.validateJoinRequests({ people, dates }, opts)
+    : { ok: people.length > 0 && people.every(joinPersonValid) && dates.length > 0, error: 'Please complete the form.' };
   if (!v.ok) { errEl.textContent = v.error; errEl.style.display = 'block'; return; }
   errEl.style.display = 'none';
   try {
     const r = await fetch('/api/state', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'submitSignup', name, phone, skill: joinSkill, dates, hp }),
+      body: JSON.stringify({ action: 'submitSignup', people, dates, hp }),
     });
     const res = await r.json().catch(() => null);
     if (!r.ok || !res || !res.ok) throw new Error('submit failed');
@@ -4173,10 +4291,12 @@ async function submitJoinForm() {
     errEl.style.display = 'block';
     return;
   }
-  const first = (name.trim().split(/\s+/)[0] || '').trim();
-  const n = dates.length;
+  const first = ((people[0] && people[0].name) || '').trim().split(/\s+/)[0] || '';
+  const nd = dates.length, np = people.length;
+  const who = np > 1 ? ('all ' + np + ' of you') : 'you';
   document.getElementById('joinThanksMsg').textContent =
-    'Thanks' + (first ? ' ' + first : '') + ' — we’ve saved your ' + n + ' date' + (n > 1 ? 's' : '') + ' and will be in touch about our social games.';
+    'Thanks' + (first ? ' ' + first : '') + ' — we’ve saved ' + nd + ' date' + (nd > 1 ? 's' : '') +
+    ' for ' + who + ' and will be in touch about our social games.';
   joinSetStep(3);
   setTimeout(closeJoinModal, 2600);
 }
@@ -4218,6 +4338,8 @@ function renderSignupsTab() {
       ? dates.map(iso => `<span class="signup-day-tag">${escHtml(joinFmtDate(iso))}</span>`).join('')
       : days.map(d => `<span class="signup-day-tag">${escHtml(d)}</span>`).join('');
     const skillPill = s.skill ? `<span class="signup-skill">${escHtml(s.skill)}</span>` : '';
+    const broughtByPill = s.broughtBy
+      ? `<span class="signup-brought">brought by ${escHtml(s.broughtBy)}</span>` : '';
     const ago = lib ? lib.timeAgo(s.at, now) : '';
     const unhandled = !s.handled;
     const id = escHtml(s.id);
@@ -4232,6 +4354,7 @@ function renderSignupsTab() {
       <div class="signup-row-head">
         <span class="signup-name">${escHtml(s.name || '')}</span>
         ${skillPill}
+        ${broughtByPill}
         ${unhandled ? '<span class="signup-new-pill">New</span>' : ''}
         <span class="signup-time">${escHtml(ago)}</span>
       </div>
@@ -4804,162 +4927,6 @@ async function spinDraw() {
   renderDrawResult();
 }
 
-// ── COURT SPINS (engagement: one independent spin per court) ──
-const MAX_CSPIN_NAMES = 12;
-
-function csState() {
-  const cs = state.courtSpins || {};
-  return { courts: Array.isArray(cs.courts) ? cs.courts : [], spin: cs.spin || null };
-}
-// Build a fresh courts array of at least `n` slots, preserving any existing data
-// (incl. courts beyond n, so lowering the court count never drops their lists).
-function csCloneCourts(courts, n) {
-  const len = Math.max(n, courts.length);
-  const out = [];
-  for (let i = 0; i < len; i++) {
-    const c = courts[i] || {};
-    out.push({ names: Array.isArray(c.names) ? [...c.names] : [], lastWinner: c.lastWinner || '' });
-  }
-  return out;
-}
-function csNames(i) { const c = csState().courts[i]; return (c && Array.isArray(c.names)) ? c.names : []; }
-function csLastWinner(i) { const c = csState().courts[i]; return (c && c.lastWinner) || ''; }
-// One shared #pickerOverlay → block every court's SPIN while any court spin is live.
-function csSpinLive() {
-  const live = (state.courtSpins || {}).spin;
-  return !!(live && clockNow() < live.startAt + live.durationMs);
-}
-
-function renderCourtSpins() {
-  const grid = document.getElementById('courtSpins');
-  if (!grid) return;
-  const numCourts = state.numCourts || 1;
-  const live = csSpinLive();
-  // Preserve any unsubmitted text in the per-court add inputs across the 2s re-render.
-  const drafts = {};
-  grid.querySelectorAll('.cspin-input').forEach(inp => { drafts[inp.dataset.court] = inp.value; });
-  let html = '';
-  for (let i = 0; i < numCourts; i++) {
-    const names = csNames(i);
-    const winner = csLastWinner(i);
-    const full = names.length >= MAX_CSPIN_NAMES;
-    const canSpin = names.length >= 2 && !live;
-    const chips = names.length
-      ? names.map((name, idx) => {
-          const rp = (state.roster || []).find(r => r.name === name);
-          let av = '';
-          if (rp) {
-            if (rp.photo) av = `<img class="draw-chip-avatar" src="${rp.photo}" alt="" style="object-fit:cover">`;
-            else av = `<span class="draw-chip-avatar" style="background:${getColor(rp.id)}">${getInitials(name)}</span>`;
-          }
-          return `<div class="draw-chip">${av}<span>${escHtml(name)}</span><button onclick="removeCourtSpinName(${i},${idx})" title="Remove" aria-label="Remove ${escHtml(name)}">&#x00D7;</button></div>`;
-        }).join('')
-      : '<div class="draw-empty">No names yet &mdash; add players or pull this court.</div>';
-    html += `
-      <div class="cspin-court">
-        <div class="cspin-head">
-          <span class="cspin-title">Court ${i + 1}</span>
-          <span class="cspin-count">${names.length}/${MAX_CSPIN_NAMES}</span>
-        </div>
-        <div class="cspin-max">Max ${MAX_CSPIN_NAMES} names</div>
-        <div class="cspin-names">${chips}</div>
-        ${winner ? `<div class="cspin-winner"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg> Last winner: ${escHtml(winner)}</div>` : ''}
-        <div class="cspin-add-row">
-          <input class="admin-form-input admin-flex cspin-input" data-court="${i}" id="cspinInput${i}" type="text"
-            placeholder="${full ? 'Court is full (12)' : 'Add name…'}" ${full ? 'disabled' : ''}
-            onkeydown="if(event.key===&#x27;Enter&#x27;)addCourtSpinName(${i})">
-          <button class="btn btn-secondary btn-sm" onclick="addCourtSpinName(${i})" ${full ? 'disabled' : ''}>Add</button>
-        </div>
-        <div class="admin-btn-row admin-mb">
-          <button class="btn btn-ghost btn-sm" onclick="pullCourtPlayers(${i})">Pull court players</button>
-          ${names.length ? `<button class="btn btn-ghost btn-sm" onclick="clearCourtSpin(${i})">Clear</button>` : ''}
-        </div>
-        <button class="btn btn-primary admin-spin-btn" onclick="spinCourtDraw(${i})" ${canSpin ? '' : 'disabled'}><svg class="ic" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4z"/><path d="M9 6v12"/></svg> SPIN</button>
-      </div>`;
-  }
-  grid.innerHTML = html;
-  Object.keys(drafts).forEach(c => { const inp = document.getElementById('cspinInput' + c); if (inp && !inp.disabled) inp.value = drafts[c]; });
-}
-
-async function addCourtSpinName(i) {
-  const input = document.getElementById('cspinInput' + i);
-  const name = (input ? input.value : '').trim();
-  if (!name) return;
-  const cs = csState();
-  const courts = csCloneCourts(cs.courts, state.numCourts || 1);
-  if (courts[i].names.length >= MAX_CSPIN_NAMES) { notify(`Court ${i + 1} is full (max ${MAX_CSPIN_NAMES}).`); return; }
-  courts[i].names = [...courts[i].names, name];
-  const courtSpins = { ...cs, courts };
-  await apiPost({ courtSpins });
-  state.courtSpins = courtSpins;
-  if (input) input.value = '';
-  renderCourtSpins();
-  const again = document.getElementById('cspinInput' + i);
-  if (again && !again.disabled) again.focus();
-}
-
-async function removeCourtSpinName(i, idx) {
-  const cs = csState();
-  const courts = csCloneCourts(cs.courts, state.numCourts || 1);
-  if (!courts[i]) return;
-  courts[i].names = courts[i].names.filter((_, k) => k !== idx);
-  const courtSpins = { ...cs, courts };
-  await apiPost({ courtSpins });
-  state.courtSpins = courtSpins;
-  renderCourtSpins();
-}
-
-async function clearCourtSpin(i) {
-  const cs = csState();
-  const courts = csCloneCourts(cs.courts, state.numCourts || 1);
-  if (!courts[i]) return;
-  courts[i].names = [];
-  const courtSpins = { ...cs, courts };
-  await apiPost({ courtSpins });
-  state.courtSpins = courtSpins;
-  renderCourtSpins();
-}
-
-// Load Court i's currently-assigned players (its live round's two teams) into the pool.
-async function pullCourtPlayers(i) {
-  const rounds = state.rounds || [];
-  const cr = getCourtRounds();
-  const roundIdx = (cr[i] != null) ? cr[i] : (state.currentRound || 0);
-  const round = rounds[roundIdx];
-  const court = round && round.courts && round.courts[i];
-  const ids = court ? [...(court.team1 || []), ...(court.team2 || [])].filter(Boolean) : [];
-  if (!ids.length) { notify(`No players assigned to Court ${i + 1} yet.`); return; }
-  const names = ids.map(id => (playerById(id) || {}).name || id).slice(0, MAX_CSPIN_NAMES);
-  const cs = csState();
-  const courts = csCloneCourts(cs.courts, state.numCourts || 1);
-  courts[i].names = names;
-  const courtSpins = { ...cs, courts };
-  await apiPost({ courtSpins });
-  state.courtSpins = courtSpins;
-  renderCourtSpins();
-  notify(`Loaded ${names.length} players into Court ${i + 1}.`);
-}
-
-async function spinCourtDraw(i) {
-  const cs = csState();
-  const courts = csCloneCourts(cs.courts, state.numCourts || 1);
-  const names = (courts[i] && courts[i].names) || [];
-  if (names.length < 2) { notify(`Need at least 2 names on Court ${i + 1} to spin.`); return; }
-  if (csSpinLive()) { notify('A court spin is already in progress.'); return; }  // double-spin guard
-  const winnerIndex = Math.floor(Math.random() * names.length);
-  const winnerName = names[winnerIndex];
-  const spin = {
-    id: Date.now(), kind: 'court', courtIndex: i, title: `Court ${i + 1}`, hidePrize: true,
-    entries: [...names], winnerIndex, winnerName, startAt: clockNow() + 800, durationMs: 4500,
-  };
-  courts[i].lastWinner = winnerName;
-  const courtSpins = { ...cs, courts, spin };
-  await apiPost({ courtSpins });
-  state.courtSpins = courtSpins;
-  checkForNewCourtSpin(courtSpins);
-  renderCourtSpins();
-}
-
 // ── DRAW REVEAL (engagement: routes through the shared name-reel picker) ──
 let lastSpinId = null;
 const SPIN_GRACE_MS = 12000;
@@ -4977,28 +4944,6 @@ function checkForNewSpin(ld) {
   if (activeRevealKind && activeRevealKind !== 'engagement') return;
   lastSpinId = spin.id;
   activeRevealKind = 'engagement';
-  if (pickerRaf) { cancelAnimationFrame(pickerRaf); pickerRaf = null; }
-  showPickerOverlay(spin);
-  if (prefersReducedMotion() || now >= finishedAt) { displayPickerWinner(spin); return; }
-  animatePicker(spin);
-  clearTimeout(pickerSafetyTimer);
-  pickerSafetyTimer = setTimeout(() => displayPickerWinner(spin), Math.max(0, finishedAt - now) + 120);
-}
-
-// Court spins reuse the single shared #pickerOverlay; serialized against the
-// engagement + monthly reveals via activeRevealKind (F2).
-let lastCourtSpinId = null;
-function checkForNewCourtSpin(cs) {
-  const spin = cs && cs.spin;
-  if (!spin || !spin.id) return;
-  if (spin.id === lastCourtSpinId) return;
-  const now = clockNow();
-  const finishedAt = spin.startAt + spin.durationMs;
-  if (now > finishedAt + SPIN_GRACE_MS) { lastCourtSpinId = spin.id; return; }  // stale — consume silently
-  // Bail WITHOUT consuming the guard so this re-fires once the overlay is free.
-  if (activeRevealKind && activeRevealKind !== 'court') return;
-  lastCourtSpinId = spin.id;
-  activeRevealKind = 'court';
   if (pickerRaf) { cancelAnimationFrame(pickerRaf); pickerRaf = null; }
   showPickerOverlay(spin);
   if (prefersReducedMotion() || now >= finishedAt) { displayPickerWinner(spin); return; }
@@ -5086,20 +5031,14 @@ function showPickerOverlay(spin) {
   if (titleEl) titleEl.textContent = (spin && spin.title) || 'Monthly Lucky Draw';
   const prizeEl = document.getElementById('pickerPrize');
   if (prizeEl) {
-    if (spin && spin.hidePrize) {
-      // Court spins have no rank/prize — the court name in the title is enough.
-      prizeEl.className = 'picker-prize empty';
-      prizeEl.innerHTML = '';
+    const rank = (spin && spin.rank) || 1;
+    // Cap the medal style at rank-3 so ranks >3 reuse a defined palette (F3);
+    // the medal number + label still show the true rank/ordinal.
+    prizeEl.className = 'picker-prize rank-' + Math.min(rank, 3);
+    if (spin && spin.noPrize) {
+      prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${escHtml(ordinalLbl(rank))} Winner</span>`;
     } else {
-      const rank = (spin && spin.rank) || 1;
-      // Cap the medal style at rank-3 so ranks >3 reuse a defined palette (F3);
-      // the medal number + label still show the true rank/ordinal.
-      prizeEl.className = 'picker-prize rank-' + Math.min(rank, 3);
-      if (spin && spin.noPrize) {
-        prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${escHtml(ordinalLbl(rank))} Winner</span>`;
-      } else {
-        prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${mdRankLbl(rank)} Prize${spin && spin.prize ? ' &mdash; ' + escHtml(spin.prize) : ''}</span>`;
-      }
+      prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${mdRankLbl(rank)} Prize${spin && spin.prize ? ' &mdash; ' + escHtml(spin.prize) : ''}</span>`;
     }
   }
   const nameEl = document.getElementById('pickerName');

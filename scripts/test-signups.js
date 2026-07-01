@@ -6,7 +6,7 @@
 'use strict';
 const {
   validateSignup, unhandledCount, timeAgo,
-  validateJoinRequest, addMonthsISO, isValidISO, isoWeekday, weekdayName, SKILLS,
+  validateJoinRequest, validateJoinRequests, addMonthsISO, isValidISO, isoWeekday, weekdayName, SKILLS,
 } = require('../public/monthly-draw.js');
 
 let pass = 0, fail = 0;
@@ -190,6 +190,59 @@ check('join: one valid + one invalid date -> not ok',
 // non-object input is tolerated (no throw)
 check('join: null input -> not ok (no throw)', validateJoinRequest(null, OPTS).ok === false);
 
+// ── validateJoinRequests({people:[{name,phone,skill}], dates}, opts) ──
+// Multi-person group sign-up: everyone shares one set of dates; each person is
+// its own record; friends (index >= 1) carry broughtBy = primary's name.
+const okPeople = {
+  people: [
+    { name: 'Harvey', phone: '0123', skill: 'Intermediate' },
+    { name: 'Edward', phone: '0456', skill: 'Beginner' },
+  ],
+  dates: ['2026-06-29'],
+};
+{
+  const r = validateJoinRequests(okPeople, OPTS);
+  check('joins: valid 2 people -> ok', r.ok === true);
+  check('joins: valid -> empty error', r.error === '');
+  check('joins: clean.list length 2', r.clean && Array.isArray(r.clean.list) && r.clean.list.length === 2);
+  check('joins: primary has no broughtBy', r.clean && !r.clean.list[0].broughtBy);
+  check('joins: friend broughtBy = primary name', r.clean && r.clean.list[1].broughtBy === 'Harvey');
+  check('joins: everyone shares the dates', r.clean &&
+    r.clean.list[0].dates[0] === '2026-06-29' && r.clean.list[1].dates[0] === '2026-06-29');
+  check('joins: per-person skill preserved', r.clean &&
+    r.clean.list[0].skill === 'Intermediate' && r.clean.list[1].skill === 'Beginner');
+  check('joins: per-person phone preserved', r.clean &&
+    r.clean.list[0].phone === '0123' && r.clean.list[1].phone === '0456');
+}
+check('joins: empty people -> not ok', validateJoinRequests({ people: [], dates: ['2026-06-29'] }, OPTS).ok === false);
+check('joins: friend missing skill -> not ok', validateJoinRequests({
+  people: [{ name: 'Harvey', phone: '0123', skill: 'Beginner' }, { name: 'Edward', phone: '0456', skill: '' }],
+  dates: ['2026-06-29'],
+}, OPTS).ok === false);
+check('joins: friend missing name -> not ok', validateJoinRequests({
+  people: [{ name: 'Harvey', phone: '0123', skill: 'Beginner' }, { name: '', phone: '0456', skill: 'Beginner' }],
+  dates: ['2026-06-29'],
+}, OPTS).ok === false);
+check('joins: friend bad phone -> not ok', validateJoinRequests({
+  people: [{ name: 'Harvey', phone: '0123', skill: 'Beginner' }, { name: 'Edward', phone: 'call me', skill: 'Beginner' }],
+  dates: ['2026-06-29'],
+}, OPTS).ok === false);
+check('joins: shared bad date -> not ok', validateJoinRequests({
+  people: [{ name: 'Harvey', phone: '0123', skill: 'Beginner' }], dates: ['2026-07-01'],
+}, OPTS).ok === false);
+// group cap: at most 5 people (1 + 4 friends)
+{
+  const many = { people: Array.from({ length: 7 }, (_, i) => ({ name: 'P' + i, phone: '0' + i, skill: 'Beginner' })), dates: ['2026-06-29'] };
+  const r = validateJoinRequests(many, OPTS);
+  check('joins: >5 people capped to 5', r.ok === true && r.clean.list.length === 5);
+}
+// single-person compatibility: no people[] -> a one-element list, no broughtBy
+{
+  const r = validateJoinRequests({ name: 'Solo', phone: '0123', skill: 'Advanced', dates: ['2026-06-29'] }, OPTS);
+  check('joins: single (no people[]) -> list of 1', r.ok === true && r.clean.list.length === 1 && !r.clean.list[0].broughtBy);
+}
+check('joins: null input -> not ok (no throw)', validateJoinRequests(null, OPTS).ok === false);
+
 // ════════════════════════════════════════════════════════════════════
 // Server submit decision — api/state.js buildSignup(body, ctx)
 // Mirrors the lib but returns {ok, error?, fields?} (handler stamps id/at).
@@ -251,6 +304,63 @@ check('server: legacy bad day -> not ok', buildSignup({ name: 'Alex', phone: '01
 }
 // null body tolerated (no throw)
 check('server: null body -> not ok (no throw)', buildSignup(null, SCTX).ok === false);
+
+// ════════════════════════════════════════════════════════════════════
+// Server submit decision — api/state.js buildSignups(body, ctx) (multi)
+// Returns {ok, error?, list?} — one sanitized fields object per person.
+// The handler stamps id/at/handled and appends the whole list at once.
+// ════════════════════════════════════════════════════════════════════
+const { buildSignups } = require('../api/state.js');
+{
+  const r = buildSignups({
+    people: [
+      { name: 'Harvey', phone: '0123', skill: 'Intermediate' },
+      { name: 'Edward', phone: '0456', skill: 'Beginner' },
+    ],
+    dates: ['2026-06-29'],
+  }, SCTX);
+  check('server multi: valid 2 people -> ok', r.ok === true);
+  check('server multi: list length 2', r.list && r.list.length === 2);
+  check('server multi: primary has no broughtBy', r.list && r.list[0].broughtBy === undefined);
+  check('server multi: friend broughtBy = primary name', r.list && r.list[1].broughtBy === 'Harvey');
+  check('server multi: everyone shares dates+derived days', r.list &&
+    r.list[0].dates[0] === '2026-06-29' && r.list[1].days[0] === 'Monday');
+  check('server multi: per-person skill kept', r.list &&
+    r.list[0].skill === 'Intermediate' && r.list[1].skill === 'Beginner');
+  check('server multi: fields have no id/at (handler stamps)', r.list &&
+    r.list[0].id === undefined && r.list[0].at === undefined);
+}
+check('server multi: empty people -> not ok', buildSignups({ people: [], dates: ['2026-06-29'] }, SCTX).ok === false);
+check('server multi: a friend bad skill -> not ok', buildSignups({
+  people: [{ name: 'Harvey', phone: '0123', skill: 'Beginner' }, { name: 'Edward', phone: '0456', skill: 'Pro' }],
+  dates: ['2026-06-29'],
+}, SCTX).ok === false);
+check('server multi: shared past date -> not ok', buildSignups({
+  people: [{ name: 'Harvey', phone: '0123', skill: 'Beginner' }], dates: ['2026-06-22'],
+}, SCTX).ok === false);
+// group cap: at most 5 people
+{
+  const r = buildSignups({ people: Array.from({ length: 7 }, (_, i) => ({ name: 'P' + i, phone: '0' + i, skill: 'Beginner' })), dates: ['2026-06-29'] }, SCTX);
+  check('server multi: >5 people capped to 5', r.ok === true && r.list.length === 5);
+}
+// injection: each person self-builds — arbitrary per-person keys never survive
+{
+  const r = buildSignups({
+    people: [{ name: 'Harvey', phone: '0123', skill: 'Beginner', roster: [1, 2], handled: true, id: 'x', broughtBy: 'Mallory' }],
+    dates: ['2026-06-29'],
+  }, SCTX);
+  check('server multi: per-person injected keys ignored', r.ok === true &&
+    r.list[0].roster === undefined && r.list[0].id === undefined &&
+    r.list[0].handled === undefined && r.list[0].broughtBy === undefined);
+}
+// single/legacy fallback: no people[] -> one-element list
+{
+  const r = buildSignups({ name: 'Solo', phone: '0123', skill: 'Advanced', dates: ['2026-06-29'] }, SCTX);
+  check('server multi: single fallback -> list of 1', r.ok === true && r.list.length === 1 && r.list[0].broughtBy === undefined);
+  const rl = buildSignups({ name: 'Solo', phone: '0123', days: ['Friday'] }, SCTX);
+  check('server multi: legacy days fallback -> list of 1', rl.ok === true && rl.list.length === 1 && rl.list[0].days.length === 1);
+}
+check('server multi: null body -> not ok (no throw)', buildSignups(null, SCTX).ok === false);
 
 console.log(`\nsign-up tests: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

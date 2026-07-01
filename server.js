@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const os = require('os');
 // Reuse the serverless submit validator + clock so local dev matches production.
-const { buildSignup, todayISO } = require('./api/state.js');
+const { buildSignups, todayISO } = require('./api/state.js');
 const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction } = require('./api/accounts.js');
 
 const app = express();
@@ -76,17 +76,18 @@ app.post('/api/state', (req, res) => {
   if (b.action === 'submitSignup') {
     if (String(b.hp || '').trim()) return res.json({ ok: true }); // honeypot
 
-    // Same validator as api/state.js: self-builds one sanitized signup from
-    // name/phone/skill/dates (or legacy days), never spreads req.body.
-    const built = buildSignup(b, { socialGames: state.socialGames, todayISO: todayISO() });
+    // Same validator as api/state.js: self-builds one sanitized signup per
+    // person (group sign-up shares one date set), never spreads req.body.
+    const built = buildSignups(b, { socialGames: state.socialGames, todayISO: todayISO() });
     if (!built.ok) return res.status(400).json({ error: built.error || 'Please complete the form.' });
 
-    const signup = Object.assign(
-      { id: 'su' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at: Date.now(), handled: false },
-      built.fields
-    );
+    const at = Date.now(); // one timestamp for the group so its rows sort adjacently
+    const stamped = built.list.map((fields, i) => Object.assign(
+      { id: 'su' + at.toString(36) + i.toString(36) + Math.random().toString(36).slice(2, 6), at, handled: false },
+      fields
+    ));
     const existing = Array.isArray(state.signups) ? state.signups : [];
-    state.signups = [signup, ...existing].slice(0, 500); // append-only, cap 500
+    state.signups = [...stamped, ...existing].slice(0, 500); // append-only, cap 500
     return res.json({ ok: true });
   }
 

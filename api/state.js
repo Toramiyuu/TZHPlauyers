@@ -56,6 +56,7 @@ const DEFAULT_STATE = {
   roster: DEFAULT_ROSTER,
   players: [],
   numCourts: 2,
+  courtNumbers: [1, 2],
   rounds: [],
   currentRound: 0,
   endingSoon: [],
@@ -219,6 +220,39 @@ function buildSignup(body, ctx) {
   return { ok: true, fields: { name, phone, days: validDays } };
 }
 
+const MAX_PARTY = 5; // group sign-up: 1 organiser + up to 4 friends
+
+/**
+ * Build a group sign-up: one person brings friends, everyone shares one set of
+ * dates. `body.people` is an array of {name,phone,skill}; each is validated and
+ * self-built via buildSignup (rules stay in one place), so this path can NEVER
+ * write anything but sanitized signup fields — arbitrary body/person keys are
+ * dropped exactly as in buildSignup. Returns {ok, error?, list?} — one sanitized
+ * fields object per person; person 0 is the organiser (no broughtBy), friends
+ * carry broughtBy = organiser's name. With no `people[]`, falls back to a single
+ * buildSignup (new single-person OR legacy days path) wrapped in a one-item list.
+ */
+function buildSignups(body, ctx) {
+  body = body || {};
+  if (!Array.isArray(body.people)) {
+    const one = buildSignup(body, ctx);
+    return one.ok ? { ok: true, list: [one.fields] } : one;
+  }
+  if (body.people.length === 0) return { ok: false, error: 'Please add at least one person.' };
+  const people = body.people.slice(0, MAX_PARTY);
+  const list = [];
+  let organiser = '';
+  for (let i = 0; i < people.length; i++) {
+    const p = people[i] || {};
+    const one = buildSignup({ name: p.name, phone: p.phone, skill: p.skill, dates: body.dates }, ctx);
+    if (!one.ok) return one;
+    if (i === 0) organiser = one.fields.name;
+    else one.fields.broughtBy = organiser;
+    list.push(one.fields);
+  }
+  return { ok: true, list };
+}
+
 const handler = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -284,22 +318,26 @@ const handler = async function handler(req, res) {
         s = { ...DEFAULT_STATE };
       }
 
-      // buildSignup self-builds a sanitized signup from name/phone/skill/dates
-      // (or legacy days) validated against the server's enabled days + clock.
-      // It NEVER spreads req.body, so this path can only ever append one signup.
-      const built = buildSignup(b, { socialGames: s.socialGames, todayISO: todayISO() });
+      // buildSignups self-builds sanitized signups from people[]/name/phone/skill/
+      // dates (or legacy days), validated against the server's enabled days +
+      // clock. It NEVER spreads req.body, so this path can only ever append
+      // sanitized signups — one per person in a group, capped at MAX_PARTY.
+      const built = buildSignups(b, { socialGames: s.socialGames, todayISO: todayISO() });
       if (!built.ok) {
         return res.status(400).json({ error: built.error || 'Please complete the form.' });
       }
 
-      const signup = Object.assign(
-        { id: 'su' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), at: Date.now(), handled: false },
-        built.fields
-      );
+      // One timestamp for the whole group so its rows sort adjacently (organiser
+      // first). id is at+index+random so batch members never collide.
+      const at = Date.now();
+      const stamped = built.list.map((fields, i) => Object.assign(
+        { id: 'su' + at.toString(36) + i.toString(36) + Math.random().toString(36).slice(2, 6), at, handled: false },
+        fields
+      ));
       const existing = Array.isArray(s.signups) ? s.signups : [];
       // Append-only, newest first, hard-capped at 500 (drop oldest). This slice
       // is the LAST mutation on every append — the array can never grow unbounded.
-      s.signups = [signup, ...existing].slice(0, 500);
+      s.signups = [...stamped, ...existing].slice(0, 500);
 
       try {
         await kv.set(STATE_KEY, s);
@@ -392,6 +430,7 @@ const handler = async function handler(req, res) {
         players: (state.players || []).map(p => ({ id: p.id, name: p.name })),
         rounds: state.rounds || [],
         numCourts: state.numCourts || 1,
+        courtNumbers: state.courtNumbers || [],
         courtRounds: state.courtRounds || [],
       };
       state.sessions = { ...(state.sessions || {}), [state.sessionDate]: snapshot };
@@ -428,5 +467,6 @@ const handler = async function handler(req, res) {
 module.exports = handler;
 module.exports.normalizeDrawState = normalizeDrawState;
 module.exports.buildSignup = buildSignup;
+module.exports.buildSignups = buildSignups;
 module.exports.addMonthsISO = addMonthsISO;
 module.exports.todayISO = todayISO;
