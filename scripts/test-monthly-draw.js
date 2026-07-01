@@ -220,5 +220,57 @@ check('monthLabel 2026-12 -> December 2026', monthLabel('2026-12') === 'December
   check('csv: tubes fallback tokens*4 (3 tokens -> 12 tubes)', pf2.participants[0].tubes === 12);
 }
 
+// ── archiveSummary — normalize a closed-month archive for the "past month" detail view ──
+const { archiveSummary } = require('../public/monthly-draw.js');
+{
+  const arch = {
+    label: 'June 2026',
+    winners: [
+      { rank: 2, name: 'John', prize: 'Racket' },
+      { rank: 1, name: 'Ling', prize: 'Shuttles' },
+      { rank: 3, name: 'Joo', prize: '' },
+    ],
+    participants: [{ tubes: 6 }, { tubes: 4 }, { tubes: 3 }, { tubes: 0 }],
+  };
+  const sum = archiveSummary(arch);
+  check('summary: label passed through', sum.label === 'June 2026');
+  check('summary: winners sorted by rank', sum.winners.map(w => w.rank).join(',') === '1,2,3');
+  check('summary: keeps prize (what they won)', sum.winners[0].prize === 'Shuttles');
+  check('summary: winner name after sort', sum.winners[1].name === 'John');
+  check('summary: empty prize stays empty', sum.winners[2].prize === '');
+  check('summary: participantCount', sum.participantCount === 4);
+  // carried = 6%4 + 4%4 + 3%4 + 0%4 = 2 + 0 + 3 + 0 = 5
+  check('summary: carriedTubes = sum(tubes % 4)', sum.carriedTubes === 5);
+}
+{
+  const empty = archiveSummary(null);
+  check('summary: null-safe', empty.label === '' && empty.winners.length === 0 && empty.participantCount === 0 && empty.carriedTubes === 0);
+  const noWinners = archiveSummary({ label: 'May 2026', participants: [{ tubes: 8 }] });
+  check('summary: no winners -> empty list', noWinners.winners.length === 0);
+  check('summary: no winners still counts participants/carry', noWinners.participantCount === 1 && noWinners.carriedTubes === 0);
+}
+
+// ── removeHistoryEntry — admin removes a past draw from the Lucky Draw history ──
+const { removeHistoryEntry } = require('../public/monthly-draw.js');
+{
+  const hist = [
+    { date: '2026-07-01', winners: [{ rank: 1, name: 'Jian' }] },
+    { date: '2026-06-28', winners: [{ rank: 1, name: 'Karine' }] },
+    { date: '2026-06-21', winners: [{ rank: 1, name: 'Milo' }] },
+  ];
+  const after = removeHistoryEntry(hist, 1);
+  check('removeHistory: drops the targeted entry', after.length === 2);
+  check('removeHistory: keeps the others in order', after[0].date === '2026-07-01' && after[1].date === '2026-06-21');
+  check('removeHistory: does not mutate the original', hist.length === 3);
+  check('removeHistory: returns a new array', after !== hist);
+}
+{
+  const hist = [{ date: '2026-07-01' }];
+  check('removeHistory: out-of-range idx -> unchanged copy', removeHistoryEntry(hist, 5).length === 1);
+  check('removeHistory: negative idx -> unchanged copy', removeHistoryEntry(hist, -1).length === 1);
+  check('removeHistory: null history -> []', removeHistoryEntry(null, 0).length === 0);
+  check('removeHistory: removing only entry -> []', removeHistoryEntry(hist, 0).length === 0);
+}
+
 console.log(`\nmonthly-draw tests: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

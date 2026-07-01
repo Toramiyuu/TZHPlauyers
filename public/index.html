@@ -255,6 +255,11 @@ body.in-3d #joinModal{z-index:1300}
 .jcal-legend{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:var(--fs-xs);color:var(--muted)}
 .jcal-dot{width:7px;height:7px;border-radius:50%;background:var(--a-blue);flex-shrink:0}
 .jcal-hint{font-size:var(--fs-sm);color:var(--a-ink-3);margin-top:6px}
+.jcal-time{display:flex;align-items:center;gap:12px;padding:12px 15px;margin-bottom:16px;background:var(--a-blue-tint);border:1px solid var(--a-blue);border-radius:var(--radius-md)}
+.jcal-time .ic{width:24px;height:24px;color:var(--a-blue);flex-shrink:0}
+.jcal-time-txt{display:flex;flex-direction:column;gap:2px;min-width:0;line-height:1.25}
+.jcal-time-txt strong{font-size:var(--fs-md);font-weight:600;color:var(--text);letter-spacing:-.01em}
+.jcal-time-txt span{font-size:var(--fs-sm);color:var(--a-ink-3)}
 .skill-row{display:flex;gap:8px}
 .skill-chip{flex:1;min-height:46px;border:1px solid var(--border2);background:var(--dark);color:var(--text-2);border-radius:var(--radius-md);font-family:inherit;font-size:var(--fs-base);font-weight:500;cursor:pointer;transition:var(--transition)}
 .skill-chip:hover{border-color:var(--a-blue)}
@@ -637,14 +642,14 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .roster-controls #rosterSearch{flex:1;min-width:160px;margin-bottom:0}
 .roster-sort{cursor:pointer;max-width:190px;flex-shrink:0}
 /* ── DRAW POOL ────────────────────────────── */
-.draw-pool{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px;min-height:32px}
-.draw-empty{color:var(--muted);font-size:var(--fs-sm);padding:10px 0}
+.draw-pool{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:8px 0 4px;min-height:32px}
+.draw-empty{color:var(--muted);font-size:var(--fs-sm);padding:10px 0;grid-column:1/-1}
 .draw-pool-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
 .draw-pool-count{font-size:var(--fs-xs);font-weight:700;color:var(--green-light);background:rgba(0,113,227,.12);padding:2px 8px;border-radius:100px}
-.draw-chip{background:var(--card2);border:1px solid var(--border2);border-radius:100px;padding:4px 8px 4px 10px;font-size:var(--fs-sm);color:var(--text);display:flex;align-items:center;gap:5px}
-.draw-chip button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:0;transition:color .1s}
-.draw-chip button:hover{color:var(--red)}
-.draw-chip-avatar{width:22px;height:22px;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff}
+.draw-card{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+.draw-card-del{position:absolute;top:2px;right:2px;width:24px;height:24px;border-radius:50%;background:transparent;border:none;color:var(--border2);cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.draw-card-del:hover{background:var(--red);color:#fff}
+.draw-card-name{font-size:var(--fs-xs);font-weight:500;text-align:center;word-break:break-word;line-height:1.3;color:var(--text);width:100%;padding:0 2px}
 /* Draw result panel */
 .draw-result{background:var(--dark);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--sp-md);margin-top:var(--sp-md)}
 .draw-result-label{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:var(--sp-sm);font-weight:600}
@@ -656,7 +661,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .draw-history-list{display:flex;flex-direction:column}
 .draw-history-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:var(--fs-sm)}
 .draw-history-row:last-child{border-bottom:none}
-.draw-history-name{font-weight:600;color:var(--text)}
+.draw-history-name{flex:1;min-width:0;font-weight:600;color:var(--text);margin:0 10px}
 .draw-history-time{color:var(--muted);font-size:var(--fs-xs)}
 .draw-date-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .draw-date-input{max-width:180px}
@@ -668,6 +673,9 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .draw-rank-del{background:none;border:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0 4px;flex-shrink:0}
 .draw-rank-del:hover{color:var(--red)}
 .draw-history-date-input{max-width:150px;font-size:var(--fs-xs)}
+.draw-hist-del{background:none;border:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0 4px;flex-shrink:0}
+.draw-hist-del:hover{color:var(--red)}
+.draw-hist-del.confirm{font-size:var(--fs-xs);font-weight:700;color:#fff;background:var(--red);border-radius:var(--radius-sm);padding:4px 8px}
 .confetti-container{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .confetti-piece{position:absolute;width:8px;height:8px;border-radius:2px;opacity:0;animation:confetti-fall 2.2s ease-out forwards}
 @keyframes confetti-fall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
@@ -697,11 +705,19 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .md-winner{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);margin-top:8px}
 .md-winner-name{font-size:var(--fs-md);font-weight:700;color:var(--text)}
 .md-winner-prize{font-size:var(--fs-sm);color:var(--text-2)}
-.md-history-row{display:flex;flex-direction:column;gap:2px;padding:8px 0;border-bottom:1px solid var(--border)}
+.md-history-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-bottom:1px solid var(--border)}
 .md-history-row:last-child{border-bottom:none}
+.md-history-main{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.md-history-row.clickable{cursor:pointer;border-radius:var(--radius-md);transition:var(--transition)}
+.md-history-row.clickable:hover{background:var(--a-blue-tint)}
+.md-history-row.clickable:focus-visible{outline:2px solid var(--a-blue);outline-offset:-2px}
+.md-history-chev{flex-shrink:0;color:var(--muted);font-size:22px;line-height:1;transition:var(--transition)}
+.md-history-row.clickable:hover .md-history-chev{color:var(--a-blue);transform:translateX(2px)}
 .md-history-month{font-size:var(--fs-sm);font-weight:700;color:var(--green-light)}
 .md-history-winners{font-size:var(--fs-xs);color:var(--muted)}
 .md-empty{color:var(--muted);font-size:var(--fs-sm);padding:8px 0}
+#mdHistBody{max-height:60vh;overflow-y:auto;margin-top:4px}
+.md-hist-meta{font-size:var(--fs-xs);color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
 .md-cust{flex-wrap:wrap}
 .md-odds-input{max-width:74px;text-align:center}
 .md-odds-pct{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap}
@@ -844,7 +860,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .lb-close:focus-visible,#pickerCloseBtn:focus-visible,
 .gate-enter-btn:focus-visible,.rc:focus-visible,
 .rc-del:focus-visible,.rc-points-btn:focus-visible,
-.draw-chip button:focus-visible,.guest-chip button:focus-visible,
+.draw-card-del:focus-visible,.guest-chip button:focus-visible,
 .md-tube-step button:focus-visible,.md-cust-del:focus-visible,
 .draw-rank-del:focus-visible,.md-undo-btn:focus-visible{
   outline:2px solid var(--green);outline-offset:2px
@@ -1037,6 +1053,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div class="join-body">
       <!-- Step 1 — calendar -->
       <div class="join-stage active" data-stage="1">
+        <div class="jcal-time" id="jcalTime">
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5V12l3 1.8"></path></svg>
+          <div class="jcal-time-txt"><strong id="jcalTimeMain"></strong><span id="jcalTimeDays"></span></div>
+        </div>
         <div class="jcal-top">
           <div class="jcal-month" id="jcalMonth"></div>
           <div class="jcal-nav">
@@ -1299,6 +1319,18 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <button class="lb-close" onclick="closeMdBoard()" aria-label="Close prize draw board">&#x2715;</button>
     <h2 class="lb-header" id="mdBoardTitle">Monthly Prize Draw</h2>
     <div id="mdBoardBody"></div>
+  </div>
+</div>
+
+<!-- Past month draw detail (admin: click a past month to see winners + prizes) -->
+<div id="mdHistModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="mdHistTitle"
+     onclick="if(event.target===this)closeMdHist()">
+  <div class="modal-box">
+    <h2 id="mdHistTitle">Past month</h2>
+    <div id="mdHistBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-sm" onclick="closeMdHist()">Close</button>
+    </div>
   </div>
 </div>
 
@@ -3639,17 +3671,56 @@ function renderMonthlyHistory() {
   if (!el) return;
   const hist = mdData().history || [];
   if (!hist.length) { el.innerHTML = '<div class="md-empty">No past months yet.</div>'; return; }
-  el.innerHTML = '<div class="admin-form-label">Past months</div>' + hist.map(d => {
+  el.innerHTML = '<div class="admin-form-label">Past months</div>' + hist.map((d, i) => {
     const winners = (d.winners || []).slice().sort((a, b) => a.rank - b.rank).map(w => `${escHtml(w.name)} (${mdRankLbl(w.rank)})`);
     const sp = d.participants || [];
     const carried = sp.reduce((s, p) => s + ((Number(p.tubes) || 0) % 4), 0);
     const carriedNote = sp.length ? `${sp.length} participant${sp.length === 1 ? '' : 's'} &middot; ${carried} tube${carried === 1 ? '' : 's'} carried forward` : '';
-    return `<div class="md-history-row">
-      <div class="md-history-month">${escHtml(d.label || '')}</div>
-      <div class="md-history-winners">${winners.length ? winners.join('  &middot;  ') : 'No winners'}</div>
-      ${carriedNote ? `<div class="md-history-winners">${carriedNote}</div>` : ''}
+    return `<div class="md-history-row clickable" role="button" tabindex="0"
+      onclick="openMdHist(${i})"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMdHist(${i});}"
+      aria-label="View winners and prizes for ${escHtml(d.label || 'this month')}">
+      <div class="md-history-main">
+        <div class="md-history-month">${escHtml(d.label || '')}</div>
+        <div class="md-history-winners">${winners.length ? winners.join('  &middot;  ') : 'No winners'}</div>
+        ${carriedNote ? `<div class="md-history-winners">${carriedNote}</div>` : ''}
+      </div>
+      <span class="md-history-chev" aria-hidden="true">&rsaquo;</span>
     </div>`;
   }).join('');
+}
+
+function openMdHist(idx) {
+  const hist = mdData().history || [];
+  const d = hist[idx];
+  if (!d) return;
+  const lib = window.MonthlyDraw;
+  const sum = lib && lib.archiveSummary ? lib.archiveSummary(d)
+    : { label: d.label || '', winners: (d.winners || []).slice().sort((a, b) => a.rank - b.rank),
+        participantCount: (d.participants || []).length,
+        carriedTubes: (d.participants || []).reduce((s, p) => s + ((Number(p.tubes) || 0) % 4), 0) };
+  document.getElementById('mdHistTitle').textContent = sum.label || 'Past month';
+  const winHtml = sum.winners.length ? sum.winners.map(w => `
+    <div class="md-winner">
+      <span class="md-prize-rank md-rank-${w.rank}">${w.rank}</span>
+      <div class="md-cust-main">
+        <div class="md-winner-name">${escHtml(w.name)}</div>
+        <div class="md-winner-prize">${w.prize ? escHtml(w.prize) : 'No prize recorded'}</div>
+      </div>
+    </div>`).join('')
+    : '<div class="md-empty">No winners were drawn this month.</div>';
+  const pc = sum.participantCount;
+  const meta = pc
+    ? `<div class="md-hist-meta">${pc} participant${pc === 1 ? '' : 's'} &middot; ${sum.carriedTubes} tube${sum.carriedTubes === 1 ? '' : 's'} carried forward</div>`
+    : '';
+  document.getElementById('mdHistBody').innerHTML =
+    '<div class="admin-subsection-label">Winners</div>' + winHtml + meta;
+  document.getElementById('mdHistModal').classList.add('open');
+}
+
+function closeMdHist() {
+  const m = document.getElementById('mdHistModal');
+  if (m) m.classList.remove('open');
 }
 
 async function saveDrawPrizes() {
@@ -4046,6 +4117,35 @@ function jcalISO(y, m, d) {
   return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
 }
 
+// "Monday, Friday & Sunday" from an array of day names.
+function joinHumanList(arr) {
+  const a = arr.filter(Boolean);
+  if (a.length <= 1) return a[0] || '';
+  if (a.length === 2) return a[0] + ' & ' + a[1];
+  return a.slice(0, -1).join(', ') + ' & ' + a[a.length - 1];
+}
+
+// Fill the prominent session-time banner at the top of the calendar step.
+// One clear line when every open day shares a time; a per-day breakdown otherwise.
+function joinRenderTimeBanner() {
+  const games = getEnabledGameDays();
+  const mainEl = document.getElementById('jcalTimeMain');
+  const daysEl = document.getElementById('jcalTimeDays');
+  if (!mainEl || !daysEl) return;
+  const times = games.map(g => g.time).filter(Boolean);
+  const uniform = times.length === games.length && times.every(t => t === times[0]);
+  if (uniform && times[0]) {
+    mainEl.textContent = 'Games run ' + times[0];
+    daysEl.textContent = 'Every ' + joinHumanList(games.map(g => g.day));
+  } else if (times.length) {
+    mainEl.textContent = 'Session times';
+    daysEl.textContent = games.map(g => g.day + (g.time ? ' ' + g.time : '')).join('  ·  ');
+  } else {
+    mainEl.textContent = 'Social games';
+    daysEl.textContent = 'Every ' + joinHumanList(games.map(g => g.day));
+  }
+}
+
 function jcalRender() {
   const grid = document.getElementById('jcalGrid');
   if (!grid) return;
@@ -4249,11 +4349,9 @@ function openJoinModal() {
   joinRenderPeople();
   const err = document.getElementById('joinError');
   err.style.display = 'none'; err.textContent = '';
-  const games = getEnabledGameDays();
-  const time = (games[0] && games[0].time) || '';
-  const dayList = games.map(g => g.day).join(' · ');
-  document.getElementById('joinSub').textContent = (dayList ? dayList + (time ? ' · ' + time : '') + ' — ' : '') + "pick the dates you'd like to play.";
-  document.getElementById('jcalLegend').textContent = 'Open: ' + dayList + (time ? ' · ' + time : '');
+  joinRenderTimeBanner();
+  document.getElementById('joinSub').textContent = "Pick the dates you'd like to play.";
+  document.getElementById('jcalLegend').textContent = 'Open game days';
   const today = getJoinToday();
   jcalY = +today.slice(0, 4);
   jcalM = +today.slice(5, 7) - 1;
@@ -4713,13 +4811,14 @@ function renderDrawPool() {
     return;
   }
   pool.innerHTML = entries.map((name, i) => {
-    const rp = (state.roster || []).find(r => r.name === name);
-    let av = '';
-    if (rp) {
-      if (rp.photo) av = `<img class="draw-chip-avatar" src="${rp.photo}" alt="" style="object-fit:cover">`;
-      else av = `<span class="draw-chip-avatar" style="background:${getColor(rp.id)}">${getInitials(name)}</span>`;
-    }
-    return `<div class="draw-chip">${av}<span>${escHtml(name)}</span><button onclick="removeDrawEntry(${i})" title="Remove">&#x00D7;</button></div>`;
+    // Match the ballot entry to a roster player for a real photo/colour; fall back
+    // to a synthetic player so unmatched names still get stable initials + colour.
+    const rp = (state.roster || []).find(r => r.name === name) || { id: name, name };
+    return `<div class="draw-card">
+      <button class="draw-card-del" onclick="removeDrawEntry(${i})" title="Remove" aria-label="Remove ${escHtml(name)} from pool">&#x00D7;</button>
+      ${avatarHTML(rp, 54)}
+      <div class="draw-card-name">${escHtml(name)}</div>
+    </div>`;
   }).join('');
 }
 
@@ -4762,6 +4861,11 @@ function drawSpinLive() {
 
 function ordinalLbl(n) { return window.MonthlyDraw ? MonthlyDraw.ordinal(n) : (n + 'th'); }
 
+// Two-click "Remove?" confirm for a past draw. Held in a module var (not the DOM)
+// so the 2s admin poll re-render can't wipe the in-progress confirmation.
+let pendingDrawHistDelete = null;
+let drawHistDelTimer = null;
+
 function renderDrawResult() {
   renderDrawDate();
   const ld = state.luckyDraw || {};
@@ -4792,9 +4896,14 @@ function renderDrawResult() {
     html += history.map((h, i) => {
       const winners = (h.winners || []).slice().sort((a, b) => a.rank - b.rank)
         .map(w => `${escHtml(w.name)} (${escHtml(ordinalLbl(w.rank))})`).join('  &middot;  ');
+      const pending = pendingDrawHistDelete === i;
+      const del = pending
+        ? `<button class="draw-hist-del confirm" onclick="removeDrawHistory(${i})" title="Confirm remove">Remove?</button>`
+        : `<button class="draw-hist-del" onclick="removeDrawHistory(${i})" title="Remove draw" aria-label="Remove draw from ${escHtml(readableDate(h.date))}">&#x00D7;</button>`;
       return `<div class="draw-history-row">
         <input type="date" class="admin-form-input draw-history-date-input" value="${escHtml(h.date || '')}" onchange="editDrawHistoryDate(${i}, this.value)" aria-label="Draw date">
         <span class="draw-history-name">${winners || 'No winners'}</span>
+        ${del}
       </div>`;
     }).join('');
   }
@@ -4841,6 +4950,28 @@ async function editDrawHistoryDate(idx, val) {
   await apiPost({ luckyDraw });
   state.luckyDraw = luckyDraw;
   renderDrawResult();
+}
+
+async function removeDrawHistory(idx) {
+  // First click arms the confirm; second click within 3s deletes.
+  if (pendingDrawHistDelete !== idx) {
+    pendingDrawHistDelete = idx;
+    renderDrawResult();
+    clearTimeout(drawHistDelTimer);
+    drawHistDelTimer = setTimeout(() => { pendingDrawHistDelete = null; renderDrawResult(); }, 3000);
+    return;
+  }
+  clearTimeout(drawHistDelTimer);
+  pendingDrawHistDelete = null;
+  const ld = state.luckyDraw || {};
+  const history = window.MonthlyDraw
+    ? MonthlyDraw.removeHistoryEntry(ld.history, idx)
+    : (ld.history || []).filter((_, i) => i !== idx);
+  const luckyDraw = { ...ld, history };
+  await apiPost({ luckyDraw });
+  state.luckyDraw = luckyDraw;
+  renderDrawResult();
+  notify('Past draw removed.');
 }
 
 function renderViewerWinners() {
@@ -4983,6 +5114,7 @@ function closeOpenOverlays() {
   if (isOpen('membersModal')) { closeMembersModal(); closed = true; }
   if (isOpen('lbModal'))      { closeLbModal();      closed = true; }
   if (isOpen('mdBoardModal')) { closeMdBoard();      closed = true; }
+  if (isOpen('mdHistModal'))  { closeMdHist();       closed = true; }
   if (isOpen('historyModal')) { closeHistoryModal(); closed = true; }
   if (isOpen('joinModal'))    { closeJoinModal();    closed = true; }
   return closed;

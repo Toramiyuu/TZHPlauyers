@@ -11,6 +11,8 @@
     --blue-tint:rgba(0,113,227,.16); --blue-line:rgba(0,113,227,.42);
     --bg:#eef4fd; --bg-2:#e8f0fb; --card:#ffffff; --card-2:#e2ecfa;
     --ink:#1d1d1f; --ink-2:#5c6470; --ink-3:#5f6b7a; --line:#d4e2f5;
+    /* "Ending Soon" amber — AA-legible over the amber tint, mirrors the 2D viewer */
+    --amber:#9a4d00; --amber-tint:rgba(255,149,0,.18); --amber-line:rgba(255,149,0,.5);
   }
   *{ box-sizing:border-box; margin:0; padding:0; }
   html,body{ height:100%; }
@@ -153,6 +155,22 @@
     padding:4px 9px; border-radius:999px;
     background:var(--blue-tint); border:1px solid var(--blue-line);
   }
+  /* "Ending Soon" pill — mirrors the 2D viewer's per-court amber badge */
+  .ending-badge{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:10.5px; font-weight:650; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--amber);
+    padding:4px 9px 4px 8px; border-radius:999px;
+    background:var(--amber-tint); border:1px solid var(--amber-line);
+  }
+  .ending-badge .es-dot{
+    width:6px; height:6px; border-radius:50%; background:var(--amber);
+    flex:0 0 auto; animation:esblink 1.8s infinite;
+  }
+  @keyframes esblink{ 0%,100%{ opacity:1; } 50%{ opacity:.3; } }
+  @media (prefers-reduced-motion:reduce){ .ending-badge .es-dot{ animation:none; } }
+  /* amber top-hairline accent on a court that's wrapping up */
+  .card.ending::before{ background:linear-gradient(90deg, transparent, var(--amber-line), transparent); }
 
   .team{ display:flex; align-items:center; justify-content:center; gap:10px; }
   .avatars{ display:flex; }
@@ -332,6 +350,7 @@ function buildMatchesFromState(state){
       court: i + 1,
       round: ri + 1,
       roundLabel: (round && round.label) || ('Round ' + (ri + 1)),
+      endingSoon: !!(state.endingSoon && state.endingSoon[i]),
       t1: r1.map(function(p){ return p.name; }),
       t2: r2.map(function(p){ return p.name; }),
       photos1: r1.map(function(p){ return p.photo || null; }),
@@ -399,10 +418,12 @@ function renderCards(matches){
   }
   el.innerHTML = matches.map(function(m){
     return ''+
-    '<div class="card glass">'+
+    '<div class="card glass'+(m.endingSoon ? ' ending' : '')+'">'+
       '<div class="card-top">'+
         '<div class="court-id"><span class="court-num">Court '+m.court+' <span>·</span></span>'+
-          '<span class="round-badge">'+escapeHtml(m.roundLabel)+'</span></div>'+
+          '<span class="round-badge">'+escapeHtml(m.roundLabel)+'</span>'+
+          (m.endingSoon ? '<span class="ending-badge"><span class="es-dot"></span>Ending Soon</span>' : '')+
+        '</div>'+
       '</div>'+
       teamHTML(m.t1, false)+
       '<div class="vs-row"><span class="vs-line"></span><span class="vs">vs</span><span class="vs-line"></span></div>'+

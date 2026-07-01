@@ -16,7 +16,7 @@
  *        enough, else numCourts copies of currentRound)
  *
  *   buildMatchesFromState(state)
- *     -> [{ court, round, roundLabel, t1:[names], t2:[names], photos1, photos2 }]
+ *     -> [{ court, round, roundLabel, endingSoon, t1:[names], t2:[names], photos1, photos2 }]
  *        one entry per court that HAS a match in its current round; courts with
  *        no court slot are omitted. Names are resolved; unknown ids dropped.
  *
@@ -160,6 +160,21 @@ check('buildMatches drops empty ids', mu[0].t2.join(',') === 'Ann');
 // empty / malformed state never throws
 check('buildMatches handles null state', Array.isArray(H.buildMatchesFromState(null)) && H.buildMatchesFromState(null).length === 0);
 check('buildMatches handles empty rounds', H.buildMatchesFromState({ numCourts: 2, rounds: [] }).length === 0);
+
+// endingSoon flows through per court so the 3D cards can flag a court that is
+// wrapping up (mirrors the 2D viewer's per-court "Ending Soon" badge).
+const endingState = {
+  numCourts: 2, currentRound: 0, courtRounds: [0, 0],
+  endingSoon: [true, false],
+  roster: [{ id: 'a', name: 'Ann' }, { id: 'b', name: 'Ben' }],
+  rounds: [{ label: 'Round 1', courts: [
+    { team1: ['a'], team2: ['b'] },
+    { team1: ['b'], team2: ['a'] },
+  ] }],
+};
+const me = H.buildMatchesFromState(endingState);
+check('buildMatches carries endingSoon per court', me[0].endingSoon === true && me[1].endingSoon === false);
+check('buildMatches endingSoon defaults false when absent', H.buildMatchesFromState(state).every(x => x.endingSoon === false));
 
 // ── buildNextUpFromState ──────────────────────────────────────────────────
 // The main `state` fixture has 2 rounds; courtRounds=[0,1]. Court 0 has a next

@@ -246,11 +246,43 @@
     return _MONTHS[mo - 1] + ' ' + y;
   }
 
+  /** Remove the past-draw entry at idx, returning a new array. Out-of-range idx -> unchanged copy. */
+  function removeHistoryEntry(history, idx) {
+    const list = Array.isArray(history) ? history.slice() : [];
+    if (!Number.isInteger(idx) || idx < 0 || idx >= list.length) return list;
+    list.splice(idx, 1);
+    return list;
+  }
+
   /** Sort results by current rank and renumber 1..n (engagement winner removal re-rank). */
   function reindexRanks(list) {
     return (list || []).slice()
       .sort(function (a, b) { return (a.rank || 0) - (b.rank || 0); })
       .map(function (r, i) { return Object.assign({}, r, { rank: i + 1 }); });
+  }
+
+  /**
+   * Normalize a closed-month archive entry for the "past month" detail view.
+   * Winners are sorted by rank with their prize (what they won) preserved;
+   * carriedTubes is the sum of each participant's leftover tubes (tubes % 4).
+   * @param {{label?:string, winners?:Array, participants?:Array}} archive
+   * @returns {{label:string, winners:Array<{rank:number,name:string,prize:string}>, participantCount:number, carriedTubes:number}}
+   */
+  function archiveSummary(archive) {
+    const a = archive || {};
+    const winners = (Array.isArray(a.winners) ? a.winners : [])
+      .map(function (w) {
+        w = w || {};
+        return { rank: _int(w.rank), name: String(w.name == null ? '' : w.name), prize: String(w.prize == null ? '' : w.prize) };
+      })
+      .sort(function (x, y) { return x.rank - y.rank; });
+    const parts = Array.isArray(a.participants) ? a.participants : [];
+    return {
+      label: String(a.label == null ? '' : a.label),
+      winners: winners,
+      participantCount: parts.length,
+      carriedTubes: parts.reduce(function (s, p) { return s + drawLeftover(p && p.tubes); }, 0),
+    };
   }
 
   // ── Social game sign-ups (2026-06-28) — public join flow ───────────────
@@ -438,7 +470,7 @@
   return {
     drawTokens, drawLeftover, tokensRemaining, spinOutcome, parseDrawCsv, buildBallot, pickWinnerIndex,
     ordinal, withTokens, carryOverParticipants, matchParticipant, participantKey, mergeParticipants,
-    nextMonthKey, monthLabel, reindexRanks,
+    nextMonthKey, monthLabel, reindexRanks, removeHistoryEntry, archiveSummary,
     validateSignup, unhandledCount, timeAgo,
     SKILLS, isValidISO, isoWeekday, weekdayName, addMonthsISO, validateJoinRequest, validateJoinRequests,
   };
