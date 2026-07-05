@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const os = require('os');
 // Reuse the serverless submit validator + clock so local dev matches production.
-const { buildSignups, todayISO } = require('./api/state.js');
+const { buildSignups, todayISO, applySessionDateChange } = require('./api/state.js');
 const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction } = require('./api/accounts.js');
 
 const app = express();
@@ -34,6 +34,8 @@ const DEFAULT_STATE = {
     },
   ],
   currentRound: 0,
+  sessionDate: todayISO(),
+  sessions: {},
   luckyDraw: { entries: [], drawDate: null, spin: null, results: [], history: [] },
   monthlyDraw: { month: '', rollSuppressedMonth: '', prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'], participants: [], results: [], spin: null, history: [] },
   socialGames: [
@@ -113,6 +115,13 @@ app.post('/api/state', (req, res) => {
   if (updates.action && ADMIN_ACCOUNT_ACTIONS.has(updates.action)) {
     const result = handleAdminAccountAction(state, updates);
     return res.status(result.status).json(result.body);
+  }
+  // Session-date change uses the SAME shared logic as production (api/state.js)
+  // so local dev reproduces the snapshot/restore/one-month-ahead behaviour.
+  if (updates.sessionDate) {
+    const transition = applySessionDateChange(state, updates.sessionDate);
+    if (!transition.ok) return res.status(400).json({ error: transition.error });
+    state = transition.state;
   }
   state = { ...state, ...updates };
   res.json({ ok: true });

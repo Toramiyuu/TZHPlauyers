@@ -162,6 +162,70 @@ function addMonthsISO(iso, n) {
   return ny + '-' + String(nmo + 1).padStart(2, '0') + '-' + String(nd).padStart(2, '0');
 }
 
+function addDaysISO(iso, n) {
+  const m = ISO_RE.exec(String(iso));
+  if (!m) return String(iso);
+  const dt = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  dt.setUTCDate(dt.getUTCDate() + (Math.trunc(Number(n) || 0)));
+  return dt.toISOString().slice(0, 10);
+}
+
+/**
+ * Apply a session-date change, returning { ok:true, state } or { ok:false, error }.
+ * Pure — never mutates the passed state. Shared by the api/state.js handler and
+ * server.js so local dev and production can't drift (that drift is what let the
+ * "go to a next day" bug slip through local testing).
+ *
+ *  - Allows dates up to ONE MONTH ahead (matches the admin UI's maxSessionDateISO,
+ *    so scheduling the next session day works instead of 400'ing).
+ *  - Snapshots the outgoing day into state.sessions and prunes entries >31 days old.
+ *  - RESTORES the target day's saved session if one exists (so revisiting a day
+ *    brings its players/rounds/courts back instead of showing an empty day);
+ *    otherwise starts the day fresh while keeping numCourts + courtNumbers.
+ */
+function applySessionDateChange(state, newDate, today) {
+  state = state || {};
+  today = today || todayISO();
+  if (newDate > addMonthsISO(today, 1)) {
+    return { ok: false, error: 'Cannot set a date more than a month ahead.' };
+  }
+  const next = Object.assign({}, state);
+  if (newDate !== state.sessionDate && state.sessionDate) {
+    const snapshot = {
+      players: (state.players || []).map((p) => ({ id: p.id, name: p.name })),
+      rounds: state.rounds || [],
+      numCourts: state.numCourts || 1,
+      courtNumbers: state.courtNumbers || [],
+      courtRounds: state.courtRounds || [],
+    };
+    const sessions = Object.assign({}, state.sessions, { [state.sessionDate]: snapshot });
+    const cutoffStr = addDaysISO(today, -31);
+    for (const d of Object.keys(sessions)) {
+      if (d < cutoffStr) delete sessions[d];
+    }
+    const saved = sessions[newDate];
+    if (saved) {
+      // Revisiting a saved day — bring its data back to life.
+      next.players = Array.isArray(saved.players) ? saved.players : [];
+      next.rounds = Array.isArray(saved.rounds) ? saved.rounds : [];
+      next.numCourts = saved.numCourts || state.numCourts || 1;
+      next.courtNumbers = Array.isArray(saved.courtNumbers) ? saved.courtNumbers : [];
+      next.courtRounds = Array.isArray(saved.courtRounds) ? saved.courtRounds : [];
+      delete sessions[newDate]; // it's the live day now, not a saved past day
+    } else {
+      // Fresh day — clear the roster/rounds but keep the venue's court setup.
+      next.players = [];
+      next.rounds = [];
+      next.courtRounds = [];
+    }
+    next.currentRound = 0;
+    next.endingSoon = [];
+    next.sessions = sessions;
+  }
+  next.sessionDate = newDate;
+  return { ok: true, state: next };
+}
+
 /**
  * Validate a public sign-up and return {ok, error?, fields?}. `fields` holds
  * ONLY sanitized values (name, phone, days, [skill, dates]); the handler stamps
@@ -419,34 +483,13 @@ const handler = async function handler(req, res) {
       return res.json({ ok: true });
     }
 
-    // Reject future session dates
-    if (updates.sessionDate && updates.sessionDate > todayISO()) {
-      return res.status(400).json({ error: 'Cannot set a future date.' });
-    }
-
-    // Auto-save current session when date changes
-    if (updates.sessionDate && updates.sessionDate !== state.sessionDate && state.sessionDate) {
-      const snapshot = {
-        players: (state.players || []).map(p => ({ id: p.id, name: p.name })),
-        rounds: state.rounds || [],
-        numCourts: state.numCourts || 1,
-        courtNumbers: state.courtNumbers || [],
-        courtRounds: state.courtRounds || [],
-      };
-      state.sessions = { ...(state.sessions || {}), [state.sessionDate]: snapshot };
-      // Prune sessions older than 31 days
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - 31);
-      const cutoffStr = cutoff.toISOString().slice(0, 10);
-      for (const d of Object.keys(state.sessions)) {
-        if (d < cutoffStr) delete state.sessions[d];
-      }
-      // Reset session-specific data for the new date
-      state.players = [];
-      state.rounds = [];
-      state.currentRound = 0;
-      state.courtRounds = [];
-      state.endingSoon = [];
+    // Session date change: allow scheduling up to a month ahead (matches the
+    // admin UI), snapshot the outgoing day, and restore the target day's saved
+    // session if we have one. Shared pure helper — see applySessionDateChange.
+    if (updates.sessionDate) {
+      const transition = applySessionDateChange(state, updates.sessionDate);
+      if (!transition.ok) return res.status(400).json({ error: transition.error });
+      state = transition.state;
     }
 
     state = { ...state, ...updates };
@@ -469,4 +512,5 @@ module.exports.normalizeDrawState = normalizeDrawState;
 module.exports.buildSignup = buildSignup;
 module.exports.buildSignups = buildSignups;
 module.exports.addMonthsISO = addMonthsISO;
+module.exports.applySessionDateChange = applySessionDateChange;
 module.exports.todayISO = todayISO;

@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TZH Badminton Skill Tree · TZH 羽毛球成长技能树</title>
+<style>
+/* ===== FONTS (bundled, brand-matched to TZH Academy system) ===== */
+@font-face{font-family:'Fraunces';font-weight:400;font-style:normal;font-display:block;src:url('assets/fonts/fraunces-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Fraunces';font-weight:500;font-style:normal;font-display:block;src:url('assets/fonts/fraunces-500-normal.woff2') format('woff2')}
+@font-face{font-family:'Fraunces';font-weight:600;font-style:normal;font-display:block;src:url('assets/fonts/fraunces-600-normal.woff2') format('woff2')}
+@font-face{font-family:'Fraunces';font-weight:700;font-style:normal;font-display:block;src:url('assets/fonts/fraunces-700-normal.woff2') format('woff2')}
+@font-face{font-family:'Fraunces';font-weight:400;font-style:italic;font-display:block;src:url('assets/fonts/fraunces-it-400-italic.woff2') format('woff2')}
+@font-face{font-family:'Fraunces';font-weight:500;font-style:italic;font-display:block;src:url('assets/fonts/fraunces-it-500-italic.woff2') format('woff2')}
+@font-face{font-family:'Fraunces';font-weight:600;font-style:italic;font-display:block;src:url('assets/fonts/fraunces-it-600-italic.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-weight:400;font-style:normal;font-display:block;src:url('assets/fonts/inter-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-weight:500;font-style:normal;font-display:block;src:url('assets/fonts/inter-500-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-weight:600;font-style:normal;font-display:block;src:url('assets/fonts/inter-600-normal.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-weight:700;font-style:normal;font-display:block;src:url('assets/fonts/inter-700-normal.woff2') format('woff2')}
+@font-face{font-family:'NotoSC';font-weight:400;font-style:normal;font-display:block;src:url('assets/fonts/notosanssc-cs-400.woff2') format('woff2')}
+@font-face{font-family:'NotoSC';font-weight:500;font-style:normal;font-display:block;src:url('assets/fonts/notosanssc-cs-500.woff2') format('woff2')}
+@font-face{font-family:'NotoSC';font-weight:700;font-style:normal;font-display:block;src:url('assets/fonts/notosanssc-cs-700.woff2') format('woff2')}
+
+@page{size:A4;margin:0}
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --paper:#f5f1e8;--paper2:#fffdf8;--soft:#ece7da;
+  --navy:#19293f;--navy-d:#142133;--navy-l:#27405f;
+  --accent:#a8823f;--gold:#a8823f;--gold-l:#c6a463;--gold-soft:#f2e9d7;--accent-soft:#f2e9d7;
+  --ink:#2a313c;--muted2:#6e7681;--line:#e6dfce;--line2:#ece7da;
+  --star-empty:#cdbe97;
+  --serif:'Fraunces','NotoSC',Georgia,serif;
+  --sans:'Inter','NotoSC','Helvetica Neue',Arial,sans-serif;
+  --cjk:'NotoSC','PingFang SC',sans-serif;
+}
+html{font-family:var(--cjk);color:var(--ink);font-size:10.5pt;line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+.en{font-family:var(--sans)}
+.page{position:relative;width:210mm;height:297mm;background:var(--paper);overflow:hidden;page-break-after:always}
+.page:last-child{page-break-after:auto}
+.pad{position:relative;height:100%;padding:13mm 16mm 14mm;display:flex;flex-direction:column}
+
+/* running header */
+.rh{display:flex;align-items:center;gap:3.5mm;border-bottom:1px solid var(--line);padding-bottom:4mm;margin-bottom:6.5mm;flex-shrink:0}
+.leaf{height:10mm;width:auto;flex-shrink:0}
+.rh-tt{font-family:var(--sans);font-weight:700;letter-spacing:.18em;font-size:9pt;color:var(--navy)}
+.rh-sub{font-family:var(--cjk);font-size:8.5pt;color:var(--accent);font-weight:500;margin-top:.5mm}
+.rh-sub .en{font-family:var(--serif);font-style:italic;font-weight:400;color:var(--muted2);font-size:7.5pt}
+.rh-meta{margin-left:auto;text-align:right;font-family:var(--sans);font-size:7.3pt;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);line-height:1.5}
+
+/* headings */
+.eyebrow{font-family:var(--cjk);font-size:9pt;letter-spacing:.12em;color:var(--accent);font-weight:700;margin-bottom:3.5mm;display:flex;align-items:center;gap:2.5mm}
+.eyebrow .num{font-family:var(--serif);font-weight:600;font-size:10pt;color:var(--gold);letter-spacing:0}
+.eyebrow .en{font-family:var(--sans);text-transform:uppercase;letter-spacing:.14em;color:var(--muted2);font-weight:600;font-size:8pt}
+.h-en{font-family:var(--serif);font-weight:600;font-size:27pt;color:var(--navy);line-height:1.04;letter-spacing:-.01em}
+.h-zh{font-family:var(--cjk);font-weight:700;font-size:16.5pt;color:var(--navy);line-height:1.16;letter-spacing:.03em;margin-top:2.4mm}
+.h-rule{width:20mm;height:2.5px;background:var(--gold);margin:5mm 0 6mm;border-radius:2px;flex-shrink:0}
+.lead{font-family:var(--cjk);font-size:10pt;color:var(--ink);line-height:1.7;max-width:172mm}
+.lead b{color:var(--navy);font-weight:700}
+.lead .en{display:block;font-family:var(--sans);color:var(--muted2);margin-top:2.2mm;font-size:8.7pt;line-height:1.55;font-weight:400}
+.lead .en b{color:var(--navy);font-weight:600}
+
+.head-row{display:flex;justify-content:space-between;align-items:flex-start;flex-shrink:0}
+.kick-r{display:flex;align-items:center;gap:2.5mm;font-family:var(--cjk);font-size:8.6pt;color:var(--ink);text-align:right;line-height:1.4}
+.kick-r .en{font-family:var(--sans);font-size:7.4pt;letter-spacing:.13em;text-transform:uppercase;color:var(--muted2);font-weight:600}
+.kick-ic{width:8mm;height:8mm;border:1px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--paper2);flex-shrink:0}
+.kick-ic .ic{width:4.4mm;height:4.4mm;stroke:var(--accent)}
+
+.foot{position:absolute;left:16mm;right:16mm;bottom:9mm;display:flex;justify-content:space-between;align-items:center;font-family:var(--sans);font-size:7.8pt;color:var(--muted2);border-top:1px solid var(--line);padding-top:3mm;letter-spacing:.02em}
+.foot b{color:var(--accent);font-weight:600}
+.foot .pg{font-family:var(--serif);font-weight:600;color:var(--navy)}
+
+.ic{fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+
+/* ===== STARS ===== */
+.stars{display:inline-flex;gap:1.8mm;align-items:center}
+.star{width:4.7mm;height:4.7mm;flex-shrink:0}
+.star path{fill:none;stroke:var(--star-empty);stroke-width:1.35;stroke-linejoin:round}
+.star.on path{fill:var(--gold);stroke:var(--gold)}
+.stars.sm .star{width:3.7mm;height:3.7mm}
+.stars.lg .star{width:6mm;height:6mm}
+
+/* ===== COVER ===== */
+.cover{display:flex;flex-direction:column;height:297mm;padding:0}
+.band{background:var(--navy);height:18mm;width:100%;position:relative;flex-shrink:0}
+.band:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1.4mm;background:linear-gradient(90deg,var(--gold-l),var(--gold))}
+.cover-body{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:12mm 20mm 6mm}
+.cv-logo{height:22mm;width:auto;margin-bottom:5mm}
+.cv-brand{font-family:var(--sans);font-weight:700;letter-spacing:.26em;font-size:12pt;color:var(--navy)}
+.cv-brand-sub{font-family:var(--cjk);font-size:8.5pt;letter-spacing:.18em;color:var(--accent);margin-top:2.4mm}
+.cv-brand-sub .en{font-family:var(--sans);letter-spacing:.3em;color:var(--muted2)}
+.cv-rule{width:26mm;height:1.6px;background:linear-gradient(90deg,transparent,var(--gold) 25%,var(--gold) 75%,transparent);margin:7mm 0 6.5mm}
+.cv-eyebrow{font-family:var(--cjk);font-size:9.5pt;letter-spacing:.16em;color:var(--ink);margin-bottom:5mm}
+.cv-eyebrow .en{font-family:var(--sans);text-transform:uppercase;letter-spacing:.24em;font-size:8pt;color:var(--muted2);font-weight:600}
+.cv-title{font-family:var(--serif);font-weight:600;font-size:41pt;color:var(--navy);line-height:1.0;letter-spacing:-.015em}
+.cv-title-zh{font-family:var(--cjk);font-weight:700;font-size:23pt;color:var(--navy);margin-top:5mm;letter-spacing:.14em}
+.cv-stars{margin-top:8mm}
+.cv-tag{font-family:var(--cjk);font-weight:500;font-size:12.5pt;color:var(--ink);margin-top:8mm;line-height:1.45}
+.cv-tag .en{font-style:italic;font-family:var(--serif);font-weight:400;font-size:11pt;display:block;margin-top:2.6mm;color:var(--muted2)}
+.cv-badge{margin-top:7mm;border:1px solid var(--gold);color:var(--navy);font-family:var(--cjk);font-weight:600;font-size:8.6pt;letter-spacing:.04em;padding:2.6mm 7mm;border-radius:30px;display:inline-flex;align-items:center;gap:2.5mm}
+.cv-badge .en{font-family:var(--sans);text-transform:uppercase;letter-spacing:.12em;font-size:7.8pt;color:var(--muted2);font-weight:500}
+.cv-badge .dot{width:1.6mm;height:1.6mm;border-radius:50%;background:var(--gold)}
+.cv-index{margin-top:auto;width:100%;max-width:150mm;border-top:1px solid var(--line);padding-top:6mm}
+.cv-index-t{font-family:var(--sans);font-size:8pt;letter-spacing:.24em;text-transform:uppercase;color:var(--muted2);margin-bottom:4.5mm}
+.cv-idx-grid{display:grid;grid-template-columns:1fr 1fr;gap:3mm 12mm;text-align:left}
+.cv-idx{display:flex;align-items:baseline;gap:3.5mm}
+.cv-idx .n{font-family:var(--serif);font-weight:600;color:var(--gold);font-size:10.5pt;flex:0 0 6mm}
+.cv-idx .en{font-family:var(--serif);color:var(--navy);font-weight:600;font-size:9.8pt}
+.cv-idx .zh{font-family:var(--cjk);color:var(--muted2);font-size:8.4pt;margin-left:1.5mm}
+.cv-foot{background:var(--navy);color:#cdd6e4;padding:5.5mm 16mm;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.cv-foot .l{font-family:var(--sans);font-weight:700;letter-spacing:.16em;font-size:9pt;color:#fff}
+.cv-foot .r{font-family:var(--cjk);font-size:8.6pt;color:#cdd6e4}
+.cv-foot .r .en{font-family:var(--serif);font-style:italic;color:#8da0bb;font-size:8pt}
+
+/* ===== INTRO — journey cards ===== */
+.journey{display:flex;gap:5mm;margin:2mm 0 0}
+.jcard{flex:1;background:var(--paper2);border:1px solid var(--line);border-radius:3mm;padding:6mm 6mm;box-shadow:0 1mm 3mm rgba(25,41,63,.04);display:flex;flex-direction:column;position:relative;overflow:hidden}
+.jcard:before{content:"";position:absolute;left:0;top:0;bottom:0;width:1.2mm;background:var(--gold)}
+.jcard.now:before{background:var(--navy)}
+.jcard .jic{width:11mm;height:11mm;border-radius:2.6mm;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;margin-bottom:4mm}
+.jcard.now .jic{background:var(--navy)}
+.jcard .jic .ic{width:6mm;height:6mm;stroke:var(--accent)}
+.jcard.now .jic .ic{stroke:#fff}
+.jcard .jn{font-family:var(--sans);font-size:7.6pt;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2)}
+.jcard .jt{font-family:var(--cjk);font-weight:700;font-size:13.5pt;color:var(--navy);margin:1.5mm 0 .4mm;line-height:1.15}
+.jcard .jt-en{font-family:var(--serif);font-weight:600;font-size:10.5pt;color:var(--muted2);margin-bottom:3mm}
+.jcard .jd{font-family:var(--cjk);font-size:8.8pt;color:var(--ink);line-height:1.55}
+.jcard .jd .en{display:block;font-family:var(--sans);color:var(--muted2);font-size:7.6pt;margin-top:1.5mm;line-height:1.45}
+.statement{background:var(--navy);color:#fff;border-radius:2.6mm;padding:6mm 8mm;text-align:center;position:relative;overflow:hidden;margin-top:2mm}
+.statement:before{content:"";position:absolute;left:0;top:0;bottom:0;width:1.4mm;background:linear-gradient(180deg,var(--gold-l),var(--gold))}
+.statement .a{font-family:var(--cjk);font-size:13.5pt;font-weight:700}
+.statement .az{font-family:var(--serif);font-size:10.5pt;color:#a7b6cb;margin-top:1.6mm;font-style:italic}
+.note{background:var(--paper2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:2.4mm;padding:5mm 6mm;font-family:var(--cjk);font-size:9.8pt;color:var(--ink);line-height:1.6}
+.note b{color:var(--navy);font-weight:700}
+.note .en{display:block;font-family:var(--sans);color:var(--muted2);margin-top:1.8mm;font-size:8.6pt;line-height:1.5;font-weight:400}
+.note .en b{color:var(--navy);font-weight:600}
+.spacer{flex:1}
+
+/* ===== MASTERY SCALE ladder ===== */
+.scale{display:flex;flex-direction:column;gap:2.7mm;margin-top:1mm}
+.ms-row{display:flex;align-items:center;gap:6mm;background:var(--paper2);border:1px solid var(--line);border-radius:2.6mm;padding:3.7mm 6mm;box-shadow:0 1mm 3mm rgba(25,41,63,.04);position:relative;overflow:hidden}
+.ms-row:before{content:"";position:absolute;left:0;top:0;bottom:0;width:1.2mm;background:var(--gold);opacity:calc(var(--lv) / 5)}
+.ms-row.top{background:var(--navy)}
+.ms-row.top:before{background:linear-gradient(180deg,var(--gold-l),var(--gold));opacity:1}
+.ms-lv{flex:0 0 44mm}
+.ms-row .stars{margin-bottom:2.2mm}
+.ms-row.top .star path{stroke:var(--gold-l)}
+.ms-row.top .star.on path{fill:var(--gold-l);stroke:var(--gold-l)}
+.ms-name{font-family:var(--serif);font-weight:600;font-size:13.5pt;color:var(--navy);line-height:1.1}
+.ms-row.top .ms-name{color:#fff}
+.ms-name .zh{display:block;font-family:var(--cjk);font-weight:700;font-size:10.5pt;margin-top:1.2mm;color:var(--accent)}
+.ms-row.top .ms-name .zh{color:var(--gold-l)}
+.ms-div{width:1px;align-self:stretch;background:var(--line);flex-shrink:0}
+.ms-row.top .ms-div{background:rgba(255,255,255,.15)}
+.ms-desc{flex:1;font-family:var(--cjk);font-size:9.4pt;color:var(--ink);line-height:1.5}
+.ms-row.top .ms-desc{color:#dbe3ee}
+.ms-desc .en{display:block;font-family:var(--sans);color:var(--muted2);font-size:8pt;margin-top:1.4mm;line-height:1.4}
+.ms-row.top .ms-desc .en{color:#9fb0c8}
+
+/* ===== CATEGORY page ===== */
+.cat-head{display:flex;align-items:flex-start;gap:5mm;flex-shrink:0}
+.cat-ic{width:14mm;height:14mm;border-radius:3mm;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden}
+.cat-ic:after{content:"";position:absolute;left:0;bottom:0;width:100%;height:1mm;background:linear-gradient(90deg,var(--gold-l),var(--gold))}
+.cat-ic .ic{width:7.6mm;height:7.6mm;stroke:#fff}
+.cat-titles{flex:1}
+.cat-en{font-family:var(--serif);font-weight:600;font-size:26pt;color:var(--navy);line-height:1.0;letter-spacing:-.01em;margin-top:.5mm}
+.cat-zh{font-family:var(--cjk);font-weight:700;font-size:15pt;color:var(--navy);margin-top:2.2mm;letter-spacing:.05em}
+.cat-desc{font-family:var(--cjk);font-size:9.4pt;color:var(--ink);line-height:1.6;margin:5.5mm 0 0;max-width:172mm;flex-shrink:0}
+.cat-desc .en{display:block;font-family:var(--sans);color:var(--muted2);font-size:8.3pt;margin-top:1.8mm;line-height:1.45}
+
+.skills{flex:1;display:flex;flex-direction:column;justify-content:center;gap:2.7mm;margin:5mm 0 4mm}
+.scol-h{display:flex;justify-content:space-between;align-items:center;padding:0 6mm 1mm;font-family:var(--sans);font-size:7.2pt;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);font-weight:600}
+.scol-h .zh{font-family:var(--cjk);letter-spacing:.04em}
+.srow{display:flex;align-items:center;gap:5mm;background:var(--paper2);border:1px solid var(--line);border-radius:2.4mm;padding:3.5mm 6mm;box-shadow:0 1mm 3mm rgba(25,41,63,.035)}
+.sidx{font-family:var(--serif);font-weight:600;font-size:12pt;color:var(--gold);flex:0 0 7mm;letter-spacing:0}
+.sname{flex:1;display:flex;align-items:baseline;gap:4mm}
+.sname .en{font-family:var(--serif);font-weight:600;font-size:12.5pt;color:var(--navy);line-height:1.1}
+.sname .zh{font-family:var(--cjk);font-weight:500;font-size:9.6pt;color:var(--muted2)}
+
+/* mastery reminder strip */
+.scale-strip{display:flex;align-items:center;gap:4mm;background:var(--paper2);border:1px solid var(--line);border-radius:2.4mm;padding:3mm 6mm;margin-bottom:9mm;flex-shrink:0}
+.scale-strip .lbl{font-family:var(--cjk);font-size:8pt;font-weight:700;color:var(--navy);white-space:nowrap}
+.scale-strip .lbl .en{display:block;font-family:var(--sans);font-size:6.6pt;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);font-weight:600;margin-top:.3mm}
+.scale-strip .ss-end{display:flex;align-items:center;gap:2.4mm;font-family:var(--cjk);font-size:8pt;color:var(--ink)}
+.scale-strip .ss-end .en{font-family:var(--sans);font-size:7pt;color:var(--muted2)}
+.scale-strip .arrow{flex:1;height:1px;background:linear-gradient(90deg,var(--line),var(--gold),var(--line));min-width:8mm}
+
+/* ===== SUMMARY page ===== */
+.sum-meta{display:flex;gap:4mm;margin:1mm 0 5mm;flex-shrink:0}
+.sm-field{flex:1;background:var(--paper2);border:1px solid var(--line);border-radius:2.4mm;padding:4mm 5mm}
+.sm-field .l{font-family:var(--cjk);font-size:8pt;color:var(--accent);font-weight:700;margin-bottom:1mm}
+.sm-field .l .en{font-family:var(--sans);text-transform:uppercase;letter-spacing:.1em;color:var(--muted2);font-weight:600;font-size:6.8pt}
+.sm-field .blank{border-bottom:1px dashed var(--star-empty);height:6mm}
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:4mm;flex:1}
+.sbox{background:var(--paper2);border:1px solid var(--line);border-radius:2.6mm;padding:4.5mm 5.5mm;display:flex;flex-direction:column;box-shadow:0 1mm 3mm rgba(25,41,63,.035)}
+.sbox.wide{grid-column:1 / -1}
+.sbox .sh{display:flex;align-items:center;gap:2.5mm;margin-bottom:3mm}
+.sbox .sh .shic{width:8mm;height:8mm;border-radius:2mm;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sbox .sh .shic .ic{width:4.4mm;height:4.4mm;stroke:var(--accent)}
+.sbox .sh .st{font-family:var(--cjk);font-weight:700;font-size:11pt;color:var(--navy);line-height:1.1}
+.sbox .sh .st .en{display:block;font-family:var(--serif);font-weight:600;font-size:8.6pt;color:var(--muted2);margin-top:.4mm}
+.wlines{flex:1;display:flex;flex-direction:column;justify-content:space-around;padding-top:1mm}
+.wlines i{display:block;height:1px;background:repeating-linear-gradient(90deg,var(--star-empty) 0,var(--star-empty) 3mm,transparent 3mm,transparent 5mm)}
+.sbox.tall{min-height:44mm}
+
+/* priority skills mini-tags */
+.pri-hint{font-family:var(--cjk);font-size:7.8pt;color:var(--muted2);margin-bottom:2.5mm;line-height:1.4}
+.pri-hint .en{font-family:var(--sans);font-size:6.8pt}
+
+.closing{text-align:center;margin-top:4mm;flex-shrink:0}
+.closing .t{font-family:var(--cjk);font-weight:700;font-size:12.5pt;color:var(--navy)}
+.closing .tz{font-family:var(--serif);font-size:9.5pt;color:var(--muted2);margin-top:1.4mm;font-style:italic}
+.closing .r{display:block;width:22mm;height:2px;background:var(--gold);margin:3mm auto 0;border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- ICON DEFS -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ic-foundation" viewBox="0 0 24 24"><path d="M4 20h16M6 20V10l6-4.5 6 4.5v10M10 20v-5h4v5"/></symbol>
+<symbol id="ic-footwork" viewBox="0 0 24 24"><path d="M4 8h8M4 8l3-3M4 8l3 3M20 16h-8M20 16l-3-3M20 16l-3 3"/></symbol>
+<symbol id="ic-rear" viewBox="0 0 24 24"><path d="M3.5 19a8.5 8.5 0 0 1 17 0"/><path d="M12 15V3.5M12 3.5 8.5 7M12 3.5 15.5 7"/></symbol>
+<symbol id="ic-front" viewBox="0 0 24 24"><path d="M3.5 6.5h17M6.5 6.5v7M10 6.5v7M14 6.5v7M17.5 6.5v7M3.5 13.5h17"/><circle cx="12" cy="18.5" r="1.6"/></symbol>
+<symbol id="ic-mid" viewBox="0 0 24 24"><path d="M3 12h18M7 8l-4 4 4 4M17 8l4 4-4 4"/></symbol>
+<symbol id="ic-underhand" viewBox="0 0 24 24"><path d="M12 21V5M12 5 7.5 9.5M12 5l4.5 4.5M5 21h14"/></symbol>
+<symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.2 3 7.6 7 9.5 4-1.9 7-5.3 7-9.5V6l-7-3Z"/><path d="m9 12 2 2 4-4.2"/></symbol>
+<symbol id="ic-serve" viewBox="0 0 24 24"><path d="M12 21a2.6 2.6 0 0 0 2.6-2.6L12 4 9.4 18.4A2.6 2.6 0 0 0 12 21Z"/><path d="M9.7 15h4.6M10.3 11.5h3.4"/></symbol>
+<symbol id="ic-tactic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.3"/><circle cx="12" cy="12" r="3.8"/><circle cx="12" cy="12" r=".7" fill="currentColor" stroke="none"/></symbol>
+<symbol id="ic-trophy" viewBox="0 0 24 24"><path d="M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3"/><path d="M12 13v4M8.5 21h7M9.5 21v-2.5a2.5 2.5 0 0 1 5 0V21"/></symbol>
+<symbol id="ic-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+<symbol id="ic-trend" viewBox="0 0 24 24"><path d="M4 18 10 12l3.5 3.5L20 8"/><path d="M15 8h5v5"/></symbol>
+<symbol id="ic-next" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+<symbol id="ic-tree" viewBox="0 0 24 24"><path d="M12 21v-6M12 15 7 11M12 12l5-4"/><circle cx="12" cy="4.5" r="2.5"/><circle cx="6" cy="10.5" r="2.3"/><circle cx="18" cy="7" r="2.3"/></symbol>
+<symbol id="ic-flag" viewBox="0 0 24 24"><path d="M6 21V4M6 4h11l-2 3 2 3H6"/></symbol>
+<symbol id="ic-alert" viewBox="0 0 24 24"><path d="M12 3 2.5 20h19L12 3Z"/><path d="M12 10v4M12 17h.01"/></symbol>
+<symbol id="ic-chat" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 1-11.5 7.2L4 20.5l1.3-4.4A8 8 0 1 1 20 12Z"/></symbol>
+</defs></svg>
+
+
+<!-- ========== PAGE 1 · COVER ========== -->
+<section class="page cover">
+  <div class="band"></div>
+  <div class="cover-body">
+    <img class="cv-logo" src="assets/logo_tzh.png" alt="TZH logo">
+    <div class="cv-brand">TZH BADMINTON ACADEMY</div>
+    <div class="cv-brand-sub">槟城 <span class="en">· PENANG</span></div>
+    <div class="cv-rule"></div>
+    <div class="cv-eyebrow">球员成长系统 <span class="en">· Player Progression System</span></div>
+    <div class="cv-title">Badminton Skill Tree</div>
+    <div class="cv-title-zh">羽毛球成长技能树</div>
+    <div class="cv-stars"><span class="stars lg" data-on="0" data-preview="5"></span></div>
+    <div class="cv-tag">看清每一项技术，走好每一步旅程。<span class="en">See every skill. Master every stage of the journey.</span></div>
+    <div class="cv-badge"><span class="dot"></span>五星精通评估 <span class="en">· 5-Star Mastery System</span></div>
+    <div class="cv-index">
+      <div class="cv-index-t">十大技术类别 · Ten Skill Categories</div>
+      <div class="cv-idx-grid">
+        <div class="cv-idx"><span class="n">01</span><span><span class="en">Foundation Skills</span><span class="zh">基础能力</span></span></div>
+        <div class="cv-idx"><span class="n">06</span><span><span class="en">Underhand Skills</span><span class="zh">下手技术</span></span></div>
+        <div class="cv-idx"><span class="n">02</span><span><span class="en">Footwork Skills</span><span class="zh">步伐能力</span></span></div>
+        <div class="cv-idx"><span class="n">07</span><span><span class="en">Defense Skills</span><span class="zh">防守能力</span></span></div>
+        <div class="cv-idx"><span class="n">03</span><span><span class="en">Rear Court Skills</span><span class="zh">后场技术</span></span></div>
+        <div class="cv-idx"><span class="n">08</span><span><span class="en">Serve &amp; Return</span><span class="zh">发接发能力</span></span></div>
+        <div class="cv-idx"><span class="n">04</span><span><span class="en">Front Court Skills</span><span class="zh">网前技术</span></span></div>
+        <div class="cv-idx"><span class="n">09</span><span><span class="en">Tactical Skills</span><span class="zh">战术能力</span></span></div>
+        <div class="cv-idx"><span class="n">05</span><span><span class="en">Mid Court Skills</span><span class="zh">中前场技术</span></span></div>
+        <div class="cv-idx"><span class="n">10</span><span><span class="en">Match Performance</span><span class="zh">比赛能力</span></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="cv-foot">
+    <div class="l">TZH BADMINTON ACADEMY</div>
+    <div class="r">训练更聪明，进步更快。 <span class="en">· Train smarter. Improve faster.</span></div>
+  </div>
+</section>
+
+
+<!-- ========== PAGE 2 · INTRODUCTION ========== -->
+<section class="page"><div class="pad">
+  <div class="rh"><img class="leaf" src="assets/logo_tzh.png" alt="TZH"><div><div class="rh-tt">TZH BADMINTON ACADEMY</div><div class="rh-sub">成长技能树 <span class="en">· Skill Tree</span></div></div><div class="rh-meta">Introduction<br>引言</div></div>
+  <div class="head-row"><div>
+    <div class="eyebrow"><span class="num">01</span> 引言 <span class="en">· Introduction</span></div>
+    <div class="h-en">A Long-Term Journey</div>
+    <div class="h-zh">一段长期的成长旅程</div>
+  </div><div class="kick-r"><div><div>成长地图</div><div class="en">Roadmap</div></div><div class="kick-ic"><svg class="ic"><use href="#ic-tree"/></svg></div></div></div>
+  <div class="h-rule"></div>
+  <div class="lead">羽毛球的成长是一段<b>长期的旅程</b>，而非一次性的考试。技能树帮助球员、家长与教练清楚地看见球员在这段旅程中的位置 —— 已经走过的、正在攀登的，以及前方的路。
+    <span class="en">Badminton development is a <b>long-term journey</b>, not a single test. The Skill Tree helps players, parents and coaches clearly see where a player stands along that journey — what has been travelled, what is being climbed, and what lies ahead.</span></div>
+
+  <div class="spacer" style="max-height:6mm"></div>
+  <div class="journey">
+    <div class="jcard">
+      <div class="jic"><svg class="ic"><use href="#ic-check"/></svg></div>
+      <div class="jn">Already</div>
+      <div class="jt">已经学会</div>
+      <div class="jt-en">What They Have Learned</div>
+      <div class="jd">看清球员已经掌握的技术，肯定每一分努力。<span class="en">Recognise the skills a player has already built — and honour the work behind them.</span></div>
+    </div>
+    <div class="jcard now">
+      <div class="jic"><svg class="ic"><use href="#ic-trend"/></svg></div>
+      <div class="jn">In Progress</div>
+      <div class="jt">正在提升</div>
+      <div class="jt-en">What They Are Improving</div>
+      <div class="jd">明确当前正在打磨的技术，让每次训练都有重点。<span class="en">Pinpoint what is being sharpened now, so every session has a clear focus.</span></div>
+    </div>
+    <div class="jcard">
+      <div class="jic"><svg class="ic"><use href="#ic-next"/></svg></div>
+      <div class="jn">Next</div>
+      <div class="jt">即将学习</div>
+      <div class="jt-en">What They Learn Next</div>
+      <div class="jd">看见前方的技术，让进步的方向始终清晰。<span class="en">See the skills ahead, so the direction of progress is always clear.</span></div>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+  <div class="statement">
+    <div class="a">每一项技术，都用同一把量尺来评估。</div>
+    <div class="az">Every skill is evaluated on the same Mastery Scale.</div>
+  </div>
+  <div class="note" style="margin-top:5mm">这不是一本教学手册，也不是训练指南，而是一张<b>可视化的成长地图</b>。翻到下一页，认识贯穿整份技能树的五星精通量表。
+    <span class="en">This is not a coaching manual or a training guide — it is a <b>visual progression map</b>. Turn the page to meet the 5-Star Mastery Scale that runs through the entire Skill Tree.</span></div>
+</div><div class="foot"><span>TZH Badminton Academy · <b>Skill Tree · 成长技能树</b></span><span class="pg">01</span></div></section>
+
+
+<!-- ========== PAGE 3 · MASTERY SCALE ========== -->
+<section class="page"><div class="pad">
+  <div class="rh"><img class="leaf" src="assets/logo_tzh.png" alt="TZH"><div><div class="rh-tt">TZH BADMINTON ACADEMY</div><div class="rh-sub">成长技能树 <span class="en">· Skill Tree</span></div></div><div class="rh-meta">The Standard<br>评估标准</div></div>
+  <div class="head-row"><div>
+    <div class="eyebrow"><span class="num">02</span> 同一把量尺 <span class="en">· One Shared Standard</span></div>
+    <div class="h-en">The Mastery Scale</div>
+    <div class="h-zh">五星精通量表</div>
+  </div><div class="kick-r"><div><div>接触 → 精熟</div><div class="en">Introduced → Mastered</div></div><div class="kick-ic"><svg class="ic"><use href="#ic-trend"/></svg></div></div></div>
+  <div class="h-rule"></div>
+  <div class="lead">技能树里的每一项技术，都用这五个等级来评估。它把「学会了没有」的模糊问题，变成一条<b>清晰可见的进步阶梯</b>。
+    <span class="en">Every skill in the Skill Tree is rated on these five levels. It turns the vague question of "can they do it?" into a <b>clear, visible ladder of progress</b>.</span></div>
+
+  <div class="scale">
+    <div class="ms-row" style="--lv:1">
+      <div class="ms-lv"><span class="stars" data-on="1"></span><div class="ms-name">Introduced <span class="zh">已接触</span></div></div>
+      <div class="ms-div"></div>
+      <div class="ms-desc">已开始学习该技术，需要大量指导。<span class="en">The player has been introduced to the skill but still requires significant guidance.</span></div>
+    </div>
+    <div class="ms-row" style="--lv:2">
+      <div class="ms-lv"><span class="stars" data-on="2"></span><div class="ms-name">Developing <span class="zh">初步掌握</span></div></div>
+      <div class="ms-div"></div>
+      <div class="ms-desc">已理解动作，但稳定性仍需提升。<span class="en">The player understands the movement, but consistency is still developing.</span></div>
+    </div>
+    <div class="ms-row" style="--lv:3">
+      <div class="ms-lv"><span class="stars" data-on="3"></span><div class="ms-name">Competent <span class="zh">稳定执行</span></div></div>
+      <div class="ms-div"></div>
+      <div class="ms-desc">训练中能够稳定完成动作。<span class="en">The player can perform the skill consistently during training.</span></div>
+    </div>
+    <div class="ms-row" style="--lv:4">
+      <div class="ms-lv"><span class="stars" data-on="4"></span><div class="ms-name">Game Ready <span class="zh">实战应用</span></div></div>
+      <div class="ms-div"></div>
+      <div class="ms-desc">能够在比赛中自信地运用。<span class="en">The player is able to apply the skill confidently during real match situations.</span></div>
+    </div>
+    <div class="ms-row top" style="--lv:5">
+      <div class="ms-lv"><span class="stars" data-on="5"></span><div class="ms-name">Mastered <span class="zh">精熟运用</span></div></div>
+      <div class="ms-div"></div>
+      <div class="ms-desc">能够灵活应用，并根据不同比赛情况做出调整。<span class="en">The player demonstrates excellent consistency, adaptability and confidence under different situations.</span></div>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:4mm">评估时，教练在每项技术旁的五颗星中填涂对应的星级。<b>空白的星星，正是尚未走完的路</b> —— 它们让下一步的方向一目了然。
+    <span class="en">During an assessment, the coach fills the stars beside each skill to the level reached. The <b>empty stars are simply the road not yet travelled</b> — making the next step easy to see.</span></div>
+</div><div class="foot"><span>TZH Badminton Academy · <b>Skill Tree · 成长技能树</b></span><span class="pg">02</span></div></section>
+
+
+<!-- ========== CATEGORY PAGES ========== -->
+<!-- built via template; see script at end -->
+
+<!-- CATEGORY 1 · FOUNDATION -->
+<section class="page cat" data-cat="01" data-icon="ic-foundation"
+  data-en="Foundation Skills" data-zh="基础能力"
+  data-cn="真正的开始" data-cn-en="Where It All Begins"
+  data-desc-zh="所有技术动作的根基：如何握拍、站位、启动重心与发力。"
+  data-desc-en="The physical and technical bedrock beneath every stroke — how the player holds, stands, moves and creates power."
+  data-skills="Grip|握拍;;Ready Position|准备姿势;;Split Step|分腿垫步;;Contact Point|击球点;;Power Generation|发力;;Swing Mechanics|挥拍结构;;Balance|平衡;;Coordination|协调性"></section>
+
+<!-- CATEGORY 2 · FOOTWORK -->
+<section class="page cat" data-cat="02" data-icon="ic-footwork"
+  data-en="Footwork Skills" data-zh="步伐能力"
+  data-cn="移动的艺术" data-cn-en="The Art of Movement"
+  data-desc-zh="高效抵达球场每一个角落，并快速回到中心的移动能力。"
+  data-desc-en="Efficient movement to — and recovery from — every corner of the court."
+  data-skills="Front Court Footwork|前场步法;;Rear Court Footwork|后场步法;;Side Movement|两侧移动;;Cross Step|交叉步;;Chasse Step|并步;;Recovery|回位;;Base Position|中心站位;;Turning Footwork|转身步法;;Footwork Rhythm|步法节奏"></section>
+
+<!-- CATEGORY 3 · REAR COURT -->
+<section class="page cat" data-cat="03" data-icon="ic-rear"
+  data-en="Rear Court Skills" data-zh="后场技术"
+  data-cn="进攻的源头" data-cn-en="The Source of Attack"
+  data-desc-zh="在后场完成的头顶进攻与控制型击球。"
+  data-desc-en="Overhead attacking and controlling strokes played from the back of the court."
+  data-skills="Forehand Clear|正手高远球;;Backhand Clear|反手高远球;;Forehand Drop|正手吊球;;Slice Drop|劈吊;;Reverse Slice|反切吊球;;Smash|杀球;;Stick Smash|点杀;;Half Smash|半杀;;Jump Smash|跳杀"></section>
+
+<!-- CATEGORY 4 · FRONT COURT -->
+<section class="page cat" data-cat="04" data-icon="ic-front"
+  data-en="Front Court Skills" data-zh="网前技术"
+  data-cn="细腻的较量" data-cn-en="A Game of Touch"
+  data-desc-zh="网前区域的细腻手感与快速反应。"
+  data-desc-en="Delicate touch and quick reactions in the area closest to the net."
+  data-skills="Net Shot|放网前球;;Spin Net|搓球;;Cross Net|勾对角;;Net Kill|网前扑球;;Net Push|网前推球;;Net Lift|网前挑球"></section>
+
+<!-- CATEGORY 5 · MID COURT -->
+<section class="page cat" data-cat="05" data-icon="ic-mid"
+  data-en="Mid Court Skills" data-zh="中前场技术"
+  data-cn="节奏的掌控" data-cn-en="Controlling the Pace"
+  data-desc-zh="掌控回合节奏的快速平抽与拦截。"
+  data-desc-en="Flat, fast exchanges that control the pace and tempo of the rally."
+  data-skills="Forehand Drive|正手平抽;;Backhand Drive|反手平抽;;Fast Push|快推;;Block|挡网;;Drive Rally|平抽对练"></section>
+
+<!-- CATEGORY 6 · UNDERHAND -->
+<section class="page cat" data-cat="06" data-icon="ic-underhand"
+  data-en="Underhand Skills" data-zh="下手技术"
+  data-cn="低位的回击" data-cn-en="Rising From Below"
+  data-desc-zh="在低于球网高度的位置完成的挑球与推球。"
+  data-desc-en="Lifting and pushing strokes played from below the height of the net."
+  data-skills="Forehand Lift|正手挑球;;Backhand Lift|反手挑球;;Forehand Push|正手推球;;Backhand Push|反手推球"></section>
+
+<!-- CATEGORY 7 · DEFENSE -->
+<section class="page cat" data-cat="07" data-icon="ic-shield"
+  data-en="Defense Skills" data-zh="防守能力"
+  data-cn="化解与反击" data-cn-en="Absorb and Return"
+  data-desc-zh="预判、化解并回击对手的进攻。"
+  data-desc-en="Reading, absorbing and returning the opponent's attack."
+  data-skills="Forehand Defense|正手防守;;Backhand Defense|反手防守;;Body Defense|追身防守;;Block Defense|挡网防守;;Lift Defense|挑高防守;;Drive Defense|平抽防守"></section>
+
+<!-- CATEGORY 8 · SERVE & RETURN -->
+<section class="page cat" data-cat="08" data-icon="ic-serve"
+  data-en="Serve &amp; Return" data-zh="发接发能力"
+  data-cn="每一分的开端" data-cn-en="How Every Point Begins"
+  data-desc-zh="开启与化解回合 —— 决定每一分走向的前两拍。"
+  data-desc-en="Starting and neutralising the rally — the first two shots that shape every point."
+  data-skills="Short Serve|发短球;;Flick Serve|发平快球;;High Serve|发高远球;;Short Return|接发短球;;Flick Return|接发平推;;Third Shot|第三拍"></section>
+
+<!-- CATEGORY 9 · TACTICAL -->
+<section class="page cat" data-cat="09" data-icon="ic-tactic"
+  data-en="Tactical Skills" data-zh="战术能力"
+  data-cn="击球背后的思考" data-cn-en="The Thinking Behind the Shot"
+  data-desc-zh="击球背后的决策 —— 落点、套路与阅读比赛。"
+  data-desc-en="The decisions behind the shots — placement, patterns, and reading the game."
+  data-skills="Shot Placement|落点控制;;Shot Selection|球路选择;;Rotation|轮转换位;;Positioning|站位;;Transition|攻防转换;;Tempo Control|节奏控制;;Anticipation|预判;;Game Reading|阅读比赛"></section>
+
+<!-- CATEGORY 10 · MATCH PERFORMANCE -->
+<section class="page cat" data-cat="10" data-icon="ic-trophy"
+  data-en="Match Performance" data-zh="比赛能力"
+  data-cn="融会贯通" data-cn-en="Bringing It All Together"
+  data-desc-zh="在真实比赛的压力下，将所有技术融会贯通。"
+  data-desc-en="Bringing every skill together under the pressure of real competition."
+  data-skills="Singles|单打;;Doubles|双打;;Mixed Doubles|混合双打;;Consistency|稳定性;;Pressure Management|抗压能力;;Adaptability|应变能力"></section>
+
+
+<!-- ========== FINAL PAGE · PROGRESS SUMMARY ========== -->
+<section class="page"><div class="pad">
+  <div class="rh"><img class="leaf" src="assets/logo_tzh.png" alt="TZH"><div><div class="rh-tt">TZH BADMINTON ACADEMY</div><div class="rh-sub">成长技能树 <span class="en">· Skill Tree</span></div></div><div class="rh-meta">Assessment<br>评估总结</div></div>
+  <div class="head-row"><div>
+    <div class="eyebrow"><span class="num">13</span> 评估总结 <span class="en">· Progress Summary</span></div>
+    <div class="h-en">Progress Summary</div>
+    <div class="h-zh">成长总结</div>
+  </div><div class="kick-r"><div><div>本次评估</div><div class="en">This Assessment</div></div><div class="kick-ic"><svg class="ic"><use href="#ic-flag"/></svg></div></div></div>
+  <div class="h-rule"></div>
+
+  <div class="sum-meta">
+    <div class="sm-field"><div class="l">球员姓名 <span class="en">· Player Name</span></div><div class="blank"></div></div>
+    <div class="sm-field"><div class="l">评估日期 <span class="en">· Assessment Date</span></div><div class="blank"></div></div>
+    <div class="sm-field"><div class="l">教练姓名 <span class="en">· Coach Name</span></div><div class="blank"></div></div>
+  </div>
+
+  <div class="sum-grid">
+    <div class="sbox">
+      <div class="sh"><div class="shic"><svg class="ic"><use href="#ic-check"/></svg></div><div class="st">当前优势<span class="en">Current Strengths</span></div></div>
+      <div class="wlines"><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="sbox">
+      <div class="sh"><div class="shic"><svg class="ic"><use href="#ic-alert"/></svg></div><div class="st">当前弱点<span class="en">Current Weaknesses</span></div></div>
+      <div class="wlines"><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="sbox">
+      <div class="sh"><div class="shic"><svg class="ic"><use href="#ic-trend"/></svg></div><div class="st">优先提升技术<span class="en">Priority Skills to Improve</span></div></div>
+      <div class="wlines"><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="sbox">
+      <div class="sh"><div class="shic"><svg class="ic"><use href="#ic-next"/></svg></div><div class="st">下一阶段重点<span class="en">Next Training Focus</span></div></div>
+      <div class="wlines"><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="sbox wide tall">
+      <div class="sh"><div class="shic"><svg class="ic"><use href="#ic-chat"/></svg></div><div class="st">教练评语<span class="en">Coach Comments</span></div></div>
+      <div class="wlines"><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+
+  <div class="closing">
+    <div class="t">训练更聪明，进步更快，为一生打下坚实基础。</div>
+    <div class="tz">Train Smarter. Improve Faster. Build a Strong Foundation for Life.</div>
+    <div class="r"></div>
+  </div>
+</div><div class="foot"><span>TZH Badminton Academy · <b>Skill Tree · 成长技能树</b></span><span class="pg">13</span></div></section>
+
+
+<script>
+(function(){
+  var STAR='<path d="M12 2.2 14.85 8.3 21.5 9.1 16.6 13.7 17.9 20.3 12 17 6.1 20.3 7.4 13.7 2.5 9.1 9.15 8.3Z"/>';
+  // fill star groups
+  function stars(on){var h='';for(var i=0;i<5;i++){h+='<svg class="star'+(i<on?' on':'')+'" viewBox="0 0 24 24">'+STAR+'</svg>';}return h;}
+  document.querySelectorAll('.stars').forEach(function(el){
+    el.innerHTML=stars(parseInt(el.dataset.on||'0',10));
+  });
+
+  // build category pages from data-* attributes
+  var CAT_START=3; // Foundation is printed page 03
+  document.querySelectorAll('.cat').forEach(function(sec,idx){
+    var d=sec.dataset;
+    var pg=String(CAT_START+idx).padStart(2,'0');
+    var skills=d.skills.split(';;').map(function(s){var p=s.split('|');return{en:p[0],zh:p[1]||''};});
+    var rows=skills.map(function(s,i){
+      var n=String(i+1).padStart(2,'0');
+      return '<div class="srow"><span class="sidx">'+n+'</span>'+
+             '<span class="sname"><span class="en">'+s.en+'</span><span class="zh">'+s.zh+'</span></span>'+
+             '<span class="stars" data-on="0"></span></div>';
+    }).join('');
+    var count=skills.length;
+    sec.innerHTML=
+    '<div class="pad">'+
+      '<div class="rh"><img class="leaf" src="assets/logo_tzh.png" alt="TZH"><div><div class="rh-tt">TZH BADMINTON ACADEMY</div><div class="rh-sub">成长技能树 <span class="en">· Skill Tree</span></div></div><div class="rh-meta">Category '+d.cat+'<br>技术类别</div></div>'+
+      '<div class="cat-head">'+
+        '<div class="cat-ic"><svg class="ic"><use href="#'+d.icon+'"/></svg></div>'+
+        '<div class="cat-titles">'+
+          '<div class="eyebrow"><span class="num">'+d.cat+'</span> '+d.cn+' <span class="en">· '+d.cnEn+'</span></div>'+
+          '<div class="cat-en">'+d.en+'</div>'+
+          '<div class="cat-zh">'+d.zh+'</div>'+
+        '</div>'+
+        '<div class="kick-r"><div><div>'+count+' 项技术</div><div class="en">'+count+' Skills</div></div><div class="kick-ic"><svg class="ic"><use href="#'+d.icon+'"/></svg></div></div>'+
+      '</div>'+
+      '<div class="cat-desc">'+d.descZh+'<span class="en">'+d.descEn+'</span></div>'+
+      '<div class="skills">'+
+        '<div class="scol-h"><span class="zh">技术 · Skill</span><span class="zh">精通评分 · Mastery Rating</span></div>'+
+        rows+
+      '</div>'+
+      '<div class="scale-strip">'+
+        '<div class="lbl">精通程度<span class="en">Mastery</span></div>'+
+        '<div class="ss-end"><span class="stars sm" data-on="1"></span><span>已接触 <span class="en">Introduced</span></span></div>'+
+        '<div class="arrow"></div>'+
+        '<div class="ss-end"><span>精熟运用 <span class="en">Mastered</span></span><span class="stars sm" data-on="5"></span></div>'+
+      '</div>'+
+      '<div class="foot"><span>TZH Badminton Academy · <b>Skill Tree · 成长技能树</b></span><span class="pg">'+pg+'</span></div>'+
+    '</div>';
+    // render the newly injected stars
+    sec.querySelectorAll('.stars').forEach(function(el){
+      el.innerHTML=stars(parseInt(el.dataset.on||'0',10));
+    });
+  });
+})();
+</script>
+</body>
+</html>
