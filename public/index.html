@@ -415,6 +415,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
 /* ── ROSTER GRID ─────────────────────────── */
 .roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:10px}
+.roster-divider{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:8px 0 2px;color:var(--green-light);font-size:var(--fs-xs);font-weight:700;text-transform:uppercase;letter-spacing:.06em;user-select:none}
+.roster-divider::after{content:"";flex:1;height:1px;background:var(--green-line)}
 .rc{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;cursor:pointer;transition:var(--transition);user-select:none}
 .rc:hover{border-color:var(--border2);background:var(--elev)}
 .rc.in-session{border-color:var(--green-line);background:var(--green-tint)}
@@ -1977,6 +1979,22 @@ function clearEndingSoonForCourt(endingSoon, courtIdx, numCourts) {
   return cur;
 }
 
+// Pure: clear the flag of EVERY court whose round index differs between
+// prevCourtRounds and nextCourtRounds — a fresh game means the court is no
+// longer "ending soon". Missing round entries count as 0. Returns a NEW
+// normalized array, or null when no set flag was cleared so callers can skip
+// a needless write. Unit tested in scripts/test-ending-soon.js.
+function clearEndingSoonForChangedCourts(endingSoon, prevCourtRounds, nextCourtRounds, numCourts) {
+  const cur = normalizeEndingSoon(endingSoon, numCourts);
+  let changed = false;
+  for (let i = 0; i < cur.length; i++) {
+    const prev = (Array.isArray(prevCourtRounds) ? prevCourtRounds[i] : 0) ?? 0;
+    const next = (Array.isArray(nextCourtRounds) ? nextCourtRounds[i] : 0) ?? 0;
+    if (cur[i] && prev !== next) { cur[i] = false; changed = true; }
+  }
+  return changed ? cur : null;
+}
+
 // Pure: apply per-court next-round edits onto a CLONE of rounds and report
 // duplicate player ids scoped PER next-round index. A player in two courts that
 // SHARE a next-round index is a duplicate; the same player in two DIFFERENT
@@ -2278,7 +2296,7 @@ function renderRestingPlayers(courtRounds) {
   const chips = withCount.map(({ p, n }) => {
     const level = restHeatLevel(n);
     const cls = 'rest-chip' + (level ? ` heat-${level}` : '');
-    const label = `${n} rd${n === 1 ? '' : 's'}`;
+    const label = `${n} round${n === 1 ? '' : 's'}`;
     const title = `${p.name} hasn't played in ${n} round${n === 1 ? '' : 's'}`;
     return `<div class="${cls}" title="${escHtml(title)}">${avatarHTML(p, 20)}` +
            `<span>${escHtml(p.name)}</span><span class="rest-count">${label}</span></div>`;
@@ -2301,11 +2319,18 @@ async function stepAllCourts(delta) {
   const next = Math.max(0, Math.min(totalRounds - 1, cur + delta));
   if (next === cur) return;
   const newCourtRounds = new Array(numCourts).fill(next);
-  await apiPost({ currentRound: next, courtRounds: newCourtRounds });
+  // Courts that moved to a different round start a fresh game, so their
+  // "ending soon" flags no longer apply — clear them in the same write.
+  const cleared = clearEndingSoonForChangedCourts(state.endingSoon, courtRounds, newCourtRounds, numCourts);
+  const updates = { currentRound: next, courtRounds: newCourtRounds };
+  if (cleared) updates.endingSoon = cleared;
+  await apiPost(updates);
   state.currentRound = next;
   state.courtRounds = newCourtRounds;
+  if (cleared) state.endingSoon = cleared;
   renderCourtControls();
   renderRoundList();
+  renderViewer();
   notify(`All courts → ${state.rounds?.[next]?.label || 'Round ' + (next + 1)}`);
 }
 
@@ -2317,8 +2342,13 @@ async function startNextRound() {
   const cur = getCourtRounds();
   const next = nextCourtRounds(cur, total);
   if (next.every((v, i) => v === cur[i])) return notify('All courts are on the last round', 'warn');
-  await apiPost({ courtRounds: next });
+  // Courts that advanced start a fresh game — their "ending soon" flags no
+  // longer apply, so clear them in the same write (clamped courts keep theirs).
+  const cleared = clearEndingSoonForChangedCourts(state.endingSoon, cur, next, state.numCourts || 1);
+  const updates = cleared ? { courtRounds: next, endingSoon: cleared } : { courtRounds: next };
+  await apiPost(updates);
   state.courtRounds = next;
+  if (cleared) state.endingSoon = cleared;
   renderCourtControls();
   renderRoundList();
   renderViewer();
@@ -2376,11 +2406,19 @@ function renderPlayersSection() {
   const sortMode = getRosterSort();
   const sortSel = document.getElementById('rosterSort');
   if (sortSel && sortSel.value !== sortMode) sortSel.value = sortMode;
-  const visibleRoster = [...filteredRoster].sort((a, b) => {
+  // Secondary sort: the admin-chosen order within each group.
+  const bySort = (a, b) => {
     if (sortMode === 'name-asc') return (a.name || '').localeCompare(b.name || '');
     if (sortMode === 'name-desc') return (b.name || '').localeCompare(a.name || '');
     // Default: points descending, ties broken alphabetically by name
     return (b.points || 0) - (a.points || 0) || (a.name || '').localeCompare(b.name || '');
+  };
+  // Primary sort: players ticked for today float to the very top; within the
+  // ticked group and the rest, the admin-chosen sort still applies.
+  const visibleRoster = [...filteredRoster].sort((a, b) => {
+    const aIn = sessionIds.has(a.id), bIn = sessionIds.has(b.id);
+    if (aIn !== bIn) return aIn ? -1 : 1;
+    return bySort(a, b);
   });
 
   if (!state.roster || state.roster.length === 0) {
@@ -2389,8 +2427,23 @@ function renderPlayersSection() {
     grid.innerHTML = `<div style="color:var(--muted);font-size:13px;grid-column:1/-1;padding:6px 0">No players match "${escHtml(q)}".</div>`;
   }
 
+  // Number of ticked cards in the current view — labels the divider and
+  // decides whether a divider is even needed.
+  const visiblePlayingCount = visibleRoster.filter(rp => sessionIds.has(rp.id)).length;
+  let dividerPlaced = false;
+
   visibleRoster.forEach(rp => {
     const isIn = sessionIds.has(rp.id);
+    // Drop a labeled separator between the "playing today" group and the rest,
+    // only when both groups are actually present in this view.
+    if (!isIn && !dividerPlaced && visiblePlayingCount > 0) {
+      const divider = document.createElement('div');
+      divider.className = 'roster-divider';
+      divider.setAttribute('aria-hidden', 'true');
+      divider.innerHTML = `<span class="roster-divider-label">Playing today &middot; ${visiblePlayingCount}</span>`;
+      grid.appendChild(divider);
+      dividerPlaced = true;
+    }
     const card = document.createElement('div');
     card.className = 'rc' + (isIn ? ' in-session' : '');
     card.innerHTML = `
@@ -2747,10 +2800,14 @@ async function generateSchedule() {
   const rounds = smartSchedule(players, numCourts, numRounds);
   const currentRound = 0;
   const courtRounds = new Array(numCourts).fill(0);
-  await apiPost({ rounds, currentRound, courtRounds });
+  // A brand-new schedule starts fresh games on every court, so no "ending
+  // soon" flag can still apply.
+  const endingSoon = new Array(numCourts).fill(false);
+  await apiPost({ rounds, currentRound, courtRounds, endingSoon });
   state.rounds = rounds;
   state.currentRound = 0;
   state.courtRounds = courtRounds;
+  state.endingSoon = endingSoon;
   expandedRound = null;
   renderCourtControls();
   renderRoundList();
@@ -2793,11 +2850,18 @@ async function advanceCourt(courtIdx, delta) {
 async function setCurrentRound(i) {
   const numCourts = state.numCourts || 1;
   const courtRounds = new Array(numCourts).fill(i);
-  await apiPost({ currentRound: i, courtRounds });
+  // Courts that moved to a different round start a fresh game — their
+  // "ending soon" flags no longer apply, so clear them in the same write.
+  const cleared = clearEndingSoonForChangedCourts(state.endingSoon, getCourtRounds(), courtRounds, numCourts);
+  const updates = { currentRound: i, courtRounds };
+  if (cleared) updates.endingSoon = cleared;
+  await apiPost(updates);
   state.currentRound = i;
   state.courtRounds = courtRounds;
+  if (cleared) state.endingSoon = cleared;
   renderCourtControls();
   renderRoundList();
+  renderViewer();
   notify('All courts → ' + (state.rounds?.[i]?.label || 'Round ' + (i + 1)));
 }
 

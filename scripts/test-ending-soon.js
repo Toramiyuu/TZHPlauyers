@@ -174,6 +174,47 @@ const check = (name, cond) => { if (!cond) failures.push(name); };
   }
 }
 
+// ── clearEndingSoonForChangedCourts ───────────────────────────────
+{
+  const clearEndingSoonForChangedCourts = load('clearEndingSoonForChangedCourts');
+  if (!clearEndingSoonForChangedCourts) {
+    failures.push('clearEndingSoonForChangedCourts is not defined in public/index.html');
+  } else {
+    // 1. Clears flags only for courts whose round index changed.
+    {
+      const a = clearEndingSoonForChangedCourts([true, true], [7, 7], [8, 7], 2);
+      check('clearEndingSoonForChangedCourts: clears only changed courts', a && a[0] === false && a[1] === true);
+    }
+    // 2. All courts moved (round 8 -> 9 for everyone) -> all flags cleared.
+    {
+      const a = clearEndingSoonForChangedCourts([true, true], [7, 7], [8, 8], 2);
+      check('clearEndingSoonForChangedCourts: clears all moved courts', a && a[0] === false && a[1] === false);
+    }
+    // 3. Null when no flagged court changed (skip needless write).
+    {
+      const a = clearEndingSoonForChangedCourts([true, false], [5, 5], [5, 6], 2);
+      check('clearEndingSoonForChangedCourts: null when flagged court unchanged', a === null);
+      const b = clearEndingSoonForChangedCourts([false, false], [1, 1], [2, 2], 2);
+      check('clearEndingSoonForChangedCourts: null when nothing flagged', b === null);
+      const c = clearEndingSoonForChangedCourts(undefined, [1], [2], 1);
+      check('clearEndingSoonForChangedCourts: null on undefined flags', c === null);
+    }
+    // 4. Missing round entries are treated as 0.
+    {
+      const a = clearEndingSoonForChangedCourts([true], undefined, [1], 1);
+      check('clearEndingSoonForChangedCourts: missing prev treated as 0', a && a[0] === false);
+      const b = clearEndingSoonForChangedCourts([true], [0], undefined, 1);
+      check('clearEndingSoonForChangedCourts: missing next treated as 0 -> null', b === null);
+    }
+    // 5. Purity: does not mutate the input array.
+    {
+      const input = [true, true];
+      clearEndingSoonForChangedCourts(input, [0, 0], [1, 1], 2);
+      check('clearEndingSoonForChangedCourts: does not mutate input', input[0] === true);
+    }
+  }
+}
+
 // ── report ─────────────────────────────────────────────────────────
 console.log('test-ending-soon — Ending Soon feature logic\n');
 if (failures.length) {
@@ -184,6 +225,7 @@ if (failures.length) {
   console.log('  PASS  normalizeEndingSoon coerces/pads/truncates to numCourts booleans');
   console.log('  PASS  setEndingSoon sets or toggles a court flag (pure, range-safe)');
   console.log('  PASS  clearEndingSoonForCourt clears on advance or returns null');
+  console.log('  PASS  clearEndingSoonForChangedCourts clears flags of courts whose round changed');
   console.log('\nRESULT: PASS — all Ending Soon assertions green.');
   process.exit(0);
 }
