@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TZH Badminton · Level + Mixed-Doubles — Design Exploration</title>
+<style>
+:root{
+  --green:#0071e3; --green-light:#0066cc; --green-dark:#005bb5;
+  --green-tint:rgba(0,113,227,.16); --green-line:rgba(0,113,227,.42);
+  --dark:#e8f0fb; --card:#ffffff; --card2:#e2ecfa; --elev:#d6e5f8;
+  --border:#cbdcf2; --border2:#b3cbeb;
+  --text:#1d1d1f; --text-2:#424245; --muted:#86868b;
+  --accent:#f0b429; --red:#e5484d;
+  --radius-sm:8px; --radius-md:12px; --radius-lg:18px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.06); --shadow-md:0 4px 16px rgba(0,0,0,.08); --shadow-lg:0 12px 40px rgba(0,0,0,.12);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--font);background:#eef1f5;color:var(--text);-webkit-font-smoothing:antialiased;line-height:1.5}
+
+/* ---------- level color language (grey / blue / gold) ---------- */
+.lvl-beg{--lc:#86868b;--lt:#5a5a60;--lbg:rgba(134,134,139,.16);--lln:rgba(134,134,139,.42)}
+.lvl-int{--lc:#0071e3;--lt:#005bb5;--lbg:rgba(0,113,227,.13);--lln:rgba(0,113,227,.42)}
+.lvl-adv{--lc:#e0a41a;--lt:#8a6300;--lbg:rgba(240,180,41,.22);--lln:rgba(240,180,41,.6)}
+
+/* ---------- page header ---------- */
+.page-head{max-width:1520px;margin:0 auto;padding:46px 30px 8px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--green);font-weight:600;margin:0 0 12px}
+h1{font-size:30px;line-height:1.15;font-weight:680;letter-spacing:-.02em;margin:0 0 14px;max-width:820px;text-wrap:pretty}
+.lede{font-size:15px;color:var(--text-2);max-width:760px;margin:0 0 4px;text-wrap:pretty}
+.lede b{color:var(--text);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;margin:24px 0 6px;padding:16px 18px;background:#fff;border:1px solid #e4e7ec;border-radius:14px;box-shadow:var(--shadow-sm)}
+.legend .grp{display:flex;align-items:center;gap:10px}
+.legend .glab{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.lk{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-2)}
+.lk .sw{width:12px;height:12px;border-radius:50%}
+.legend .sep{width:1px;height:26px;background:#e4e7ec}
+.note{font-size:12px;color:var(--muted);margin:14px 0 0}
+
+/* ---------- gallery grid ---------- */
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:22px;max-width:1520px;margin:0 auto;padding:26px 30px 90px;align-items:start}
+.tile{background:#fff;border:1px solid #e4e7ec;border-radius:20px;padding:18px 18px 20px;box-shadow:var(--shadow-sm);min-width:0}
+.tile.wide{grid-column:span 2}
+@media(max-width:820px){.gallery{grid-template-columns:1fr}.tile.wide{grid-column:span 1}}
+.tile-h{display:flex;gap:12px;align-items:flex-start;margin-bottom:15px}
+.tile-n{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--green);background:rgba(0,113,227,.1);border-radius:9px;padding:5px 8px;flex-shrink:0;letter-spacing:.04em;line-height:1}
+.tile-t{font-size:14.5px;font-weight:650;letter-spacing:-.01em;margin:1px 0 3px}
+.tile-r{font-size:11.5px;color:var(--muted);margin:0;line-height:1.5;text-wrap:pretty}
+
+/* the app "page" the mock sits on */
+.stage{background:var(--dark);border:1px solid var(--border);border-radius:14px;padding:16px;position:relative;overflow:hidden;min-height:150px}
+.stage.tall{min-height:236px}
+.stage-cap{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:11px;display:block}
+
+/* ---------- roster + base player card (mirrors app .rc) ---------- */
+.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(102px,1fr));gap:8px}
+.roster.wide-cards{grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}
+.rc{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;cursor:pointer;transition:border-color .18s,background .18s,transform .18s;user-select:none;min-width:0}
+.rc:hover{border-color:var(--border2);background:var(--elev)}
+.rc.in-session{border-color:var(--green-line);background:var(--green-tint)}
+.rc-check{position:absolute;top:5px;left:6px;width:16px;height:16px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;opacity:0}
+.rc.in-session .rc-check{opacity:1}
+.av-wrap{position:relative;line-height:0}
+.av{border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;letter-spacing:.02em;flex-shrink:0;line-height:1}
+.rc-name{font-size:12px;font-weight:500;text-align:center;line-height:1.3;color:var(--text);width:100%;word-break:break-word;padding:0 2px}
+.rc-points{display:flex;align-items:center;gap:4px;justify-content:center;margin-top:2px}
+.rc-pts-btn{width:26px;height:26px;border-radius:50%;background:var(--card);border:1px solid var(--border2);color:var(--text);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;transition:.15s}
+.rc-pts-btn:hover{background:var(--green);border-color:var(--green);color:#fff}
+.rc-pts-val{min-width:34px;text-align:center;background:#fff;border:1px solid var(--border2);border-radius:6px;font-size:12px;font-weight:600;padding:3px 2px;color:var(--text)}
+.rc-sessions-ref{font-size:9px;color:var(--muted);text-align:center;letter-spacing:.3px}
+
+/* ---------- shared indicators ---------- */
+.rowc{display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:center}
+.lvl-pill{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:100px;line-height:1;background:var(--lbg);color:var(--lt);white-space:nowrap}
+.lvl-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--lc)}
+.lvl-dot{width:8px;height:8px;border-radius:50%;background:var(--lc);display:inline-block;flex-shrink:0}
+.lvl-cap{font-size:9px;font-weight:600;letter-spacing:.02em;color:var(--lt);text-align:center}
+.mx-chip{display:inline-flex;align-items:center;gap:2px;font-size:9px;font-weight:700;letter-spacing:.03em;padding:2px 6px;border-radius:6px;line-height:1;white-space:nowrap;cursor:pointer}
+.mx-on{background:rgba(0,113,227,.13);color:var(--green);border:1px solid rgba(0,113,227,.34)}
+.mx-off{background:transparent;color:#a8b0bd;border:1px dashed #c4d4ea}
+.mx-dot{width:17px;height:17px;border-radius:50%;background:#e4ebf6;color:#b0bacb;font-size:10px;display:inline-flex;align-items:center;justify-content:center}
+.mx-dot.on{background:rgba(0,113,227,.14);color:var(--green)}
+.mx-sw{position:relative;width:34px;height:20px;border-radius:100px;background:#c9d6e8;transition:.2s;flex-shrink:0;cursor:pointer;border:none;padding:0;appearance:none}
+.mx-sw.on{background:var(--green)}
+.mx-sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.mx-sw.on::after{transform:translateX(14px)}
+
+/* segmented B/I/A */
+.seg{display:inline-flex;background:#dbe6f6;border:1px solid var(--border);border-radius:8px;padding:2px;gap:2px}
+.seg button{border:none;background:transparent;font-size:10px;font-weight:600;color:var(--text-2);padding:3px 7px;border-radius:6px;cursor:pointer;line-height:1.2;transition:.15s;font-family:inherit}
+.seg button.on{background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.14)}
+.seg button.lvl-beg.on{color:#55555a}
+.seg button.lvl-int.on{color:var(--green-dark)}
+.seg button.lvl-adv.on{color:#8a6300}
+.seg.lg button{font-size:11.5px;padding:6px 10px;flex:1}
+.seg.lg{width:100%}
+
+/* corner ornaments */
+.rc-cchip{position:absolute;top:6px;right:6px;width:19px;height:19px;border-radius:6px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;background:var(--lbg);color:var(--lt);border:1px solid var(--lln)}
+.rc-bar{position:absolute;left:0;right:0;bottom:0;height:4px;border-radius:0 0 11px 11px;background:var(--lc)}
+.rc.has-bar{padding-bottom:14px}
+.rc-spine{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:11px 0 0 11px;background:var(--lc)}
+.rc.has-spine{padding-left:12px}
+.rc-fold{position:absolute;top:0;right:0;width:0;height:0;border-top:26px solid var(--lc);border-left:26px solid transparent;border-radius:0 11px 0 0}
+.rc-fold-l{position:absolute;top:2px;right:2px;font-size:9px;font-weight:800;color:#fff;z-index:1}
+.rc-flag{position:absolute;top:0;right:11px;background:var(--green);color:#fff;font-size:8px;font-weight:800;letter-spacing:.05em;padding:4px 4px 5px;border-radius:0 0 4px 4px;box-shadow:0 2px 5px rgba(0,113,227,.3)}
+.av-mx{position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;border-radius:50%;background:var(--green);border:2px solid #fff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.av-mx.off{background:#c9d6e8}
+.av-mx2{position:absolute;bottom:-3px;right:-3px;width:19px;height:19px;border-radius:50%;background:#e9eef6;color:#b3bdcb;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:10px}
+.av-mx2.on{background:var(--green);color:#fff}
+.av-lv{position:absolute;top:-3px;right:-3px;width:18px;height:18px;border-radius:50%;background:var(--lc);border:2px solid #fff;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+/* v6 dot-name */
+.rc-nrow{display:flex;align-items:center;gap:5px;justify-content:center;font-size:12px;font-weight:500;color:var(--text)}
+.rc-mixline{font-size:9px;font-weight:600;letter-spacing:.02em;color:#a8b0bd}
+.rc-mixline.on{color:var(--green)}
+
+/* v2 two-line redesign */
+.v2-controls{display:flex;flex-direction:column;gap:6px;align-items:center;width:100%}
+.v2-mx{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:600;color:var(--text-2)}
+
+/* v13 meter */
+.meter{position:relative;width:58px;height:58px;display:flex;align-items:center;justify-content:center}
+.meter .ring{position:absolute;inset:0;border-radius:50%;-webkit-mask:radial-gradient(circle at center,transparent 22px,#000 23px);mask:radial-gradient(circle at center,transparent 22px,#000 23px)}
+.meter .av{width:40px;height:40px;font-size:14px}
+.meter .av-mx{bottom:0;right:0}
+
+/* v15 combined status row */
+.status-row{display:flex;align-items:center;gap:7px;justify-content:center;margin-top:5px;padding-top:7px;border-top:1px solid rgba(0,0,0,.07);width:100%}
+.sr-lvl{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:600;color:var(--lt)}
+.sr-div{width:1px;height:11px;background:rgba(0,0,0,.14)}
+.sr-mx{font-size:9px;font-weight:800;letter-spacing:.04em;color:#b0bacb}
+.sr-mx.on{color:var(--green)}
+
+/* v16 select */
+.v16{display:flex;flex-direction:column;gap:6px;width:100%;padding:0 2px}
+.v16-sel{position:relative;display:block;width:100%}
+.v16-sel::after{content:"▾";position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:8px;color:var(--lt);pointer-events:none}
+.lvl-select{width:100%;font-size:10px;font-weight:600;color:var(--lt);background:var(--lbg);border:1px solid var(--lln);border-radius:7px;padding:4px 18px 4px 8px;appearance:none;-webkit-appearance:none;cursor:pointer;font-family:inherit;text-align:left}
+.v16-mx{display:flex;align-items:center;justify-content:space-between;font-size:10px;font-weight:600;color:var(--text-2)}
+
+/* v17 chip cluster */
+.chip-clu{display:flex;align-items:center;gap:3px;justify-content:center}
+.lchip{width:16px;height:16px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;background:#e4ebf6;color:#b0bacb;border:1px solid transparent;cursor:pointer;transition:.12s}
+.lchip.on{background:var(--lbg);color:var(--lt);border-color:var(--lln)}
+.ilink{margin-left:3px}
+
+/* v18 glyph */
+.rc-glyph{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:600;color:#a8b0bd}
+.rc-glyph.on{color:var(--green)}
+.rc-glyph .g{font-size:12px;line-height:1}
+
+/* v19 underline */
+.mx-underline{border-bottom:2px solid var(--green);padding-bottom:1px}
+
+/* v11 hover strip */
+.rc-hs{overflow:hidden;padding-bottom:12px}
+.rc-strip{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);padding:7px 6px 8px;transform:translateY(105%);transition:transform .22s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;gap:6px;align-items:center;box-shadow:0 -4px 12px rgba(0,0,0,.06)}
+.rc-hs:hover .rc-strip,.rc-hs.open .rc-strip{transform:translateY(0)}
+.strip-mx{display:flex;align-items:center;gap:6px;font-size:9px;font-weight:600;color:var(--text-2)}
+
+/* ---------- editors ---------- */
+.ed-top{display:flex;align-items:center;justify-content:space-between}
+.ed-title{font-size:12px;font-weight:700;letter-spacing:-.01em}
+.ed-x{border:none;background:#eef1f6;color:var(--text-2);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center}
+.ed-x:hover{background:#e0e5ee}
+.ed-head{display:flex;align-items:center;gap:10px}
+.ed-name{font-size:14px;font-weight:650;letter-spacing:-.01em}
+.ed-sub{font-size:11px;color:var(--muted)}
+.ed-field{display:flex;flex-direction:column;gap:6px}
+.ed-field.ed-row{flex-direction:row;align-items:center;justify-content:space-between}
+.ed-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.btn-primary{background:var(--green);color:#fff;border:none;border-radius:9px;padding:9px 12px;font-size:12.5px;font-weight:600;cursor:pointer;width:100%;font-family:inherit}
+.btn-primary:hover{background:var(--green-light)}
+.btn-primary.sm{width:auto;padding:6px 12px;font-size:11px;border-radius:7px}
+.btn-ghost{background:transparent;border:none;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;padding:6px 8px;font-family:inherit}
+
+.drawer{position:absolute;top:0;right:0;bottom:0;width:214px;background:#fff;border-left:1px solid var(--border);box-shadow:-10px 0 34px rgba(0,0,0,.13);padding:16px 15px;display:flex;flex-direction:column;gap:13px}
+.scrim{position:absolute;inset:0;background:rgba(22,32,54,.3);display:flex;align-items:center;justify-content:center;padding:14px}
+.modal-card{background:#fff;border-radius:16px;box-shadow:var(--shadow-lg);width:232px;padding:17px;display:flex;flex-direction:column;gap:13px}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;box-shadow:0 -12px 34px rgba(0,0,0,.16);padding:12px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.grabber{width:36px;height:4px;border-radius:2px;background:#d4d8e0;margin:0 auto 2px}
+.pop{position:absolute;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,.17);padding:12px;width:186px;display:flex;flex-direction:column;gap:10px;z-index:6}
+.pop::before{content:"";position:absolute;top:-7px;left:26px;width:12px;height:12px;background:#fff;border-left:1px solid var(--border);border-top:1px solid var(--border);transform:rotate(45deg)}
+.pop-h{font-size:12px;font-weight:700}
+.pop-actions{display:flex;align-items:center;justify-content:flex-end;gap:4px}
+#pop7{top:96px;left:20px}
+.reopen{position:absolute;bottom:12px;left:16px;background:#fff;border:1px solid var(--border2);color:var(--green-dark);font-size:11px;font-weight:600;padding:6px 11px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow-sm);font-family:inherit;z-index:2}
+.hidden{display:none!important}
+
+/* v12 table */
+.view-toggle{display:inline-flex;background:#dbe6f6;border:1px solid var(--border);border-radius:8px;padding:2px;margin-bottom:12px}
+.view-toggle button{border:none;background:transparent;font-size:10px;font-weight:600;color:var(--text-2);padding:4px 12px;border-radius:6px;cursor:pointer;font-family:inherit}
+.view-toggle button.on{background:#fff;color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.tbl{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:11px;overflow:hidden}
+.tbl th{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:left;padding:9px 11px;border-bottom:1px solid var(--border);font-weight:700;background:#f7faff}
+.tbl td{padding:8px 11px;border-bottom:1px solid #eef2f8;font-size:12px;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr.ins td{background:rgba(0,113,227,.05)}
+.p-cell{display:flex;align-items:center;gap:9px;font-weight:500}
+.p-cell .av{width:30px;height:30px;font-size:11px}
+.tbl .pts-cell{font-weight:600;color:var(--text-2)}
+
+footer{max-width:1520px;margin:0 auto;padding:0 30px 60px;color:var(--muted);font-size:12px}
+footer code{font-family:var(--mono);background:#fff;border:1px solid #e4e7ec;border-radius:5px;padding:1px 6px}
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <p class="eyebrow">TZH Badminton · Admin › Session tab</p>
+  <h1>Level &amp; Mixed-Doubles on the roster card — 20 ways to add two attributes without clutter</h1>
+  <p class="lede">The roster card is already dense: avatar, name, a points stepper and a sessions line. We need to add a <b>3-way Level</b> (Beginner / Intermediate / Advanced) and a <b>Mixed-doubles</b> yes/no per player — and it must not clump up. Below are 20 genuinely different directions, from tiny inline indicators, to expand / hover / popover patterns, to full edit-player drawers, modals &amp; sheets, to a bulk list view. Each mock sits on the app's real light page so it reads in context.</p>
+  <div class="legend">
+    <div class="grp"><span class="glab">Level</span>
+      <span class="lk"><span class="sw" style="background:#86868b"></span>Beginner</span>
+      <span class="lk"><span class="sw" style="background:#0071e3"></span>Intermediate</span>
+      <span class="lk"><span class="sw" style="background:#e0a41a"></span>Advanced</span>
+    </div>
+    <span class="sep"></span>
+    <div class="grp"><span class="glab">Mixed doubles</span>
+      <span class="lk"><span class="mx-chip mx-on" style="cursor:default">⚥ MX</span>eligible</span>
+      <span class="lk"><span class="mx-chip mx-off" style="cursor:default">MX</span>not eligible</span>
+    </div>
+  </div>
+  <p class="note">A grey → blue → gold ramp keeps blue as the one true accent and reserves gold for the rare "Advanced" highlight. Segmented controls, switches, chips and popovers are interactive — click them.</p>
+</div>
+
+<main class="gallery" id="gallery"></main>
+
+<footer>
+  Metadata only — Level &amp; Mixed-doubles persist per player globally and don't affect matchmaking yet. Design tokens match <code>public/index.html</code>. Static self-contained exploration, no build step.
+</footer>
+
+<script>
+/* ---------------- mock data ---------------- */
+var P = [
+  {id:'p0', name:'Thomas',   ini:'TH', col:'#4b7bec', lv:'adv', mx:true,  pts:12, ss:3, ins:true},
+  {id:'p1', name:'Yugene',   ini:'YU', col:'#e5674b', lv:'int', mx:true,  pts:8,  ss:5, ins:true},
+  {id:'p2', name:'Syl',      ini:'SY', col:'#8e6bd6', lv:'beg', mx:false, pts:5,  ss:2, ins:false},
+  {id:'p3', name:'Cy',       ini:'CY', col:'#d9843b', lv:'int', mx:false, pts:10, ss:7, ins:true},
+  {id:'p4', name:'Jun Xian', ini:'JX', col:'#c0507a', lv:'adv', mx:true,  pts:15, ss:9, ins:false},
+  {id:'p5', name:'Mei',      ini:'ME', col:'#5a6b7b', lv:'beg', mx:true,  pts:6,  ss:4, ins:false}
+];
+var FOUR = P.slice(0,4), SIX = P;
+var LV = {beg:{name:'Beginner',short:'Beg',letter:'B'}, int:{name:'Intermediate',short:'Int',letter:'I'}, adv:{name:'Advanced',short:'Adv',letter:'A'}};
+var LVCOL = {beg:'#86868b', int:'#0071e3', adv:'#e0a41a'};
+
+/* ---------------- small builders ---------------- */
+function avEl(p,size,ring){
+  var s='width:'+size+'px;height:'+size+'px;font-size:'+Math.round(size*0.36)+'px;background:'+p.col;
+  if(ring) s+=';box-shadow:0 0 0 3px #fff,0 0 0 5px '+ring;
+  return '<div class="av" style="'+s+'">'+p.ini+'</div>';
+}
+function pts(p){return '<div class="rc-points"><button class="rc-pts-btn">−</button><span class="rc-pts-val">'+p.pts+'</span><button class="rc-pts-btn">+</button></div>';}
+function pill(lv){return '<span class="lvl-pill lvl-'+lv+'"><span class="dot"></span>'+LV[lv].short+'</span>';}
+function mxChip(on){return on?'<span class="mx-chip mx-on">⚥ MX</span>':'<span class="mx-chip mx-off">MX</span>';}
+function mxSw(on){return '<button type="button" class="mx-sw'+(on?' on':'')+'" aria-label="mixed doubles"></button>';}
+function seg(lv,mode){
+  var ids=['beg','int','adv'];
+  return '<div class="seg'+(mode==='word'?' lg':'')+'">'+ids.map(function(id){
+    var t = mode==='word'?LV[id].name : mode==='letter'?LV[id].letter : LV[id].short;
+    return '<button type="button" class="lvl-'+id+(id===lv?' on':'')+'">'+t+'</button>';
+  }).join('')+'</div>';
+}
+function interlink(on){var c=on?'#0071e3':'#b7c1d0';return '<svg class="ilink" width="18" height="12" viewBox="0 0 18 12"><circle cx="6" cy="6" r="4.2" fill="none" stroke="'+c+'" stroke-width="1.7"/><circle cx="12" cy="6" r="4.2" fill="none" stroke="'+c+'" stroke-width="1.7"/></svg>';}
+function lvlSelect(lv){
+  var o=['beg','int','adv'].map(function(id){return '<option'+(id===lv?' selected':'')+'>'+LV[id].name+'</option>';}).join('');
+  return '<span class="v16-sel lvl-'+lv+'"><select class="lvl-select">'+o+'</select></span>';
+}
+
+/* generic card scaffold */
+function card(p,cfg){
+  cfg=cfg||{};
+  var cls='rc'+(p.ins?' in-session':'')+(cfg.cls?' '+cfg.cls:'');
+  var h='<div class="'+cls+'">';
+  h+='<div class="rc-check">✓</div>';
+  if(cfg.fold) h+='<span class="rc-fold lvl-'+p.lv+'"></span><span class="rc-fold-l">'+LV[p.lv].letter+'</span>';
+  if(cfg.spine) h+='<span class="rc-spine lvl-'+p.lv+'"></span>';
+  if(cfg.cornerTR) h+=cfg.cornerTR(p);
+  h+='<div class="av-wrap">'+avEl(p,cfg.avSize||52,cfg.ring?LVCOL[p.lv]:null);
+  if(cfg.avCorner) h+=cfg.avCorner(p);
+  h+='</div>';
+  h+= cfg.nameHtml?cfg.nameHtml(p):'<div class="rc-name">'+p.name+'</div>';
+  if(cfg.mid) h+=cfg.mid(p);
+  if(cfg.points!==false) h+=pts(p);
+  if(cfg.sessions!==false) h+='<div class="rc-sessions-ref">'+p.ss+' sessions</div>';
+  if(cfg.after) h+=cfg.after(p);
+  if(cfg.bar) h+='<div class="rc-bar lvl-'+p.lv+'"></div>';
+  h+='</div>';
+  return h;
+}
+function grid(list,fn,extra){return '<div class="roster'+(extra?' '+extra:'')+'">'+list.map(fn).join('')+'</div>';}
+
+/* mini card used inside editor demos */
+function cardMini(p){return card(p,{avSize:44, points:false, sessions:false, mid:function(pp){return '<div class="rowc">'+pill(pp.lv)+'<span class="mx-dot'+(pp.mx?' on':'')+'">⚥</span></div>';}});}
+
+/* editor fragments */
+function edHead(p){return '<div class="ed-head">'+avEl(p,44)+'<div><div class="ed-name">'+p.name+'</div><div class="ed-sub">'+p.pts+' pts · '+p.ss+' sessions</div></div></div>';}
+function edBody(p,segMode){return '<div class="ed-field"><span class="ed-label">Level</span>'+seg(p.lv,segMode||'word')+'</div>'+
+  '<div class="ed-field ed-row"><span class="ed-label">Mixed doubles</span>'+mxSw(p.mx)+'</div>';}
+
+/* ---------------- 20 variants ---------------- */
+var VARIANTS = [
+{n:'01', t:'Level pill + MX chip under name', r:'Tiny inline tag + chip below the name; both read instantly, card stays compact. Tap card to change.',
+  render:function(){return grid(SIX,function(p){return card(p,{mid:function(pp){return '<div class="rowc">'+pill(pp.lv)+mxChip(pp.mx)+'</div>';}});});}},
+
+{n:'02', t:'Two-line redesign · segmented + toggle', r:'Everything on the card, cleanly: a B/I/A segmented control and a Mixed switch on their own line. Proof it fits without feeling crammed.',
+  render:function(){return grid(FOUR,function(p){return card(p,{mid:function(pp){return '<div class="v2-controls">'+seg(pp.lv,'letter')+'<div class="v2-mx"><span>Mixed</span>'+mxSw(pp.mx)+'</div></div>';}});},'wide-cards');}},
+
+{n:'03', t:'Avatar ring = level · MX corner dot', r:'The ring colour around the avatar encodes level; a small ⚥ dot on the avatar lights when mixed-eligible. Zero extra rows.',
+  render:function(){return grid(SIX,function(p){return card(p,{ring:true,
+    avCorner:function(pp){return '<span class="av-mx'+(pp.mx?'':' off')+'">⚥</span>';},
+    nameHtml:function(pp){return '<div class="rc-name">'+pp.name+'</div><div class="lvl-cap lvl-'+pp.lv+'">'+LV[pp.lv].name+'</div>';}});});}},
+
+{n:'04', t:'Corner letter chip + two-tone MX badge', r:'A B/I/A letter chip pins to the top corner; a two-tone ⚥ badge on the avatar fills in when eligible. Nothing added to the vertical stack.',
+  render:function(){return grid(SIX,function(p){return card(p,{
+    cornerTR:function(pp){return '<span class="rc-cchip lvl-'+pp.lv+'">'+LV[pp.lv].letter+'</span>';},
+    avCorner:function(pp){return '<span class="av-mx2'+(pp.mx?' on':'')+'">⚥</span>';}});});}},
+
+{n:'05', t:'Bottom accent bar + MX ribbon', r:'A full-width colour bar along the card foot signals level at a glance; a small MX ribbon flags only the mixed-eligible players.',
+  render:function(){return grid(SIX,function(p){return card(p,{cls:'has-bar',bar:true,
+    cornerTR:function(pp){return pp.mx?'<span class="rc-flag">MX</span>':'';}});});}},
+
+{n:'06', t:'Dot before name + inline mixed text', r:'The most text-forward, calm option: a level dot precedes the name, and one small line states mixed eligibility. Reads like a sentence.',
+  render:function(){return grid(SIX,function(p){return card(p,{
+    nameHtml:function(pp){return '<div class="rc-nrow"><span class="lvl-dot lvl-'+pp.lv+'"></span><span>'+pp.name+'</span></div>';},
+    mid:function(pp){return '<div class="rc-mixline'+(pp.mx?' on':'')+'">'+(pp.mx?'Mixed ✓':'Singles only')+'</div>';}});});}},
+
+{n:'07', t:'Compact card + tap-to-open popover', r:'Card carries only tiny indicators; tapping opens a small popover with the segmented control + switch. Editing never inflates the grid.',
+  render:function(){return '<span class="stage-cap">Resting grid · popover open on Thomas</span>'+
+    grid(FOUR,cardMini)+
+    '<div class="pop" id="pop7"><div class="pop-h">Thomas</div>'+
+      '<div class="ed-field"><span class="ed-label">Level</span>'+seg('adv','abbr')+'</div>'+
+      '<div class="ed-field ed-row"><span class="ed-label">Mixed</span>'+mxSw(true)+'</div>'+
+      '<div class="pop-actions"><button class="btn-ghost" data-tog="pop7">Cancel</button><button class="btn-primary sm" data-tog="pop7">Done</button></div>'+
+    '</div>'+
+    '<button class="reopen" data-tog="pop7">Tap a player to edit ▸</button>';}},
+
+{n:'08', t:'Expandable card (accordion)', r:'A tap expands the card in place to reveal level + mixed controls, then collapses back. Native &lt;details&gt; — density only when you need it.',
+  render:function(){return '<div class="roster">'+FOUR.map(function(p,i){
+    var open=i===0?' open':'';
+    return '<details class="rc'+(p.ins?' in-session':'')+'"'+open+' style="cursor:pointer">'+
+      '<summary style="list-style:none;display:flex;flex-direction:column;align-items:center;gap:6px">'+
+        '<div class="rc-check">✓</div>'+avEl(p,46)+'<div class="rc-name">'+p.name+'</div>'+
+        '<div class="rowc">'+pill(p.lv)+'<span class="mx-dot'+(p.mx?' on':'')+'">⚥</span></div>'+
+      '</summary>'+
+      '<div style="display:flex;flex-direction:column;gap:7px;margin-top:9px;padding-top:9px;border-top:1px solid rgba(0,0,0,.08);align-items:center">'+
+        seg(p.lv,'letter')+'<div class="v2-mx"><span>Mixed</span>'+mxSw(p.mx)+'</div>'+
+      '</div></details>';
+  }).join('')+'</div>';}},
+
+{n:'09', t:'Slide-out "Edit player" drawer', r:'The grid stays perfectly compact; selecting a player slides in a right-hand drawer with the full editor. Best-in-class for zero clutter.',
+  wide:true, tall:true,
+  render:function(){return '<div style="margin-right:222px">'+grid(FOUR,cardMini)+'</div>'+
+    '<div class="drawer" id="dr9">'+
+      '<div class="ed-top"><span class="ed-title">Edit player</span><button class="ed-x" data-tog="dr9">✕</button></div>'+
+      edHead(P[0])+edBody(P[0],'abbr')+
+      '<button class="btn-primary">Save changes</button>'+
+    '</div>'+
+    '<button class="reopen" data-tog="dr9">Edit player ▸</button>';}},
+
+{n:'10', t:'Per-player detail modal', r:'Tapping a card opens a focused modal for that one player. Room to breathe, and a natural home for future per-player settings.',
+  wide:true, tall:true,
+  render:function(){return grid(SIX,cardMini)+
+    '<div class="scrim" id="md10">'+
+      '<div class="modal-card">'+
+        '<div class="ed-top"><span class="ed-title">Player details</span><button class="ed-x" data-tog="md10">✕</button></div>'+
+        edHead(P[4])+edBody(P[4])+
+        '<button class="btn-primary">Save changes</button>'+
+      '</div>'+
+    '</div>'+
+    '<button class="reopen" data-tog="md10">Open Jun Xian ▸</button>';}},
+
+{n:'11', t:'Hover-reveal control strip', r:'Cards look clean at rest; hovering slides a control strip up from the foot with mini segmented + switch. Editing power hidden until wanted.',
+  render:function(){return '<span class="stage-cap">First card shown revealed · hover the others</span>'+
+    '<div class="roster">'+FOUR.map(function(p,i){
+    return '<div class="rc rc-hs'+(p.ins?' in-session':'')+(i===0?' open':'')+'">'+
+      '<div class="rc-check">✓</div>'+avEl(p,48)+'<div class="rc-name">'+p.name+'</div>'+pts(p)+
+      '<div class="rc-strip">'+seg(p.lv,'letter')+'<div class="strip-mx"><span>Mixed</span>'+mxSw(p.mx)+'</div></div>'+
+    '</div>';
+  }).join('')+'</div>';}},
+
+{n:'12', t:'List view toggle · bulk assign', r:'A Grid ⇄ List switch flips the roster into a table where level + mixed are one tap per row. Fastest way to set the whole squad at once.',
+  wide:true,
+  render:function(){return '<div class="view-toggle"><button>Grid</button><button class="on">List</button></div>'+
+    '<table class="tbl"><thead><tr><th>Player</th><th>Level</th><th>Mixed</th><th style="text-align:right">Pts</th></tr></thead><tbody>'+
+    SIX.map(function(p){return '<tr'+(p.ins?' class="ins"':'')+'>'+
+      '<td><div class="p-cell">'+avEl(p,30)+p.name+'</div></td>'+
+      '<td>'+seg(p.lv,'abbr')+'</td>'+
+      '<td>'+mxSw(p.mx)+'</td>'+
+      '<td class="pts-cell" style="text-align:right">'+p.pts+'</td>'+
+    '</tr>';}).join('')+
+    '</tbody></table>';}},
+
+{n:'13', t:'Avatar as 3-segment level meter', r:'A segmented ring around the avatar fills 1 / 2 / 3 arcs for B / I / A — level becomes a satisfying little gauge. ⚥ badge for mixed.',
+  render:function(){return grid(SIX,function(p){
+    var f={beg:1,int:2,adv:3}[p.lv], c=LVCOL[p.lv], g='#d3ddec';
+    function s(i){return i<f?c:g;}
+    var bg='background:conic-gradient(from 0deg,transparent 0 4deg,'+s(0)+' 4deg 116deg,transparent 116deg 124deg,'+s(1)+' 124deg 236deg,transparent 236deg 244deg,'+s(2)+' 244deg 356deg,transparent 356deg 360deg)';
+    return '<div class="rc'+(p.ins?' in-session':'')+'"><div class="rc-check">✓</div>'+
+      '<div class="meter"><div class="ring" style="'+bg+'"></div>'+avEl(p,40)+'<span class="av-mx'+(p.mx?'':' off')+'">⚥</span></div>'+
+      '<div class="rc-name">'+p.name+'</div>'+
+      '<div class="lvl-cap lvl-'+p.lv+'">'+LV[p.lv].name+' · '+f+'/3</div>'+pts(p)+'</div>';
+  });}},
+
+{n:'14', t:'Left spine accent + level pill', r:'A slim coloured spine down the left edge encodes level (calmer than a footer bar); a pill + MX chip cover the details. Distinct silhouette.',
+  render:function(){return grid(SIX,function(p){return card(p,{cls:'has-spine',spine:true,
+    mid:function(pp){return '<div class="rowc">'+pill(pp.lv)+mxChip(pp.mx)+'</div>';}});});}},
+
+{n:'15', t:'One combined status row', r:'Instead of scattering two controls, both live in a single bottom status row — level · mixed — divided by a hairline. Anti-clump by consolidation.',
+  render:function(){return grid(SIX,function(p){return card(p,{
+    after:function(pp){return '<div class="status-row"><span class="sr-lvl lvl-'+pp.lv+'"><span class="lvl-dot lvl-'+pp.lv+'"></span>'+LV[pp.lv].short+'</span><span class="sr-div"></span><span class="sr-mx'+(pp.mx?' on':'')+'">⚥ MX</span></div>';}});});}},
+
+{n:'16', t:'Native select + mixed switch', r:'A compact dropdown for level plus a labelled switch for mixed — familiar form controls, keyboard-friendly, all inline on the card.',
+  render:function(){return grid(FOUR,function(p){return card(p,{
+    mid:function(pp){return '<div class="v16">'+lvlSelect(pp.lv)+'<div class="v16-mx"><span>Mixed</span>'+mxSw(pp.mx)+'</div></div>';}});},'wide-cards');}},
+
+{n:'17', t:'Chip cluster + interlink icon', r:'Three tiny B/I/A chips where only the active one is filled (rating-style), and an interlocking-rings icon that lights for mixed. Playful but tidy.',
+  render:function(){return grid(SIX,function(p){return card(p,{
+    mid:function(pp){return '<div class="chip-clu">'+['beg','int','adv'].map(function(id){return '<span class="lchip lvl-'+id+(id===pp.lv?' on':'')+'">'+LV[id].letter+'</span>';}).join('')+interlink(pp.mx)+'</div>';}});});}},
+
+{n:'18', t:'Corner fold + ⚥ glyph', r:'A folded top-corner (with its letter) encodes level like a dog-eared tag; a ⚥ glyph line states mixed. Tactile, unmistakably not a generic card.',
+  render:function(){return grid(SIX,function(p){return card(p,{fold:true,
+    mid:function(pp){return '<div class="rc-glyph'+(pp.mx?' on':'')+'"><span class="g">⚥</span>'+(pp.mx?'Mixed':'Singles')+'</div>';}});});}},
+
+{n:'19', t:'Avatar level badge + mixed underline', r:'Typographic &amp; minimal: a small B/I/A badge sits on the avatar, and mixed-eligible names get a blue underline. Almost nothing added, still fully legible.',
+  render:function(){return grid(SIX,function(p){return card(p,{
+    avCorner:function(pp){return '<span class="av-lv lvl-'+pp.lv+'">'+LV[pp.lv].letter+'</span>';},
+    nameHtml:function(pp){return '<div class="rc-name"><span'+(pp.mx?' class="mx-underline"':'')+'>'+pp.name+'</span></div>';}});});}},
+
+{n:'20', t:'Full edit-player bottom sheet', r:'Mobile-first: the grid stays untouched and a bottom sheet rises with the editor. Third full-editor pattern — great on the tablet admins actually use courtside.',
+  wide:true, tall:true,
+  render:function(){return grid(SIX,cardMini)+
+    '<div class="sheet" id="sh20">'+
+      '<div class="grabber"></div>'+
+      '<div class="ed-top"><span class="ed-title">Yugene</span><button class="ed-x" data-tog="sh20">✕</button></div>'+
+      edBody(P[1])+
+      '<button class="btn-primary">Save</button>'+
+    '</div>'+
+    '<button class="reopen" data-tog="sh20">Edit Yugene ▸</button>';}}
+];
+
+/* ---------------- build gallery ---------------- */
+(function(){
+  var g=document.getElementById('gallery');
+  g.innerHTML = VARIANTS.map(function(v){
+    return '<article class="tile'+(v.wide?' wide':'')+'">'+
+      '<div class="tile-h"><span class="tile-n">'+v.n+'</span>'+
+      '<div><div class="tile-t">'+v.t+'</div><p class="tile-r">'+v.r+'</p></div></div>'+
+      '<div class="stage'+(v.tall?' tall':'')+'">'+v.render()+'</div>'+
+    '</article>';
+  }).join('');
+})();
+
+/* ---------------- interactivity ---------------- */
+document.addEventListener('click',function(e){
+  var segBtn=e.target.closest('.seg button');
+  if(segBtn){var sibs=segBtn.parentNode.children;for(var i=0;i<sibs.length;i++)sibs[i].classList.remove('on');segBtn.classList.add('on');return;}
+  var sw=e.target.closest('.mx-sw');
+  if(sw){sw.classList.toggle('on');return;}
+  var ch=e.target.closest('.mx-chip');
+  if(ch){var on=ch.classList.toggle('mx-on');ch.classList.toggle('mx-off',!on);ch.innerHTML=on?'⚥ MX':'MX';return;}
+  var lc=e.target.closest('.lchip');
+  if(lc&&lc.parentNode.classList.contains('chip-clu')){var cs=lc.parentNode.querySelectorAll('.lchip');for(var j=0;j<cs.length;j++)cs[j].classList.remove('on');lc.classList.add('on');return;}
+  var vt=e.target.closest('.view-toggle button');
+  if(vt){var vs=vt.parentNode.children;for(var k=0;k<vs.length;k++)vs[k].classList.remove('on');vt.classList.add('on');return;}
+  var tg=e.target.closest('[data-tog]');
+  if(tg){var el=document.getElementById(tg.getAttribute('data-tog'));if(el)el.classList.toggle('hidden');return;}
+});
+</script>
+</body>
+</html>

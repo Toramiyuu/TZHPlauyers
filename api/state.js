@@ -62,7 +62,7 @@ const DEFAULT_STATE = {
   endingSoon: [],
   sessionDate: todayISO(),
   sessions: {},
-  luckyDraw: { entries: [], drawDate: todayISO(), spin: null, results: [], history: [] },
+  luckyDraw: { entries: [], paid: [], drawDate: todayISO(), spin: null, results: [], history: [] },
   monthlyDraw: { month: '', rollSuppressedMonth: '', prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'], participants: [], results: [], spin: null, history: [] },
   shopCustomers: [],
   monthlyDraws: [],
@@ -99,6 +99,10 @@ function normalizeDrawState(current) {
     if (!Array.isArray(ld.results)) ld.results = [];
     if (!Array.isArray(ld.history)) ld.history = [];
     if (ld.spin === undefined) ld.spin = null;
+    // Paid-player pool: ensure the array exists and drop entries past their
+    // 2-day window on every read, so expired paid players never resurface.
+    if (!Array.isArray(ld.paid)) ld.paid = [];
+    ld.paid = pruneExpiredPaid(ld.paid, todayISO());
     // legacy `lastWinner` (if present) is intentionally ignored
   }
 
@@ -170,6 +174,44 @@ function addDaysISO(iso, n) {
   return dt.toISOString().slice(0, 10);
 }
 
+// Points earned by each player who took part in a session, credited once when
+// that day is closed (see awardSessionPoints / applySessionDateChange).
+const POINTS_PER_SESSION = 2;
+
+/**
+ * Credit POINTS_PER_SESSION to every roster player who appears in the outgoing
+ * day's `players`, ONCE per session date. Returns { roster, awardedSessions }
+ * with fresh arrays only when an award actually happens; otherwise returns the
+ * originals untouched (so callers can assign unconditionally without breaking
+ * purity). Guests (in players, not in roster) earn nothing. Pure.
+ */
+function awardSessionPoints(state, leavingDate) {
+  const roster = state.roster || [];
+  const awarded = Array.isArray(state.awardedSessions) ? state.awardedSessions : [];
+  if (!leavingDate || awarded.includes(leavingDate)) {
+    return { roster: state.roster, awardedSessions: state.awardedSessions };
+  }
+  const playedIds = new Set((state.players || []).map((p) => p.id));
+  const anyPlayed = roster.some((r) => playedIds.has(r.id));
+  if (!anyPlayed) return { roster: state.roster, awardedSessions: state.awardedSessions };
+  return {
+    roster: roster.map((r) =>
+      playedIds.has(r.id) ? Object.assign({}, r, { points: (r.points || 0) + POINTS_PER_SESSION }) : r
+    ),
+    awardedSessions: awarded.concat([leavingDate]),
+  };
+}
+
+// ── LUCKY DRAW: paid-player entries with a 2-day window ──────────────────────
+// A player ticked as "paid" for a session stays in the draw pool until 2 days
+// after that session date (Mon→Wed, Fri→Sun, Sun→Tue), then auto-prunes. Kept
+// while today <= sessionDate + 2 (last day inclusive). Pure.
+function paidEntryExpiry(forDate) { return addDaysISO(forDate, 2); }
+function pruneExpiredPaid(paid, today) {
+  if (!Array.isArray(paid)) return [];
+  return paid.filter((p) => p && p.forDate && today <= addDaysISO(p.forDate, 2));
+}
+
 /**
  * Apply a session-date change, returning { ok:true, state } or { ok:false, error }.
  * Pure — never mutates the passed state. Shared by the api/state.js handler and
@@ -191,6 +233,10 @@ function applySessionDateChange(state, newDate, today) {
   }
   const next = Object.assign({}, state);
   if (newDate !== state.sessionDate && state.sessionDate) {
+    // Closing the outgoing day: credit +2 to everyone who played it (once).
+    const award = awardSessionPoints(state, state.sessionDate);
+    next.roster = award.roster;
+    if (award.awardedSessions !== undefined) next.awardedSessions = award.awardedSessions;
     const snapshot = {
       players: (state.players || []).map((p) => ({ id: p.id, name: p.name })),
       rounds: state.rounds || [],
@@ -224,6 +270,45 @@ function applySessionDateChange(state, newDate, today) {
   }
   next.sessionDate = newDate;
   return { ok: true, state: next };
+}
+
+/**
+ * Decide whether the automatic midnight rollover should advance the session
+ * date, and to what. Pure. Advances ONLY a stale live day (sessionDate behind
+ * today); never rewinds a future-scheduled session and never re-fires on the
+ * current day. `today` is the server's UTC+8 day (todayISO). Returns the target
+ * ISO date, or null for "do nothing".
+ */
+function nextRolloverDate(sessionDate, today) {
+  if (!today) return null;
+  if (!sessionDate || sessionDate < today) return today;
+  return null;
+}
+
+/**
+ * Cron entry point (hit by /api/cron-rollover at 00:00 MYT). Loads state,
+ * advances a stale session date to today via applySessionDateChange — which
+ * snapshots the closed day to history and awards its +2 points — then persists.
+ * Idempotent: a no-op when the date is already today or in the future.
+ */
+async function rolloverSessionDate() {
+  let state;
+  try {
+    state = (await kv.get(STATE_KEY)) || { ...DEFAULT_STATE };
+  } catch (e) {
+    return { ok: false, error: 'read', changed: false };
+  }
+  const today = todayISO();
+  const target = nextRolloverDate(state.sessionDate, today);
+  if (!target) return { ok: true, changed: false, sessionDate: state.sessionDate || null, today };
+  const transition = applySessionDateChange(state, target, today);
+  if (!transition.ok) return { ok: false, error: transition.error, changed: false, today };
+  try {
+    await kv.set(STATE_KEY, transition.state);
+  } catch (e) {
+    return { ok: false, error: 'write', changed: false, today };
+  }
+  return { ok: true, changed: true, from: state.sessionDate || null, to: target, today };
 }
 
 /**
@@ -512,5 +597,11 @@ module.exports.normalizeDrawState = normalizeDrawState;
 module.exports.buildSignup = buildSignup;
 module.exports.buildSignups = buildSignups;
 module.exports.addMonthsISO = addMonthsISO;
+module.exports.addDaysISO = addDaysISO;
 module.exports.applySessionDateChange = applySessionDateChange;
+module.exports.awardSessionPoints = awardSessionPoints;
+module.exports.paidEntryExpiry = paidEntryExpiry;
+module.exports.pruneExpiredPaid = pruneExpiredPaid;
+module.exports.nextRolloverDate = nextRolloverDate;
+module.exports.rolloverSessionDate = rolloverSessionDate;
 module.exports.todayISO = todayISO;

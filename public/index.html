@@ -649,6 +649,36 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .rc-points-input::-webkit-outer-spin-button,
 .rc-points-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .rc-sessions-ref{font-size:9px;color:var(--muted);text-align:center;margin-top:2px;letter-spacing:.3px}
+/* Players Grid ⇄ List view toggle (variant 12) */
+.roster-viewtoggle{display:inline-flex;background:var(--card2);border:1px solid var(--border);border-radius:100px;padding:3px;margin-bottom:10px;gap:2px}
+.rv-btn{border:none;background:none;color:var(--text-2);font-size:13px;font-weight:600;padding:5px 18px;border-radius:100px;cursor:pointer;font-family:inherit;transition:var(--transition)}
+.rv-btn.active{background:var(--card);color:var(--text);box-shadow:var(--shadow-sm)}
+/* Players List view — bulk level + mixed table */
+.roster-list{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;margin-bottom:10px;background:var(--card)}
+.rl-empty{color:var(--muted);font-size:13px;padding:14px}
+.rl-head,.rl-row{display:grid;grid-template-columns:1fr auto 72px 44px;align-items:center;gap:12px;padding:10px 14px}
+.rl-head{background:var(--card2);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rl-head span:nth-child(3){text-align:center}
+.rl-head span:nth-child(4){text-align:right}
+.rl-row{border-top:1px solid var(--border)}
+.rl-row.in{background:var(--green-tint)}
+.rl-player{display:flex;align-items:center;gap:10px;min-width:0;cursor:pointer;border-radius:8px;padding:2px 4px;margin:-2px -4px}
+.rl-player:hover{background:rgba(0,113,227,.06)}
+.rl-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;transition:var(--transition)}
+.rl-check.on{background:var(--green);border-color:var(--green)}
+.rl-player:hover .rl-check{border-color:var(--green-line)}
+.rl-name{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rl-seg{display:inline-flex;background:var(--card2);border:1px solid var(--border2);border-radius:100px;padding:2px}
+.rl-seg-btn{border:none;background:none;color:var(--muted);font-size:12px;font-weight:600;padding:4px 12px;border-radius:100px;cursor:pointer;font-family:inherit;transition:var(--transition)}
+.rl-seg-btn:hover{color:var(--text-2)}
+.rl-seg-btn.on{background:var(--card);color:var(--text);box-shadow:var(--shadow-sm)}
+.rl-seg-btn.on.int{color:var(--green-light)}
+.rl-seg-btn.on.adv{color:#8a5a00}
+.rl-toggle{width:42px;height:24px;border-radius:100px;border:none;background:var(--border2);cursor:pointer;padding:0;position:relative;transition:background .18s;margin:0 auto;display:block}
+.rl-toggle.on{background:var(--green)}
+.rl-knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:var(--shadow-sm);transition:transform .18s}
+.rl-toggle.on .rl-knob{transform:translateX(18px)}
+.rl-pts{text-align:right;font-size:14px;font-weight:700;color:var(--text)}
 /* Roster search + sort controls row */
 .roster-controls{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
 .roster-controls #rosterSearch{flex:1;min-width:160px;margin-bottom:0}
@@ -656,6 +686,15 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 /* ── DRAW POOL ────────────────────────────── */
 .draw-pool{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin:8px 0 4px;min-height:32px}
 .draw-empty{color:var(--muted);font-size:var(--fs-sm);padding:10px 0;grid-column:1/-1}
+.paid-picker{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 2px;min-height:34px}
+.paid-chip{display:flex;align-items:center;gap:7px;background:var(--card2);border:1px solid var(--border);border-radius:100px;padding:4px 13px 4px 6px;font-size:var(--fs-sm);font-weight:500;color:var(--text);cursor:pointer;font-family:inherit;transition:var(--transition)}
+.paid-chip:hover{border-color:var(--border2);background:var(--elev)}
+.paid-chip.on{background:var(--green-tint);border-color:var(--green-line);color:var(--green-light)}
+.paid-chip .paid-name{white-space:nowrap}
+.paid-check{width:17px;height:17px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;transition:var(--transition)}
+.paid-chip.on .paid-check{background:var(--green);border-color:var(--green)}
+.draw-card.is-paid{border-color:var(--green-line);background:var(--green-tint)}
+.draw-paid-tag{font-size:9px;font-weight:700;letter-spacing:.02em;color:var(--green-light);background:rgba(0,113,227,.12);border-radius:100px;padding:2px 7px;margin-top:2px;white-space:nowrap}
 .draw-pool-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
 .draw-pool-count{font-size:var(--fs-xs);font-weight:700;color:var(--green-light);background:rgba(0,113,227,.12);padding:2px 8px;border-radius:100px}
 .draw-card{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
@@ -923,6 +962,54 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .acct-photo-prev{width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid var(--a-blue);display:block}
 .acct-photo-ph{width:84px;height:84px;border-radius:50%;background:var(--a-card-2);border:3px solid var(--a-line);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:300;color:var(--a-ink-3)}
 .prof-uname{font-size:13px;color:var(--a-ink-3);margin:-2px 0 10px;text-align:center}
+/* ── Admin help button + drawer (panel) ── */
+.admin-help-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--border2);background:var(--card);color:var(--green-light);font-size:15px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;transition:var(--transition);flex-shrink:0}
+.admin-help-btn:hover{background:var(--green-tint);border-color:var(--green-line)}
+.admin-help-btn.pulse{animation:helpPulse 2s ease-out 3}
+@keyframes helpPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,113,227,0)}50%{box-shadow:0 0 0 6px rgba(0,113,227,.22)}}
+#helpScrim{position:fixed;inset:0;background:rgba(20,30,50,.16);opacity:0;pointer-events:none;transition:opacity .25s;z-index:1400}
+#helpScrim.open{opacity:1;pointer-events:auto}
+#helpDrawer{position:fixed;top:0;right:0;height:100%;width:min(380px,92vw);background:var(--card);border-left:1px solid var(--border);box-shadow:var(--shadow-lg);transform:translateX(100%);transition:transform .32s cubic-bezier(.16,1,.3,1);z-index:1401;display:flex;flex-direction:column;font-family:var(--font-apple,inherit)}
+#helpDrawer.open{transform:translateX(0)}
+.help-hd{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}
+.help-hd-title{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:700;color:var(--text)}
+.help-hd-title .ic{width:20px;height:20px;color:var(--green-light)}
+.help-close{width:30px;height:30px;border-radius:50%;border:none;background:var(--card2);color:var(--text-2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.help-close:hover{background:var(--elev)}
+.help-body{padding:16px 18px;overflow-y:auto;flex:1}
+.help-tour-btn{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:3px;background:var(--green);color:#fff;border:none;border-radius:var(--radius-md);padding:14px 16px;cursor:pointer;font-family:inherit;box-shadow:var(--shadow-md);transition:var(--transition);text-align:left}
+.help-tour-row{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700}
+.help-tour-btn .ic{width:15px;height:15px;fill:currentColor;stroke:none}
+.help-tour-btn:hover{background:var(--green-light)}
+.help-tour-sub{font-size:11px;font-weight:500;opacity:.85}
+.help-sec-list{margin-top:16px;display:flex;flex-direction:column}
+.help-sec{border-bottom:1px solid var(--border)}
+.help-sec summary{list-style:none;cursor:pointer;padding:12px 2px;font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;justify-content:space-between}
+.help-sec summary::-webkit-details-marker{display:none}
+.help-sec summary::after{content:"+";color:var(--muted);font-size:17px;font-weight:400;line-height:1}
+.help-sec[open] summary::after{content:"\2013"}
+.help-sec div{font-size:13px;line-height:1.55;color:var(--text-2);padding:0 2px 14px}
+.help-sec div b{color:var(--text);font-weight:600}
+/* ── Guided tour spotlight ── */
+#tourOverlay{position:fixed;inset:0;z-index:1500;display:none;pointer-events:auto}
+#tourOverlay.active{display:block}
+#tourSpot{position:fixed;border-radius:10px;box-shadow:0 0 0 4px rgba(0,113,227,.55),0 0 0 9999px rgba(15,23,42,.55);transition:all .28s cubic-bezier(.16,1,.3,1);pointer-events:none}
+#tourTip{position:fixed;width:300px;max-width:calc(100vw - 24px);background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);padding:16px;pointer-events:auto;transition:top .28s cubic-bezier(.16,1,.3,1),left .28s cubic-bezier(.16,1,.3,1)}
+.tt-caret{position:absolute;width:14px;height:14px;background:var(--card);border-left:1px solid var(--border);border-top:1px solid var(--border)}
+.tt-step{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--green-light)}
+.tt-title{font-size:16px;font-weight:700;color:var(--text);margin-top:3px}
+.tt-text{font-size:13px;line-height:1.55;color:var(--text-2);margin-top:6px}
+.tt-actions{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
+.tt-skip{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit;padding:6px 2px}
+.tt-skip:hover{color:var(--text-2)}
+.tt-nav{display:flex;gap:8px}
+.tt-back,.tt-next{border-radius:8px;padding:7px 15px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid var(--border2)}
+.tt-back{background:var(--card);color:var(--text-2)}
+.tt-back:hover{background:var(--card2)}
+.tt-back:disabled{opacity:.4;cursor:default}
+.tt-next{background:var(--green);color:#fff;border-color:var(--green)}
+.tt-next:hover{background:var(--green-light)}
+@media (prefers-reduced-motion:reduce){#tourSpot,#tourTip{transition:none}}
 </style>
 </head>
 <body>
@@ -1356,6 +1443,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <div class="admin-hdr-date" id="headerDate"></div>
     </div>
     <div class="admin-hdr-actions">
+      <button class="admin-help-btn" id="adminHelpBtn" onclick="openHelp()" aria-label="Help and guided tour" title="Help &amp; guided tour">?</button>
       <button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>
       <button class="btn btn-secondary btn-sm" onclick="showViewer()">View Display</button>
     </div>
@@ -1392,7 +1480,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <span><span><svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 14.6c2 .7 3.5 2.3 3.5 4.4"/></svg></span> Players</span>
       <span id="sessionCount" class="admin-session-count"></span>
     </div>
-    <div class="admin-helper-text">Tap a player to add/remove from today's session</div>
+    <div class="admin-helper-text">Tap a player to add/remove from today's session. Switch to <b>List</b> to set skill level &amp; mixed-doubles for the whole squad.</div>
+    <div class="roster-viewtoggle" role="tablist" aria-label="Player view">
+      <button class="rv-btn active" data-view="grid" role="tab" onclick="setRosterView('grid')">Grid</button>
+      <button class="rv-btn" data-view="list" role="tab" onclick="setRosterView('list')">List</button>
+    </div>
     <div class="roster-controls">
       <input id="rosterSearch" type="text" class="admin-form-input"
         placeholder="Search players..." autocomplete="off" aria-label="Search players"
@@ -1406,6 +1498,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       </select>
     </div>
     <div class="roster-grid" id="rosterGrid"></div>
+    <div class="roster-list" id="rosterList" style="display:none"></div>
     <div id="guestStrip"></div>
     <div class="admin-btn-row admin-mt">
       <button class="btn btn-secondary btn-sm" onclick="openAddRosterModal()">+ Add to Roster</button>
@@ -1484,6 +1577,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
   <!-- ── ENGAGEMENT TAB ─────────────────────── -->
   <div class="admin-tab-panel" data-tab="engagement">
+
+  <!-- Paid players — feeds the Lucky Draw pool, auto-expires after 2 days -->
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg></span> Paid Players &mdash; this session</div>
+    <div class="admin-helper-text" id="paidHint">Tick each player who has paid. They join the draw pool and stay until 2 days after the session, then drop off automatically.</div>
+    <div class="paid-picker" id="paidPicker"></div>
+  </div>
 
   <!-- Lucky Draw -->
   <div class="admin-card">
@@ -1644,6 +1744,45 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
 </div>
 
+<!-- Admin Help drawer (panel) + interactive guided tour (item 4) -->
+<div id="helpScrim" onclick="closeHelp()"></div>
+<aside id="helpDrawer" role="dialog" aria-modal="false" aria-labelledby="helpTitle" aria-hidden="true">
+  <div class="help-hd">
+    <div class="help-hd-title" id="helpTitle"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.2-2.7 4"/><circle cx="12" cy="17.3" r=".7" fill="currentColor" stroke="none"/></svg> Admin Help</div>
+    <button class="help-close" onclick="closeHelp()" aria-label="Close help">&#x2715;</button>
+  </div>
+  <div class="help-body">
+    <button class="help-tour-btn" onclick="startTour()"><span class="help-tour-row"><svg class="ic" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg> Start the guided tour</span><span class="help-tour-sub">A 2-minute walkthrough of every tab</span></button>
+    <div class="help-sec-list">
+      <details class="help-sec"><summary>Session</summary><div>Set tonight&rsquo;s date and tap players to add them to the line-up. On each card, the <b>Level</b> pill (Beg/Int/Adv) and <b>MX</b> chip set a player&rsquo;s skill and mixed-doubles eligibility.</div></details>
+      <details class="help-sec"><summary>Courts</summary><div>Build rounds, choose which courts are active, and manage who&rsquo;s resting. Each court&rsquo;s current match shows live on the viewer screen.</div></details>
+      <details class="help-sec"><summary>Lucky Draw</summary><div>Tick the players who&rsquo;ve <b>paid</b> &mdash; they join the pool and stay for 2 days. Then <b>Spin</b> to pick a winner, revealed live on the viewer.</div></details>
+      <details class="help-sec"><summary>Monthly Draw</summary><div>Import the token ballot and run the monthly prize draw. Winners and prizes appear on the prize-draw board.</div></details>
+      <details class="help-sec"><summary>Sign-ups</summary><div>People who asked to join through the public form, newest first. Mark each one contacted once you&rsquo;ve reached out.</div></details>
+      <details class="help-sec"><summary>Accounts</summary><div>Everyone who created a login. Reset a PIN to issue a new 6-digit code; deleting an account also removes its linked roster player.</div></details>
+      <details class="help-sec"><summary>Settings</summary><div>Share the viewer link, set the daily <b>site access code</b>, change the admin password, and choose which social game days appear on the public sign-up.</div></details>
+    </div>
+  </div>
+</aside>
+
+<!-- Guided tour spotlight overlay -->
+<div id="tourOverlay" aria-hidden="true">
+  <div id="tourSpot"></div>
+  <div id="tourTip" role="dialog" aria-live="polite">
+    <div class="tt-caret"></div>
+    <div class="tt-step" id="ttStep"></div>
+    <div class="tt-title" id="ttTitle"></div>
+    <div class="tt-text" id="ttText"></div>
+    <div class="tt-actions">
+      <button class="tt-skip" onclick="endTour()">Skip tour</button>
+      <div class="tt-nav">
+        <button class="tt-back" id="ttBack" onclick="tourPrev()">Back</button>
+        <button class="tt-next" id="ttNext" onclick="tourNext()">Next</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <button id="adminBtn" onclick="requestAdmin()" aria-label="Open admin panel">
   <span class="cb-eyes" aria-hidden="true">
     <span class="cb-eye"><span class="cb-pupil"></span></span>
@@ -1792,6 +1931,9 @@ async function poll() {
   // shouldHoldAdminRender) — the latter is what stops a poll tick from wiping a
   // manual court arrangement before "Save Round" reads it.
   if (shouldHoldAdminRender(adminOpen, isEditing(), expandedRound)) return;
+  // An optimistic tick is still persisting — don't let this poll tick overwrite
+  // local state and momentarily snap the card back to its pre-click position.
+  if (adminOpen && pendingTicks.size > 0) return;
   state = s;
   updateJoinCtaVisibility();
   renderViewer();
@@ -1807,6 +1949,7 @@ async function poll() {
     renderPlayersSection(); // B5: keep the admin player list fresh across devices
     renderCourtControls();
     renderRoundList();
+    renderPaidPicker();
     renderDrawPool();
     renderDrawResult();
     renderMonthlyTab();
@@ -2134,9 +2277,13 @@ function renderAdmin() {
   renderCourtSelector();
   renderCourtControls();
   renderRoundList();
+  renderPaidPicker();
   renderDrawPool();
   renderMonthlyTab();
   renderSignupsBadge();
+  // First-run nudge: gently pulse the "?" help button until it's been opened once.
+  const _hb = document.getElementById('adminHelpBtn');
+  if (_hb) { try { if (!localStorage.getItem('adminHelpSeen')) _hb.classList.add('pulse'); } catch (e) {} }
   document.getElementById('shareLink').textContent = window.location.origin + '/';
   renderSiteCodeSection();
   renderSocialGamesCard();
@@ -2421,6 +2568,23 @@ function renderPlayersSection() {
     return bySort(a, b);
   });
 
+  // Grid ⇄ List views share the same filtered/sorted roster. List is a compact
+  // table for setting Level + Mixed for the whole squad at once (variant 12);
+  // Grid is the tap-to-add-to-session card wall.
+  const view = getRosterView();
+  const listEl = document.getElementById('rosterList');
+  document.querySelectorAll('.rv-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  const guestStripEl = document.getElementById('guestStrip');
+  if (view === 'list') {
+    grid.style.display = 'none';
+    if (guestStripEl) guestStripEl.style.display = 'none';
+    if (listEl) { listEl.style.display = ''; renderRosterList(listEl, visibleRoster, sessionIds, q); }
+    return;
+  }
+  grid.style.display = '';
+  if (listEl) listEl.style.display = 'none';
+  if (guestStripEl) guestStripEl.style.display = '';
+
   if (!state.roster || state.roster.length === 0) {
     grid.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1;padding:6px 0">No roster players yet.</div>';
   } else if (visibleRoster.length === 0) {
@@ -2506,27 +2670,72 @@ function stripPlayerFromRounds(rounds, id) {
   return { rounds: cleaned, changed };
 }
 
+// Ids with an in-flight optimistic tick write. While non-empty, the 2s poll
+// holds its admin re-render (see poll()) so it can't momentarily revert a tick
+// that hasn't finished persisting yet.
+const pendingTicks = new Set();
+
+// Optimistic session toggle. The card flips + re-renders IMMEDIATELY; the
+// authoritative write runs in the background. Previously the tick waited on TWO
+// sequential network round-trips (refreshState + apiPost) before the card moved
+// — that was the ~1s lag the user reported. The background write still re-applies
+// the change as a DELTA on top of FRESH server state (not a stale wholesale
+// players array), so a concurrent edit on another device can't be clobbered
+// (preserves the original B4 guarantee). On failure we fall back to server truth
+// (or the pre-click snapshot) so a failed save self-heals instead of lying.
 async function toggleRosterPlayer(id) {
-  await refreshState();
-  const inSession = (state.players || []).some(p => p.id === id);
-  let players;
-  const updates = {};
-  if (inSession) {
-    players = (state.players || []).filter(p => p.id !== id);
-    // Leaving the session → also pull them off any court they were slotted into.
+  const wasIn = (state.players || []).some(p => p.id === id);
+  const rp = (state.roster || []).find(r => r.id === id);
+  if (!wasIn && !rp) return; // nothing to add and not currently in the session
+
+  const prevPlayers = state.players || [];
+  const prevRounds = state.rounds || [];
+
+  // 1) Optimistic local flip + instant render.
+  if (wasIn) {
+    state.players = prevPlayers.filter(p => p.id !== id);
     const { rounds, changed } = stripPlayerFromRounds(state.rounds, id);
-    if (changed) updates.rounds = rounds;
+    if (changed) state.rounds = rounds;
   } else {
-    const rp = (state.roster || []).find(r => r.id === id);
-    if (!rp) return;
-    players = [...(state.players || []), { id: rp.id, name: rp.name, photo: rp.photo || null }];
+    state.players = [...prevPlayers, { id: rp.id, name: rp.name, photo: rp.photo || null }];
   }
-  updates.players = players;
-  await apiPost(updates);
-  state.players = players;
-  if (updates.rounds) state.rounds = updates.rounds;
+  pendingTicks.add(id);
   renderPlayersSection();
-  if (updates.rounds) { renderCourtControls(); renderRoundList(); renderViewer(); }
+  if (wasIn) { renderCourtControls(); renderRoundList(); renderViewer(); }
+
+  // 2) Background authoritative write — re-derive the delta on fresh state so a
+  //    concurrent change on another device is preserved, not overwritten.
+  try {
+    await refreshState();
+    const updates = {};
+    let players;
+    if (wasIn) {
+      players = (state.players || []).filter(p => p.id !== id);
+      const { rounds, changed } = stripPlayerFromRounds(state.rounds, id);
+      if (changed) updates.rounds = rounds;
+    } else {
+      const already = (state.players || []).some(p => p.id === id);
+      players = already
+        ? (state.players || [])
+        : [...(state.players || []), { id: rp.id, name: rp.name, photo: rp.photo || null }];
+    }
+    updates.players = players;
+    const res = await apiPost(updates);
+    if (res === null) return; // 401 — apiPost already bounced to the login flow
+    state.players = players;
+    if (updates.rounds) state.rounds = updates.rounds;
+  } catch (e) {
+    // Network failed — revert to the pre-click snapshot so the UI stays truthful.
+    state.players = prevPlayers;
+    state.rounds = prevRounds;
+    notify('Could not save — check your connection.', 'warn');
+  } finally {
+    pendingTicks.delete(id);
+    renderPlayersSection();
+    renderCourtControls();
+    renderRoundList();
+    renderViewer();
+  }
 }
 
 async function removeFromSession(id) {
@@ -4889,6 +5098,78 @@ async function setPoints(id, val) {
   renderLeaderboard();
 }
 
+// ── PLAYER LEVEL + MIXED-DOUBLES (per-player, global metadata) ─────────
+// Set per player in the Players "List" view (a Grid ⇄ List toggle flips the
+// roster into a table — variant 12). Level is one of three tiers; Mixed-doubles
+// is a yes/no. Both are stored on the roster player (global, persists across
+// sessions); metadata only (no effect on matchmaking).
+const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
+
+// Which Players view is active (per-device). Grid = tap-to-add cards;
+// List = bulk level/mixed table.
+function getRosterView() {
+  try { return localStorage.getItem('rosterView') || 'grid'; } catch (e) { return 'grid'; }
+}
+function setRosterView(v) {
+  try { localStorage.setItem('rosterView', v); } catch (e) {}
+  renderPlayersSection();
+}
+
+// Render the List view: one row per player with a Beg/Int/Adv segmented control,
+// a mixed-doubles toggle, and their points. Rows for players in tonight's
+// session get a subtle blue tint.
+function renderRosterList(listEl, visibleRoster, sessionIds, q) {
+  if (!state.roster || state.roster.length === 0) {
+    listEl.innerHTML = '<div class="rl-empty">No roster players yet.</div>';
+    return;
+  }
+  if (!visibleRoster.length) {
+    listEl.innerHTML = `<div class="rl-empty">No players match "${escHtml(q)}".</div>`;
+    return;
+  }
+  const rows = visibleRoster.map(rp => {
+    const seg = LEVELS.map(lv => {
+      const on = rp.level === lv;
+      const cls = on ? ' on ' + lv.toLowerCase().slice(0, 3) : '';
+      return `<button class="rl-seg-btn${cls}" onclick="setPlayerLevel('${rp.id}','${lv}')" aria-pressed="${on}">${lv.slice(0, 3)}</button>`;
+    }).join('');
+    const mx = !!rp.mixed;
+    const inS = sessionIds.has(rp.id);
+    // The player cell toggles today's session (like tapping a Grid card); the
+    // Level/Mixed cells are separate columns so tapping them never toggles it.
+    return `<div class="rl-row${inS ? ' in' : ''}">
+      <div class="rl-player" onclick="toggleRosterPlayer('${rp.id}')" role="button" tabindex="0" aria-pressed="${inS}" title="${inS ? 'Playing today — tap to remove from session' : "Tap to add to today's session"}">
+        <span class="rl-check${inS ? ' on' : ''}" aria-hidden="true">${inS ? '✓' : ''}</span>
+        ${avatarHTML(rp, 32)}<span class="rl-name">${escHtml(rp.name)}</span>
+      </div>
+      <div class="rl-level"><div class="rl-seg">${seg}</div></div>
+      <div class="rl-mixed"><button class="rl-toggle${mx ? ' on' : ''}" role="switch" aria-checked="${mx}" onclick="togglePlayerMixed('${rp.id}')" aria-label="Mixed doubles for ${escHtml(rp.name)} ${mx ? 'eligible' : 'not eligible'}"><span class="rl-knob"></span></button></div>
+      <div class="rl-pts">${rp.points || 0}</div>
+    </div>`;
+  }).join('');
+  listEl.innerHTML = `<div class="rl-head"><span>Player</span><span>Level</span><span>Mixed</span><span>Pts</span></div>${rows}`;
+}
+
+// Optimistic edits: flip locally + render instantly, then persist. Clicking the
+// already-active level segment clears it (back to "no level set").
+async function setPlayerLevel(id, level) {
+  const cur = (state.roster || []).find(r => r.id === id);
+  if (!cur) return;
+  const nextLv = (cur.level === level) ? null : level;
+  const roster = (state.roster || []).map(r => r.id === id ? { ...r, level: nextLv } : r);
+  state.roster = roster;
+  renderPlayersSection();
+  await apiPost({ roster });
+}
+async function togglePlayerMixed(id) {
+  const cur = (state.roster || []).find(r => r.id === id);
+  if (!cur) return;
+  const roster = (state.roster || []).map(r => r.id === id ? { ...r, mixed: !r.mixed } : r);
+  state.roster = roster;
+  renderPlayersSection();
+  await apiPost({ roster });
+}
+
 // ── LEADERBOARD ───────────────────────────────
 let __lastLbSig = null;
 function renderLeaderboard() {
@@ -4964,27 +5245,137 @@ function setSpinBtnEnabled(enabled) {
   btn.style.cursor = enabled ? '' : 'not-allowed';
 }
 
+// ── PAID-PLAYER PICKER + effective draw pool ──────────────────────────
+// The draw pool the Spin reads is the UNION of the manual `entries` list and
+// the non-expired `paid` players an admin ticked for the current session. A paid
+// entry carries the session date it was paid for and stays until 2 days after it
+// (Mon→Wed, Fri→Sun, Sun→Tue), matching the server's pruneExpiredPaid.
+
+// Client mirror of the server's addDaysISO (UTC-based, DST-safe day math).
+function addDaysISO(iso, n) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  if (!m) return String(iso || '');
+  const dt = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  dt.setUTCDate(dt.getUTCDate() + (parseInt(n, 10) || 0));
+  return dt.toISOString().slice(0, 10);
+}
+// Prefer the server's Malaysia day boundary so client/server agree on expiry.
+function serverToday() { return (state && state.today) || todayISO(); }
+function shortWeekday(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  if (!m) return '';
+  return new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString('en-GB', { weekday: 'short' });
+}
+function activePaid(ld) {
+  const t = serverToday();
+  return (((ld || state.luckyDraw || {}).paid) || [])
+    .filter(p => p && p.forDate && t <= addDaysISO(p.forDate, 2));
+}
+// Deduped pool for display + spin: manual entries first, then non-expired paid
+// players (a name in both is shown once, flagged paid so it gets the expiry tag).
+function effectiveDrawPool(ld) {
+  ld = ld || state.luckyDraw || {};
+  const byName = new Map();
+  (ld.entries || []).forEach(name => { if (!byName.has(name)) byName.set(name, { name, paid: false }); });
+  activePaid(ld).forEach(p => {
+    const ex = byName.get(p.name);
+    if (ex) { ex.paid = true; ex.forDate = p.forDate; }
+    else byName.set(p.name, { name: p.name, paid: true, forDate: p.forDate });
+  });
+  return Array.from(byName.values());
+}
+
+// Tick the current-session players who have paid. Ticked players join the pool
+// with the 2-day window; unticking pulls them straight back out.
+function renderPaidPicker() {
+  const host = document.getElementById('paidPicker');
+  if (!host) return;
+  const sessionPlayers = (state.players || []).filter(p => !p.guest);
+  const paidIds = new Set(((state.luckyDraw || {}).paid || []).map(p => p.id));
+  const hint = document.getElementById('paidHint');
+  if (!sessionPlayers.length) {
+    host.innerHTML = '<div class="draw-empty">No players in today\'s session yet — tick players into the session first.</div>';
+    if (hint) hint.textContent = 'Tick each player who has paid; they join the draw and drop off automatically 2 days later.';
+    return;
+  }
+  const forDate = state.sessionDate || serverToday();
+  const until = shortWeekday(addDaysISO(forDate, 2));
+  if (hint) hint.textContent = `Tick each player who has paid. They join the draw pool and stay until ${until}, then drop off automatically.`;
+  host.innerHTML = sessionPlayers.map(p => {
+    const rp = (state.roster || []).find(r => r.id === p.id) || p;
+    const on = paidIds.has(p.id);
+    return `<button type="button" class="paid-chip${on ? ' on' : ''}" onclick="togglePaidPlayer('${p.id}')" aria-pressed="${on}" title="${on ? 'Paid — click to remove' : 'Mark as paid'}">
+      <span class="paid-check" aria-hidden="true">${on ? '✓' : ''}</span>
+      ${avatarHTML(rp, 32)}
+      <span class="paid-name">${escHtml(rp.name || p.name)}</span>
+    </button>`;
+  }).join('');
+}
+
+async function togglePaidPlayer(id) {
+  const p = (state.players || []).find(x => x.id === id);
+  if (!p) return;
+  const rp = (state.roster || []).find(r => r.id === id);
+  const name = (rp && rp.name) || p.name;
+  const ld = state.luckyDraw || {};
+  const paid = (ld.paid || []).slice();
+  const idx = paid.findIndex(x => x.id === id);
+  if (idx >= 0) paid.splice(idx, 1);                                   // untick → leave pool
+  else paid.push({ id, name, forDate: state.sessionDate || serverToday() }); // tick → join pool
+  const luckyDraw = { ...ld, paid };
+  await apiPost({ luckyDraw });
+  state.luckyDraw = luckyDraw;
+  renderPaidPicker();
+  renderDrawPool();
+  renderDrawResult();
+  renderViewerWinners();
+}
+
+// __drawPoolView holds the currently-rendered pool so a delete can act by index
+// (avoids injecting player names — which may contain quotes/emoji — into onclick).
+let __drawPoolView = [];
+async function removeFromPoolAt(i) {
+  const it = __drawPoolView[i];
+  if (!it) return;
+  const ld = state.luckyDraw || {};
+  const entries = (ld.entries || []);
+  const ei = entries.indexOf(it.name);
+  const newEntries = ei >= 0 ? entries.filter((_, idx) => idx !== ei) : entries;
+  const newPaid = (ld.paid || []).filter(p => p.name !== it.name);
+  const luckyDraw = { ...ld, entries: newEntries, paid: newPaid };
+  await apiPost({ luckyDraw });
+  state.luckyDraw = luckyDraw;
+  renderPaidPicker();
+  renderDrawPool();
+  renderDrawResult();
+}
+
 function renderDrawPool() {
   const pool = document.getElementById('drawPool');
   const countEl = document.getElementById('drawPoolCount');
   if (!pool) return;
-  const entries = ((state.luckyDraw || {}).entries || []);
+  const items = effectiveDrawPool();
+  __drawPoolView = items;
   if (countEl) {
-    if (entries.length) { countEl.textContent = entries.length + ' in pool'; countEl.style.display = ''; }
+    if (items.length) { countEl.textContent = items.length + ' in pool'; countEl.style.display = ''; }
     else countEl.style.display = 'none';
   }
-  if (!entries.length) {
-    pool.innerHTML = '<div class="draw-empty">Pool is empty — pull from session or add names manually.</div>';
+  if (!items.length) {
+    pool.innerHTML = '<div class="draw-empty">Pool is empty — tick paid players above, pull the session, or add names manually.</div>';
     return;
   }
-  pool.innerHTML = entries.map((name, i) => {
-    // Match the ballot entry to a roster player for a real photo/colour; fall back
+  pool.innerHTML = items.map((it, i) => {
+    // Match the pool entry to a roster player for a real photo/colour; fall back
     // to a synthetic player so unmatched names still get stable initials + colour.
-    const rp = (state.roster || []).find(r => r.name === name) || { id: name, name };
-    return `<div class="draw-card">
-      <button class="draw-card-del" onclick="removeDrawEntry(${i})" title="Remove" aria-label="Remove ${escHtml(name)} from pool">&#x00D7;</button>
+    const rp = (state.roster || []).find(r => r.name === it.name) || { id: it.name, name: it.name };
+    const tag = it.paid
+      ? `<span class="draw-paid-tag" title="Paid — stays until ${escHtml(shortWeekday(addDaysISO(it.forDate, 2)))}">Paid · ${escHtml(shortWeekday(addDaysISO(it.forDate, 2)))}</span>`
+      : '';
+    return `<div class="draw-card${it.paid ? ' is-paid' : ''}">
+      <button class="draw-card-del" onclick="removeFromPoolAt(${i})" title="Remove" aria-label="Remove ${escHtml(it.name)} from pool">&#x00D7;</button>
       ${avatarHTML(rp, 54)}
-      <div class="draw-card-name">${escHtml(name)}</div>
+      <div class="draw-card-name">${escHtml(it.name)}</div>
+      ${tag}
     </div>`;
   }).join('');
 }
@@ -5017,7 +5408,7 @@ async function setDrawDate(val) {
 
 function drawPoolHasEnough() {
   const ld = state.luckyDraw || {};
-  const n = ((ld.entries) || []).length;
+  const n = effectiveDrawPool(ld).length;
   return n >= (((ld.results) || []).length === 0 ? 2 : 1);
 }
 
@@ -5181,46 +5572,45 @@ async function addDrawName() {
   renderDrawResult();  // refresh Spin button enabled state immediately
 }
 
-async function removeDrawEntry(idx) {
-  const entries = ((state.luckyDraw || {}).entries || []).filter((_, i) => i !== idx);
-  const luckyDraw = { ...(state.luckyDraw || {}), entries };
-  await apiPost({ luckyDraw });
-  state.luckyDraw = luckyDraw;
-  renderDrawPool();
-  renderDrawResult();
-}
-
 async function clearDrawPool() {
-  const luckyDraw = { ...(state.luckyDraw || {}), entries: [] };
+  // Clears BOTH manual entries and the ticked paid players — the whole pool.
+  const luckyDraw = { ...(state.luckyDraw || {}), entries: [], paid: [] };
   await apiPost({ luckyDraw });
   state.luckyDraw = luckyDraw;
+  renderPaidPicker();
   renderDrawPool();
   renderDrawResult();
 }
 
 async function spinDraw() {
   const ld = state.luckyDraw || {};
-  const entries = (ld.entries || []);
   const results = (ld.results || []);
+  // Draw from the effective pool = manual entries ∪ non-expired paid players.
+  const names = effectiveDrawPool(ld).map(x => x.name);
   const minNeeded = results.length === 0 ? 2 : 1;
-  if (entries.length < minNeeded) { notify(`Need at least ${minNeeded} in the pool to draw.`); return; }
+  if (names.length < minNeeded) { notify(`Need at least ${minNeeded} in the pool to draw.`); return; }
   if (drawSpinLive()) { notify('A draw is already in progress.'); return; }  // double-spin guard
-  const winnerIndex = Math.floor(Math.random() * entries.length);
-  const winnerName = entries[winnerIndex];
+  const winnerIndex = Math.floor(Math.random() * names.length);
+  const winnerName = names[winnerIndex];
   const rank = results.length + 1;
   const startAt = clockNow() + 800;
   const durationMs = 4500;
   const spin = {
     id: Date.now(), kind: 'engagement', title: 'Lucky Draw', noPrize: true, rank,
-    entries: [...entries], winnerIndex, winnerName, startAt, durationMs,
+    entries: [...names], winnerIndex, winnerName, startAt, durationMs,
   };
   const newResults = [...results, { rank, name: winnerName, at: startAt + durationMs, spinId: spin.id }];
-  const newEntries = entries.filter((_, i) => i !== winnerIndex);  // remove winner from the pool
-  const luckyDraw = { ...ld, spin, results: newResults, entries: newEntries };
+  // Remove the winner from the pool: one occurrence in manual entries AND any
+  // matching paid record, so a drawn player can't be picked twice.
+  const ei = (ld.entries || []).indexOf(winnerName);
+  const newEntries = ei >= 0 ? (ld.entries || []).filter((_, i) => i !== ei) : (ld.entries || []);
+  const newPaid = (ld.paid || []).filter(p => p.name !== winnerName);
+  const luckyDraw = { ...ld, spin, results: newResults, entries: newEntries, paid: newPaid };
   setSpinBtnEnabled(false);
   await apiPost({ luckyDraw });
   state.luckyDraw = luckyDraw;
   checkForNewSpin(luckyDraw);
+  renderPaidPicker();
   renderDrawPool();
   renderDrawResult();
 }
@@ -5273,8 +5663,110 @@ function launchConfetti(containerId) {
 // Escape key handler AND the arena's forwarded Escape (tzh-escape) so that
 // pressing Escape inside 3D closes the panel layered over the arena rather than
 // dropping out of 3D — the host only leaves 3D when nothing was open.
+// ── ADMIN HELP DRAWER + GUIDED TOUR (item 4) ──────────────────────────
+function openHelp() {
+  const d = document.getElementById('helpDrawer');
+  const s = document.getElementById('helpScrim');
+  if (d) { d.classList.add('open'); d.setAttribute('aria-hidden', 'false'); }
+  if (s) s.classList.add('open');
+  const btn = document.getElementById('adminHelpBtn');
+  if (btn) btn.classList.remove('pulse');
+  try { localStorage.setItem('adminHelpSeen', '1'); } catch (e) {}
+}
+function closeHelp() {
+  const d = document.getElementById('helpDrawer');
+  const s = document.getElementById('helpScrim');
+  if (d) { d.classList.remove('open'); d.setAttribute('aria-hidden', 'true'); }
+  if (s) s.classList.remove('open');
+}
+
+// Each step: which admin tab to show first, the element to spotlight, and copy.
+const TOUR_STEPS = [
+  { tab: null,         sel: '#adminTabs',        title: 'Seven tabs run everything', text: 'Each tab is one job — Session, Courts, Lucky Draw, Monthly Draw, Sign-ups, Accounts and Settings. We’ll walk through the main ones.' },
+  { tab: 'session',    sel: '#sessionDateInput', title: 'Set tonight’s date', text: 'Pick today’s play date. Changing it saves the previous day to history and awards every player who played their points.' },
+  { tab: 'session',    sel: '#rosterGrid',       title: 'Add players & set levels', text: 'Tap a player to add them to tonight’s session. On each card the Level pill (Beg/Int/Adv) and the MX chip set their skill and mixed-doubles eligibility.' },
+  { tab: 'engagement', sel: '#paidPicker',       title: 'Tick who has paid', text: 'Tick the players who’ve paid — they drop into the draw pool and stay there for 2 days, then leave automatically.' },
+  { tab: 'engagement', sel: '#spinBtn',          title: 'Spin for a winner', text: 'Once the pool has players, Spin picks a winner at random — revealed live on everyone’s viewer screen.' },
+  { tab: 'settings',   sel: '#siteCodeInput',    title: 'Set the daily access code', text: 'Give players today’s short code to unlock the site. Generate a fresh one whenever you like.' },
+];
+let tourIdx = -1;
+
+function startTour() {
+  closeHelp();
+  tourIdx = 0;
+  const ov = document.getElementById('tourOverlay');
+  if (ov) { ov.classList.add('active'); ov.setAttribute('aria-hidden', 'false'); }
+  showTourStep(0, 1);
+}
+function endTour() {
+  const ov = document.getElementById('tourOverlay');
+  if (ov) { ov.classList.remove('active'); ov.setAttribute('aria-hidden', 'true'); }
+  tourIdx = -1;
+}
+function tourNext() {
+  if (tourIdx >= TOUR_STEPS.length - 1) { endTour(); return; }
+  showTourStep(++tourIdx, 1);
+}
+function tourPrev() {
+  if (tourIdx <= 0) return;
+  showTourStep(--tourIdx, -1);
+}
+function showTourStep(i, dir) {
+  if (i < 0 || i >= TOUR_STEPS.length) { endTour(); return; }
+  const step = TOUR_STEPS[i];
+  if (step.tab) setAdminTab(step.tab);
+  // Let the (possibly just-revealed) tab lay out before measuring — a hidden
+  // panel's getBoundingClientRect is all zeros.
+  setTimeout(() => positionTourStep(i, dir || 1), step.tab ? 90 : 20);
+}
+function positionTourStep(i, dir) {
+  const step = TOUR_STEPS[i];
+  const el = document.querySelector(step.sel);
+  if (!el) { // target missing — skip in the travel direction rather than break the tour
+    const ni = i + (dir >= 0 ? 1 : -1);
+    if (ni < 0 || ni >= TOUR_STEPS.length) { endTour(); return; }
+    tourIdx = ni; showTourStep(ni, dir); return;
+  }
+  el.scrollIntoView({ block: 'center', inline: 'nearest' });
+  const pad = 8;
+  const r = el.getBoundingClientRect();
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const sx = Math.max(4, r.left - pad), sy = Math.max(4, r.top - pad);
+  const sw = Math.min(vw - 8, r.width + pad * 2), sh = r.height + pad * 2;
+  const spot = document.getElementById('tourSpot');
+  spot.style.left = sx + 'px'; spot.style.top = sy + 'px';
+  spot.style.width = sw + 'px'; spot.style.height = sh + 'px';
+  document.getElementById('ttStep').textContent = 'Step ' + (i + 1) + ' of ' + TOUR_STEPS.length;
+  document.getElementById('ttTitle').textContent = step.title;
+  document.getElementById('ttText').textContent = step.text;
+  const back = document.getElementById('ttBack');
+  const next = document.getElementById('ttNext');
+  back.disabled = (i === 0);
+  next.textContent = (i === TOUR_STEPS.length - 1) ? 'Done' : 'Next';
+  // Tooltip: below the spot if there's room, else above; clamped to the viewport.
+  const tip = document.getElementById('tourTip');
+  tip.style.visibility = 'hidden';
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  const spotBottom = sy + sh, spotCenterX = sx + sw / 2;
+  let top, below;
+  if (spotBottom + 14 + th <= vh - 8) { top = spotBottom + 14; below = true; }
+  else if (sy - 14 - th >= 8) { top = sy - 14 - th; below = false; }
+  else { top = Math.max(8, Math.min(vh - th - 8, spotBottom + 14)); below = true; }
+  const left = Math.max(8, Math.min(vw - tw - 8, spotCenterX - tw / 2));
+  tip.style.top = top + 'px'; tip.style.left = left + 'px';
+  const caret = tip.querySelector('.tt-caret');
+  caret.style.left = Math.max(12, Math.min(tw - 26, spotCenterX - left - 7)) + 'px';
+  if (below) { caret.style.top = '-8px'; caret.style.bottom = ''; caret.style.transform = 'rotate(45deg)'; }
+  else { caret.style.top = 'auto'; caret.style.bottom = '-8px'; caret.style.transform = 'rotate(225deg)'; }
+  tip.style.visibility = 'visible';
+}
+
 function closeOpenOverlays() {
   let closed = false;
+  const tov = document.getElementById('tourOverlay');
+  if (tov && tov.classList.contains('active')) { endTour(); closed = true; }
+  const hdr = document.getElementById('helpDrawer');
+  if (hdr && hdr.classList.contains('open')) { closeHelp(); closed = true; }
   const pov = document.getElementById('pickerOverlay');
   if (pov && pov.classList.contains('active')) { hidePickerOverlay(); closed = true; }
   const isOpen = id => { const el = document.getElementById(id); return el && el.classList.contains('open'); };

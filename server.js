@@ -36,7 +36,7 @@ const DEFAULT_STATE = {
   currentRound: 0,
   sessionDate: todayISO(),
   sessions: {},
-  luckyDraw: { entries: [], drawDate: null, spin: null, results: [], history: [] },
+  luckyDraw: { entries: [], paid: [], drawDate: null, spin: null, results: [], history: [] },
   monthlyDraw: { month: '', rollSuppressedMonth: '', prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'], participants: [], results: [], spin: null, history: [] },
   socialGames: [
     { id: 'sg-fri', day: 'Friday', weekday: 5, time: '9–11pm', enabled: true },

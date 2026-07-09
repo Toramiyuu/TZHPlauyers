@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TZH Admin · Guided Tour — Design Exploration</title>
+<style>
+  :root{
+    --blue:#0071e3; --blue-2:#0066cc; --blue-tint:rgba(0,113,227,.16); --blue-line:rgba(0,113,227,.42);
+    --page:#e8f0fb; --card:#ffffff; --card2:#e2ecfa; --elev:#d6e5f8;
+    --border:#cbdcf2; --border2:#b3cbeb; --text:#1d1d1f; --text2:#424245; --muted:#86868b;
+    --gold:#f0b429; --red:#e5484d;
+    --sh-md:0 4px 16px rgba(0,0,0,.08); --sh-lg:0 12px 40px rgba(0,0,0,.12);
+    --dim:rgba(12,22,42,.50); --dim-soft:rgba(12,22,42,.24);
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);background:var(--page);color:var(--text);
+    padding:34px 26px 60px;-webkit-font-smoothing:antialiased;line-height:1.4}
+  .wrap{max-width:1320px;margin:0 auto}
+
+  /* ---------- page header ---------- */
+  .head{margin-bottom:26px}
+  .kick{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--blue);
+    background:var(--card);border:1px solid var(--blue-line);padding:6px 12px;border-radius:999px;box-shadow:var(--sh-md)}
+  .kick .dot{width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px var(--blue-tint)}
+  h1{font-size:29px;font-weight:700;letter-spacing:-.5px;margin:16px 0 6px}
+  .sub{font-size:14px;color:var(--text2);max-width:760px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:16px;font-size:12px;color:var(--muted)}
+  .legend b{color:var(--text2);font-weight:600}
+
+  /* ---------- gallery grid ---------- */
+  .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:22px}
+  .tile{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;
+    box-shadow:var(--sh-md);display:flex;flex-direction:column}
+  .tile-h{padding:15px 17px 11px}
+  .tile-h .name{font-size:13.5px;font-weight:700;letter-spacing:.1px;display:flex;align-items:center;gap:8px}
+  .tile-h .name .num{font-variant-numeric:tabular-nums;color:var(--blue);font-weight:800}
+  .tile-h .why{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45}
+
+  /* ---------- shared stage + mini admin panel ---------- */
+  .stage{position:relative;height:308px;background:
+      radial-gradient(120% 90% at 50% -10%,#f2f7fe 0%,var(--page) 60%);
+      border-top:1px solid var(--border);overflow:hidden}
+  .mini{position:absolute;inset:0;padding:16px}
+  .mtabs{display:flex;gap:4px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:4px}
+  .mtab{flex:1;text-align:center;font-size:11px;font-weight:500;color:var(--text2);padding:7px 3px;border-radius:8px;white-space:nowrap}
+  .mtab.active{background:var(--card);color:var(--blue);font-weight:700;box-shadow:var(--sh-md)}
+  .mcard{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 13px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .mcard-t{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+  .mrow{display:flex;gap:10px;align-items:center;margin-top:10px}
+  .mpill{flex:1;display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--text);
+    background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:9px 11px}
+  .mpill .mcx{margin-left:auto;color:var(--muted);font-size:11px}
+  .mbtn{border:none;background:var(--blue);color:#fff;font-size:12px;font-weight:600;padding:10px 13px;border-radius:10px;white-space:nowrap}
+  .mbtn.ghost{background:var(--card);color:var(--blue);border:1px solid var(--blue-line)}
+  .mgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin-top:12px}
+  .mchip{position:relative;aspect-ratio:1;border-radius:11px;background:var(--card2);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text2)}
+  .mchip.paid::after{content:"";position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;
+    background:var(--blue);box-shadow:0 0 0 2px #fff}
+
+  /* ---------- highlight (spotlight cutout) ---------- */
+  .hl{position:relative;z-index:20;border-radius:11px;box-shadow:0 0 0 2000px var(--dim)}
+  .hl::after{content:"";position:absolute;inset:-4px;border-radius:13px;border:2.5px solid var(--blue);
+    box-shadow:0 0 0 4px var(--blue-tint),0 0 22px 5px rgba(0,113,227,.45);pointer-events:none;animation:pulse 2.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 4px var(--blue-tint),0 0 16px 4px rgba(0,113,227,.38)}
+    50%{box-shadow:0 0 0 7px var(--blue-tint),0 0 30px 9px rgba(0,113,227,.6)}}
+
+  /* ---------- caret tooltip ---------- */
+  .tip{position:absolute;width:214px;background:var(--card);border:1px solid var(--border);border-radius:15px;
+    padding:13px 14px;box-shadow:var(--sh-lg);z-index:30}
+  .tip .cat{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--blue)}
+  .tip h4{font-size:13.5px;font-weight:700;margin-top:4px}
+  .tip p{font-size:12px;color:var(--text2);line-height:1.5;margin-top:5px}
+  .tip .caret{position:absolute;width:14px;height:14px;background:var(--card);border-left:1px solid var(--border);border-top:1px solid var(--border)}
+  .tfoot{display:flex;align-items:center;justify-content:space-between;margin-top:13px;gap:8px}
+  .step{font-size:11px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .nav{display:flex;gap:6px}
+  .nav button{font-family:inherit;font-size:11px;font-weight:700;padding:7px 12px;border-radius:9px;
+    border:1px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer}
+  .nav .next{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .dots{display:flex;gap:4px;align-items:center}
+  .dots i{width:5px;height:5px;border-radius:50%;background:var(--border2)}
+  .dots i.on{background:var(--blue);width:16px;border-radius:3px}
+
+  /* ================= V1 radial ================= */
+  .radial{position:absolute;inset:0;background:radial-gradient(190px 150px at 27% 47%,transparent 30%,var(--dim) 78%);z-index:15}
+
+  /* ================= V2 sketch ================= */
+  .note{position:absolute;background:#fffdf4;border:1px solid #e9e0bd;border-radius:4px;padding:12px 13px;
+    box-shadow:0 8px 20px rgba(120,100,20,.18);transform:rotate(-2.4deg);width:196px;z-index:30}
+  .note::before{content:"";position:absolute;top:-9px;left:50%;transform:translateX(-50%);width:52px;height:16px;
+    background:rgba(0,113,227,.22);border:1px solid rgba(0,113,227,.3);border-radius:2px}
+  .note h4{font-size:13px;font-weight:700;font-style:italic}
+  .note p{font-size:11.5px;color:#5b5330;margin-top:4px;line-height:1.5;font-style:italic}
+  .note .sfoot{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+  .hcount{font-size:12px;font-weight:700;font-style:italic;color:var(--blue-2);transform:rotate(-2deg)}
+  .sketchbtn{font-family:inherit;font-size:11px;font-weight:700;border:2px solid var(--blue);color:var(--blue);
+    background:none;border-radius:14px 10px 13px 9px;padding:5px 12px;font-style:italic;cursor:pointer}
+  .sarrow{position:absolute;z-index:29;pointer-events:none}
+  .hl.sketch{box-shadow:0 0 0 2000px var(--dim-soft)}
+  .hl.sketch::after{border:2.5px dashed var(--blue-2);border-radius:40% 55% 45% 50%/50% 45% 55% 50%;box-shadow:none;animation:none;inset:-6px}
+
+  /* ================= V3 map pins ================= */
+  .pin{position:absolute;z-index:30;transform:translate(-50%,-100%)}
+  .pin .body{width:26px;height:26px;border-radius:50% 50% 50% 2px;transform:rotate(45deg);
+    background:var(--card);border:2px solid var(--border2);box-shadow:var(--sh-md);display:flex;align-items:center;justify-content:center}
+  .pin .body b{transform:rotate(-45deg);font-size:12px;font-weight:800;color:var(--muted)}
+  .pin.on .body{width:34px;height:34px;background:linear-gradient(180deg,var(--blue),var(--blue-2));border-color:#fff;
+    box-shadow:0 6px 16px rgba(0,113,227,.5)}
+  .pin.on .body b{color:#fff;font-size:15px}
+  .pin.done .body{background:var(--blue-tint);border-color:var(--blue-line)}
+  .pin.done .body b{color:var(--blue)}
+  .pinpath{position:absolute;inset:0;z-index:16;pointer-events:none}
+  .maptip{position:absolute;z-index:31;width:186px;background:var(--card);border:1px solid var(--border);
+    border-radius:13px;padding:11px 12px;box-shadow:var(--sh-lg)}
+  .maptip h4{font-size:12.5px;font-weight:700}.maptip p{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.45}
+  .journey{font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.4px}
+
+  /* ================= V4 bottom bar ================= */
+  .dockbar{position:absolute;left:12px;right:12px;bottom:12px;z-index:40;background:var(--card);
+    border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh-lg);padding:12px 13px}
+  .dockbar .prog{position:absolute;top:0;left:0;height:3px;border-radius:16px 0 0 0;background:linear-gradient(90deg,var(--blue),var(--blue-2));width:33%}
+  .dockrow{display:flex;align-items:center;gap:11px}
+  .dnum{width:30px;height:30px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 9px rgba(0,113,227,.4)}
+  .dtxt{flex:1;min-width:0}.dtxt h4{font-size:12.5px;font-weight:700}.dtxt p{font-size:11px;color:var(--text2);margin-top:1px;line-height:1.35}
+  .dockup{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);width:0;height:0;
+    border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:9px solid var(--card);filter:drop-shadow(0 -1px 0 var(--border))}
+
+  /* ================= V5 corner card + connector ================= */
+  .coach{position:absolute;left:14px;bottom:14px;z-index:40;width:210px;background:var(--card);border:1px solid var(--border);
+    border-radius:15px;padding:13px 14px;box-shadow:var(--sh-lg)}
+  .coach h4{font-size:13px;font-weight:700;margin-top:3px}.coach p{font-size:11.5px;color:var(--text2);margin-top:5px;line-height:1.5}
+  .seg{display:flex;gap:3px;margin-top:11px}.seg i{flex:1;height:4px;border-radius:2px;background:var(--border2)}.seg i.on{background:var(--blue)}
+  .conn{position:absolute;inset:0;z-index:25;pointer-events:none}
+  .connend{position:absolute;z-index:26;width:11px;height:11px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px var(--blue-tint)}
+
+  /* ================= V6 beam ================= */
+  .beamdim{position:absolute;inset:0;z-index:15;background:radial-gradient(150px 120px at 50% 84%,transparent 34%,var(--dim) 74%)}
+  .beam{position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:170px;height:250px;z-index:16;pointer-events:none;
+    background:linear-gradient(180deg,rgba(0,113,227,.20),rgba(0,113,227,.02) 78%,transparent);
+    clip-path:polygon(38% 0,62% 0,100% 100%,0% 100%)}
+  .beam::after{content:"";position:absolute;left:50%;bottom:6px;transform:translateX(-50%);width:120px;height:44px;border-radius:50%;
+    background:radial-gradient(closest-side,rgba(0,113,227,.28),transparent)}
+  .drawbtn{width:100%;background:linear-gradient(180deg,var(--blue),var(--blue-2));color:#fff;border:none;border-radius:12px;
+    padding:12px;font-size:14px;font-weight:700;box-shadow:0 8px 20px rgba(0,113,227,.4)}
+
+  /* ================= V7 iOS minimal ================= */
+  .hl.soft{box-shadow:0 0 0 2000px var(--dim-soft)}
+  .hl.soft::after{border-width:2px;box-shadow:0 0 0 3px rgba(0,113,227,.12);animation:none}
+  .ios{position:absolute;z-index:30;width:196px;background:rgba(255,255,255,.86);backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,.7);border-radius:14px;padding:12px 13px;box-shadow:var(--sh-lg)}
+  .ios h4{font-size:12.5px;font-weight:700}.ios p{font-size:11.5px;color:var(--text2);margin-top:4px;line-height:1.45}
+  .ios .caret{position:absolute;width:13px;height:13px;background:rgba(255,255,255,.9)}
+  .iosfoot{display:flex;align-items:center;justify-content:space-between;margin-top:11px}
+  .iosnav{font-size:12px;font-weight:700;color:var(--blue);cursor:pointer}
+
+  /* ================= V8 mascot ================= */
+  .mascot{position:absolute;z-index:35;width:74px;height:74px}
+  .bubble{position:absolute;z-index:36;width:198px;background:var(--card);border:1.5px solid var(--blue-line);
+    border-radius:16px;padding:12px 13px;box-shadow:var(--sh-lg)}
+  .bubble h4{font-size:12.5px;font-weight:700}.bubble p{font-size:11.5px;color:var(--text2);margin-top:4px;line-height:1.45}
+  .bubble .tail{position:absolute;width:16px;height:16px;background:var(--card);border-right:1.5px solid var(--blue-line);border-bottom:1.5px solid var(--blue-line)}
+  .bprog{height:5px;border-radius:3px;background:var(--card2);margin-top:10px;overflow:hidden}
+  .bprog i{display:block;height:100%;width:66%;background:linear-gradient(90deg,var(--blue),var(--blue-2));border-radius:3px}
+
+  /* ================= V9 welcome ================= */
+  .wdim{position:absolute;inset:0;z-index:30;background:var(--dim);backdrop-filter:blur(1.5px)}
+  .welcome{position:absolute;z-index:31;left:50%;top:50%;transform:translate(-50%,-50%);width:270px;text-align:center;
+    background:var(--card);border:1px solid var(--border);border-radius:22px;padding:22px 20px;box-shadow:var(--sh-lg)}
+  .wbadge{width:54px;height:54px;margin:0 auto 12px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+    font-size:26px;background:linear-gradient(180deg,var(--blue-tint),var(--card2));border:1px solid var(--blue-line)}
+  .welcome h3{font-size:18px;font-weight:700;letter-spacing:-.3px}
+  .welcome .wp{font-size:12.5px;color:var(--text2);margin-top:6px;line-height:1.5}
+  .wchips{display:flex;justify-content:center;gap:6px;margin:14px 0 4px;flex-wrap:wrap}
+  .wchip{font-size:10.5px;font-weight:600;color:var(--text2);background:var(--card2);border:1px solid var(--border);border-radius:999px;padding:4px 10px}
+  .wbtns{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+  .wstart{background:var(--blue);color:#fff;border:none;border-radius:12px;padding:11px;font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 6px 16px rgba(0,113,227,.35)}
+  .wlater{background:none;border:none;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer}
+  .wmeta{font-size:10.5px;color:var(--muted);margin-top:12px}
+
+  /* ================= V10 top bar ================= */
+  .topbar{position:absolute;top:0;left:0;right:0;height:4px;background:rgba(203,220,242,.7);z-index:40}
+  .topbar i{display:block;height:100%;width:34%;background:linear-gradient(90deg,var(--blue),var(--blue-2));
+    border-radius:0 3px 3px 0;box-shadow:0 0 10px rgba(0,113,227,.5)}
+  .fchip{position:absolute;z-index:40;background:var(--blue);color:#fff;font-size:11.5px;font-weight:700;
+    padding:8px 12px;border-radius:11px;box-shadow:0 6px 16px rgba(0,113,227,.4);white-space:nowrap}
+  .fchip .fc{position:absolute;width:11px;height:11px;background:var(--blue)}
+  .fnav{position:absolute;right:14px;bottom:14px;z-index:40;display:flex;gap:7px;align-items:center}
+  .fnav .fs{font-size:11px;font-weight:700;color:var(--text2);background:var(--card);border:1px solid var(--border);padding:7px 11px;border-radius:999px;box-shadow:var(--sh-md)}
+  .fnav button{font-family:inherit;font-size:11px;font-weight:700;padding:8px 14px;border-radius:999px;border:none;cursor:pointer;box-shadow:var(--sh-md)}
+  .fnav .fback{background:var(--card);color:var(--text2);border:1px solid var(--border)}
+  .fnav .fnext{background:var(--blue);color:#fff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <span class="kick"><span class="dot"></span>TZH Badminton · Admin Onboarding</span>
+    <h1>Interactive Guided Tour — Design Directions</h1>
+    <p class="sub">Ten distinct visual directions for the admin coach-mark / spotlight tour. Each mock renders the tour <b>in context</b> over a simulated admin panel — dimmed page, one real control highlighted, an arrow or pointer, a tooltip, and Back / Next with step progress.</p>
+    <div class="legend">
+      <span><b>Spotlight</b> ring cutout</span>
+      <span><b>Arrows</b> caret · sketch · connector · beam · bubble</span>
+      <span><b>Progress</b> "3 of 12" · dots · segments · top bar · pins</span>
+      <span>Apple-light · single blue accent · calm</span>
+    </div>
+  </div>
+
+  <div class="gal">
+
+    <!-- ================= 01 ================= -->
+    <div class="tile">
+      <div class="tile-h">
+        <div class="name"><span class="num">01</span> Radial spotlight + caret tooltip</div>
+        <div class="why">The classic coach-mark: a soft radial dim focuses the eye, a glowing ring hugs the control, and a caret tooltip points straight at it.</div>
+      </div>
+      <div class="stage">
+        <div class="radial"></div>
+        <div class="mini">
+          <div class="mtabs"><div class="mtab active">Players</div><div class="mtab">Schedule</div><div class="mtab">Payments</div><div class="mtab">Draw</div><div class="mtab">Settings</div></div>
+          <div class="mcard" style="margin-top:12px">
+            <div class="mcard-t">Today's session</div>
+            <div class="mrow">
+              <div class="mpill hl">📅 Mon 8 Jul<span class="mcx">▾</span>
+                <div class="tip" style="top:calc(100% + 10px);left:0;width:212px">
+                  <div class="caret" style="top:-8px;left:26px;transform:rotate(45deg)"></div>
+                  <div class="cat">Step 1 · Setup</div>
+                  <h4>Set today's date</h4>
+                  <p>Pick tonight's play date here — everything else attaches to this day.</p>
+                  <div class="tfoot"><span class="step">Step 3 of 12</span>
+                    <div class="nav"><button>Back</button><button class="next">Next</button></div></div>
+                </div>
+              </div>
+              <button class="mbtn">Pull session</button>
+            </div>
+          </div>
+          <div class="mgrid"><div class="mchip paid">TH</div><div class="mchip">JD</div><div class="mchip paid">AK</div><div class="mchip">MR</div><div class="mchip paid">SL</div><div class="mchip">RW</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 02 ================= -->
+    <div class="tile">
+      <div class="tile-h">
+        <div class="name"><span class="num">02</span> Hand-drawn sketch arrow + sticky note</div>
+        <div class="why">A friendly, human touch: a marker-circle around the button and a wobbly hand-drawn arrow from a paper sticky note. Feels personal, not corporate.</div>
+      </div>
+      <div class="stage">
+        <div class="mini">
+          <div class="mtabs"><div class="mtab active">Players</div><div class="mtab">Schedule</div><div class="mtab">Payments</div><div class="mtab">Draw</div><div class="mtab">Settings</div></div>
+          <div class="mcard" style="margin-top:12px">
+            <div class="mcard-t">Today's session</div>
+            <div class="mrow">
+              <div class="mpill">📅 Mon 8 Jul<span class="mcx">▾</span></div>
+              <button class="mbtn hl sketch">Pull session</button>
+            </div>
+          </div>
+          <div class="mgrid"><div class="mchip paid">TH</div><div class="mchip">JD</div><div class="mchip paid">AK</div><div class="mchip">MR</div><div class="mchip paid">SL</div><div class="mchip">RW</div></div>
+        </div>
+        <!-- wobbly arrow pointing up-right to the button -->
+        <svg class="sarrow" style="right:96px;top:96px;width:120px;height:90px" viewBox="0 0 120 90" fill="none">
+          <path d="M18 82 C 6 54, 34 40, 62 40 C 86 40, 96 28, 98 16" stroke="#0066cc" stroke-width="2.6" stroke-linecap="round" fill="none" stroke-dasharray="0.1 6" opacity=".55"/>
+          <path d="M18 82 C 8 56, 32 42, 60 42 C 84 42, 95 30, 98 18" stroke="#0066cc" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+          <path d="M98 18 l -11 6 M98 18 l 2 12" stroke="#0066cc" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <div class="note" style="left:14px;bottom:20px">
+          <h4>Pull today's session ✎</h4>
+          <p>One tap loads everyone who signed up for tonight into the grid.</p>
+          <div class="sfoot"><span class="hcount">2 / 12</span><button class="sketchbtn">next →</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 03 ================= -->
+    <div class="tile">
+      <div class="tile-h">
+        <div class="name"><span class="num">03</span> Numbered map pins (a journey)</div>
+        <div class="why">Frames the whole tour as a map: pins drop on every stop, a dotted path links them, and the active pin glows. Progress is the journey itself.</div>
+      </div>
+      <div class="stage">
+        <div class="mini">
+          <div class="mtabs"><div class="mtab active">Players</div><div class="mtab">Schedule</div><div class="mtab">Payments</div><div class="mtab">Draw</div><div class="mtab">Settings</div></div>
+          <div class="mcard" style="margin-top:12px">
+            <div class="mcard-t">Today's session</div>
+            <div class="mrow"><div class="mpill">📅 Mon 8 Jul<span class="mcx">▾</span></div><button class="mbtn">Pull session</button></div>
+          </div>
+          <div class="mgrid"><div class="mchip paid">TH</div><div class="mchip">JD</div><div class="mchip paid">AK</div><div class="mchip">MR</div><div class="mchip paid">SL</div><div class="mchip">RW</div></div>
+        </div>
+        <svg class="pinpath" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path d="M12 15 C 40 4, 70 18, 55 44 C 44 62, 22 66, 40 82" stroke="var(--blue-line)" stroke-width="2" stroke-dasharray="1 4" fill="none" vector-effect="non-scaling-stroke" stroke-linecap="round"/>
+        </svg>
+        <div class="pin done" style="left:11%;top:30%"><div class="body"><b>1</b></div></div>
+        <div class="pin done" style="left:78%;top:30%"><div class="body"><b>2</b></div></div>
+        <div class="pin on" style="left:40%;top:83%"><div class="body"><b>3</b></div></div>
+        <div class="pin" style="left:72%;top:83%"><div class="body"><b>4</b></div></div>
+        <div class="maptip" style="left:12px;top:92px">
+          <div class="journey">Stop 3 of 6 · Payments</div>
+          <h4 style="margin-top:3px">Tick who's paid</h4>
+          <p>A blue dot on a player card means they've settled up for tonight.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 04 ================= -->
+    <div class="tile">
+      <div class="tile-h">
+        <div class="name"><span class="num">04</span> Bottom-docked step bar</div>
+        <div class="why">Keeps the explanation out of the way: the control lights up in place while guidance docks to a bottom bar with a fill-progress and an arrow pointing up.</div>
+      </div>
+      <div class="stage">
+        <div class="mini">
+          <div class="mtabs"><div class="mtab">Players</div><div class="mtab active">Schedule</div><div class="mtab">Payments</div><div class="mtab">Draw</div><div class="mtab">Settings</div></div>
+          <div class="mcard" style="margin-top:12px">
+            <div class="mcard-t">Round 1 · Courts</div>
+            <div class="mgrid hl" style="margin-top:9px">
+              <div class="mchip paid">TH</div><div class="mchip">JD</div><div class="mchip paid">AK</div><div class="mchip">MR</div><div class="mchip paid">SL</div><div class="mchip">RW</div>
+            </div>
+          </div>
+        </div>
+        <div class="dockbar">
+          <div class="dockup"></div>
+          <div class="prog"></div>
+          <div class="dockrow">
+            <div class="dnum">4</div>
+            <div class="dtxt"><h4>The player grid</h4><p>Drag names onto courts to build tonight's matches. Long-press to swap a pair.</p></div>
+            <div class="nav"><button>Back</button><button class="next">Next</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 05 ================= -->
+    <div class="tile">
+      <div class="tile-h">
+        <div class="name"><span class="num">05</span> Corner coach card + connector line</div>
+        <div class="why">A calm, fixed coach card anchored in the corner, tied to the target by a drawn connector line ending in a dot — no tooltip ever covers the UI.</div>
+      </div>
+      <div class="stage">
+        <div class="mini">
+          <div class="mtabs"><div class="mtab">Players</div><div class="mtab">Schedule</div><div class="mtab">Payments</div><div class="mtab">Draw</div><div class="mtab hl">Settings</div></div>
+          <div class="mcard" style="margin-top:12px">
+            <div class="mcard-t">Today's session</div>
+            <div class="mrow"><div class="mpill">📅 Mon 8 Jul<span class="mcx">▾</span></div><button class="mbtn">Pull session</button></div>
+          </div>
+          <div class="mgrid"><div class="mchip paid">TH</div><div class="mchip">JD</div><div class="mchip paid">AK</div><div class="mchip">MR</div><div class="mchip paid">SL</div><div class="mchip">RW</div></div>
+        </div>
+        <svg class="conn" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path d="M22 74 C 45 74, 60 40, 90 14" stroke="var(--blue)" stroke-width="2" fill="none" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-dasharray="5 4"/>
+        </svg>
+        <div class="connend" style="right:20px;top:22px"></div>
+        <div class="coach">
+          <div class="cat" style="font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--blue)">Step 5 of 12</div>
+          <h4>Settings → Site code</h4>
+          <p>Open Settings to set the daily access code players type to unlock the screen.</p>
+          <div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="tfoot"><span></span><div class="nav"><button>Back</button><button class="next">Next</button></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 06 ================= -->
+    <div class="tile">
+      <div class="tile-h">
+        <div class="name"><span class="num">06</span> Spotlight beam cutout</div>
+        <div class="why">Theatrical stage-light: a soft cone of light pours down onto the key action while the rest dims, making the "hero" button impossible to miss.</div>
+      </div>
+      <div class="stage">
+        <div class="mini">
+          <div class="mtabs"><div class="mtab">Players</div><div class="mtab">Schedule</div><div class="mtab">Payments</div><div class="mtab active">Draw</div><div class="mtab">Settings</div></div>
+          <div style="position:absolute;left:50%;bottom:32px;transform:translateX(-50%);width:238px;text-align:center">
+            <div class="mcard-t">Lucky draw · 24 paid tickets</div>
+            <button class="drawbtn" style="margin-top:12px">🎲 Draw a winner</button>
+          </div>
+        </div>
+        <div class="beamdim"></div>
+        <div class="beam"></div>
+        <div class="tip" style="left:14px;top:50px;width:196px">
+          <div class="cat">Step 6 · Draw</div>
+          <h4>Draw a winner</h4>
+          <p>Picks a random paid player from tonight's ballot.</p>
+          <div class="tfoot"><span class="step">Step 6 of 12</span><div class="nav"><button>Back</button><button class="next">Next</button></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 07 ================= -->
+    <div class="tile">
+      <div class="tile-h">
+        <div class="name"><span class="num">07</span> Minimal iOS-style popover</div>
+        <div class="why">Restraint as luxury: a frosted, whisper-light popover with a caret, a thin ring, and dot progress — the most native-feeling of the set.</div>
+      </div>
+      <div class="stage">
+        <div class="mini">
+          <div class="mtabs"><div class="mtab">Players</div><div class="mtab">Schedule</div><div class="mtab hl soft">Payments</div><div class="mtab">Draw</div><div class="mtab">Settings</div></div>
+          <div class="mcard" style="margin-top:12px">
+            <div class="mcard-t">Tonight · Paid</div>
+            <div class="mgrid" style="margin-top:9px"><div class="mchip paid">TH</div><div class="mchip paid">JD</div><div class="mchip">AK</div><div class="mchip paid">MR</div><div class="mchip">SL</div><div class="mchip paid">RW</div></div>
+          </div>
+        </div>
+        <div class="ios" style="left:50%;top:60px;transform:translateX(-42%)">
+          <div class="caret" style="top:-6px;left:36%;transform:rotate(45deg);border-left:1px solid rgba(255,255,255,.7);border-top:1px solid rgba(255,255,255,.7)"></div>
+          <h4>Payments</h4>
+          <p>Open this tab to tick off who's paid. Ticked players show a blue dot.</p>
+          <div class="iosfoot"><div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i></div><span class="iosnav">Next ›</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 08 ================= -->
+    <div class="tile">
+      <div class="tile-h">
+        <div class="name"><span class="num">08</span> Mascot guide + speech bubble</div>
+        <div class="why">Birdie the shuttlecock walks admins through it — a pointing mascot with a speech bubble tail. Warm, playful, on-brand for the club.</div>
+      </div>
+      <div class="stage">
+        <div class="mini">
+          <div class="mtabs"><div class="mtab active">Players</div><div class="mtab">Schedule</div><div class="mtab">Payments</div><div class="mtab">Draw</div><div class="mtab">Settings</div></div>
+          <div class="mcard" style="margin-top:12px">
+            <div class="mcard-t">Today's session</div>
+            <div class="mrow"><div class="mpill">📅 Mon 8 Jul<span class="mcx">▾</span></div><button class="mbtn hl">Pull session</button></div>
+          </div>
+          <div class="mgrid"><div class="mchip paid">TH</div><div class="mchip">JD</div><div class="mchip paid">AK</div><div class="mchip">MR</div><div class="mchip paid">SL</div><div class="mchip">RW</div></div>
+        </div>
+        <svg class="mascot" style="left:14px;bottom:14px" viewBox="0 0 74 74">
+          <g>
+            <path d="M37 20 L20 6 M37 20 L37 2 M37 20 L54 6" stroke="#cbdcf2" stroke-width="6" stroke-linecap="round"/>
+            <path d="M37 22 L24 9 M37 22 L37 5 M37 22 L50 9" stroke="#eaf2fd" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="37" cy="46" r="21" fill="#fff" stroke="#b3cbeb" stroke-width="2"/>
+            <circle cx="30" cy="44" r="3.4" fill="#1d1d1f"/><circle cx="44" cy="44" r="3.4" fill="#1d1d1f"/>
+            <circle cx="31.2" cy="42.8" r="1" fill="#fff"/><circle cx="45.2" cy="42.8" r="1" fill="#fff"/>
+            <path d="M31 52 Q37 57 43 52" stroke="#1d1d1f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+            <circle cx="25" cy="51" r="3" fill="rgba(0,113,227,.18)"/><circle cx="49" cy="51" r="3" fill="rgba(0,113,227,.18)"/>
+            <path d="M57 44 L69 38" stroke="#0071e3" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="70" cy="37" r="3.5" fill="#0071e3"/>
+          </g>
+        </svg>
+        <div class="bubble" style="left:90px;bottom:56px">
+          <div class="tail" style="left:-8px;bottom:16px;transform:rotate(135deg)"></div>
+          <h4>Let's load tonight! 🏸</h4>
+          <p>Hit <b>Pull session</b> and I'll bring in everyone who signed up.</p>
+          <div class="bprog"><i></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 09 ================= -->
+    <div class="tile">
+      <div class="tile-h">
+        <div class="name"><span class="num">09</span> First-run welcome prompt</div>
+        <div class="why">The very first thing a new admin sees: a warm invitation to take the 2-minute tour, with a clear primary action and an easy "maybe later".</div>
+      </div>
+      <div class="stage">
+        <div class="mini">
+          <div class="mtabs"><div class="mtab active">Players</div><div class="mtab">Schedule</div><div class="mtab">Payments</div><div class="mtab">Draw</div><div class="mtab">Settings</div></div>
+          <div class="mcard" style="margin-top:12px">
+            <div class="mcard-t">Today's session</div>
+            <div class="mrow"><div class="mpill">📅 Mon 8 Jul<span class="mcx">▾</span></div><button class="mbtn">Pull session</button></div>
+          </div>
+          <div class="mgrid"><div class="mchip">TH</div><div class="mchip">JD</div><div class="mchip">AK</div><div class="mchip">MR</div><div class="mchip">SL</div><div class="mchip">RW</div></div>
+        </div>
+        <div class="wdim"></div>
+        <div class="welcome">
+          <div class="wbadge">👋</div>
+          <h3>Welcome, admin</h3>
+          <div class="wp">New here? Take a quick 2-minute tour and learn to run a night in a few taps.</div>
+          <div class="wchips"><span class="wchip">Set the date</span><span class="wchip">Build courts</span><span class="wchip">Draw a winner</span></div>
+          <div class="wbtns"><button class="wstart">Start the 2-min tour</button><button class="wlater">Maybe later</button></div>
+          <div class="wmeta">12 quick steps · about 2 min</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 10 ================= -->
+    <div class="tile">
+      <div class="tile-h">
+        <div class="name"><span class="num">10</span> Thin top bar + focus ring + floating chip</div>
+        <div class="why">Airy and modern: a slim progress bar rides the top, a floating label chip with an arrow tags the control, and Back / Next float as pills.</div>
+      </div>
+      <div class="stage">
+        <div class="topbar"><i></i></div>
+        <div class="mini">
+          <div class="mtabs"><div class="mtab active hl soft">Players</div><div class="mtab">Schedule</div><div class="mtab">Payments</div><div class="mtab">Draw</div><div class="mtab">Settings</div></div>
+          <div class="mcard" style="margin-top:12px">
+            <div class="mcard-t">Roster · 14 players</div>
+            <div class="mgrid" style="margin-top:9px"><div class="mchip paid">TH</div><div class="mchip">JD</div><div class="mchip paid">AK</div><div class="mchip">MR</div><div class="mchip paid">SL</div><div class="mchip">RW</div></div>
+          </div>
+        </div>
+        <div class="fchip" style="left:16px;top:66px">
+          <div class="fc" style="top:-4px;left:22px;transform:rotate(45deg)"></div>
+          The Players tab — your roster lives here
+        </div>
+        <div class="fnav"><span class="fs">Step 4 of 12</span><button class="fback">Back</button><button class="fnext">Next</button></div>
+      </div>
+    </div>
+
+  </div><!-- /gal -->
+</div>
+</body>
+</html>

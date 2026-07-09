@@ -1,3 +1,6 @@
 {
-  "version": 2
+  "version": 2,
+  "crons": [
+    { "path": "/api/cron-rollover", "schedule": "0 16 * * *" }
+  ]
 }
