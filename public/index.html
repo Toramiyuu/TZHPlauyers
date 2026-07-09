@@ -5320,8 +5320,17 @@ async function togglePaidPlayer(id) {
   const ld = state.luckyDraw || {};
   const paid = (ld.paid || []).slice();
   const idx = paid.findIndex(x => x.id === id);
-  if (idx >= 0) paid.splice(idx, 1);                                   // untick → leave pool
-  else paid.push({ id, name, forDate: state.sessionDate || serverToday() }); // tick → join pool
+  if (idx >= 0) {
+    paid.splice(idx, 1);                                   // untick → leave pool
+  } else {
+    // The 2-day window runs from the game date — but never birth an already-
+    // expired entry: if the session date is stale (in the past), anchor the
+    // window to today so the server's expiry prune can't drop the tick the
+    // instant it's saved (the "tick vanishes after ~1s" bug).
+    const today = serverToday();
+    const forDate = (state.sessionDate && state.sessionDate >= today) ? state.sessionDate : today;
+    paid.push({ id, name, forDate });                      // tick → join pool
+  }
   const luckyDraw = { ...ld, paid };
   await apiPost({ luckyDraw });
   state.luckyDraw = luckyDraw;
