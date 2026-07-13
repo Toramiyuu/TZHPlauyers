@@ -60,6 +60,20 @@ const scriptSrc = html.slice(scriptStart, scriptEnd);
 
 const inScript = (i) => i >= scriptStart && i < scriptEnd;
 const inRoot = (i) => rootStart !== -1 && i >= rootStart && i <= rootEnd;
+
+// The Red vs Blue "Friendly" takeover is a deliberate, self-contained dark/kinetic
+// theme (see the sentinels in index.html). Checks (g/h/i) — glow, rotate,
+// backdrop-filter, reduced-motion !important — are relaxed ONLY inside that block;
+// the rest of the app stays fully strict. Missing sentinels = nothing exempted.
+const fvExemptStart = html.indexOf('fv-guard-exempt:start');
+const fvExemptEnd = html.indexOf('fv-guard-exempt:end');
+const inFriendly = (i) =>
+  fvExemptStart !== -1 && fvExemptEnd !== -1 && i > fvExemptStart && i < fvExemptEnd;
+// Line-based variant for the split('\n') checks (h/i); computed lazily since it
+// needs lineAt, which is declared just below.
+const inFriendlyLine = (ln) =>
+  fvExemptStart !== -1 && fvExemptEnd !== -1 &&
+  ln > lineAt(fvExemptStart) && ln < lineAt(fvExemptEnd);
 const lineAt = (i) => html.slice(0, i).split('\n').length;
 const snippet = (i) => {
   const lineStart = html.lastIndexOf('\n', i) + 1;
@@ -128,14 +142,15 @@ scan(PICTO, null, (m, i) => {
   if (!ALLOW_GLYPH.has(m[0])) fail('f', lineAt(i), `emoji ${JSON.stringify(m[0])} (U+${m[0].codePointAt(0).toString(16).toUpperCase()}): ${snippet(i)}`);
 });
 
-// (g) static rotate badge + text-shadow
-scan(/transform:\s*rotate\(/g, null, (m, i) => fail('g', lineAt(i), `static transform:rotate(: ${snippet(i)}`));
-scan(/text-shadow/g, (i) => !inScript(i), (m, i) => fail('g', lineAt(i), `text-shadow present: ${snippet(i)}`));
+// (g) static rotate badge + text-shadow (the Friendly takeover block is exempt)
+scan(/transform:\s*rotate\(/g, (i) => !inFriendly(i), (m, i) => fail('g', lineAt(i), `static transform:rotate(: ${snippet(i)}`));
+scan(/text-shadow/g, (i) => !inScript(i) && !inFriendly(i), (m, i) => fail('g', lineAt(i), `text-shadow present: ${snippet(i)}`));
 
 // (h) backdrop-filter only on allowed modal selectors
 const ALLOWED_BF = ['.modal-overlay', '#pwModal', '#historyModal'];
 html.split('\n').forEach((text, idx) => {
   if (!/backdrop-filter/.test(text)) return;
+  if (inFriendlyLine(idx + 1)) return; // Friendly takeover ticker is exempt
   const selector = text.slice(0, text.indexOf('{')).trim();
   if (!ALLOWED_BF.some((s) => selector === s || selector.startsWith(s))) {
     fail('h', idx + 1, `backdrop-filter on disallowed selector "${selector}": ${text.trim().slice(0, 100)}`);
@@ -147,7 +162,8 @@ html.split('\n').forEach((text, idx) => {
   if (!/!important/.test(text)) return;
   const okAdmin = /#admin\b/.test(text) && /padding/.test(text);
   const okMotion = /scroll-behavior/.test(text);
-  if (!okAdmin && !okMotion) fail('i', idx + 1, `unexpected !important: ${text.trim().slice(0, 100)}`);
+  const okFriendly = inFriendlyLine(idx + 1); // reduced-motion override in the takeover
+  if (!okAdmin && !okMotion && !okFriendly) fail('i', idx + 1, `unexpected !important: ${text.trim().slice(0, 100)}`);
 });
 
 // ── report ────────────────────────────────────────────────────────
