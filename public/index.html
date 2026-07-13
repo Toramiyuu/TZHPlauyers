@@ -1130,6 +1130,22 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .frb-lock,.frb-es{width:30px;height:28px;border-radius:7px;border:1px solid var(--border2);background:var(--dark);color:var(--muted);cursor:pointer;display:grid;place-items:center;flex:none}
 .frb-lock.on{background:#fff6e0;border-color:#f0d79a;color:#8a5a00}
 .frb-es.on{background:var(--a-amber-tint,rgba(255,149,0,.18));border-color:#f0c078;color:var(--a-amber,#9a4d00)}
+.frb-foot{margin-top:8px;display:flex;justify-content:flex-end}
+.frb-rec{padding:6px 12px}
+/* Score record (game log) */
+.frg-row{display:grid;grid-template-columns:30px 1fr auto 1fr 26px;align-items:center;gap:8px;padding:9px 4px;border-top:1px solid var(--border);font-size:13px}
+.frg-row:first-child{border-top:none}
+.frg-court{font-family:var(--font-mono);font-weight:700;color:var(--muted);font-size:12px}
+.frg-side{display:flex;align-items:center;gap:8px;min-width:0}
+.frg-side.blue{flex-direction:row-reverse}
+.frg-nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);font-weight:500}
+.frg-side.blue .frg-nm{text-align:right}
+.frg-side.win .frg-nm{font-weight:800}
+.frg-sc{font-family:var(--font-mono);font-size:17px;font-weight:700;flex:none}
+.frg-side.red .frg-sc{color:var(--fv-red)} .frg-side.blue .frg-sc{color:var(--fv-blue)}
+.frg-dash{color:var(--muted);font-weight:700}
+.frg-del{border:none;background:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px;line-height:1}
+.frg-del:hover{color:var(--fv-red)}
 
 /* ══ VIEWER TAKEOVER ══ */
 #friendlyViewer{position:fixed;inset:0;z-index:90;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -1221,6 +1237,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .fv-ros.red .fv-pl .tag{background:var(--fv-red)} .fv-ros.blue .fv-pl .tag{background:var(--fv-blue)}
 .fv-pl.cap{outline:1px solid rgba(245,179,1,.5)} .fv-pl .capf{color:#f5b301;font-size:11px}
 .fv-empty{padding:20px;text-align:center;color:#7e8699;font-size:13px;border:1px dashed rgba(255,255,255,.12);border-radius:12px}
+/* Results (recorded game scores) */
+.fv-results{display:flex;flex-direction:column;gap:7px}
+.fv-gr{display:grid;grid-template-columns:36px 1fr auto auto auto 1fr;align-items:center;gap:clamp(8px,1.2vw,16px);background:linear-gradient(180deg,rgba(255,255,255,.03),transparent),#0e111b;border:1px solid rgba(255,255,255,.09);border-radius:11px;padding:10px clamp(12px,1.4vw,18px)}
+.fv-gr-c{font-family:var(--font-mono);font-size:11px;color:#7e8699;font-weight:700}
+.fv-gr-s{font-size:clamp(13px,1.3vw,15px);color:#c7cede;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fv-gr-s.red{text-align:right} .fv-gr-s.blue{text-align:left}
+.fv-gr-s.w{color:#fff;font-weight:700}
+.fv-gr-n{font-family:"Anton","Arial Narrow",sans-serif;font-size:clamp(20px,2.2vw,26px);line-height:.8}
+.fv-gr-n.red{color:var(--fv-red)} .fv-gr-n.blue{color:var(--fv-blue)}
+.fv-gr-n:not(.w){opacity:.5}
+.fv-gr-d{font-family:"Anton","Arial Narrow",sans-serif;color:#3a4152;font-size:clamp(14px,1.6vw,18px)}
 /* ticker */
 .fv-ticker{position:fixed;bottom:0;left:0;right:0;height:44px;background:rgba(8,10,16,.92);border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;overflow:hidden;z-index:2;backdrop-filter:blur(6px)}
 .fv-ticker .lab{flex:none;background:linear-gradient(90deg,var(--fv-red-deep),var(--fv-red));color:#fff;height:100%;display:flex;align-items:center;padding:0 16px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase}
@@ -1847,6 +1874,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <div class="admin-helper-text">Tap <b>Auto-fill</b> to seat everyone across the courts, then drag or tap players to tweak. <b>Lock</b> a court to keep it when you reshuffle.</div>
       <div id="frMatchups"></div>
       <div class="admin-mt"><button class="btn btn-ghost btn-sm" onclick="addFriendlyMatchup()">+ Add court matchup</button></div>
+    </div>
+
+    <!-- Score record -->
+    <div class="admin-card">
+      <div class="admin-card-title admin-card-title-row">Score Record <span class="fr-count" id="frGamesCount"></span></div>
+      <div class="admin-helper-text">Every game you <b>Record</b> is logged here with its final score. Tap <b>Record result &amp; reset</b> on a court when a game finishes.</div>
+      <div id="frResults"></div>
     </div>
   </div>
 
@@ -2554,7 +2588,7 @@ function renderUpNext() {
 function defaultFriendly() {
   return { enabled:false, redName:'Red Team', blueName:'Blue Team',
     redGames:0, blueGames:0, redCaptain:null, blueCaptain:null,
-    redTeam:[], blueTeam:[], matchups:[] };
+    redTeam:[], blueTeam:[], matchups:[], games:[] };
 }
 // Coerce state.friendly into a valid object in-place; returns it.
 function ensureFriendly() {
@@ -2571,6 +2605,7 @@ function ensureFriendly() {
   if (!Array.isArray(f.redTeam)) f.redTeam = [];
   if (!Array.isArray(f.blueTeam)) f.blueTeam = [];
   if (!Array.isArray(f.matchups)) f.matchups = [];
+  if (!Array.isArray(f.games)) f.games = [];
   return f;
 }
 async function saveFriendly() {
@@ -2603,6 +2638,30 @@ function renderFriendlyAdmin() {
   renderFriendlyGames(f);
   renderFriendlySquad(f);
   renderFriendlyMatchups(f);
+  renderFriendlyResults(f);
+}
+// The permanent game record — every recorded game with its final score.
+function renderFriendlyResults(f) {
+  const el = document.getElementById('frResults');
+  const cnt = document.getElementById('frGamesCount');
+  const games = f.games || [];
+  if (cnt) cnt.textContent = games.length ? `${games.length} game${games.length !== 1 ? 's' : ''}` : '';
+  if (!el) return;
+  if (!games.length) { el.innerHTML = `<div class="frl-empty">No games recorded yet.</div>`; return; }
+  const pairTxt = ids => (ids || []).filter(Boolean).map(id => escHtml(frNameOf(id))).join(' & ') || 'TBD';
+  const rows = [];
+  for (let idx = games.length - 1; idx >= 0; idx--) {
+    const g = games[idx];
+    const rWin = g.winner === 'red', bWin = g.winner === 'blue';
+    rows.push(`<div class="frg-row">
+      <div class="frg-court">C${g.court || ''}</div>
+      <div class="frg-side red${rWin ? ' win' : ''}"><span class="frg-nm">${pairTxt(g.red)}</span><span class="frg-sc">${g.redScore}</span></div>
+      <div class="frg-dash">&ndash;</div>
+      <div class="frg-side blue${bWin ? ' win' : ''}"><span class="frg-sc">${g.blueScore}</span><span class="frg-nm">${pairTxt(g.blue)}</span></div>
+      <button class="frg-del" onclick="deleteFriendlyGame(${idx})" title="Delete this record" aria-label="Delete record">&#215;</button>
+    </div>`);
+  }
+  el.innerHTML = rows.join('');
 }
 function renderFriendlyGames(f) {
   const el = document.getElementById('frGames');
@@ -2728,6 +2787,7 @@ function renderFriendlyMatchups(f) {
         <div class="frb-row red">${slot(m, i, 'red', 0)}${slot(m, i, 'red', 1)}${scoreCtl(m, i, 'red')}</div>
         <div class="frb-row blue">${slot(m, i, 'blue', 0)}${slot(m, i, 'blue', 1)}${scoreCtl(m, i, 'blue')}</div>
       </div>
+      <div class="frb-foot"><button class="btn btn-ghost btn-sm frb-rec" onclick="recordFriendlyResult(${i})" title="Log this game's score, then reset for the next">Record result &amp; reset</button></div>
     </div>`).join('');
   const hasTeams = (f.redTeam.length || f.blueTeam.length);
   el.innerHTML = `
@@ -2906,6 +2966,32 @@ function toggleFriendlyEnding(i) {
   renderFriendlyMatchups(f); saveFriendly();
   renderFriendlyViewer();
 }
+// Log a court's current score into the permanent game record, bump the winner's
+// tally, then reset that court's score for the next game (pairing kept).
+function recordFriendlyResult(i) {
+  const f = ensureFriendly();
+  const m = f.matchups[i]; if (!m) return;
+  const rs = +m.redScore || 0, bs = +m.blueScore || 0;
+  const hasPlayers = (m.red || []).some(Boolean) || (m.blue || []).some(Boolean);
+  if (!hasPlayers && rs === 0 && bs === 0) return notify('Nothing to record on this court yet.', 'warn');
+  const winner = rs > bs ? 'red' : bs > rs ? 'blue' : 'tie';
+  f.games = f.games || [];
+  f.games.push({ court: m.court || i + 1, red: (m.red || []).slice(), blue: (m.blue || []).slice(), redScore: rs, blueScore: bs, winner, at: Date.now() });
+  if (winner === 'red') f.redGames = (f.redGames || 0) + 1;
+  else if (winner === 'blue') f.blueGames = (f.blueGames || 0) + 1;
+  m.redScore = 0; m.blueScore = 0; m.endingSoon = false; m.status = 'live';
+  renderFriendlyAdmin(); saveFriendly(); renderFriendlyViewer();
+  notify(winner === 'tie' ? 'Game recorded (tie).' : `Game recorded — ${winner === 'red' ? (f.redName || 'Red') : (f.blueName || 'Blue')} won.`);
+}
+function deleteFriendlyGame(idx) {
+  const f = ensureFriendly();
+  if (!Array.isArray(f.games) || !f.games[idx]) return;
+  const g = f.games[idx];
+  if (g.winner === 'red') f.redGames = Math.max(0, (f.redGames || 0) - 1);
+  else if (g.winner === 'blue') f.blueGames = Math.max(0, (f.blueGames || 0) - 1);
+  f.games.splice(idx, 1);
+  renderFriendlyAdmin(); saveFriendly(); renderFriendlyViewer();
+}
 // Drag-and-drop (desktop pointer). Touch devices use tap-to-place above.
 function frDragStart(e, id, team) {
   try { e.dataTransfer.setData('text/plain', id + '|' + team); e.dataTransfer.effectAllowed = 'move'; } catch (_) {}
@@ -2988,6 +3074,7 @@ function renderFriendlyViewer() {
   }
   const sig = stateSig({ rn:f.redName, bn:f.blueName, rg:f.redGames, bg:f.blueGames,
     rc:f.redCaptain, bc:f.blueCaptain, rt:f.redTeam, bt:f.blueTeam, mu:f.matchups,
+    gm:(f.games||[]).length,
     date: state.sessionDate, names: (state.roster||[]).map(r => r.id+':'+r.name).join(','),
     ses: (state.players||[]).map(p => p.id).join(',') });
   if (sig === __fvSig) return;
@@ -3028,6 +3115,21 @@ function buildFriendlyViewer(f) {
   const nextMu = (f.matchups||[]).filter(m => (m.status||'live') === 'next');
   const courtsHtml = liveMu.length ? liveMu.map(courtCard).join('') : '<div class="fv-empty">No court matchups set yet.</div>';
   const nextHtml = nextMu.map(courtCard).join('');
+
+  // Recorded game scores — most recent first (cap the on-screen list).
+  const games = f.games || [];
+  const pairNames = ids => ((ids||[]).filter(Boolean).map(id => escHtml(frNameOf(id))).join(' & ') || 'TBD');
+  const gamesHtml = games.slice(-12).reverse().map(g => {
+    const rWin = g.winner==='red', bWin = g.winner==='blue';
+    return `<div class="fv-gr">
+      <span class="fv-gr-c">C${g.court||''}</span>
+      <span class="fv-gr-s red${rWin?' w':''}">${pairNames(g.red)}</span>
+      <span class="fv-gr-n red${rWin?' w':''}">${g.redScore}</span>
+      <span class="fv-gr-d">&ndash;</span>
+      <span class="fv-gr-n blue${bWin?' w':''}">${g.blueScore}</span>
+      <span class="fv-gr-s blue${bWin?' w':''}">${pairNames(g.blue)}</span>
+    </div>`;
+  }).join('');
 
   const rosterHtml = (side, ids, capId, name) => {
     const head = `<div class="fv-ros-h"><span class="fv-anton t">${escHtml(name)}</span><span class="c">${ids.length} player${ids.length!==1?'s':''}</span></div>`;
@@ -3081,7 +3183,9 @@ function buildFriendlyViewer(f) {
     <div class="fv-rosters">
       ${rosterHtml('red', redRoster, f.redCaptain, redName)}
       ${rosterHtml('blue', blueRoster, f.blueCaptain, blueName)}
-    </div>`;
+    </div>
+    ${games.length ? `<div class="fv-sec"><h2>Results</h2><span class="bar"></span><span class="idx">${games.length} game${games.length!==1?'s':''}</span></div>
+    <div class="fv-results">${gamesHtml}</div>` : ''}`;
 
   fvAnimateCounts(wrap);
   buildFriendlyTicker(f);
