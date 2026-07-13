@@ -1082,6 +1082,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .fr-split-chip{display:inline-flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border2);border-radius:100px;padding:2px 9px 2px 2px;font-size:12px;font-weight:600;color:var(--text)}
 .fr-split-chip .cap{color:var(--gold,#f5b301)}
 .fr-split-empty{color:var(--muted);font-size:12px}
+.fr-seed-cap{font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
+.fr-seed-list{display:flex;flex-direction:column;gap:2px}
+.fr-seed-row{display:grid;grid-template-columns:18px 22px 1fr auto;align-items:center;gap:7px;padding:3px 3px}
+.fr-seed-n{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--muted);text-align:center}
+.fr-seed-nm{font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fr-seed-nm .cap{color:var(--gold,#f5b301)}
+.fr-seed-mv{display:inline-flex;gap:3px;flex:none}
+.fr-seed-mv button{width:22px;height:22px;border-radius:6px;border:1px solid var(--border2);background:var(--card);color:var(--muted);cursor:pointer;font-size:8px;line-height:1;padding:0;display:grid;place-items:center;font-family:inherit}
+.fr-seed-mv button:disabled{opacity:.3;cursor:default}
+.fr-seed-mv button:not(:disabled):hover{border-color:var(--a-blue,#0071e3);color:var(--a-blue,#0071e3)}
+@media(max-width:560px){.fr-split{grid-template-columns:1fr}}
 .fr-teambtns{display:flex;gap:4px;flex:none}
 .fr-tb{width:30px;height:28px;border-radius:7px;border:1px solid var(--border2);background:var(--dark);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
 .fr-tb.r.on{background:var(--fv-red);border-color:var(--fv-red);color:#fff}
@@ -2692,10 +2703,21 @@ function renderFriendlySquad(f) {
   // Split summary: who's on each team right now (session players only).
   const sess = friendlySessionSet();
   const splitCol = (side, ids, capId) => {
-    const chips = ids.length
-      ? ids.map(id => { const p = playerById(id) || { id, name: frNameOf(id) }; return `<span class="fr-split-chip">${avatarHTML(p, 20)}<span class="nm">${escHtml(p.name)}</span>${capId === id ? '<span class="cap">&#9733;</span>' : ''}</span>`; }).join('')
-      : `<span class="fr-split-empty">Nobody yet</span>`;
-    return `<div class="fr-split-col ${side}"><div class="fr-split-h">${side === 'red' ? 'Red' : 'Blue'} <b>${ids.length}</b></div><div class="fr-split-chips">${chips}</div></div>`;
+    const label = side === 'red' ? 'Red' : 'Blue';
+    if (!ids.length) return `<div class="fr-split-col ${side}"><div class="fr-split-h">${label} <b>0</b></div><div class="fr-split-empty">Nobody yet</div></div>`;
+    const rows = ids.map((id, idx) => {
+      const p = playerById(id) || { id, name: frNameOf(id) };
+      return `<div class="fr-seed-row">
+        <span class="fr-seed-n">${idx + 1}</span>
+        ${avatarHTML(p, 22)}
+        <span class="fr-seed-nm">${escHtml(p.name)}${capId === id ? ' <span class="cap">&#9733;</span>' : ''}</span>
+        <span class="fr-seed-mv">
+          <button ${idx === 0 ? 'disabled' : ''} onclick="moveFriendlySeed('${side}','${id}',-1)" title="Move up a seed" aria-label="Move up a seed">&#9650;</button>
+          <button ${idx === ids.length - 1 ? 'disabled' : ''} onclick="moveFriendlySeed('${side}','${id}',1)" title="Move down a seed" aria-label="Move down a seed">&#9660;</button>
+        </span>
+      </div>`;
+    }).join('');
+    return `<div class="fr-split-col ${side}"><div class="fr-split-h">${label} <b>${ids.length}</b> <span class="fr-seed-cap">seeds</span></div><div class="fr-seed-list">${rows}</div></div>`;
   };
   const split = `<div class="fr-split">${splitCol('red', f.redTeam.filter(id => sess.has(id)), f.redCaptain)}${splitCol('blue', f.blueTeam.filter(id => sess.has(id)), f.blueCaptain)}</div>`;
   if (!people.length) { el.innerHTML = split + `<div class="frl-empty">No players match &ldquo;${escHtml(q)}&rdquo;.</div>`; return; }
@@ -2847,6 +2869,20 @@ function setFriendlyCaptain(id) {
   else if (f.blueTeam.includes(id)) f.blueCaptain = (f.blueCaptain === id ? null : id);
   renderFriendlySquad(f);
   saveFriendly();
+}
+// Seeding: the team array order IS the seed order (1st = index 0). Move a player
+// up/down by swapping with their neighbour among the shown (session) players.
+function moveFriendlySeed(team, id, dir) {
+  const f = ensureFriendly();
+  const arr = team === 'red' ? f.redTeam : f.blueTeam;
+  const sess = friendlySessionSet();
+  const shown = arr.filter(x => sess.has(x));
+  const si = shown.indexOf(id), sj = si + dir;
+  if (si < 0 || sj < 0 || sj >= shown.length) return;
+  const i = arr.indexOf(id), j = arr.indexOf(shown[sj]);
+  if (i < 0 || j < 0) return;
+  arr[i] = shown[sj]; arr[j] = id;
+  renderFriendlySquad(f); saveFriendly(); renderFriendlyViewer();
 }
 function addFriendlyMatchup() {
   const f = ensureFriendly();
