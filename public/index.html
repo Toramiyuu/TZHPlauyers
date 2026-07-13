@@ -1127,8 +1127,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .frb-score button:active{transform:scale(.93)}
 .frb-score .n{min-width:24px;text-align:center;font-family:var(--font-mono);font-size:18px;font-weight:700}
 .frb-row.red .frb-score .n{color:var(--fv-red)} .frb-row.blue .frb-score .n{color:var(--fv-blue)}
-.frb-lock{width:30px;height:28px;border-radius:7px;border:1px solid var(--border2);background:var(--dark);color:var(--muted);cursor:pointer;display:grid;place-items:center;flex:none}
+.frb-lock,.frb-es{width:30px;height:28px;border-radius:7px;border:1px solid var(--border2);background:var(--dark);color:var(--muted);cursor:pointer;display:grid;place-items:center;flex:none}
 .frb-lock.on{background:#fff6e0;border-color:#f0d79a;color:#8a5a00}
+.frb-es.on{background:var(--a-amber-tint,rgba(255,149,0,.18));border-color:#f0c078;color:var(--a-amber,#9a4d00)}
 
 /* ══ VIEWER TAKEOVER ══ */
 #friendlyViewer{position:fixed;inset:0;z-index:90;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -1186,6 +1187,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .fv-pill.final{background:rgba(255,255,255,.06);color:#8b93a7;border:1px solid rgba(255,255,255,.12)}
 .fv-pill.next{background:linear-gradient(90deg,var(--fv-blue-deep),var(--fv-blue));color:#fff}
 .fv-mc.next{opacity:.94;border-style:dashed}
+.fv-mc-pills{display:flex;align-items:center;gap:6px}
+.fv-pill.ending{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(90deg,#b26a00,#ff9f0a);color:#fff}
+.fv-pill.ending::before{content:"";width:6px;height:6px;border-radius:50%;background:#fff;animation:fvpulse 1.4s infinite}
+.fv-mc.ending{border-color:rgba(255,159,10,.5)}
 .fv-trow{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:8px;margin-bottom:6px}
 .fv-trow.red{background:rgba(255,59,69,.08)} .fv-trow.blue{background:rgba(47,139,255,.08);margin-bottom:0}
 .fv-trow.lead{box-shadow:inset 3px 0 0 currentColor}
@@ -2706,6 +2711,7 @@ function renderFriendlyMatchups(f) {
       return `<label class="court-chip${on ? ' on' : ''}"><input type="radio" name="frCourt${i}" value="${n}"${on ? ' checked' : ''} onchange="pickFriendlyCourt(${i},this)" aria-label="Court ${n}"><span>${n}</span></label>`;
     }).join('') + `</div>`;
   const lockSvg = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg>`;
+  const clockSvg = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>`;
   const pods = (f.matchups || []).map((m, i) => `<div class="fr-matchup">
       <div class="fr-mu-top">
         <div class="fr-mu-court">Court ${courtPicker(m, i)}</div>
@@ -2714,6 +2720,7 @@ function renderFriendlyMatchups(f) {
           <option value="next"${m.status === 'next' ? ' selected' : ''}>Up Next</option>
           <option value="final"${m.status === 'final' ? ' selected' : ''}>Final</option>
         </select>
+        <button class="frb-es${m.endingSoon ? ' on' : ''}" onclick="toggleFriendlyEnding(${i})" title="${m.endingSoon ? 'Remove ending-soon flag' : 'Tell viewers this court is ending soon'}" aria-label="Ending soon" aria-pressed="${m.endingSoon ? 'true' : 'false'}">${clockSvg}</button>
         <button class="frb-lock${m.locked ? ' on' : ''}" onclick="toggleFriendlyLock(${i})" title="${m.locked ? 'Locked — kept when you reshuffle' : 'Lock this court'}" aria-label="Lock court">${lockSvg}</button>
         <button class="fr-mu-del" onclick="removeFriendlyMatchup(${i})" title="Remove" aria-label="Remove matchup">&#215;</button>
       </div>
@@ -2890,6 +2897,15 @@ function toggleFriendlyLock(i) {
   m.locked = !m.locked;
   renderFriendlyMatchups(f); saveFriendly();
 }
+// "Ending Soon" — same idea as the normal viewer's court flag: tell waiting
+// players this court is about to free up. Shows an amber pulse on the viewer.
+function toggleFriendlyEnding(i) {
+  const f = ensureFriendly();
+  const m = f.matchups[i]; if (!m) return;
+  m.endingSoon = !m.endingSoon;
+  renderFriendlyMatchups(f); saveFriendly();
+  renderFriendlyViewer();
+}
 // Drag-and-drop (desktop pointer). Touch devices use tap-to-place above.
 function frDragStart(e, id, team) {
   try { e.dataTransfer.setData('text/plain', id + '|' + team); e.dataTransfer.effectAllowed = 'move'; } catch (_) {}
@@ -2924,6 +2940,7 @@ function fillMatchups(f) {
     if (m.locked) return;
     m.red = [rPool[ri++] || '', rPool[ri++] || ''];
     m.blue = [bPool[bi++] || '', bPool[bi++] || ''];
+    m.endingSoon = false; // fresh pairing = new game, no longer ending soon
   });
 }
 function autoFillFriendly() {
@@ -2992,15 +3009,17 @@ function buildFriendlyViewer(f) {
   const pair = ids => ((ids||[]).filter(Boolean).map(id=>`<span class="n">${escHtml(frNameOf(id))}</span>`).join('') || '<span class="n">TBD</span>');
   const courtCard = (m) => {
     const st = m.status || 'live';
+    const ending = st === 'live' && !!m.endingSoon;
     const rs = +m.redScore||0, bs = +m.blueScore||0;
     const rLead = st!=='next' && rs>bs, bLead = st!=='next' && bs>rs;
     const pill = st==='final' ? '<span class="fv-pill final">Final</span>'
       : st==='next' ? '<span class="fv-pill next">Up Next</span>'
       : '<span class="fv-pill live">Live</span>';
+    const endPill = ending ? '<span class="fv-pill ending">Ending Soon</span>' : '';
     const scR = st==='next' ? '' : `<span class="fv-sc" data-count="${rs}">0</span>`;
     const scB = st==='next' ? '' : `<span class="fv-sc" data-count="${bs}">0</span>`;
-    return `<div class="fv-mc${st==='next'?' next':''}">
-      <div class="fv-mc-top"><div class="fv-mc-court">C${m.court||''}<span>Court ${m.court||''}</span></div>${pill}</div>
+    return `<div class="fv-mc${st==='next'?' next':''}${ending?' ending':''}">
+      <div class="fv-mc-top"><div class="fv-mc-court">C${m.court||''}<span>Court ${m.court||''}</span></div><div class="fv-mc-pills">${endPill}${pill}</div></div>
       <div class="fv-trow red${rLead?' lead':''}"><span class="fv-dot red"></span><div class="fv-pair">${pair(m.red)}</div>${scR}</div>
       <div class="fv-trow blue${bLead?' lead':''}"><span class="fv-dot blue"></span><div class="fv-pair">${pair(m.blue)}</div>${scB}</div>
     </div>`;
