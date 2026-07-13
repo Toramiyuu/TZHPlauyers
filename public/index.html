@@ -671,9 +671,9 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .rl-check.on{background:var(--green);border-color:var(--green)}
 .rl-player:hover .rl-check{border-color:var(--green-line)}
 .rl-name{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rl-lvl-sel{background:var(--dark);border:1px solid var(--border2);color:var(--muted);font-size:13px;font-weight:600;padding:6px 8px;border-radius:8px;cursor:pointer;font-family:inherit;min-width:66px;transition:border-color .15s,color .15s}
-.rl-lvl-sel.set{color:var(--text);border-color:var(--a-blue,#0071e3)}
-.rl-lvl-sel:focus{outline:none;border-color:var(--green)}
+.rl-lvl-inp{width:66px;background:var(--dark);border:1px solid var(--border2);color:var(--muted);font-size:13px;font-weight:600;padding:6px 8px;border-radius:8px;font-family:inherit;text-align:center;transition:border-color .15s,color .15s}
+.rl-lvl-inp.set{color:var(--text);border-color:var(--a-blue,#0071e3)}
+.rl-lvl-inp:focus{outline:none;border-color:var(--green)}
 .rl-seg{display:inline-flex;background:var(--card2);border:1px solid var(--border2);border-radius:100px;padding:2px}
 .rl-seg-btn{border:none;background:none;color:var(--muted);font-size:12px;font-weight:600;padding:4px 12px;border-radius:100px;cursor:pointer;font-family:inherit;transition:var(--transition)}
 .rl-seg-btn:hover{color:var(--text-2)}
@@ -1056,11 +1056,32 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .fr-stepper .fr-num{font-size:30px;font-weight:800;min-width:40px;text-align:center;font-family:var(--font-apple)}
 .fr-games-side.red .fr-num{color:var(--fv-red)} .fr-games-side.blue .fr-num{color:var(--fv-blue)}
 /* ── Admin: squad assignment ── */
-.fr-squad{display:flex;flex-direction:column;gap:5px;max-height:340px;overflow-y:auto;margin-top:6px}
-.fr-prow{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:9px;background:var(--card2);border:1px solid transparent}
-.fr-prow.red{border-color:rgba(255,59,69,.4);background:rgba(255,59,69,.07)}
-.fr-prow.blue{border-color:rgba(47,139,255,.4);background:rgba(47,139,255,.07)}
-.fr-prow .fr-pname{flex:1;min-width:0;font-size:var(--fs-base);font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Squads — the same Players "List" table system (variant 12), with team + captain controls */
+#frSquadSearch{width:100%;box-sizing:border-box;margin:6px 0 8px}
+.fr-squad{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--card);max-height:420px;overflow-y:auto;margin-top:6px}
+.frl-head,.frl-row{display:grid;grid-template-columns:1fr 72px 44px;align-items:center;gap:12px;padding:10px 14px}
+.frl-head{position:sticky;top:0;z-index:1;background:var(--card2);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.frl-head span:nth-child(2),.frl-head span:nth-child(3){text-align:center}
+.frl-row{border-top:1px solid var(--border)}
+.frl-row.red{background:rgba(255,59,69,.07)}
+.frl-row.blue{background:rgba(47,139,255,.07)}
+.frl-row .fr-teambtns{justify-self:center}
+.frl-row .fr-capbtn{justify-self:center}
+.frl-player{display:flex;align-items:center;gap:10px;min-width:0}
+.frl-name{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frl-empty{color:var(--muted);font-size:13px;padding:14px}
+/* Squads team split — who's on Red vs Blue at a glance */
+.fr-split{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 12px}
+.fr-split-col{border-radius:var(--radius-md);border:1px solid var(--border);padding:10px 11px;background:var(--card)}
+.fr-split-col.red{border-color:rgba(255,59,69,.4);background:rgba(255,59,69,.05)}
+.fr-split-col.blue{border-color:rgba(47,139,255,.42);background:rgba(47,139,255,.05)}
+.fr-split-h{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:9px;color:var(--text)}
+.fr-split-col.red .fr-split-h{color:var(--fv-red)} .fr-split-col.blue .fr-split-h{color:var(--fv-blue)}
+.fr-split-h b{font-family:var(--font-mono);font-size:13px}
+.fr-split-chips{display:flex;flex-wrap:wrap;gap:5px}
+.fr-split-chip{display:inline-flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border2);border-radius:100px;padding:2px 9px 2px 2px;font-size:12px;font-weight:600;color:var(--text)}
+.fr-split-chip .cap{color:var(--gold,#f5b301)}
+.fr-split-empty{color:var(--muted);font-size:12px}
 .fr-teambtns{display:flex;gap:4px;flex:none}
 .fr-tb{width:30px;height:28px;border-radius:7px;border:1px solid var(--border2);background:var(--dark);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
 .fr-tb.r.on{background:var(--fv-red);border-color:var(--fv-red);color:#fff}
@@ -1072,17 +1093,42 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .fr-count b.r{color:var(--fv-red)} .fr-count b.b{color:var(--fv-blue)}
 /* ── Admin: matchups ── */
 .fr-matchup{border:1px solid var(--border2);border-radius:var(--radius-md);padding:10px;margin-bottom:8px;background:var(--card2)}
-.fr-mu-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.fr-mu-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
 .fr-mu-court{display:flex;align-items:center;gap:6px;font-weight:700;color:var(--text);font-size:var(--fs-base)}
-.fr-mu-court input{width:46px;box-sizing:border-box;background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:5px 7px;border-radius:7px;font-size:var(--fs-base);font-family:inherit;text-align:center}
+.fr-mu-courts{display:inline-flex;gap:6px;flex-wrap:wrap}
+.fr-mu-courts .court-chip{min-width:36px;height:36px;font-size:var(--fs-base)}
 .fr-mu-status{margin-left:auto;background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:5px 8px;border-radius:7px;font-size:var(--fs-sm);font-family:inherit}
 .fr-mu-del{border:none;background:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 6px}
 .fr-mu-del:hover{color:var(--fv-red)}
-.fr-mu-side{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px}
-.fr-mu-side select{width:100%;box-sizing:border-box;background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:6px 7px;border-radius:7px;font-size:var(--fs-sm);font-family:inherit}
-.fr-mu-side.red select{border-left:3px solid var(--fv-red)} .fr-mu-side.blue select{border-left:3px solid var(--fv-blue)}
-.fr-mu-score{width:52px;box-sizing:border-box;background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:6px;border-radius:7px;font-size:var(--fs-md);font-weight:700;text-align:center;font-family:inherit}
-.fr-mu-side.red .fr-mu-score{color:var(--fv-red)} .fr-mu-side.blue .fr-mu-score{color:var(--fv-blue)}
+/* Matchup board — Auto-Lineup buttons + drag/tap placement (replaces dropdowns) */
+.frb-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.frb-bench{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);padding:11px 12px;margin-bottom:14px}
+.frb-bench-hint{font-size:var(--fs-xs);color:var(--muted);margin-bottom:9px}
+.frb-side{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.08em;margin-bottom:6px}
+.frb-side.r{color:var(--fv-red)} .frb-side.b{color:var(--fv-blue)}
+.frb-rail{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
+.frb-rail:last-child{margin-bottom:0}
+.frb-rail.empty{color:var(--muted);font-size:var(--fs-xs);padding:2px 0 9px}
+.frb-chip{display:inline-flex;align-items:center;gap:6px;background:var(--dark);border:1px solid var(--border2);border-radius:100px;padding:3px 11px 3px 3px;font-size:12.5px;font-weight:600;color:var(--text);cursor:pointer;user-select:none;transition:border-color .13s,transform .13s}
+.frb-chip.red{border-color:rgba(255,59,69,.45)} .frb-chip.blue{border-color:rgba(47,139,255,.5)}
+.frb-chip:hover{transform:translateY(-1px)}
+.frb-chip.picked{border-color:var(--a-blue,#0071e3);background:var(--a-blue-tint,rgba(0,113,227,.16));box-shadow:0 0 0 2px rgba(0,113,227,.28)}
+.frb-body{display:flex;flex-direction:column;gap:8px}
+.frb-row{display:grid;grid-template-columns:1fr 1fr auto;gap:7px;align-items:center;padding:7px;border-radius:11px}
+.frb-row.red{background:rgba(255,59,69,.06)} .frb-row.blue{background:rgba(47,139,255,.06)}
+.frb-slot{display:flex;align-items:center;gap:7px;height:40px;padding:0 10px;border-radius:9px;border:1.5px dashed var(--border2);background:var(--card);cursor:pointer;font-size:12.5px;font-weight:600;color:var(--muted);transition:border-color .13s,background .13s;min-width:0}
+.frb-slot.red{border-color:rgba(255,59,69,.4)} .frb-slot.blue{border-color:rgba(47,139,255,.45)}
+.frb-slot.filled{border-style:solid;color:var(--text)}
+.frb-slot.active,.frb-slot.dragover{border-color:var(--a-blue,#0071e3);border-style:solid;background:var(--a-blue-tint,rgba(0,113,227,.14))}
+.frb-slot .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frb-slot .x{margin-left:auto;color:var(--muted);font-weight:700;font-size:15px;line-height:1}
+.frb-score{display:flex;align-items:center;gap:4px}
+.frb-score button{width:28px;height:28px;border-radius:8px;border:1px solid var(--border2);background:var(--dark);font-size:16px;font-weight:700;color:var(--text);cursor:pointer;line-height:1;font-family:inherit}
+.frb-score button:active{transform:scale(.93)}
+.frb-score .n{min-width:24px;text-align:center;font-family:var(--font-mono);font-size:18px;font-weight:700}
+.frb-row.red .frb-score .n{color:var(--fv-red)} .frb-row.blue .frb-score .n{color:var(--fv-blue)}
+.frb-lock{width:30px;height:28px;border-radius:7px;border:1px solid var(--border2);background:var(--dark);color:var(--muted);cursor:pointer;display:grid;place-items:center;flex:none}
+.frb-lock.on{background:#fff6e0;border-color:#f0d79a;color:#8a5a00}
 
 /* ══ VIEWER TAKEOVER ══ */
 #friendlyViewer{position:fixed;inset:0;z-index:90;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -1138,6 +1184,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .fv-pill{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:4px 9px;border-radius:6px}
 .fv-pill.live{background:linear-gradient(90deg,var(--fv-red-deep),var(--fv-red));color:#fff}
 .fv-pill.final{background:rgba(255,255,255,.06);color:#8b93a7;border:1px solid rgba(255,255,255,.12)}
+.fv-pill.next{background:linear-gradient(90deg,var(--fv-blue-deep),var(--fv-blue));color:#fff}
+.fv-mc.next{opacity:.94;border-style:dashed}
 .fv-trow{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:8px;margin-bottom:6px}
 .fv-trow.red{background:rgba(255,59,69,.08)} .fv-trow.blue{background:rgba(47,139,255,.08);margin-bottom:0}
 .fv-trow.lead{box-shadow:inset 3px 0 0 currentColor}
@@ -1782,13 +1830,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div class="admin-card">
       <div class="admin-card-title admin-card-title-row">Squads <span class="fr-count" id="frCount"></span></div>
       <div class="admin-helper-text">Tap <b>R</b> or <b>B</b> to put a player on a team, and the &#9733; to set that team&rsquo;s captain. Add more people from the <b>Session</b> tab if you need them.</div>
+      <input id="frSquadSearch" type="text" class="admin-form-input" placeholder="Search players..." autocomplete="off" aria-label="Search squad players"
+        oninput="renderFriendlySquad(ensureFriendly())"
+        onkeydown="if(event.key==='Escape'){this.value='';renderFriendlySquad(ensureFriendly());}">
       <div class="fr-squad" id="frSquad"></div>
     </div>
 
     <!-- Court matchups -->
     <div class="admin-card">
       <div class="admin-card-title">Court Matchups</div>
-      <div class="admin-helper-text">Each court shows a Red pair vs a Blue pair with a live score. Pick players from the squads above.</div>
+      <div class="admin-helper-text">Tap <b>Auto-fill</b> to seat everyone across the courts, then drag or tap players to tweak. <b>Lock</b> a court to keep it when you reshuffle.</div>
       <div id="frMatchups"></div>
       <div class="admin-mt"><button class="btn btn-ghost btn-sm" onclick="addFriendlyMatchup()">+ Add court matchup</button></div>
     </div>
@@ -2521,16 +2572,21 @@ async function saveFriendly() {
   try { await apiPost({ friendly: ensureFriendly() }); } catch (e) {}
 }
 // Assignable people: everyone on the roster plus any session-only guests, de-duped.
+// Only people ticked into TODAY'S SESSION (state.players) are eligible for Red vs
+// Blue — untick someone in the Session tab and they drop out of Squads/teams/viewer.
+function friendlySessionSet() {
+  return new Set((state?.players || []).map(p => p && p.id).filter(Boolean));
+}
 function friendlyPeople() {
-  const map = new Map();
-  (state.roster || []).forEach(p => { if (p && p.id) map.set(p.id, { id:p.id, name:p.name, photo:p.photo }); });
-  (state.players || []).forEach(p => { if (p && p.id && !map.has(p.id)) map.set(p.id, { id:p.id, name:p.name, photo:p.photo }); });
-  return [...map.values()];
+  return (state?.players || [])
+    .filter(p => p && p.id)
+    .map(p => playerById(p.id) || { id: p.id, name: p.name, photo: p.photo || null });
 }
 function frNameOf(id) { const p = playerById(id); return p ? p.name : 'TBD'; }
 
 // ── Admin renderers ──
 function renderFriendlyAdmin() {
+  if (!state) return; // load-order guard: the first poll re-renders once state arrives
   const f = ensureFriendly();
   const toggle = document.getElementById('frToggle');
   if (toggle) toggle.checked = f.enabled;
@@ -2563,17 +2619,29 @@ function renderFriendlySquad(f) {
   const el = document.getElementById('frSquad');
   if (!el) return;
   const cnt = document.getElementById('frCount');
-  if (cnt) cnt.innerHTML = `<b class="r">${f.redTeam.length} Red</b> &middot; <b class="b">${f.blueTeam.length} Blue</b>`;
-  const people = friendlyPeople();
-  if (!people.length) { el.innerHTML = `<div class="admin-helper-text">No players yet &mdash; add some in the Session tab.</div>`; return; }
-  el.innerHTML = people.map(p => {
+  if (cnt) { const ss = friendlySessionSet(); cnt.innerHTML = `<b class="r">${f.redTeam.filter(id => ss.has(id)).length} Red</b> &middot; <b class="b">${f.blueTeam.filter(id => ss.has(id)).length} Blue</b>`; }
+  const searchEl = document.getElementById('frSquadSearch');
+  const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
+  const all = friendlyPeople();
+  if (!all.length) { el.innerHTML = `<div class="frl-empty">No players yet &mdash; add some in the Session tab.</div>`; return; }
+  const people = q ? all.filter(p => (p.name || '').toLowerCase().includes(q)) : all;
+  // Split summary: who's on each team right now (session players only).
+  const sess = friendlySessionSet();
+  const splitCol = (side, ids, capId) => {
+    const chips = ids.length
+      ? ids.map(id => { const p = playerById(id) || { id, name: frNameOf(id) }; return `<span class="fr-split-chip">${avatarHTML(p, 20)}<span class="nm">${escHtml(p.name)}</span>${capId === id ? '<span class="cap">&#9733;</span>' : ''}</span>`; }).join('')
+      : `<span class="fr-split-empty">Nobody yet</span>`;
+    return `<div class="fr-split-col ${side}"><div class="fr-split-h">${side === 'red' ? 'Red' : 'Blue'} <b>${ids.length}</b></div><div class="fr-split-chips">${chips}</div></div>`;
+  };
+  const split = `<div class="fr-split">${splitCol('red', f.redTeam.filter(id => sess.has(id)), f.redCaptain)}${splitCol('blue', f.blueTeam.filter(id => sess.has(id)), f.blueCaptain)}</div>`;
+  if (!people.length) { el.innerHTML = split + `<div class="frl-empty">No players match &ldquo;${escHtml(q)}&rdquo;.</div>`; return; }
+  const rows = people.map(p => {
     const onRed = f.redTeam.includes(p.id), onBlue = f.blueTeam.includes(p.id);
     const teamCls = onRed ? ' red' : onBlue ? ' blue' : '';
     const isCap = (onRed && f.redCaptain === p.id) || (onBlue && f.blueCaptain === p.id);
     const capDisabled = (!onRed && !onBlue) ? 'disabled' : '';
-    return `<div class="fr-prow${teamCls}">
-      ${avatarHTML(p, 26)}
-      <span class="fr-pname">${escHtml(p.name)}</span>
+    return `<div class="frl-row${teamCls}">
+      <div class="frl-player">${avatarHTML(p, 32)}<span class="frl-name">${escHtml(p.name)}</span></div>
       <div class="fr-teambtns">
         <button class="fr-tb r${onRed?' on':''}" onclick="setFriendlyTeam('${p.id}','red')" aria-pressed="${onRed}">R</button>
         <button class="fr-tb b${onBlue?' on':''}" onclick="setFriendlyTeam('${p.id}','blue')" aria-pressed="${onBlue}">B</button>
@@ -2581,39 +2649,92 @@ function renderFriendlySquad(f) {
       <button class="fr-capbtn${isCap?' on':''}" ${capDisabled} onclick="setFriendlyCaptain('${p.id}')" title="Set as captain" aria-label="Set as captain">&#9733;</button>
     </div>`;
   }).join('');
+  el.innerHTML = split + `<div class="frl-head"><span>Player</span><span>Team</span><span>Captain</span></div>${rows}`;
 }
 function friendlyPairOptions(teamIds, selected) {
   return ['<option value="">&mdash;</option>'].concat((teamIds||[]).map(id =>
     `<option value="${id}"${id===selected?' selected':''}>${escHtml(frNameOf(id))}</option>`
   )).join('');
 }
+// Placement selection for the drag/tap board (ephemeral, per-device). At most one
+// is "armed": __frSel.pid = a bench player waiting for a slot; __frActive =
+// "i:team:slot" of an empty slot waiting for a player.
+let __frSel = { pid: null };
+let __frActive = null;
+
+// Every player id currently in a matchup slot — used to grey the bench so a
+// player can't be booked onto two courts at once.
+function friendlyPlacedIds(f) {
+  const s = new Set();
+  (f.matchups || []).forEach(m => {
+    (m.red || []).forEach(id => { if (id) s.add(id); });
+    (m.blue || []).forEach(id => { if (id) s.add(id); });
+  });
+  return s;
+}
+
 function renderFriendlyMatchups(f) {
   const el = document.getElementById('frMatchups');
   if (!el) return;
-  if (!f.matchups.length) { el.innerHTML = `<div class="admin-helper-text">No matchups yet. Add one below.</div>`; return; }
-  el.innerHTML = f.matchups.map((m, i) => {
-    const redSel = m.red || [], blueSel = m.blue || [], status = m.status || 'live';
-    return `<div class="fr-matchup">
+  const placed = friendlyPlacedIds(f);
+  const sess = friendlySessionSet();
+  const rail = (team) => {
+    const ids = (team === 'red' ? f.redTeam : f.blueTeam).filter(id => !placed.has(id) && sess.has(id));
+    if (!ids.length) return `<div class="frb-rail empty">Everyone's on a court.</div>`;
+    return `<div class="frb-rail">` + ids.map(id => {
+      const p = playerById(id) || { id, name: frNameOf(id) };
+      return `<span class="frb-chip ${team}${__frSel.pid === id ? ' picked' : ''}" draggable="true" onclick="frPickPlayer('${id}','${team}')" ondragstart="frDragStart(event,'${id}','${team}')">${avatarHTML(p, 22)} ${escHtml(p.name)}</span>`;
+    }).join('') + `</div>`;
+  };
+  const slot = (m, i, team, k) => {
+    const id = (m[team] || [])[k];
+    const p = id ? (playerById(id) || { id, name: frNameOf(id) }) : null;
+    const active = __frActive === (i + ':' + team + ':' + k);
+    const inner = p
+      ? `${avatarHTML(p, 26)}<span class="nm">${escHtml(p.name)}</span><span class="x" onclick="event.stopPropagation();frClearSlot(${i},'${team}',${k})" aria-label="Remove">&#215;</span>`
+      : `<span style="color:${team === 'red' ? 'var(--fv-red)' : 'var(--fv-blue)'};font-weight:800;flex:none">${team === 'red' ? 'R' : 'B'}</span><span class="nm">Add player</span>`;
+    return `<div class="frb-slot ${team}${p ? ' filled' : ''}${active ? ' active' : ''}" onclick="frSlotTap(${i},'${team}',${k})" ondragover="frDragOver(event,this)" ondragleave="this.classList.remove('dragover')" ondrop="frDrop(event,${i},'${team}',${k},this)">${inner}</div>`;
+  };
+  const scoreCtl = (m, i, team) => {
+    const field = team === 'red' ? 'redScore' : 'blueScore';
+    const val = (team === 'red' ? m.redScore : m.blueScore) || 0;
+    return `<div class="frb-score"><button onclick="stepFriendlyScore(${i},'${field}',-1,this)" aria-label="Minus">&minus;</button><span class="n">${val}</span><button onclick="stepFriendlyScore(${i},'${field}',1,this)" aria-label="Plus">+</button></div>`;
+  };
+  const courtPicker = (m, i) => `<div class="fr-mu-courts" role="radiogroup" aria-label="Court for matchup ${i + 1}">` +
+    Array.from({ length: COURT_POOL }, (_, k) => k + 1).map(n => {
+      const on = (m.court || i + 1) === n;
+      return `<label class="court-chip${on ? ' on' : ''}"><input type="radio" name="frCourt${i}" value="${n}"${on ? ' checked' : ''} onchange="pickFriendlyCourt(${i},this)" aria-label="Court ${n}"><span>${n}</span></label>`;
+    }).join('') + `</div>`;
+  const lockSvg = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg>`;
+  const pods = (f.matchups || []).map((m, i) => `<div class="fr-matchup">
       <div class="fr-mu-top">
-        <span class="fr-mu-court">Court <input type="number" min="1" max="20" value="${m.court||i+1}" onchange="setFriendlyMatchup(${i},'court',this.value)"></span>
+        <div class="fr-mu-court">Court ${courtPicker(m, i)}</div>
         <select class="fr-mu-status" onchange="setFriendlyMatchup(${i},'status',this.value)">
-          <option value="live"${status==='live'?' selected':''}>Live</option>
-          <option value="final"${status==='final'?' selected':''}>Final</option>
+          <option value="live"${(m.status || 'live') === 'live' ? ' selected' : ''}>Live</option>
+          <option value="next"${m.status === 'next' ? ' selected' : ''}>Up Next</option>
+          <option value="final"${m.status === 'final' ? ' selected' : ''}>Final</option>
         </select>
+        <button class="frb-lock${m.locked ? ' on' : ''}" onclick="toggleFriendlyLock(${i})" title="${m.locked ? 'Locked — kept when you reshuffle' : 'Lock this court'}" aria-label="Lock court">${lockSvg}</button>
         <button class="fr-mu-del" onclick="removeFriendlyMatchup(${i})" title="Remove" aria-label="Remove matchup">&#215;</button>
       </div>
-      <div class="fr-mu-side red">
-        <select onchange="setFriendlyMatchupPlayer(${i},'red',0,this.value)">${friendlyPairOptions(f.redTeam, redSel[0])}</select>
-        <select onchange="setFriendlyMatchupPlayer(${i},'red',1,this.value)">${friendlyPairOptions(f.redTeam, redSel[1])}</select>
-        <input class="fr-mu-score" type="number" min="0" max="99" value="${m.redScore||0}" onchange="setFriendlyMatchup(${i},'redScore',this.value)" aria-label="Red score">
+      <div class="frb-body">
+        <div class="frb-row red">${slot(m, i, 'red', 0)}${slot(m, i, 'red', 1)}${scoreCtl(m, i, 'red')}</div>
+        <div class="frb-row blue">${slot(m, i, 'blue', 0)}${slot(m, i, 'blue', 1)}${scoreCtl(m, i, 'blue')}</div>
       </div>
-      <div class="fr-mu-side blue">
-        <select onchange="setFriendlyMatchupPlayer(${i},'blue',0,this.value)">${friendlyPairOptions(f.blueTeam, blueSel[0])}</select>
-        <select onchange="setFriendlyMatchupPlayer(${i},'blue',1,this.value)">${friendlyPairOptions(f.blueTeam, blueSel[1])}</select>
-        <input class="fr-mu-score" type="number" min="0" max="99" value="${m.blueScore||0}" onchange="setFriendlyMatchup(${i},'blueScore',this.value)" aria-label="Blue score">
-      </div>
-    </div>`;
-  }).join('');
+    </div>`).join('');
+  const hasTeams = (f.redTeam.length || f.blueTeam.length);
+  el.innerHTML = `
+    <div class="frb-actions">
+      <button class="btn btn-primary btn-sm" onclick="autoFillFriendly()">Auto-fill courts</button>
+      <button class="btn btn-ghost btn-sm" onclick="reshuffleFriendly()">Reshuffle</button>
+    </div>
+    ${hasTeams ? `<div class="frb-bench">
+      <div class="frb-bench-hint">Bench &mdash; tap a player then a slot (or drag them across).</div>
+      <div class="frb-side r">RED</div>${rail('red')}
+      <div class="frb-side b">BLUE</div>${rail('blue')}
+    </div>` : `<div class="admin-helper-text">Put players on Red/Blue in the <b>Squads</b> section above, then Auto-fill or drag them onto courts.</div>`}
+    ${f.matchups.length ? pods : `<div class="admin-helper-text">No courts yet &mdash; tap <b>Auto-fill courts</b>, or <b>Add court matchup</b> below.</div>`}
+  `;
 }
 
 // ── Admin actions (optimistic local update → persist) ──
@@ -2648,6 +2769,9 @@ function setFriendlyTeam(id, team) {
   if (f.blueCaptain === id) f.blueCaptain = null;
   if (!onThis) (team === 'red' ? f.redTeam : f.blueTeam).push(id);
   renderFriendlySquad(f);
+  // Team membership drives the matchup pair dropdowns — refresh them so the newly
+  // assigned player is immediately pickable (otherwise the selects stay empty).
+  renderFriendlyMatchups(f);
   saveFriendly();
 }
 function setFriendlyCaptain(id) {
@@ -2675,8 +2799,14 @@ function setFriendlyMatchup(i, field, val) {
   if (field === 'court') m.court = Math.max(1, parseInt(val,10) || 1);
   else if (field === 'redScore') m.redScore = Math.max(0, parseInt(val,10) || 0);
   else if (field === 'blueScore') m.blueScore = Math.max(0, parseInt(val,10) || 0);
-  else if (field === 'status') m.status = (val === 'final' ? 'final' : 'live');
+  else if (field === 'status') m.status = (val === 'final' ? 'final' : val === 'next' ? 'next' : 'live');
   saveFriendly();
+}
+// Single-select court chips: light the chosen one, clear its siblings, persist.
+function pickFriendlyCourt(i, input) {
+  const group = input.closest('.fr-mu-courts');
+  if (group) group.querySelectorAll('.court-chip').forEach(c => c.classList.toggle('on', c.contains(input)));
+  setFriendlyMatchup(i, 'court', input.value);
 }
 function setFriendlyMatchupPlayer(i, team, slot, id) {
   const f = ensureFriendly();
@@ -2684,6 +2814,138 @@ function setFriendlyMatchupPlayer(i, team, slot, id) {
   if (!Array.isArray(m[team])) m[team] = ['',''];
   m[team][slot] = id || '';
   saveFriendly();
+}
+
+// ── Matchup board: drag/tap placement + auto-lineup ──
+// A player lives on at most one court: putting them in a slot pulls them out of
+// every other slot first. Mutates state only; the caller re-renders + saves.
+function placeFriendlyPlayer(i, team, k, id) {
+  const f = ensureFriendly();
+  const m = f.matchups[i]; if (!m) return;
+  f.matchups.forEach(mm => {
+    if (Array.isArray(mm.red)) mm.red = mm.red.map(x => x === id ? '' : x);
+    if (Array.isArray(mm.blue)) mm.blue = mm.blue.map(x => x === id ? '' : x);
+  });
+  if (!Array.isArray(m[team])) m[team] = ['', ''];
+  m[team][k] = id;
+}
+// Tap a bench player: if a slot of the same team is already armed, drop them in;
+// otherwise arm/disarm this player.
+function frPickPlayer(id, team) {
+  const f = ensureFriendly();
+  if (__frActive) {
+    const parts = __frActive.split(':');
+    if (parts[1] === team) {
+      placeFriendlyPlayer(+parts[0], team, +parts[2], id);
+      __frActive = null; __frSel.pid = null;
+      renderFriendlyMatchups(f); saveFriendly(); return;
+    }
+  }
+  __frSel.pid = (__frSel.pid === id ? null : id);
+  __frActive = null;
+  renderFriendlyMatchups(f);
+}
+// Tap a slot: place an armed player, clear a filled slot, or arm an empty one.
+function frSlotTap(i, team, k) {
+  const f = ensureFriendly();
+  const m = f.matchups[i]; if (!m) return;
+  if (__frSel.pid) {
+    if ((team === 'red' ? f.redTeam : f.blueTeam).includes(__frSel.pid)) {
+      placeFriendlyPlayer(i, team, k, __frSel.pid);
+      __frSel.pid = null; __frActive = null;
+      renderFriendlyMatchups(f); saveFriendly();
+    }
+    return;
+  }
+  if ((m[team] || [])[k]) {
+    m[team][k] = '';
+    __frActive = null;
+    renderFriendlyMatchups(f); saveFriendly();
+    return;
+  }
+  const key = i + ':' + team + ':' + k;
+  __frActive = (__frActive === key ? null : key);
+  renderFriendlyMatchups(f);
+}
+function frClearSlot(i, team, k) {
+  const f = ensureFriendly();
+  const m = f.matchups[i]; if (!m || !Array.isArray(m[team])) return;
+  m[team][k] = '';
+  __frActive = null; __frSel.pid = null;
+  renderFriendlyMatchups(f); saveFriendly();
+}
+// Score bumps update the number in place so rapid courtside tapping stays snappy.
+function stepFriendlyScore(i, field, delta, btn) {
+  const f = ensureFriendly();
+  const m = f.matchups[i]; if (!m) return;
+  const next = Math.max(0, Math.min(99, ((field === 'redScore' ? m.redScore : m.blueScore) || 0) + delta));
+  m[field] = next;
+  const n = btn && btn.parentElement && btn.parentElement.querySelector('.n');
+  if (n) n.textContent = next;
+  saveFriendly();
+}
+function toggleFriendlyLock(i) {
+  const f = ensureFriendly();
+  const m = f.matchups[i]; if (!m) return;
+  m.locked = !m.locked;
+  renderFriendlyMatchups(f); saveFriendly();
+}
+// Drag-and-drop (desktop pointer). Touch devices use tap-to-place above.
+function frDragStart(e, id, team) {
+  try { e.dataTransfer.setData('text/plain', id + '|' + team); e.dataTransfer.effectAllowed = 'move'; } catch (_) {}
+}
+function frDragOver(e, el) { e.preventDefault(); el.classList.add('dragover'); }
+function frDrop(e, i, team, k, el) {
+  e.preventDefault(); el.classList.remove('dragover');
+  const raw = (e.dataTransfer && e.dataTransfer.getData('text/plain')) || '';
+  const bar = raw.indexOf('|');
+  const id = bar > -1 ? raw.slice(0, bar) : '', srcTeam = bar > -1 ? raw.slice(bar + 1) : '';
+  if (!id || srcTeam !== team) return;
+  const f = ensureFriendly();
+  placeFriendlyPlayer(i, team, k, id);
+  __frSel.pid = null; __frActive = null;
+  renderFriendlyMatchups(f); saveFriendly();
+}
+// Fill every unlocked court with fresh random pairs; locked courts keep theirs
+// (and their players stay out of the pool). Repeat-safe reshuffle.
+function fillMatchups(f) {
+  const lockedRed = new Set(), lockedBlue = new Set();
+  f.matchups.forEach(m => {
+    if (!m.locked) return;
+    (m.red || []).forEach(id => { if (id) lockedRed.add(id); });
+    (m.blue || []).forEach(id => { if (id) lockedBlue.add(id); });
+  });
+  const shuffle = a => a.map(v => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map(v => v[1]);
+  const sess = friendlySessionSet();
+  const rPool = shuffle((f.redTeam || []).filter(id => !lockedRed.has(id) && sess.has(id)));
+  const bPool = shuffle((f.blueTeam || []).filter(id => !lockedBlue.has(id) && sess.has(id)));
+  let ri = 0, bi = 0;
+  f.matchups.forEach(m => {
+    if (m.locked) return;
+    m.red = [rPool[ri++] || '', rPool[ri++] || ''];
+    m.blue = [bPool[bi++] || '', bPool[bi++] || ''];
+  });
+}
+function autoFillFriendly() {
+  const f = ensureFriendly();
+  if (!(f.redTeam.length || f.blueTeam.length)) return notify('Assign players to Red/Blue first.', 'warn');
+  if (!f.matchups.length) {
+    const n = Math.max(1, state.numCourts || 1);
+    const nums = (typeof getCourtNumbers === 'function' ? getCourtNumbers() : []) || [];
+    for (let c = 0; c < n; c++) f.matchups.push({ court: nums[c] || c + 1, red: ['', ''], blue: ['', ''], redScore: 0, blueScore: 0, status: 'live' });
+  }
+  fillMatchups(f);
+  __frSel.pid = null; __frActive = null;
+  renderFriendlyMatchups(f); saveFriendly();
+  notify('Courts auto-filled — drag to tweak.');
+}
+function reshuffleFriendly() {
+  const f = ensureFriendly();
+  if (!f.matchups.length) return notify('Add a court first, or tap Auto-fill.', 'warn');
+  fillMatchups(f);
+  __frSel.pid = null; __frActive = null;
+  renderFriendlyMatchups(f); saveFriendly();
+  notify('Reshuffled the unlocked courts.');
 }
 
 // ── Viewer takeover ──
@@ -2709,7 +2971,8 @@ function renderFriendlyViewer() {
   }
   const sig = stateSig({ rn:f.redName, bn:f.blueName, rg:f.redGames, bg:f.blueGames,
     rc:f.redCaptain, bc:f.blueCaptain, rt:f.redTeam, bt:f.blueTeam, mu:f.matchups,
-    date: state.sessionDate, names: (state.roster||[]).map(r => r.id+':'+r.name).join(',') });
+    date: state.sessionDate, names: (state.roster||[]).map(r => r.id+':'+r.name).join(','),
+    ses: (state.players||[]).map(p => p.id).join(',') });
   if (sig === __fvSig) return;
   __fvSig = sig;
   buildFriendlyViewer(ensureFriendly());
@@ -2718,21 +2981,34 @@ function buildFriendlyViewer(f) {
   const wrap = document.getElementById('fvWrap');
   if (!wrap) return;
   const redName = f.redName || 'Red Team', blueName = f.blueName || 'Blue Team';
-  const onCourt = new Set();
-  (f.matchups||[]).forEach(m => { (m.red||[]).forEach(id=>id&&onCourt.add(id)); (m.blue||[]).forEach(id=>id&&onCourt.add(id)); });
+  const sess = friendlySessionSet();
+  const redRoster = f.redTeam.filter(id => sess.has(id));
+  const blueRoster = f.blueTeam.filter(id => sess.has(id));
+  const onCourt = new Set(); // "ON" = actually playing now (live courts only, not Up Next / Final)
+  (f.matchups||[]).filter(m => (m.status||'live') === 'live').forEach(m => { (m.red||[]).forEach(id=>id&&onCourt.add(id)); (m.blue||[]).forEach(id=>id&&onCourt.add(id)); });
   const leadTxt = f.redGames>f.blueGames ? `${escHtml(redName)} lead +${f.redGames-f.blueGames}`
     : f.blueGames>f.redGames ? `${escHtml(blueName)} lead +${f.blueGames-f.redGames}` : 'All square';
 
-  const courtsHtml = (f.matchups||[]).length ? f.matchups.map(m => {
-    const rs = +m.redScore||0, bs = +m.blueScore||0, live = (m.status||'live') !== 'final';
-    const rLead = rs>bs, bLead = bs>rs;
-    const pair = ids => ((ids||[]).filter(Boolean).map(id=>`<span class="n">${escHtml(frNameOf(id))}</span>`).join('') || '<span class="n">TBD</span>');
-    return `<div class="fv-mc">
-      <div class="fv-mc-top"><div class="fv-mc-court">C${m.court||''}<span>Court ${m.court||''}</span></div><span class="fv-pill ${live?'live':'final'}">${live?'Live':'Final'}</span></div>
-      <div class="fv-trow red${rLead?' lead':''}"><span class="fv-dot red"></span><div class="fv-pair">${pair(m.red)}</div><span class="fv-sc" data-count="${rs}">0</span></div>
-      <div class="fv-trow blue${bLead?' lead':''}"><span class="fv-dot blue"></span><div class="fv-pair">${pair(m.blue)}</div><span class="fv-sc" data-count="${bs}">0</span></div>
+  const pair = ids => ((ids||[]).filter(Boolean).map(id=>`<span class="n">${escHtml(frNameOf(id))}</span>`).join('') || '<span class="n">TBD</span>');
+  const courtCard = (m) => {
+    const st = m.status || 'live';
+    const rs = +m.redScore||0, bs = +m.blueScore||0;
+    const rLead = st!=='next' && rs>bs, bLead = st!=='next' && bs>rs;
+    const pill = st==='final' ? '<span class="fv-pill final">Final</span>'
+      : st==='next' ? '<span class="fv-pill next">Up Next</span>'
+      : '<span class="fv-pill live">Live</span>';
+    const scR = st==='next' ? '' : `<span class="fv-sc" data-count="${rs}">0</span>`;
+    const scB = st==='next' ? '' : `<span class="fv-sc" data-count="${bs}">0</span>`;
+    return `<div class="fv-mc${st==='next'?' next':''}">
+      <div class="fv-mc-top"><div class="fv-mc-court">C${m.court||''}<span>Court ${m.court||''}</span></div>${pill}</div>
+      <div class="fv-trow red${rLead?' lead':''}"><span class="fv-dot red"></span><div class="fv-pair">${pair(m.red)}</div>${scR}</div>
+      <div class="fv-trow blue${bLead?' lead':''}"><span class="fv-dot blue"></span><div class="fv-pair">${pair(m.blue)}</div>${scB}</div>
     </div>`;
-  }).join('') : '<div class="fv-empty">No court matchups set yet.</div>';
+  };
+  const liveMu = (f.matchups||[]).filter(m => (m.status||'live') !== 'next');
+  const nextMu = (f.matchups||[]).filter(m => (m.status||'live') === 'next');
+  const courtsHtml = liveMu.length ? liveMu.map(courtCard).join('') : '<div class="fv-empty">No court matchups set yet.</div>';
+  const nextHtml = nextMu.map(courtCard).join('');
 
   const rosterHtml = (side, ids, capId, name) => {
     const head = `<div class="fv-ros-h"><span class="fv-anton t">${escHtml(name)}</span><span class="c">${ids.length} player${ids.length!==1?'s':''}</span></div>`;
@@ -2778,12 +3054,14 @@ function buildFriendlyViewer(f) {
         <div class="fv-gnum fv-anton" data-count="${f.blueGames}">0</div>
       </div>
     </div>
-    <div class="fv-sec"><h2>Live Courts</h2><span class="bar"></span><span class="idx">${(f.matchups||[]).length} ${((f.matchups||[]).length===1)?'court':'courts'}</span></div>
+    <div class="fv-sec"><h2>Live Courts</h2><span class="bar"></span><span class="idx">${liveMu.length} ${(liveMu.length===1)?'court':'courts'}</span></div>
     <div class="fv-courts">${courtsHtml}</div>
-    <div class="fv-sec"><h2>Team Rosters</h2><span class="bar"></span><span class="idx">${f.redTeam.length + f.blueTeam.length} players</span></div>
+    ${nextMu.length ? `<div class="fv-sec"><h2>Up Next</h2><span class="bar"></span><span class="idx">${nextMu.length} coming up</span></div>
+    <div class="fv-courts">${nextHtml}</div>` : ''}
+    <div class="fv-sec"><h2>Team Rosters</h2><span class="bar"></span><span class="idx">${redRoster.length + blueRoster.length} players</span></div>
     <div class="fv-rosters">
-      ${rosterHtml('red', f.redTeam, f.redCaptain, redName)}
-      ${rosterHtml('blue', f.blueTeam, f.blueCaptain, blueName)}
+      ${rosterHtml('red', redRoster, f.redCaptain, redName)}
+      ${rosterHtml('blue', blueRoster, f.blueCaptain, blueName)}
     </div>`;
 
   fvAnimateCounts(wrap);
@@ -5653,10 +5931,9 @@ async function setPoints(id, val) {
 
 // ── PLAYER LEVEL + MIXED-DOUBLES (per-player, global metadata) ─────────
 // Set per player in the Players "List" view (a Grid ⇄ List toggle flips the
-// roster into a table — variant 12). Level is a rating 1.0–5.0; Mixed-doubles
-// is a yes/no. Both are stored on the roster player (global, persists across
-// sessions); metadata only (no effect on matchmaking).
-const LEVELS = ['1.0', '2.0', '3.0', '4.0', '5.0'];
+// roster into a table — variant 12). Level is a free rating from 1 to 5 (any
+// value, e.g. 3.5); Mixed-doubles is a yes/no. Both are stored on the roster
+// player (global, persists across sessions); metadata only (no matchmaking effect).
 
 // Which Players view is active (per-device). Grid = tap-to-add cards;
 // List = bulk level/mixed table.
@@ -5681,12 +5958,10 @@ function renderRosterList(listEl, visibleRoster, sessionIds, q) {
     return;
   }
   const rows = visibleRoster.map(rp => {
-    // Level: a compact 1.0–5.0 picker (a 5-segment pill won't fit beside the
-    // name + Mixed + Pts columns on a phone, so use a select that scales).
-    const lvOpts = ['<option value="">&mdash;</option>'].concat(
-      LEVELS.map(lv => `<option value="${lv}"${rp.level === lv ? ' selected' : ''}>${lv}</option>`)
-    ).join('');
-    const seg = `<select class="rl-lvl-sel${rp.level ? ' set' : ''}" onchange="setPlayerLevel('${rp.id}',this.value)" aria-label="Level for ${escHtml(rp.name)}">${lvOpts}</select>`;
+    // Level: a free rating from 1 to 5 (any value, e.g. 3.5). A number input
+    // lets the admin type any value in range; blank leaves it "not set".
+    const lvVal = (rp.level == null || rp.level === '') ? '' : rp.level;
+    const seg = `<input type="number" class="rl-lvl-inp${rp.level ? ' set' : ''}" min="1" max="5" step="0.1" inputmode="decimal" placeholder="&mdash;" value="${lvVal}" onchange="setPlayerLevel('${rp.id}',this.value)" aria-label="Level for ${escHtml(rp.name)}">`;
     const mx = !!rp.mixed;
     const inS = sessionIds.has(rp.id);
     // The player cell toggles today's session (like tapping a Grid card); the
@@ -5704,12 +5979,17 @@ function renderRosterList(listEl, visibleRoster, sessionIds, q) {
   listEl.innerHTML = `<div class="rl-head"><span>Player</span><span>Level</span><span>Mixed</span><span>Pts</span></div>${rows}`;
 }
 
-// Optimistic edits: set locally + render instantly, then persist. The picker's
-// blank "—" option passes '' to clear the level back to "not set".
+// Optimistic edits: set locally + render instantly, then persist. An empty
+// input clears the level; any other value is clamped to the 1–5 range.
 async function setPlayerLevel(id, level) {
   const cur = (state.roster || []).find(r => r.id === id);
   if (!cur) return;
-  const nextLv = level || null;
+  let nextLv = null;
+  const s = (level == null ? '' : String(level)).trim();
+  if (s !== '') {
+    const n = parseFloat(s);
+    if (!isNaN(n)) nextLv = String(Math.round(Math.min(5, Math.max(1, n)) * 10) / 10);
+  }
   const roster = (state.roster || []).map(r => r.id === id ? { ...r, level: nextLv } : r);
   state.roster = roster;
   renderPlayersSection();

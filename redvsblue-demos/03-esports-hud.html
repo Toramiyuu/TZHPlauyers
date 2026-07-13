@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TZH Friendly · Red vs Blue — Esports HUD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07080c;
+    --bg-2:#0b0d14;
+    --panel:#0e111b;
+    --line:rgba(255,255,255,.09);
+    --ink:#e7ecf5;
+    --ink-dim:#8b93a7;
+    --red:#ff2d43;
+    --red-deep:#b3121f;
+    --blue:#1f9bff;
+    --blue-deep:#0b5bc4;
+    --red-glow:rgba(255,45,67,.55);
+    --blue-glow:rgba(31,155,255,.55);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:"Rajdhani",sans-serif;-webkit-font-smoothing:antialiased}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(1200px 600px at 12% -10%, rgba(255,45,67,.10), transparent 60%),
+      radial-gradient(1200px 600px at 88% -10%, rgba(31,155,255,.10), transparent 60%),
+      linear-gradient(180deg,#0a0c12,#07080c 60%);
+    background-attachment:fixed;
+    position:relative;
+    overflow-x:hidden;
+  }
+  /* hex / grid texture + scanlines */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size:44px 44px, 44px 44px;
+    mask-image:radial-gradient(120% 90% at 50% 0%, #000 40%, transparent 100%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:2;opacity:.35;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.0) 0px, rgba(0,0,0,.0) 2px, rgba(0,0,0,.18) 3px, rgba(0,0,0,.0) 4px);
+  }
+  .wrap{position:relative;z-index:3;max-width:1680px;margin:0 auto;padding:clamp(16px,2.4vw,40px)}
+
+  .mono{font-family:"Share Tech Mono","Chakra Petch",monospace}
+  .tech{font-family:"Chakra Petch",sans-serif}
+
+  /* ---------- header ---------- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    padding:12px clamp(14px,1.6vw,22px);
+    border:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));
+    clip-path:polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+  }
+  .brand{display:flex;align-items:center;gap:14px;min-width:0}
+  .brand .mark{
+    width:38px;height:38px;flex:none;display:grid;place-items:center;
+    font-family:"Orbitron";font-weight:800;font-size:15px;letter-spacing:.02em;color:#0b0d14;
+    background:conic-gradient(from 220deg, var(--red), #fff 48%, var(--blue));
+    clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);
+  }
+  .brand h1{font-family:"Chakra Petch";font-weight:700;font-size:clamp(15px,1.5vw,20px);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}
+  .brand .sub{color:var(--ink-dim);font-size:clamp(11px,1vw,13px);letter-spacing:.28em;text-transform:uppercase}
+  .meta{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .meta .item{color:var(--ink-dim);font-size:clamp(11px,1vw,13px);letter-spacing:.16em;text-transform:uppercase}
+  .meta .item b{color:var(--ink);font-weight:600}
+  .live{
+    display:inline-flex;align-items:center;gap:8px;padding:7px 14px 7px 12px;
+    font-family:"Chakra Petch";font-weight:700;letter-spacing:.24em;font-size:12px;text-transform:uppercase;color:#fff;
+    background:linear-gradient(90deg,var(--red-deep),var(--red));
+    clip-path:polygon(10px 0,100% 0,100% 100%,0 100%,0 10px);
+    box-shadow:0 0 18px var(--red-glow);
+  }
+  .live .dot{width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 10px #fff;animation:pulse 1.15s infinite ease-in-out}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+
+  /* ---------- versus band ---------- */
+  .versus{
+    margin-top:clamp(14px,1.8vw,26px);
+    display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;gap:0;
+    position:relative;
+  }
+  .team-plate{position:relative;padding:clamp(18px,2.4vw,34px) clamp(18px,2.4vw,40px);overflow:hidden;border:1px solid var(--line)}
+  .team-plate .label{font-family:"Chakra Petch";font-weight:600;letter-spacing:.3em;text-transform:uppercase;font-size:clamp(11px,1vw,14px);color:var(--ink-dim)}
+  .team-plate .name{font-family:"Orbitron";font-weight:800;font-size:clamp(30px,5.2vw,74px);line-height:.95;letter-spacing:.01em;text-transform:uppercase;margin-top:6px}
+  .team-plate .cap{margin-top:12px;color:var(--ink-dim);font-size:clamp(12px,1.05vw,15px);letter-spacing:.14em;text-transform:uppercase}
+  .team-plate .cap b{color:var(--ink);font-weight:600}
+  .team-plate .streak{position:absolute;right:-1px;top:-1px;bottom:-1px;width:6px}
+
+  .plate-red{
+    text-align:left;
+    background:
+      radial-gradient(120% 140% at 0% 0%, rgba(255,45,67,.22), transparent 55%),
+      linear-gradient(120deg, rgba(255,45,67,.10), rgba(255,45,67,0) 60%), var(--panel);
+    clip-path:polygon(0 0, 100% 0, calc(100% - 34px) 100%, 0 100%);
+    border-right:none;
+  }
+  .plate-red .name{color:#fff;text-shadow:0 0 26px var(--red-glow)}
+  .plate-red .streak{background:linear-gradient(180deg,var(--red),var(--red-deep));box-shadow:0 0 22px var(--red-glow)}
+  .plate-blue{
+    text-align:right;
+    background:
+      radial-gradient(120% 140% at 100% 0%, rgba(31,155,255,.22), transparent 55%),
+      linear-gradient(-120deg, rgba(31,155,255,.10), rgba(31,155,255,0) 60%), var(--panel);
+    clip-path:polygon(34px 0, 100% 0, 100% 100%, 0 100%);
+    border-left:none;
+  }
+  .plate-blue .name{color:#fff;text-shadow:0 0 26px var(--blue-glow)}
+  .plate-blue .streak{left:-1px;right:auto;background:linear-gradient(180deg,var(--blue),var(--blue-deep));box-shadow:0 0 22px var(--blue-glow)}
+
+  .scorecore{
+    position:relative;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:clamp(10px,1.4vw,20px) clamp(16px,2.2vw,34px);
+    background:linear-gradient(180deg,#12151f,#0a0c12);
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    margin:0 -24px;box-shadow:0 0 40px rgba(0,0,0,.6);
+    clip-path:polygon(24px 0, calc(100% - 24px) 0, 100% 50%, calc(100% - 24px) 100%, 24px 100%, 0 50%);
+  }
+  .scorecore .tag{font-family:"Chakra Petch";letter-spacing:.34em;font-size:clamp(9px,.8vw,12px);color:var(--ink-dim);text-transform:uppercase}
+  .scoreline{display:flex;align-items:center;gap:clamp(8px,1vw,18px);margin:4px 0 2px}
+  .scoreline .num{font-family:"Orbitron";font-weight:900;font-size:clamp(46px,7.4vw,104px);line-height:1}
+  .scoreline .r{color:var(--red);text-shadow:0 0 30px var(--red-glow)}
+  .scoreline .b{color:var(--blue);text-shadow:0 0 30px var(--blue-glow)}
+  .scoreline .colon{font-family:"Orbitron";font-weight:800;font-size:clamp(28px,4vw,56px);color:var(--ink-dim)}
+  .scorecore .cap2{font-family:"Chakra Petch";letter-spacing:.2em;font-size:clamp(9px,.85vw,12px);color:var(--ink-dim);text-transform:uppercase}
+
+  /* ---------- section head ---------- */
+  .sec-head{display:flex;align-items:center;gap:14px;margin:clamp(24px,3vw,42px) 2px clamp(12px,1.4vw,18px)}
+  .sec-head h2{font-family:"Chakra Petch";font-weight:700;letter-spacing:.26em;text-transform:uppercase;font-size:clamp(13px,1.3vw,17px)}
+  .sec-head .bar{height:1px;flex:1;background:linear-gradient(90deg,var(--line),transparent)}
+  .sec-head .idx{font-family:"Share Tech Mono";color:var(--ink-dim);font-size:12px;letter-spacing:.1em}
+
+  /* ---------- court matches ---------- */
+  .courts{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(12px,1.4vw,20px)}
+  .match{
+    position:relative;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0)),var(--panel);
+    border:1px solid var(--line);padding:clamp(14px,1.6vw,20px);overflow:hidden;
+    clip-path:polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  }
+  .match .mtop{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .court-id{display:flex;align-items:center;gap:10px}
+  .court-id .cn{font-family:"Orbitron";font-weight:800;font-size:clamp(15px,1.4vw,19px);letter-spacing:.06em}
+  .court-id .cl{font-family:"Chakra Petch";color:var(--ink-dim);letter-spacing:.2em;font-size:11px;text-transform:uppercase}
+  .status{font-family:"Chakra Petch";font-weight:700;letter-spacing:.2em;font-size:11px;text-transform:uppercase;padding:5px 11px;clip-path:polygon(8px 0,100% 0,100% 100%,0 100%,0 8px)}
+  .status.live{color:#fff;background:linear-gradient(90deg,var(--red-deep),var(--red));box-shadow:0 0 14px var(--red-glow)}
+  .status.live::before{content:"● ";animation:pulse 1.15s infinite}
+  .status.final{color:var(--ink-dim);background:rgba(255,255,255,.06);border:1px solid var(--line)}
+
+  .rows{display:flex;flex-direction:column;gap:8px;margin-top:2px}
+  .teamrow{display:flex;align-items:center;gap:10px;min-width:0;padding:7px 10px;
+    clip-path:polygon(6px 0,100% 0,100% 100%,0 100%,0 6px)}
+  .teamrow.r{background:rgba(255,45,67,.07)}
+  .teamrow.b{background:rgba(31,155,255,.07)}
+  .dotc{width:9px;height:9px;flex:none;transform:rotate(45deg)}
+  .dotc.red{background:var(--red);box-shadow:0 0 8px var(--red-glow)}
+  .dotc.blue{background:var(--blue);box-shadow:0 0 8px var(--blue-glow)}
+  .teamrow .pair{display:flex;flex-direction:column;min-width:0;flex:1 1 auto;line-height:1.18}
+  .teamrow .pn{font-family:"Rajdhani";font-weight:600;font-size:clamp(13px,1.05vw,15px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .teamrow.r .pn{color:#ffd8dc}.teamrow.b .pn{color:#cfe6ff}
+  .teamrow .score{flex:none;margin-left:8px;font-family:"Orbitron";font-weight:800;font-size:clamp(26px,2.7vw,38px);line-height:1}
+  .teamrow.r .score{color:var(--red)}.teamrow.b .score{color:var(--blue)}
+  .teamrow.lead-r{box-shadow:inset 3px 0 0 var(--red)}
+  .teamrow.lead-b{box-shadow:inset 3px 0 0 var(--blue)}
+
+  /* ---------- rosters ---------- */
+  .rosters{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,1.6vw,26px)}
+  .roster{border:1px solid var(--line);background:var(--panel);padding:clamp(12px,1.4vw,18px);
+    clip-path:polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px))}
+  .roster.red{background:linear-gradient(180deg,rgba(255,45,67,.06),transparent 40%),var(--panel)}
+  .roster.blue{background:linear-gradient(180deg,rgba(31,155,255,.06),transparent 40%),var(--panel)}
+  .rhead{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+  .rhead .rt{font-family:"Orbitron";font-weight:800;letter-spacing:.04em;text-transform:uppercase;font-size:clamp(15px,1.5vw,20px)}
+  .roster.red .rt{color:#fff;text-shadow:0 0 18px var(--red-glow)}
+  .roster.blue .rt{color:#fff;text-shadow:0 0 18px var(--blue-glow)}
+  .rhead .rc{font-family:"Share Tech Mono";color:var(--ink-dim);font-size:12px;letter-spacing:.12em}
+  .plist{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .prow{display:flex;align-items:center;gap:9px;padding:7px 10px;background:rgba(255,255,255,.02);border:1px solid transparent;
+    clip-path:polygon(6px 0,100% 0,100% 100%,0 100%,0 6px)}
+  .prow .slot{font-family:"Share Tech Mono";font-size:11px;color:var(--ink-dim);width:20px;flex:none;text-align:right}
+  .prow .nm{font-family:"Rajdhani";font-weight:500;font-size:clamp(13px,1.05vw,15px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+  .prow .on{margin-left:auto;font-family:"Chakra Petch";font-size:9px;letter-spacing:.14em;color:#0b0d14;font-weight:700;padding:2px 6px;text-transform:uppercase}
+  .roster.red .prow.oncourt{border-color:rgba(255,45,67,.4);background:rgba(255,45,67,.08)}
+  .roster.blue .prow.oncourt{border-color:rgba(31,155,255,.4);background:rgba(31,155,255,.08)}
+  .roster.red .prow .on{background:var(--red)}
+  .roster.blue .prow .on{background:var(--blue)}
+  .prow.captain .nm{font-weight:700}
+  .roster.red .prow.captain{background:linear-gradient(90deg,rgba(255,45,67,.16),transparent);border-color:rgba(255,45,67,.5)}
+  .roster.blue .prow.captain{background:linear-gradient(90deg,rgba(31,155,255,.16),transparent);border-color:rgba(31,155,255,.5)}
+  .prow .capflag{font-family:"Chakra Petch";font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--ink-dim)}
+
+  .footer{margin-top:26px;text-align:center;color:var(--ink-dim);font-family:"Share Tech Mono";font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:820px){
+    .versus{grid-template-columns:1fr}
+    .plate-red{clip-path:polygon(0 0,100% 0,100% 100%,0 100%);text-align:center;border:1px solid var(--line);border-bottom:none}
+    .plate-blue{clip-path:polygon(0 0,100% 0,100% 100%,0 100%);text-align:center;border:1px solid var(--line);border-top:none}
+    .plate-red .streak,.plate-blue .streak{left:0;right:0;top:auto;bottom:-3px;width:auto;height:5px}
+    .scorecore{margin:-1px 0;clip-path:polygon(0 12px,50% 0,100% 12px,100% calc(100% - 12px),50% 100%,0 calc(100% - 12px))}
+    .courts{grid-template-columns:1fr}
+    .rosters{grid-template-columns:1fr}
+    .plist{grid-template-columns:1fr}
+    .meta{width:100%;justify-content:space-between}
+  }
+  @media (min-width:1400px){
+    .courts{grid-template-columns:repeat(4,1fr)}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- HEADER -->
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">TZH</div>
+        <div>
+          <h1 id="title">TZH Friendly Match</h1>
+          <div class="sub" id="subtitle">Red vs Blue</div>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="item"><b id="date">—</b></div>
+        <div class="item" id="venue">—</div>
+        <div class="live"><span class="dot"></span>Live</div>
+      </div>
+    </header>
+
+    <!-- VERSUS BAND -->
+    <section class="versus">
+      <div class="team-plate plate-red">
+        <div class="label">Team · Red</div>
+        <div class="name" id="redName">Red</div>
+        <div class="cap">Captain · <b id="redCap">—</b></div>
+        <span class="streak"></span>
+      </div>
+      <div class="scorecore">
+        <div class="tag">Games Won</div>
+        <div class="scoreline">
+          <span class="num r" id="redGames">0</span>
+          <span class="colon">:</span>
+          <span class="num b" id="blueGames">0</span>
+        </div>
+        <div class="cap2" id="leadNote">—</div>
+      </div>
+      <div class="team-plate plate-blue">
+        <div class="label">Team · Blue</div>
+        <div class="name" id="blueName">Blue</div>
+        <div class="cap">Captain · <b id="blueCap">—</b></div>
+        <span class="streak"></span>
+      </div>
+    </section>
+
+    <!-- COURTS -->
+    <div class="sec-head">
+      <h2>Live Courts</h2>
+      <span class="bar"></span>
+      <span class="idx" id="courtCount">//</span>
+    </div>
+    <section class="courts" id="courts"></section>
+
+    <!-- ROSTERS -->
+    <div class="sec-head">
+      <h2>Team Rosters</h2>
+      <span class="bar"></span>
+      <span class="idx">// 24 PLAYERS</span>
+    </div>
+    <section class="rosters">
+      <div class="roster red">
+        <div class="rhead"><span class="rt" id="rRedName">Red</span><span class="rc">12 PLAYERS</span></div>
+        <div class="plist" id="redRoster"></div>
+      </div>
+      <div class="roster blue">
+        <div class="rhead"><span class="rt" id="rBlueName">Blue</span><span class="rc">12 PLAYERS</span></div>
+        <div class="plist" id="blueRoster"></div>
+      </div>
+    </section>
+
+    <div class="footer">TZH Badminton · Internal Friendly · Red Squad vs Blue Squad</div>
+  </div>
+
+<script>
+const MATCH = {
+  title: "TZH Friendly Match", subtitle: "Red vs Blue",
+  date: "Monday 13 July 2026", venue: "TZH Badminton Arena",
+  red:  { name: "Red Team",  games: 6, captain: "Wei Jie" },
+  blue: { name: "Blue Team", games: 5, captain: "Zhang Hao" },
+  redPlayers:  ["Wei Jie (C)","Marcus Tan","Kenji Wong","Arjun Rao","Daniel Lim","Ryan Ng","Samuel Goh","Ethan Chua","Lucas Teo","Nathan Sim","Oliver Yeo","Isaac Loh"],
+  bluePlayers: ["Zhang Hao (C)","Aaron Koh","Bryan Ho","Vikram Nair","Julian Toh","Leon Tay","Adrian Ong","Felix Low","Gabriel See","Sean Chan","Dylan Foo","Caleb Wee"],
+  courts: [
+    { court: 1, red: ["Wei Jie","Marcus Tan"],   blue: ["Zhang Hao","Aaron Koh"],  red_score: 21, blue_score: 18, status: "Final" },
+    { court: 2, red: ["Kenji Wong","Arjun Rao"],  blue: ["Bryan Ho","Vikram Nair"], red_score: 15, blue_score: 19, status: "Live" },
+    { court: 3, red: ["Daniel Lim","Ryan Ng"],    blue: ["Julian Toh","Leon Tay"],  red_score: 11, blue_score: 9,  status: "Live" },
+    { court: 4, red: ["Samuel Goh","Ethan Chua"], blue: ["Adrian Ong","Felix Low"], red_score: 8,  blue_score: 14, status: "Live" }
+  ],
+  redBench:  ["Lucas Teo","Nathan Sim","Oliver Yeo","Isaac Loh"],
+  blueBench: ["Gabriel See","Sean Chan","Dylan Foo","Caleb Wee"]
+};
+
+const $ = (id)=>document.getElementById(id);
+const stripC = (n)=>n.replace(/\s*\(C\)\s*$/,"").trim();
+const isCap = (n)=>/\(C\)\s*$/.test(n);
+
+// header + names
+$("title").textContent = MATCH.title;
+$("subtitle").textContent = MATCH.subtitle;
+$("date").textContent = MATCH.date;
+$("venue").textContent = MATCH.venue;
+$("redName").textContent = "RED";
+$("blueName").textContent = "BLUE";
+$("redCap").textContent = MATCH.red.captain;
+$("blueCap").textContent = MATCH.blue.captain;
+$("redGames").textContent = MATCH.red.games;
+$("blueGames").textContent = MATCH.blue.games;
+$("rRedName").textContent = "RED SQUAD";
+$("rBlueName").textContent = "BLUE SQUAD";
+
+const diff = MATCH.red.games - MATCH.blue.games;
+$("leadNote").textContent = diff===0 ? "All Square" : (diff>0? "Red Leads +"+diff : "Blue Leads +"+(-diff));
+
+// which players are on court
+const onCourt = new Set();
+MATCH.courts.forEach(c=>{ c.red.forEach(p=>onCourt.add(p)); c.blue.forEach(p=>onCourt.add(p)); });
+
+// courts
+$("courtCount").textContent = "// "+MATCH.courts.length+" COURTS";
+$("courts").innerHTML = MATCH.courts.map(c=>{
+  const rLead = c.red_score>c.blue_score, bLead = c.blue_score>c.red_score;
+  const live = c.status.toLowerCase()==="live";
+  return `
+  <article class="match">
+    <div class="mtop">
+      <div class="court-id"><span class="cn">C${c.court}</span><span class="cl">Court ${c.court}</span></div>
+      <span class="status ${live?'live':'final'}">${live?'Live':'Final'}</span>
+    </div>
+    <div class="rows">
+      <div class="teamrow r ${rLead?'lead-r':''}">
+        <span class="dotc red"></span>
+        <div class="pair">${c.red.map(p=>`<span class="pn">${p}</span>`).join("")}</div>
+        <span class="score">${c.red_score}</span>
+      </div>
+      <div class="teamrow b ${bLead?'lead-b':''}">
+        <span class="dotc blue"></span>
+        <div class="pair">${c.blue.map(p=>`<span class="pn">${p}</span>`).join("")}</div>
+        <span class="score">${c.blue_score}</span>
+      </div>
+    </div>
+  </article>`;
+}).join("");
+
+// rosters
+function rosterRows(list){
+  return list.map((p,i)=>{
+    const name = stripC(p);
+    const cap = isCap(p);
+    const oc = onCourt.has(name);
+    return `<div class="prow ${oc?'oncourt':''} ${cap?'captain':''}">
+      <span class="slot">${String(i+1).padStart(2,'0')}</span>
+      <span class="nm">${name}</span>
+      ${cap?'<span class="capflag">CAPT</span>':''}
+      ${oc?'<span class="on">On</span>':''}
+    </div>`;
+  }).join("");
+}
+$("redRoster").innerHTML = rosterRows(MATCH.redPlayers);
+$("blueRoster").innerHTML = rosterRows(MATCH.bluePlayers);
+</script>
+</body>
+</html>

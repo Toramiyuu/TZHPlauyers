@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TZH Friendly Match — Red vs Blue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --red-1: #ff5d6c;
+    --red-2: #e11d48;
+    --red-glow: rgba(244, 63, 94, 0.55);
+    --blue-1: #6aa8ff;
+    --blue-2: #2563eb;
+    --blue-glow: rgba(56, 118, 246, 0.55);
+    --ink: #f4f6fb;
+    --ink-soft: rgba(238, 242, 255, 0.66);
+    --ink-faint: rgba(226, 232, 255, 0.42);
+    --glass: rgba(255, 255, 255, 0.055);
+    --glass-strong: rgba(255, 255, 255, 0.09);
+    --stroke: rgba(255, 255, 255, 0.14);
+    --stroke-soft: rgba(255, 255, 255, 0.08);
+    --shadow: 0 24px 60px -20px rgba(2, 4, 20, 0.75);
+    --radius: 22px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { min-height: 100%; }
+
+  body {
+    font-family: "Sora", system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background: #05060f;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+    overflow-x: hidden;
+    padding: clamp(16px, 3vw, 48px);
+  }
+
+  /* ---------- AURORA BACKGROUND ---------- */
+  .aurora {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    overflow: hidden;
+    background:
+      radial-gradient(120% 90% at 50% 0%, #0d1024 0%, #07091a 45%, #04050d 100%);
+  }
+  .aurora::before,
+  .aurora::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.9;
+    will-change: transform;
+  }
+  /* warm crimson glow bleeding from the left */
+  .aurora::before {
+    width: 75vw;
+    height: 75vw;
+    max-width: 1100px;
+    max-height: 1100px;
+    left: -22vw;
+    top: -14vh;
+    background:
+      radial-gradient(circle at 40% 40%, var(--red-glow) 0%, rgba(225, 29, 72, 0.28) 38%, transparent 68%);
+    animation: driftRed 18s ease-in-out infinite alternate;
+  }
+  /* cool azure glow from the right */
+  .aurora::after {
+    width: 78vw;
+    height: 78vw;
+    max-width: 1150px;
+    max-height: 1150px;
+    right: -24vw;
+    top: -8vh;
+    background:
+      radial-gradient(circle at 60% 40%, var(--blue-glow) 0%, rgba(37, 99, 235, 0.28) 38%, transparent 68%);
+    animation: driftBlue 20s ease-in-out infinite alternate;
+  }
+  /* moody meeting glow in the center-lower */
+  .aurora-mid {
+    position: fixed;
+    z-index: -2;
+    left: 50%;
+    top: 46%;
+    width: 60vw;
+    height: 46vw;
+    max-width: 900px;
+    max-height: 640px;
+    transform: translate(-50%, -50%);
+    background:
+      radial-gradient(ellipse at center, rgba(122, 72, 190, 0.32) 0%, rgba(76, 46, 140, 0.15) 45%, transparent 72%);
+    filter: blur(80px);
+    animation: pulseMid 12s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+  /* subtle grain / vignette scrim for legibility */
+  .aurora-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(140% 120% at 50% 40%, transparent 40%, rgba(3, 4, 13, 0.55) 100%);
+  }
+
+  @keyframes driftRed {
+    0%   { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(6vw, 5vh) scale(1.08); }
+  }
+  @keyframes driftBlue {
+    0%   { transform: translate(0, 0) scale(1.05); }
+    100% { transform: translate(-5vw, 6vh) scale(1); }
+  }
+  @keyframes pulseMid {
+    0%   { opacity: 0.5; transform: translate(-50%, -50%) scale(0.95); }
+    100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1.12); }
+  }
+
+  /* ---------- LAYOUT ---------- */
+  .wrap {
+    max-width: 1500px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(18px, 2.4vw, 32px);
+  }
+
+  /* frosted glass base */
+  .glass {
+    background: var(--glass);
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow),
+                inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  }
+
+  /* ---------- HEADER ---------- */
+  header.topbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px 24px;
+    padding: clamp(16px, 2vw, 26px) clamp(20px, 2.6vw, 36px);
+  }
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .brand .kicker {
+    font-size: clamp(0.62rem, 1vw, 0.74rem);
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+  }
+  .brand h1 {
+    font-size: clamp(1.35rem, 2.6vw, 2.1rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+  }
+  .brand h1 .rv {
+    background: linear-gradient(90deg, var(--red-1), #c7b6ff 52%, var(--blue-1));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+  }
+  .meta {
+    display: flex;
+    gap: clamp(10px, 1.4vw, 22px);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .meta .chip {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.25;
+  }
+  .meta .chip .lab {
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+  }
+  .meta .chip .val {
+    font-size: clamp(0.82rem, 1.3vw, 1rem);
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  /* ---------- HERO SCORE ---------- */
+  .hero {
+    position: relative;
+    padding: clamp(22px, 3.4vw, 46px) clamp(20px, 3vw, 48px);
+    overflow: hidden;
+    text-align: center;
+  }
+  .hero::before {
+    /* red↔blue wash across the hero glass */
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(100deg,
+        rgba(244, 63, 94, 0.16) 0%,
+        rgba(244, 63, 94, 0.04) 34%,
+        rgba(37, 99, 235, 0.05) 66%,
+        rgba(37, 99, 235, 0.16) 100%);
+    pointer-events: none;
+  }
+  .scoreline {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: clamp(12px, 3vw, 48px);
+  }
+  .team-id {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+  .team-id.red  { align-items: flex-start; text-align: left; }
+  .team-id.blue { align-items: flex-end;  text-align: right; }
+  .team-id .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+  }
+  .team-id.red .dot  { background: var(--red-1);  box-shadow: 0 0 16px 2px var(--red-glow); }
+  .team-id.blue .dot { background: var(--blue-1); box-shadow: 0 0 16px 2px var(--blue-glow); }
+  .team-id .row {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .team-id .tname {
+    font-size: clamp(1.05rem, 2.6vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .team-id.red .tname  { color: #ffd0d6; }
+  .team-id.blue .tname { color: #cfe0ff; }
+  .team-id .cap {
+    font-size: clamp(0.66rem, 1.1vw, 0.85rem);
+    color: var(--ink-soft);
+    font-weight: 400;
+  }
+  .team-id .cap b { font-weight: 600; color: var(--ink); }
+  .team-id .games-mini {
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+  }
+
+  .tally {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(6px, 1.6vw, 20px);
+    padding: clamp(10px, 1.6vw, 20px) clamp(14px, 2.4vw, 34px);
+    border-radius: 26px;
+    background: rgba(9, 11, 26, 0.42);
+    border: 1px solid var(--stroke);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 18px 44px -22px rgba(0,0,0,0.8);
+  }
+  .tally .num {
+    font-size: clamp(3rem, 9vw, 6.6rem);
+    font-weight: 800;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+  }
+  .tally .num.red  { color: #ff8593; text-shadow: 0 0 34px rgba(244,63,94,0.5); }
+  .tally .num.blue { color: #7fb0ff; text-shadow: 0 0 34px rgba(37,99,235,0.5); }
+  .tally .dash {
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 300;
+    color: var(--ink-faint);
+    transform: translateY(-4px);
+  }
+  .hero .games-label {
+    position: relative;
+    margin-top: clamp(14px, 2vw, 22px);
+    font-size: clamp(0.66rem, 1.1vw, 0.8rem);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+  }
+
+  /* ---------- SECTION TITLES ---------- */
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    margin: clamp(4px, 1vw, 10px) 4px -2px;
+  }
+  .sec-head h2 {
+    font-size: clamp(0.92rem, 1.5vw, 1.2rem);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .sec-head .sub {
+    font-size: clamp(0.66rem, 1.1vw, 0.8rem);
+    color: var(--ink-faint);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* ---------- COURTS ---------- */
+  .courts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: clamp(14px, 1.8vw, 22px);
+  }
+  .court {
+    position: relative;
+    padding: clamp(16px, 1.8vw, 22px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .court:hover { transform: translateY(-4px); }
+  .court .court-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .court .court-no {
+    font-size: 0.66rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  .court .court-no b { color: var(--ink); font-weight: 700; }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 5px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--stroke);
+  }
+  .pill .led { width: 7px; height: 7px; border-radius: 50%; }
+  .pill.live {
+    color: #ffe1e5;
+    background: rgba(244, 63, 94, 0.16);
+    border-color: rgba(244, 63, 94, 0.4);
+  }
+  .pill.live .led {
+    background: #ff5d6c;
+    box-shadow: 0 0 0 0 rgba(255, 93, 108, 0.7);
+    animation: livePulse 1.8s ease-out infinite;
+  }
+  .pill.final {
+    color: var(--ink-soft);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--stroke-soft);
+  }
+  .pill.final .led { background: var(--ink-faint); }
+  @keyframes livePulse {
+    0%   { box-shadow: 0 0 0 0 rgba(255, 93, 108, 0.65); }
+    70%  { box-shadow: 0 0 0 9px rgba(255, 93, 108, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 93, 108, 0); }
+  }
+
+  .match {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+  }
+  .side { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .side.red  { text-align: left; }
+  .side.blue { text-align: right; }
+  .side .pname {
+    font-size: clamp(0.78rem, 1.2vw, 0.94rem);
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .score {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 14px;
+    background: rgba(6, 8, 22, 0.4);
+    border: 1px solid var(--stroke-soft);
+  }
+  .score .s {
+    font-size: clamp(1.4rem, 2.6vw, 2rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .score .s.red  { color: #ff8593; }
+  .score .s.blue { color: #7fb0ff; }
+  .score .s.lead { text-shadow: 0 0 20px currentColor; }
+  .score .vs {
+    font-size: 0.62rem;
+    color: var(--ink-faint);
+    font-weight: 600;
+  }
+  /* thin team-tint edge on court cards */
+  .court::after {
+    content: "";
+    position: absolute;
+    left: 0; top: 18%;
+    width: 3px; height: 64%;
+    border-radius: 3px;
+    background: linear-gradient(180deg, var(--red-1), var(--blue-1));
+    opacity: 0.7;
+  }
+
+  /* ---------- ROSTERS ---------- */
+  .rosters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(14px, 1.8vw, 22px);
+  }
+  .roster {
+    padding: clamp(16px, 1.9vw, 24px);
+    position: relative;
+    overflow: hidden;
+  }
+  .roster.red {
+    background:
+      linear-gradient(160deg, rgba(244, 63, 94, 0.14), rgba(244, 63, 94, 0.03) 60%, var(--glass));
+    border-color: rgba(244, 63, 94, 0.26);
+  }
+  .roster.blue {
+    background:
+      linear-gradient(160deg, rgba(37, 99, 235, 0.14), rgba(37, 99, 235, 0.03) 60%, var(--glass));
+    border-color: rgba(37, 99, 235, 0.26);
+  }
+  .roster-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--stroke-soft);
+  }
+  .roster-head .lhs { display: flex; align-items: center; gap: 10px; }
+  .roster-head .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .roster.red  .dot { background: var(--red-1);  box-shadow: 0 0 14px 1px var(--red-glow); }
+  .roster.blue .dot { background: var(--blue-1); box-shadow: 0 0 14px 1px var(--blue-glow); }
+  .roster-head h3 {
+    font-size: clamp(0.95rem, 1.6vw, 1.2rem);
+    font-weight: 700;
+  }
+  .roster.red  h3 { color: #ffd0d6; }
+  .roster.blue h3 { color: #cfe0ff; }
+  .roster-head .count {
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+  }
+  .plist {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 10px;
+  }
+  .plist li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 11px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid var(--stroke-soft);
+    font-size: clamp(0.76rem, 1.15vw, 0.9rem);
+    font-weight: 400;
+    color: var(--ink);
+    min-width: 0;
+  }
+  .plist li .idx {
+    font-size: 0.62rem;
+    color: var(--ink-faint);
+    font-weight: 600;
+    min-width: 15px;
+    font-variant-numeric: tabular-nums;
+  }
+  .plist li .nm {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .plist li.on-court {
+    background: rgba(255, 255, 255, 0.085);
+    border-color: var(--stroke);
+  }
+  .roster.red  .plist li.on-court { border-color: rgba(244, 63, 94, 0.4); }
+  .roster.blue .plist li.on-court { border-color: rgba(37, 99, 235, 0.4); }
+  .plist li .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    margin-left: auto;
+    flex-shrink: 0;
+    background: transparent;
+  }
+  .plist li.on-court .status-dot {
+    background: #59e089;
+    box-shadow: 0 0 8px 1px rgba(89, 224, 137, 0.6);
+  }
+  .cap-badge {
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid var(--stroke);
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+
+  /* bench legend */
+  .legend {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--stroke-soft);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 0.66rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+  .legend .item { display: flex; align-items: center; gap: 7px; }
+  .legend .swatch { width: 8px; height: 8px; border-radius: 50%; }
+  .legend .swatch.court { background: #59e089; box-shadow: 0 0 8px 1px rgba(89,224,137,0.5); }
+  .legend .swatch.bench { background: var(--ink-faint); }
+  .legend b { color: var(--ink); font-weight: 600; }
+
+  footer.foot {
+    text-align: center;
+    font-size: 0.68rem;
+    color: var(--ink-faint);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 4px 0 6px;
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 900px) {
+    .rosters { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    body { padding: 14px; }
+    header.topbar { flex-direction: column; align-items: flex-start; }
+    .meta { align-self: stretch; justify-content: space-between; }
+    .meta .chip { align-items: flex-start; }
+    .scoreline { grid-template-columns: 1fr; gap: 18px; }
+    .team-id.red, .team-id.blue { align-items: center; text-align: center; }
+    .team-id .row { justify-content: center; }
+    .tally { order: -1; }
+    .plist { grid-template-columns: 1fr; }
+    .side .pname { white-space: normal; }
+  }
+  @media (min-width: 1400px) {
+    .courts { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .aurora::before, .aurora::after, .aurora-mid, .pill.live .led { animation: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="aurora-mid" aria-hidden="true"></div>
+  <div class="aurora-scrim" aria-hidden="true"></div>
+
+  <main class="wrap">
+    <!-- HEADER -->
+    <header class="topbar glass">
+      <div class="brand">
+        <span class="kicker">TZH Badminton Arena</span>
+        <h1>TZH Friendly Match &middot; <span class="rv">Red vs Blue</span></h1>
+      </div>
+      <div class="meta">
+        <div class="chip">
+          <span class="lab">Date</span>
+          <span class="val">Monday 13 July 2026</span>
+        </div>
+        <div class="chip">
+          <span class="lab">Venue</span>
+          <span class="val">TZH Badminton Arena</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- HERO SCORE -->
+    <section class="hero glass" aria-label="Team games tally">
+      <div class="scoreline">
+        <div class="team-id red">
+          <div class="row"><span class="dot"></span><span class="tname">Red Team</span></div>
+          <span class="cap">Captain &nbsp;<b>Wei Jie</b></span>
+          <span class="games-mini">Games Won</span>
+        </div>
+
+        <div class="tally">
+          <span class="num red">6</span>
+          <span class="dash">&ndash;</span>
+          <span class="num blue">5</span>
+        </div>
+
+        <div class="team-id blue">
+          <div class="row"><span class="tname">Blue Team</span><span class="dot"></span></div>
+          <span class="cap">Captain &nbsp;<b>Zhang Hao</b></span>
+          <span class="games-mini">Games Won</span>
+        </div>
+      </div>
+      <div class="games-label">Team games tally &middot; best of the day</div>
+    </section>
+
+    <!-- COURTS -->
+    <div class="sec-head">
+      <h2>Live Courts</h2>
+      <span class="sub">4 courts in play</span>
+    </div>
+    <section class="courts" id="courts" aria-label="Live court matchups"></section>
+
+    <!-- ROSTERS -->
+    <div class="sec-head">
+      <h2>Full Rosters</h2>
+      <span class="sub">12 vs 12</span>
+    </div>
+    <section class="rosters">
+      <div class="roster red glass" id="roster-red"></div>
+      <div class="roster blue glass" id="roster-blue"></div>
+    </section>
+
+    <footer class="foot">TZH Friendly Match &middot; Red vs Blue &middot; Monday 13 July 2026</footer>
+  </main>
+
+<script>
+  const MATCH = {
+    title: "TZH Friendly Match", subtitle: "Red vs Blue",
+    date: "Monday 13 July 2026", venue: "TZH Badminton Arena",
+    red:  { name: "Red Team",  games: 6, captain: "Wei Jie" },
+    blue: { name: "Blue Team", games: 5, captain: "Zhang Hao" },
+    redPlayers:  ["Wei Jie (C)","Marcus Tan","Kenji Wong","Arjun Rao","Daniel Lim","Ryan Ng","Samuel Goh","Ethan Chua","Lucas Teo","Nathan Sim","Oliver Yeo","Isaac Loh"],
+    bluePlayers: ["Zhang Hao (C)","Aaron Koh","Bryan Ho","Vikram Nair","Julian Toh","Leon Tay","Adrian Ong","Felix Low","Gabriel See","Sean Chan","Dylan Foo","Caleb Wee"],
+    courts: [
+      { court: 1, red: ["Wei Jie","Marcus Tan"],   blue: ["Zhang Hao","Aaron Koh"],  red_score: 21, blue_score: 18, status: "Final" },
+      { court: 2, red: ["Kenji Wong","Arjun Rao"],  blue: ["Bryan Ho","Vikram Nair"], red_score: 15, blue_score: 19, status: "Live" },
+      { court: 3, red: ["Daniel Lim","Ryan Ng"],    blue: ["Julian Toh","Leon Tay"],  red_score: 11, blue_score: 9,  status: "Live" },
+      { court: 4, red: ["Samuel Goh","Ethan Chua"], blue: ["Adrian Ong","Felix Low"], red_score: 8,  blue_score: 14, status: "Live" }
+    ],
+    redBench:  ["Lucas Teo","Nathan Sim","Oliver Yeo","Isaac Loh"],
+    blueBench: ["Gabriel See","Sean Chan","Dylan Foo","Caleb Wee"]
+  };
+
+  // players currently on court (base name, no "(C)")
+  const onCourt = new Set();
+  MATCH.courts.forEach(c => { c.red.forEach(p => onCourt.add(p)); c.blue.forEach(p => onCourt.add(p)); });
+  const baseName = n => n.replace(/\s*\(C\)\s*$/, "").trim();
+
+  const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[ch]));
+
+  // ---- COURTS ----
+  const courtsEl = document.getElementById("courts");
+  courtsEl.innerHTML = MATCH.courts.map(c => {
+    const isLive = c.status.toLowerCase() === "live";
+    const pill = isLive
+      ? '<span class="pill live"><span class="led"></span>Live</span>'
+      : '<span class="pill final"><span class="led"></span>Final</span>';
+    const redLead  = c.red_score  > c.blue_score ? " lead" : "";
+    const blueLead = c.blue_score > c.red_score  ? " lead" : "";
+    return `
+      <article class="court glass">
+        <div class="court-top">
+          <span class="court-no">Court <b>${c.court}</b></span>
+          ${pill}
+        </div>
+        <div class="match">
+          <div class="side red">
+            <span class="pname">${esc(c.red[0])}</span>
+            <span class="pname">${esc(c.red[1])}</span>
+          </div>
+          <div class="score">
+            <span class="s red${redLead}">${c.red_score}</span>
+            <span class="vs">vs</span>
+            <span class="s blue${blueLead}">${c.blue_score}</span>
+          </div>
+          <div class="side blue">
+            <span class="pname">${esc(c.blue[0])}</span>
+            <span class="pname">${esc(c.blue[1])}</span>
+          </div>
+        </div>
+      </article>`;
+  }).join("");
+
+  // ---- ROSTERS ----
+  function renderRoster(elId, team, players, captain) {
+    const el = document.getElementById(elId);
+    const items = players.map((p, i) => {
+      const isCap = /\(C\)\s*$/.test(p);
+      const clean = baseName(p);
+      const playing = onCourt.has(clean);
+      const capBadge = isCap ? '<span class="cap-badge">C</span>' : "";
+      const num = String(i + 1).padStart(2, "0");
+      return `
+        <li class="${playing ? "on-court" : ""}">
+          <span class="idx">${num}</span>
+          <span class="nm">${esc(clean)}</span>
+          ${capBadge}
+          <span class="status-dot" title="${playing ? "On court" : "On bench"}"></span>
+        </li>`;
+    }).join("");
+
+    el.innerHTML = `
+      <div class="roster-head">
+        <div class="lhs"><span class="dot"></span><h3>${esc(team.name)}</h3></div>
+        <span class="count">12 players</span>
+      </div>
+      <ul class="plist">${items}</ul>
+      <div class="legend">
+        <span class="item"><span class="swatch court"></span> On court now</span>
+        <span class="item"><span class="swatch bench"></span> On bench</span>
+        <span class="item"><b>Captain:</b>&nbsp;${esc(captain)}</span>
+      </div>`;
+  }
+
+  renderRoster("roster-red",  MATCH.red,  MATCH.redPlayers,  MATCH.red.captain);
+  renderRoster("roster-blue", MATCH.blue, MATCH.bluePlayers, MATCH.blue.captain);
+</script>
+</body>
+</html>

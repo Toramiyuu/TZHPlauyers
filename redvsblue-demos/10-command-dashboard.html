@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TZH Friendly Match — Red vs Blue · Command Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1117;
+    --panel:#121722;
+    --panel-2:#161c29;
+    --line:rgba(255,255,255,0.08);
+    --line-strong:rgba(255,255,255,0.14);
+    --ink:#e7ecf3;
+    --ink-2:#aab4c5;
+    --ink-3:#6b7688;
+    --red:#ef4444;
+    --red-dim:rgba(239,68,68,0.14);
+    --red-line:rgba(239,68,68,0.4);
+    --blue:#3b82f6;
+    --blue-dim:rgba(59,130,246,0.14);
+    --blue-line:rgba(59,130,246,0.4);
+    --live:#22c55e;
+    --final:#8b93a3;
+    --grid:16px;
+    --radius:10px;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:"Space Grotesk",system-ui,-apple-system,Segoe UI,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:var(--sans);
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(239,68,68,0.06), transparent 60%),
+      radial-gradient(1200px 600px at 85% -10%, rgba(59,130,246,0.06), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    line-height:1.4;
+    min-height:100vh;
+    padding:clamp(12px,2vw,28px);
+    -webkit-font-smoothing:antialiased;
+  }
+  .board{
+    max-width:1760px;
+    margin:0 auto;
+    display:flex;
+    flex-direction:column;
+    gap:clamp(12px,1.4vw,20px);
+  }
+
+  /* ============ HEADER ============ */
+  .topbar{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px 20px;
+    padding:clamp(14px,1.6vw,20px) clamp(16px,2vw,26px);
+    background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+  }
+  .brand{display:flex;align-items:center;gap:14px;min-width:0}
+  .logo{
+    width:42px;height:42px;flex:none;
+    border:1px solid var(--line-strong);
+    border-radius:9px;
+    display:grid;place-items:center;
+    background:var(--bg);
+    position:relative;overflow:hidden;
+  }
+  .logo::before,.logo::after{content:"";position:absolute;width:150%;height:2px;top:50%;left:-25%}
+  .logo::before{background:var(--red);transform:rotate(35deg);opacity:.85}
+  .logo::after{background:var(--blue);transform:rotate(-35deg);opacity:.85}
+  .logo span{
+    position:relative;z-index:1;font-family:var(--mono);font-weight:700;
+    font-size:15px;letter-spacing:-.5px;color:var(--ink);
+    background:var(--bg);padding:2px 4px;border-radius:4px;
+  }
+  .brand-txt h1{
+    font-size:clamp(15px,1.5vw,20px);font-weight:700;letter-spacing:-.3px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .brand-txt .sub{
+    font-family:var(--mono);font-size:11px;color:var(--ink-3);
+    letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;
+  }
+  .meta{
+    display:flex;align-items:center;gap:clamp(10px,1.4vw,22px);
+    flex-wrap:wrap;font-family:var(--mono);
+  }
+  .meta .item{display:flex;flex-direction:column;gap:2px}
+  .meta .k{font-size:9.5px;letter-spacing:1.5px;color:var(--ink-3);text-transform:uppercase}
+  .meta .v{font-size:12.5px;color:var(--ink-2);font-weight:500}
+  .clock{display:flex;align-items:center;gap:8px}
+  .pulse{
+    width:8px;height:8px;border-radius:50%;background:var(--live);
+    box-shadow:0 0 0 0 rgba(34,197,94,.5);animation:pulse 2s infinite;flex:none;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(34,197,94,.45)}
+    70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}
+    100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}
+  }
+  .live-tag{
+    font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:1.5px;
+    color:var(--live);
+  }
+
+  /* ============ KPI STRIP ============ */
+  .kpis{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:clamp(10px,1.2vw,16px);
+  }
+  .kpi{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:clamp(12px,1.3vw,18px);
+    position:relative;overflow:hidden;
+    display:flex;flex-direction:column;gap:6px;
+    min-width:0;
+  }
+  .kpi::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:var(--line-strong);
+  }
+  .kpi.red::before{background:var(--red)}
+  .kpi.blue::before{background:var(--blue)}
+  .kpi.live::before{background:var(--live)}
+  .kpi .label{
+    font-family:var(--mono);font-size:10px;letter-spacing:1.2px;
+    text-transform:uppercase;color:var(--ink-3);
+    display:flex;align-items:center;gap:6px;
+  }
+  .kpi .big{
+    font-family:var(--mono);font-weight:700;letter-spacing:-1px;
+    font-size:clamp(24px,2.6vw,38px);line-height:1;color:var(--ink);
+    display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;
+  }
+  .kpi .big .vs{font-size:.5em;color:var(--ink-3);font-weight:500}
+  .kpi .big .r{color:var(--red)}
+  .kpi .big .b{color:var(--blue)}
+  .kpi .foot{font-family:var(--mono);font-size:10.5px;color:var(--ink-3)}
+  .kpi .foot b{color:var(--ink-2);font-weight:600}
+
+  /* ============ MAIN GRID ============ */
+  .main{
+    display:grid;
+    grid-template-columns:1.5fr 1fr;
+    gap:clamp(12px,1.4vw,20px);
+    align-items:start;
+  }
+  .col{display:flex;flex-direction:column;gap:clamp(12px,1.4vw,20px)}
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .panel-head{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px clamp(14px,1.5vw,18px);
+    border-bottom:1px solid var(--line);
+    background:var(--panel-2);
+  }
+  .panel-head h2{
+    font-family:var(--mono);font-size:11.5px;font-weight:600;
+    letter-spacing:1.6px;text-transform:uppercase;color:var(--ink-2);
+    display:flex;align-items:center;gap:9px;
+  }
+  .panel-head h2 .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
+  .panel-head .hint{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:.5px}
+  .panel-body{padding:clamp(14px,1.5vw,18px)}
+
+  /* ============ TALLY BAR ============ */
+  .tally .panel-body{padding:clamp(16px,1.8vw,22px) clamp(14px,1.5vw,18px)}
+  .tally-heads{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    margin-bottom:12px;font-family:var(--mono);
+  }
+  .tally-heads .side{display:flex;align-items:center;gap:9px}
+  .tally-heads .side.b{flex-direction:row-reverse;text-align:right}
+  .chip{width:11px;height:11px;border-radius:3px;flex:none}
+  .chip.r{background:var(--red)}
+  .chip.b{background:var(--blue)}
+  .tally-heads .nm{font-size:12.5px;font-weight:600;color:var(--ink);letter-spacing:.3px}
+  .tally-heads .cap{font-size:10px;color:var(--ink-3);letter-spacing:.5px}
+  .tally-heads .num{font-size:clamp(26px,3vw,40px);font-weight:700;letter-spacing:-1px}
+  .tally-heads .num.r{color:var(--red)}
+  .tally-heads .num.b{color:var(--blue)}
+  .splitbar{
+    height:26px;border-radius:6px;overflow:hidden;display:flex;
+    border:1px solid var(--line-strong);background:var(--bg);
+    font-family:var(--mono);
+  }
+  .splitbar .seg{
+    display:flex;align-items:center;height:100%;
+    font-size:11px;font-weight:700;color:#fff;
+    transition:width .8s cubic-bezier(.2,.7,.2,1);
+    position:relative;
+  }
+  .splitbar .seg.r{background:linear-gradient(90deg,#c9302c,var(--red));justify-content:flex-start;padding-left:10px}
+  .splitbar .seg.b{background:linear-gradient(90deg,var(--blue),#2563eb);justify-content:flex-end;padding-right:10px}
+  .splitbar .divide{width:2px;background:var(--bg);flex:none}
+  .tally-scale{
+    display:flex;justify-content:space-between;margin-top:8px;
+    font-family:var(--mono);font-size:9.5px;color:var(--ink-3);letter-spacing:.5px;
+  }
+
+  /* ============ COURTS ============ */
+  .courts{display:flex;flex-direction:column;gap:clamp(10px,1.1vw,14px)}
+  .court{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:clamp(12px,1.3vw,16px);
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:clamp(12px,1.5vw,20px);
+    align-items:center;
+  }
+  .court-id{
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    padding-right:clamp(12px,1.5vw,18px);
+    border-right:1px solid var(--line);
+    min-width:64px;
+  }
+  .court-id .lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--ink-3);text-transform:uppercase}
+  .court-id .no{font-family:var(--mono);font-size:clamp(22px,2.4vw,32px);font-weight:700;line-height:1;color:var(--ink)}
+  .status{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:var(--mono);font-size:9.5px;font-weight:600;
+    letter-spacing:1px;text-transform:uppercase;
+    padding:3px 8px;border-radius:20px;border:1px solid var(--line-strong);
+    margin-top:2px;
+  }
+  .status .sd{width:7px;height:7px;border-radius:50%}
+  .status.live{color:var(--live);border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.08)}
+  .status.live .sd{background:var(--live);animation:pulse 2s infinite}
+  .status.final{color:var(--final);border-color:var(--line-strong);background:rgba(255,255,255,.03)}
+  .status.final .sd{background:var(--final)}
+
+  .matchup{display:flex;flex-direction:column;gap:9px;min-width:0}
+  .pair{display:flex;align-items:center;gap:10px;min-width:0}
+  .pair .side-chip{width:9px;height:9px;border-radius:3px;flex:none}
+  .pair.r .side-chip{background:var(--red)}
+  .pair.b .side-chip{background:var(--blue)}
+  .pair .names{
+    font-size:clamp(13px,1.3vw,15px);font-weight:600;color:var(--ink);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1;
+  }
+  .pair .sc{
+    font-family:var(--mono);font-size:clamp(17px,1.9vw,24px);font-weight:700;
+    line-height:1;flex:none;min-width:34px;text-align:right;
+  }
+  .pair.r .sc{color:var(--red)}
+  .pair.b .sc{color:var(--blue)}
+  .pair.lead .names::after{content:" ▸";color:var(--ink-3);font-size:.8em}
+  .meter{
+    grid-column:2 / 4;
+    margin-top:2px;
+  }
+  .meter .track{
+    height:7px;border-radius:4px;background:var(--bg);
+    border:1px solid var(--line);overflow:hidden;display:flex;position:relative;
+  }
+  .meter .fill-r{background:var(--red);height:100%;transition:width .8s ease}
+  .meter .fill-b{background:var(--blue);height:100%;transition:width .8s ease;margin-left:auto}
+  .meter .m-legend{
+    display:flex;justify-content:space-between;margin-top:5px;
+    font-family:var(--mono);font-size:9px;color:var(--ink-3);letter-spacing:.5px;
+  }
+
+  /* ============ ROSTERS ============ */
+  .roster-wrap{display:grid;grid-template-columns:1fr;gap:0}
+  .roster-team{border-bottom:1px solid var(--line)}
+  .roster-team:last-child{border-bottom:none}
+  .roster-team-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:11px clamp(14px,1.5vw,18px);
+    background:var(--panel-2);border-bottom:1px solid var(--line);
+  }
+  .roster-team-head .l{display:flex;align-items:center;gap:9px}
+  .roster-team-head .tnm{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+  .roster-team-head.r .tnm{color:var(--red)}
+  .roster-team-head.b .tnm{color:var(--blue)}
+  .roster-team-head .cnt{font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:.5px}
+  .roster-list{
+    display:grid;grid-template-columns:1fr 1fr;
+    padding:8px clamp(10px,1.2vw,14px) 12px;gap:1px 8px;
+  }
+  .p-row{
+    display:flex;align-items:center;gap:8px;
+    padding:6px 6px;border-radius:6px;min-width:0;
+    border:1px solid transparent;
+  }
+  .p-row:hover{background:var(--panel-2)}
+  .p-idx{
+    font-family:var(--mono);font-size:9.5px;color:var(--ink-3);
+    width:16px;flex:none;text-align:right;
+  }
+  .p-dot{width:7px;height:7px;border-radius:50%;flex:none;background:var(--ink-3)}
+  .p-row.on .p-dot{background:var(--live);box-shadow:0 0 6px rgba(34,197,94,.5)}
+  .p-name{
+    font-size:12.5px;color:var(--ink);font-weight:500;min-width:0;flex:1;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .p-cap{
+    font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:.5px;
+    padding:1px 4px;border-radius:3px;flex:none;
+  }
+  .roster-team.r .p-cap{color:var(--red);background:var(--red-dim);border:1px solid var(--red-line)}
+  .roster-team.b .p-cap{color:var(--blue);background:var(--blue-dim);border:1px solid var(--blue-line)}
+  .p-tag{
+    font-family:var(--mono);font-size:8.5px;font-weight:600;letter-spacing:.8px;
+    text-transform:uppercase;color:var(--ink-3);flex:none;
+    padding:2px 6px;border-radius:4px;border:1px solid var(--line);
+  }
+  .p-row.on .p-tag{color:var(--live);border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.07)}
+
+  .legend{
+    display:flex;flex-wrap:wrap;gap:14px;align-items:center;
+    padding:10px clamp(14px,1.5vw,18px);
+    font-family:var(--mono);font-size:10px;color:var(--ink-3);letter-spacing:.5px;
+    border-top:1px solid var(--line);
+  }
+  .legend .li{display:flex;align-items:center;gap:6px}
+  .legend .d{width:8px;height:8px;border-radius:50%}
+  .legend .d.on{background:var(--live)}
+  .legend .d.off{background:var(--ink-3)}
+
+  footer{
+    text-align:center;font-family:var(--mono);font-size:10px;color:var(--ink-3);
+    letter-spacing:1px;padding:6px 0 4px;
+  }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:1080px){
+    .main{grid-template-columns:1fr}
+    .kpis{grid-template-columns:repeat(3,1fr)}
+    .kpi:nth-child(4),.kpi:nth-child(5){grid-column:span 1}
+  }
+  @media (max-width:720px){
+    body{padding:10px}
+    .topbar{flex-direction:column;align-items:flex-start;gap:12px}
+    .meta{width:100%;justify-content:space-between}
+    .kpis{grid-template-columns:1fr 1fr}
+    .roster-list{grid-template-columns:1fr}
+    .court{grid-template-columns:1fr;gap:12px}
+    .court-id{
+      flex-direction:row;justify-content:space-between;width:100%;
+      border-right:none;border-bottom:1px solid var(--line);
+      padding:0 0 10px;min-width:0;
+    }
+    .court-id .no{font-size:24px}
+    .meter{grid-column:1}
+    .pair .names{white-space:normal}
+  }
+  @media (max-width:400px){
+    .kpis{grid-template-columns:1fr}
+    .meta .item.hide-xs{display:none}
+  }
+  /* Large TV bump */
+  @media (min-width:1600px){
+    .roster-list{gap:2px 14px}
+  }
+</style>
+</head>
+<body>
+<div class="board">
+
+  <!-- ============ HEADER ============ -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"><span>TZH</span></div>
+      <div class="brand-txt">
+        <h1 id="h-title">TZH Friendly Match — Red vs Blue</h1>
+        <div class="sub">Live Operations Board</div>
+      </div>
+    </div>
+    <div class="meta">
+      <div class="item hide-xs">
+        <span class="k">Date</span>
+        <span class="v" id="m-date">Monday 13 July 2026</span>
+      </div>
+      <div class="item hide-xs">
+        <span class="k">Venue</span>
+        <span class="v" id="m-venue">TZH Badminton Arena</span>
+      </div>
+      <div class="item">
+        <span class="k">Status</span>
+        <span class="v clock">
+          <span class="pulse"></span>
+          <span class="live-tag">LIVE</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ KPI STRIP ============ -->
+  <section class="kpis" id="kpis" aria-label="Key metrics"></section>
+
+  <!-- ============ TALLY ============ -->
+  <section class="panel tally">
+    <div class="panel-head">
+      <h2><span class="dot" style="background:var(--red)"></span>Games Tally — Series</h2>
+      <span class="hint" id="tally-hint"></span>
+    </div>
+    <div class="panel-body">
+      <div class="tally-heads">
+        <div class="side r">
+          <span class="chip r"></span>
+          <div>
+            <div class="nm" id="red-nm">Red Team</div>
+            <div class="cap" id="red-cap">C · Wei Jie</div>
+          </div>
+          <span class="num r" id="red-games">6</span>
+        </div>
+        <div class="side b">
+          <span class="chip b"></span>
+          <div>
+            <div class="nm" id="blue-nm">Blue Team</div>
+            <div class="cap" id="blue-cap">C · Zhang Hao</div>
+          </div>
+          <span class="num b" id="blue-games">5</span>
+        </div>
+      </div>
+      <div class="splitbar" id="splitbar" role="img" aria-label="Games split"></div>
+      <div class="tally-scale">
+        <span>RED WINS</span>
+        <span id="scale-total"></span>
+        <span>BLUE WINS</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+
+    <!-- LEFT: courts -->
+    <div class="col">
+      <section class="panel">
+        <div class="panel-head">
+          <h2><span class="dot" style="background:var(--live)"></span>Court Matchups</h2>
+          <span class="hint" id="courts-hint"></span>
+        </div>
+        <div class="panel-body">
+          <div class="courts" id="courts"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- RIGHT: rosters -->
+    <div class="col">
+      <section class="panel">
+        <div class="panel-head">
+          <h2><span class="dot" style="background:var(--ink-3)"></span>Team Rosters — 12 v 12</h2>
+          <span class="hint">ON COURT / BENCH</span>
+        </div>
+        <div class="roster-wrap" id="rosters"></div>
+        <div class="legend">
+          <span class="li"><span class="d on"></span>On Court</span>
+          <span class="li"><span class="d off"></span>Bench</span>
+          <span class="li" id="legend-note"></span>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+const MATCH = {
+  title: "TZH Friendly Match", subtitle: "Red vs Blue",
+  date: "Monday 13 July 2026", venue: "TZH Badminton Arena",
+  red:  { name: "Red Team",  games: 6, captain: "Wei Jie" },
+  blue: { name: "Blue Team", games: 5, captain: "Zhang Hao" },
+  redPlayers:  ["Wei Jie (C)","Marcus Tan","Kenji Wong","Arjun Rao","Daniel Lim","Ryan Ng","Samuel Goh","Ethan Chua","Lucas Teo","Nathan Sim","Oliver Yeo","Isaac Loh"],
+  bluePlayers: ["Zhang Hao (C)","Aaron Koh","Bryan Ho","Vikram Nair","Julian Toh","Leon Tay","Adrian Ong","Felix Low","Gabriel See","Sean Chan","Dylan Foo","Caleb Wee"],
+  courts: [
+    { court: 1, red: ["Wei Jie","Marcus Tan"],   blue: ["Zhang Hao","Aaron Koh"],  red_score: 21, blue_score: 18, status: "Final" },
+    { court: 2, red: ["Kenji Wong","Arjun Rao"],  blue: ["Bryan Ho","Vikram Nair"], red_score: 15, blue_score: 19, status: "Live" },
+    { court: 3, red: ["Daniel Lim","Ryan Ng"],    blue: ["Julian Toh","Leon Tay"],  red_score: 11, blue_score: 9,  status: "Live" },
+    { court: 4, red: ["Samuel Goh","Ethan Chua"], blue: ["Adrian Ong","Felix Low"], red_score: 8,  blue_score: 14, status: "Live" }
+  ],
+  redBench:  ["Lucas Teo","Nathan Sim","Oliver Yeo","Isaac Loh"],
+  blueBench: ["Gabriel See","Sean Chan","Dylan Foo","Caleb Wee"]
+};
+
+/* ---------- Derived (honest) aggregates ---------- */
+const D = (() => {
+  const c = MATCH.courts;
+  const redPts  = c.reduce((s,x)=>s+x.red_score,0);   // 55
+  const bluePts = c.reduce((s,x)=>s+x.blue_score,0);   // 60
+  const liveCt  = c.filter(x=>x.status.toLowerCase()==="live").length;   // 3
+  const finalCt = c.filter(x=>x.status.toLowerCase()==="final").length;  // 1
+  const redLeads  = c.filter(x=>x.red_score>x.blue_score).length;  // courts red currently ahead
+  const blueLeads = c.filter(x=>x.blue_score>x.red_score).length;
+  const gamesTotal = MATCH.red.games + MATCH.blue.games; // 11
+  // set of on-court names (strip nothing, these match roster names sans (C))
+  const onCourt = new Set();
+  c.forEach(x=>{ x.red.forEach(n=>onCourt.add(n)); x.blue.forEach(n=>onCourt.add(n)); });
+  return {redPts,bluePts,liveCt,finalCt,redLeads,blueLeads,gamesTotal,onCourt};
+})();
+
+/* ---------- Header ---------- */
+document.getElementById('h-title').textContent = MATCH.title + " — " + MATCH.subtitle;
+document.getElementById('m-date').textContent  = MATCH.date;
+document.getElementById('m-venue').textContent = MATCH.venue;
+
+/* ---------- KPI tiles ---------- */
+const kpiData = [
+  {cls:'', label:'Games Tally', big:`<span class="r">${MATCH.red.games}</span><span class="vs">–</span><span class="b">${MATCH.blue.games}</span>`,
+   foot:`Red leads series by <b>${Math.abs(MATCH.red.games-MATCH.blue.games)}</b>`},
+  {cls:'live', label:'Courts Live', big:`${D.liveCt}<span class="vs">/ ${MATCH.courts.length}</span>`,
+   foot:`<b>${D.finalCt}</b> final · <b>${D.liveCt}</b> in play`},
+  {cls:'', label:'Courts Final', big:`${D.finalCt}`,
+   foot:`Completed games this rotation`},
+  {cls:'red', label:'On-Court Points · Red', big:`<span class="r">${D.redPts}</span>`,
+   foot:`Aggregate across <b>${MATCH.courts.length}</b> courts`},
+  {cls:'blue', label:'On-Court Points · Blue', big:`<span class="b">${D.bluePts}</span>`,
+   foot:`Leads live points by <b>${D.bluePts-D.redPts}</b>`},
+];
+document.getElementById('kpis').innerHTML = kpiData.map(k=>`
+  <div class="kpi ${k.cls}">
+    <div class="label">${k.label}</div>
+    <div class="big">${k.big}</div>
+    <div class="foot">${k.foot}</div>
+  </div>`).join('');
+
+/* ---------- Tally split bar ---------- */
+document.getElementById('red-nm').textContent = MATCH.red.name;
+document.getElementById('blue-nm').textContent = MATCH.blue.name;
+document.getElementById('red-cap').textContent = "C · " + MATCH.red.captain;
+document.getElementById('blue-cap').textContent = "C · " + MATCH.blue.captain;
+document.getElementById('red-games').textContent = MATCH.red.games;
+document.getElementById('blue-games').textContent = MATCH.blue.games;
+document.getElementById('tally-hint').textContent = `${D.gamesTotal} GAMES PLAYED`;
+document.getElementById('scale-total').textContent = `${D.gamesTotal} TOTAL`;
+(() => {
+  const rPct = MATCH.red.games / D.gamesTotal * 100;
+  const bPct = MATCH.blue.games / D.gamesTotal * 100;
+  document.getElementById('splitbar').innerHTML =
+    `<div class="seg r" style="width:${rPct}%">${MATCH.red.games}</div>`+
+    `<div class="divide"></div>`+
+    `<div class="seg b" style="width:${bPct}%">${MATCH.blue.games}</div>`;
+})();
+
+/* ---------- Courts ---------- */
+document.getElementById('courts-hint').textContent = `RALLY TO 21 · ${D.liveCt} LIVE`;
+document.getElementById('courts').innerHTML = MATCH.courts.map(ct=>{
+  const isLive = ct.status.toLowerCase()==="live";
+  const redLead = ct.red_score > ct.blue_score;
+  const blueLead = ct.blue_score > ct.red_score;
+  const cap = 21;
+  const rW = Math.min(100, ct.red_score/cap*100);
+  const bW = Math.min(100, ct.blue_score/cap*100);
+  return `
+  <div class="court">
+    <div class="court-id">
+      <span class="lbl">Court</span>
+      <span class="no">${ct.court}</span>
+      <span class="status ${isLive?'live':'final'}"><span class="sd"></span>${isLive?'Live':'Final'}</span>
+    </div>
+    <div class="matchup">
+      <div class="pair r ${redLead?'lead':''}">
+        <span class="side-chip"></span>
+        <span class="names">${ct.red.join(' · ')}</span>
+        <span class="sc">${ct.red_score}</span>
+      </div>
+      <div class="pair b ${blueLead?'lead':''}">
+        <span class="side-chip"></span>
+        <span class="names">${ct.blue.join(' · ')}</span>
+        <span class="sc">${ct.blue_score}</span>
+      </div>
+    </div>
+    <div class="meter">
+      <div class="track">
+        <div class="fill-r" style="width:${rW}%"></div>
+        <div class="fill-b" style="width:${bW}%"></div>
+      </div>
+      <div class="m-legend">
+        <span>RED ${ct.red_score}/21</span>
+        <span>${isLive?'IN PROGRESS':'FINISHED'}</span>
+        <span>BLUE ${ct.blue_score}/21</span>
+      </div>
+    </div>
+  </div>`;
+}).join('');
+
+/* ---------- Rosters ---------- */
+function baseName(n){ return n.replace(/\s*\(C\)\s*$/,'').trim(); }
+function rosterTeam(side, players, teamName){
+  const rows = players.map((p,i)=>{
+    const isCap = /\(C\)/.test(p);
+    const nm = baseName(p);
+    const on = D.onCourt.has(nm);
+    return `
+      <div class="p-row ${on?'on':''}">
+        <span class="p-idx">${String(i+1).padStart(2,'0')}</span>
+        <span class="p-dot"></span>
+        <span class="p-name">${nm}</span>
+        ${isCap?'<span class="p-cap">CAP</span>':''}
+        <span class="p-tag">${on?'On Court':'Bench'}</span>
+      </div>`;
+  }).join('');
+  const onCount = players.filter(p=>D.onCourt.has(baseName(p))).length;
+  return `
+    <div class="roster-team ${side}">
+      <div class="roster-team-head ${side}">
+        <div class="l">
+          <span class="chip ${side}"></span>
+          <span class="tnm">${teamName}</span>
+        </div>
+        <span class="cnt">${onCount} ON COURT · ${players.length-onCount} BENCH · ${players.length} TOTAL</span>
+      </div>
+      <div class="roster-list">${rows}</div>
+    </div>`;
+}
+document.getElementById('rosters').innerHTML =
+  rosterTeam('r', MATCH.redPlayers, MATCH.red.name) +
+  rosterTeam('b', MATCH.bluePlayers, MATCH.blue.name);
+
+document.getElementById('legend-note').textContent =
+  `${D.onCourt.size} players active across ${MATCH.courts.length} courts`;
+
+/* ---------- Footer ---------- */
+document.getElementById('footer').textContent =
+  `TZH COMMAND DASHBOARD · ${MATCH.venue.toUpperCase()} · ${MATCH.date.toUpperCase()} · AUTO-DERIVED FROM LIVE COURT DATA`;
+</script>
+</body>
+</html>

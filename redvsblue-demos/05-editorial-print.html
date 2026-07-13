@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The TZH Tribune — Red vs Blue, Match Day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400;1,700;1,900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f5f1e8;
+    --paper-2:#efe9db;
+    --ink:#1a1712;
+    --ink-soft:#4a453d;
+    --ink-faint:#7c7466;
+    --rule:#c9bfa8;
+    --rule-strong:#a89c80;
+    --red:#a4232c;
+    --blue:#1c3f7a;
+    --serif-display:"Playfair Display", Georgia, "Times New Roman", serif;
+    --serif-body:"Source Serif 4", Georgia, "Times New Roman", serif;
+    --maxw:1200px;
+  }
+
+  *{box-sizing:border-box;}
+
+  html{ -webkit-text-size-adjust:100%; }
+
+  body{
+    margin:0;
+    background:#e7e0cf;
+    color:var(--ink);
+    font-family:var(--serif-body);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    font-feature-settings:"kern" 1, "liga" 1, "onum" 1;
+    padding:clamp(0px, 2vw, 32px);
+  }
+
+  ::selection{ background:rgba(164,35,44,0.16); }
+
+  .sheet{
+    max-width:var(--maxw);
+    margin:0 auto;
+    background:var(--paper);
+    padding:clamp(18px, 3.2vw, 54px) clamp(16px, 3.4vw, 58px);
+    border:1px solid var(--rule-strong);
+    box-shadow:0 1px 0 rgba(0,0,0,0.04);
+    position:relative;
+  }
+  /* faint printed-sheet inner keyline */
+  .sheet::after{
+    content:"";
+    position:absolute;
+    inset:clamp(7px,1.1vw,14px);
+    border:1px solid var(--rule);
+    pointer-events:none;
+  }
+  .sheet > *{ position:relative; z-index:1; }
+
+  /* ---------- MASTHEAD ---------- */
+  .eyebrow{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+    font-family:var(--serif-body);
+    font-size:clamp(9px,1vw,11px);
+    letter-spacing:0.24em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    border-bottom:1px solid var(--ink);
+    padding-bottom:8px;
+  }
+  .eyebrow span:nth-child(2){ letter-spacing:0.3em; }
+  .eyebrow .mid{ text-align:center; }
+  .eyebrow .right{ text-align:right; }
+
+  .masthead-title{
+    font-family:var(--serif-display);
+    font-weight:900;
+    text-align:center;
+    line-height:0.92;
+    letter-spacing:0.005em;
+    margin:clamp(10px,1.6vw,20px) 0 clamp(8px,1.2vw,14px);
+    font-size:clamp(46px, 11.5vw, 148px);
+    text-wrap:balance;
+  }
+  .masthead-title .the{
+    display:block;
+    font-size:0.24em;
+    font-weight:700;
+    letter-spacing:0.42em;
+    text-transform:uppercase;
+    margin-bottom:0.28em;
+    color:var(--ink-soft);
+  }
+
+  .dateline{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    gap:14px;
+    border-top:3px double var(--ink);
+    border-bottom:3px double var(--ink);
+    padding:8px 2px;
+    font-size:clamp(10px,1.15vw,13px);
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .dateline .kicker{
+    text-align:center;
+    font-weight:600;
+    letter-spacing:0.26em;
+    color:var(--ink);
+    white-space:nowrap;
+  }
+  .dateline .venue{ text-align:right; font-style:italic; text-transform:none; letter-spacing:0.02em; font-size:1.05em; }
+  .dateline .date{ font-style:italic; text-transform:none; letter-spacing:0.02em; font-size:1.05em; }
+
+  /* ---------- HERO SCORELINE ---------- */
+  .hero{
+    text-align:center;
+    padding:clamp(18px,3vw,40px) 0 clamp(14px,2.4vw,30px);
+    border-bottom:1px solid var(--rule);
+  }
+  .hero .overline{
+    font-size:clamp(10px,1.15vw,13px);
+    letter-spacing:0.34em;
+    text-transform:uppercase;
+    color:var(--red);
+    font-weight:600;
+    margin-bottom:0.7em;
+  }
+  .hero h1{
+    font-family:var(--serif-display);
+    font-weight:800;
+    font-size:clamp(28px,5.4vw,64px);
+    line-height:1.02;
+    margin:0 0 0.5em;
+    letter-spacing:0.002em;
+    text-wrap:balance;
+  }
+  .hero h1 em{ font-style:italic; }
+
+  .scoreline{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(14px,3vw,52px);
+    margin:clamp(8px,1.6vw,18px) auto clamp(6px,1vw,10px);
+    max-width:820px;
+  }
+  .side{ flex:1 1 0; text-align:center; }
+  .side .team-name{
+    font-family:var(--serif-body);
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.2em;
+    font-size:clamp(12px,1.5vw,19px);
+    margin-bottom:0.15em;
+  }
+  .side.red .team-name{ color:var(--red); }
+  .side.blue .team-name{ color:var(--blue); }
+  .side .figure{
+    font-family:var(--serif-display);
+    font-weight:900;
+    font-size:clamp(64px,15vw,168px);
+    line-height:0.9;
+    letter-spacing:-0.01em;
+    font-feature-settings:"lnum" 1;
+  }
+  .side.red .figure{ color:var(--red); }
+  .side.blue .figure{ color:var(--blue); }
+  .side .cap{
+    font-size:clamp(9px,1vw,11.5px);
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin-top:0.4em;
+    font-style:italic;
+  }
+  .side .cap b{ font-weight:600; font-style:normal; color:var(--ink-soft); }
+  .versus{
+    font-family:var(--serif-display);
+    font-weight:400;
+    font-style:italic;
+    font-size:clamp(26px,5vw,58px);
+    color:var(--ink);
+    line-height:1;
+    padding-bottom:0.3em;
+    flex:0 0 auto;
+  }
+  .hero .caption{
+    font-style:italic;
+    color:var(--ink-soft);
+    font-size:clamp(12px,1.3vw,15px);
+    max-width:640px;
+    margin:0.9em auto 0;
+    text-wrap:pretty;
+  }
+
+  /* ---------- MAIN GRID ---------- */
+  .main{
+    display:grid;
+    grid-template-columns:1.9fr 1fr;
+    gap:0;
+    border-bottom:3px double var(--ink);
+  }
+  .col-main{
+    padding:clamp(18px,2.4vw,30px) clamp(20px,2.6vw,36px) clamp(18px,2.4vw,30px) 0;
+    border-right:1px solid var(--rule);
+  }
+  .col-side{
+    padding:clamp(18px,2.4vw,30px) 0 clamp(18px,2.4vw,30px) clamp(20px,2.6vw,34px);
+  }
+
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:10px;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:6px;
+    margin-bottom:14px;
+  }
+  .section-head h2{
+    font-family:var(--serif-display);
+    font-weight:800;
+    font-size:clamp(18px,2vw,26px);
+    margin:0;
+    letter-spacing:0.01em;
+  }
+  .section-head .tag{
+    font-size:clamp(9px,1vw,11px);
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    white-space:nowrap;
+  }
+
+  /* Lede + report */
+  .byline{
+    font-size:clamp(10px,1.1vw,12px);
+    text-transform:uppercase;
+    letter-spacing:0.16em;
+    color:var(--ink-faint);
+    margin-bottom:10px;
+  }
+  .byline b{ color:var(--ink-soft); font-weight:600; }
+  .lede{
+    font-size:clamp(14px,1.45vw,17px);
+    line-height:1.55;
+    margin:0 0 clamp(16px,2vw,22px);
+    text-wrap:pretty;
+    text-align:justify;
+    hyphens:auto;
+  }
+  .lede .dropcap{
+    float:left;
+    font-family:var(--serif-display);
+    font-weight:900;
+    font-size:clamp(56px,7vw,84px);
+    line-height:0.72;
+    padding:6px 10px 0 0;
+    color:var(--red);
+  }
+
+  /* Courts "table" */
+  .courts{ border-top:1px solid var(--rule); }
+  .courts-head,
+  .court-row{
+    display:grid;
+    grid-template-columns:46px 1fr auto 1fr 88px;
+    align-items:center;
+    gap:clamp(8px,1.2vw,18px);
+  }
+  .courts-head{
+    padding:8px 0;
+    border-bottom:1px solid var(--ink);
+    font-size:clamp(9px,0.95vw,11px);
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+  .courts-head .h-red{ color:var(--red); font-weight:600; }
+  .courts-head .h-blue{ color:var(--blue); font-weight:600; text-align:right; }
+  .courts-head .h-score{ text-align:center; }
+  .courts-head .h-status{ text-align:right; }
+
+  .court-row{
+    padding:clamp(11px,1.5vw,16px) 0;
+    border-bottom:1px solid var(--rule);
+  }
+  .court-row .ct{
+    font-family:var(--serif-display);
+    font-weight:800;
+    font-size:clamp(22px,2.6vw,34px);
+    color:var(--ink);
+    line-height:1;
+  }
+  .court-row .ct small{
+    display:block;
+    font-family:var(--serif-body);
+    font-weight:400;
+    font-size:9px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+  .court-row .pair{
+    font-size:clamp(13px,1.4vw,17px);
+    line-height:1.25;
+    font-weight:400;
+  }
+  .court-row .pair.blue-pair{ text-align:right; }
+  .court-row .pair .amp{ color:var(--ink-faint); font-style:italic; }
+  .court-row .score{
+    display:flex;
+    align-items:baseline;
+    justify-content:center;
+    gap:0.3em;
+    font-family:var(--serif-display);
+    font-weight:700;
+    font-size:clamp(20px,2.4vw,30px);
+    white-space:nowrap;
+    line-height:1;
+  }
+  .court-row .score .rs{ color:var(--red); }
+  .court-row .score .bs{ color:var(--blue); }
+  .court-row .score .lead{ font-weight:900; }
+  .court-row .score .notlead{ opacity:0.55; font-weight:600; }
+  .court-row .score .dash{ color:var(--ink-faint); font-weight:400; font-size:0.7em; }
+
+  .court-row .status{
+    text-align:right;
+    font-size:clamp(10px,1.05vw,12px);
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+  }
+  .status.final{ color:var(--ink-soft); font-variant:small-caps; letter-spacing:0.16em; font-style:italic; }
+  .status.live{ color:var(--red); font-weight:600; }
+  .status .dot{
+    display:inline-block;
+    width:6px; height:6px;
+    border-radius:50%;
+    background:var(--red);
+    margin-right:5px;
+    vertical-align:middle;
+    animation:pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.28;} }
+  @media (prefers-reduced-motion: reduce){ .status .dot{ animation:none; } }
+
+  .win-note{
+    font-size:clamp(11px,1.15vw,13px);
+    font-style:italic;
+    color:var(--ink-soft);
+    margin-top:14px;
+    text-align:right;
+    text-wrap:pretty;
+  }
+  .win-note b.red{ color:var(--red); font-style:normal; }
+  .win-note b.blue{ color:var(--blue); font-style:normal; }
+
+  /* ---------- SIDE: AT A GLANCE ---------- */
+  .glance{
+    border:1px solid var(--ink);
+    padding:clamp(14px,1.8vw,22px);
+    background:var(--paper-2);
+  }
+  .glance h3{
+    font-family:var(--serif-display);
+    font-weight:800;
+    font-size:clamp(15px,1.6vw,20px);
+    margin:0 0 4px;
+    text-align:center;
+  }
+  .glance .rule{
+    text-align:center;
+    font-size:9px;
+    letter-spacing:0.28em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    border-bottom:1px solid var(--rule-strong);
+    padding-bottom:10px;
+    margin-bottom:12px;
+  }
+  .fact{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:10px;
+    padding:7px 0;
+    border-bottom:1px dotted var(--rule-strong);
+    font-size:clamp(12px,1.3vw,14px);
+  }
+  .fact:last-of-type{ border-bottom:none; }
+  .fact .k{
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    font-size:0.82em;
+    color:var(--ink-faint);
+    flex:0 0 auto;
+  }
+  .fact .v{ text-align:right; font-style:italic; }
+  .fact .v.red{ color:var(--red); font-style:normal; font-weight:600; }
+  .fact .v.blue{ color:var(--blue); font-style:normal; font-weight:600; }
+
+  .glance .tally{
+    margin-top:14px;
+    padding-top:14px;
+    border-top:2px solid var(--ink);
+    text-align:center;
+  }
+  .glance .tally .lab{
+    font-size:9px; letter-spacing:0.26em; text-transform:uppercase; color:var(--ink-faint);
+    margin-bottom:6px;
+  }
+  .glance .tally .nums{
+    font-family:var(--serif-display);
+    font-weight:900;
+    font-size:clamp(30px,4vw,46px);
+    line-height:1;
+  }
+  .glance .tally .nums .r{ color:var(--red); }
+  .glance .tally .nums .b{ color:var(--blue); }
+  .glance .tally .nums .d{ color:var(--ink-faint); font-weight:400; padding:0 0.18em; }
+
+  .glance .foot{
+    margin-top:12px;
+    font-size:clamp(11px,1.2vw,12.5px);
+    font-style:italic;
+    color:var(--ink-soft);
+    text-align:center;
+    text-wrap:pretty;
+  }
+
+  /* ---------- LINE-UPS ---------- */
+  .lineups{
+    padding-top:clamp(18px,2.4vw,28px);
+  }
+  .lineups .lu-head{
+    text-align:center;
+    margin-bottom:clamp(14px,2vw,22px);
+  }
+  .lineups .lu-head h2{
+    font-family:var(--serif-display);
+    font-weight:900;
+    font-size:clamp(24px,3.4vw,44px);
+    margin:0;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+  }
+  .lineups .lu-head p{
+    font-style:italic;
+    color:var(--ink-soft);
+    margin:0.3em 0 0;
+    font-size:clamp(12px,1.3vw,15px);
+  }
+
+  .lu-grid{
+    display:grid;
+    grid-template-columns:1fr 1px 1fr;
+    gap:clamp(20px,3vw,44px);
+    align-items:start;
+  }
+  .lu-divider{ background:var(--rule-strong); align-self:stretch; }
+
+  .roster-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:8px;
+    border-bottom:3px double var(--ink);
+    padding-bottom:8px;
+    margin-bottom:6px;
+  }
+  .roster-head .rname{
+    font-family:var(--serif-display);
+    font-weight:800;
+    font-size:clamp(17px,2vw,26px);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+  .roster.red .roster-head .rname{ color:var(--red); }
+  .roster.blue .roster-head .rname{ color:var(--blue); }
+  .roster-head .rcap{
+    font-size:clamp(9px,1vw,11px);
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    font-style:italic;
+    text-align:right;
+  }
+
+  ol.players{
+    list-style:none;
+    margin:0;
+    padding:0;
+    columns:1;
+  }
+  ol.players li{
+    display:grid;
+    grid-template-columns:26px 1fr auto;
+    align-items:baseline;
+    gap:10px;
+    padding:6px 0;
+    border-bottom:1px solid var(--rule);
+    font-size:clamp(14px,1.5vw,18px);
+  }
+  ol.players li .num{
+    font-family:var(--serif-display);
+    font-weight:600;
+    font-size:0.8em;
+    color:var(--ink-faint);
+    font-feature-settings:"lnum" 1;
+    text-align:right;
+  }
+  ol.players li .pname{ font-weight:400; }
+  ol.players li.captain .pname{ font-style:italic; font-weight:600; }
+  ol.players li .dagger{ color:var(--red); font-style:normal; }
+  .roster.blue ol.players li .dagger{ color:var(--blue); }
+  ol.players li .assign{
+    font-size:clamp(9px,0.95vw,11px);
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+    color:var(--ink-faint);
+    white-space:nowrap;
+    text-align:right;
+    font-style:italic;
+  }
+  ol.players li .assign.reserve{ color:var(--ink-faint); opacity:0.85; }
+  ol.players li .assign.oncourt{ color:var(--ink-soft); font-style:normal; letter-spacing:0.08em; }
+
+  /* ---------- COLOPHON ---------- */
+  .colophon{
+    margin-top:clamp(18px,2.4vw,30px);
+    padding-top:12px;
+    border-top:1px solid var(--ink);
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:12px;
+    flex-wrap:wrap;
+    font-size:clamp(9px,1vw,11px);
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+  .colophon .mark{ font-style:italic; text-transform:none; letter-spacing:0.02em; font-size:1.15em; color:var(--ink-soft); }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 860px){
+    .main{ grid-template-columns:1fr; }
+    .col-main{
+      border-right:none;
+      border-bottom:1px solid var(--rule);
+      padding:clamp(16px,4vw,24px) 0;
+    }
+    .col-side{ padding:clamp(16px,4vw,24px) 0 4px; }
+    .lu-grid{ grid-template-columns:1fr; gap:0; }
+    .lu-divider{ display:none; }
+    .roster.blue{ margin-top:clamp(18px,5vw,30px); }
+  }
+
+  @media (max-width: 560px){
+    body{ padding:0; }
+    .sheet{ border-left:none; border-right:none; }
+    .sheet::after{ inset:6px; }
+    .eyebrow{ font-size:8.5px; letter-spacing:0.14em; }
+    .dateline{ grid-template-columns:1fr; gap:4px; text-align:center; }
+    .dateline .date, .dateline .venue{ text-align:center; }
+    .dateline .kicker{ order:-1; }
+
+    /* Courts reflow to stacked cards on phone */
+    .courts-head{ display:none; }
+    .court-row{
+      grid-template-columns:auto 1fr;
+      grid-template-areas:
+        "ct score"
+        "red red"
+        "blue blue"
+        "status status";
+      gap:4px 12px;
+      padding:14px 0;
+    }
+    .court-row .ct{ grid-area:ct; }
+    .court-row .score{ grid-area:score; justify-content:flex-end; align-self:center; }
+    .court-row .pair{ text-align:left !important; }
+    .court-row .pair.red-pair{ grid-area:red; }
+    .court-row .pair.blue-pair{ grid-area:blue; }
+    .court-row .pair::before{
+      font-size:9px; letter-spacing:0.14em; text-transform:uppercase;
+      font-style:normal; margin-right:8px;
+    }
+    .court-row .pair.red-pair::before{ content:"Red"; color:var(--red); font-weight:600; }
+    .court-row .pair.blue-pair::before{ content:"Blue"; color:var(--blue); font-weight:600; }
+    .court-row .status{ grid-area:status; text-align:left; margin-top:2px; }
+  }
+</style>
+</head>
+<body>
+  <main class="sheet">
+
+    <!-- ================= MASTHEAD ================= -->
+    <header>
+      <div class="eyebrow">
+        <span class="left">Vol. MMXXVI · No. 7</span>
+        <span class="mid">Match-Day Special Edition</span>
+        <span class="right">Price · Complimentary</span>
+      </div>
+
+      <div class="masthead-title">
+        <span class="the">The</span>TZH Tribune
+      </div>
+
+      <div class="dateline">
+        <span class="date" id="dl-date">Monday 13 July 2026</span>
+        <span class="kicker">Sports · Match Day</span>
+        <span class="venue" id="dl-venue">TZH Badminton Arena</span>
+      </div>
+    </header>
+
+    <!-- ================= HERO SCORELINE ================= -->
+    <section class="hero">
+      <div class="overline">The Evening&rsquo;s Verdict</div>
+      <h1 id="hero-head">Red Hold the Advantage as Blue Give Chase</h1>
+
+      <div class="scoreline">
+        <div class="side red">
+          <div class="team-name" id="s-red-name">Red Team</div>
+          <div class="figure" id="s-red-fig">6</div>
+          <div class="cap">Captain · <b id="s-red-cap">Wei Jie</b></div>
+        </div>
+        <div class="versus">&mdash;</div>
+        <div class="side blue">
+          <div class="team-name" id="s-blue-name">Blue Team</div>
+          <div class="figure" id="s-blue-fig">5</div>
+          <div class="cap">Captain · <b id="s-blue-cap">Zhang Hao</b></div>
+        </div>
+      </div>
+
+      <p class="caption">Team games won across the evening&rsquo;s play &mdash; a single rubber separating the two sides with four courts still contesting the tie.</p>
+    </section>
+
+    <!-- ================= MAIN GRID ================= -->
+    <div class="main">
+      <!-- LEFT: report + courts -->
+      <div class="col-main">
+        <div class="section-head">
+          <h2>On the Courts</h2>
+          <span class="tag">Live from all four courts</span>
+        </div>
+
+        <div class="byline">By <b>Our Court-Side Correspondent</b> · Match Day</div>
+
+        <p class="lede">
+          <span class="dropcap">R</span>ed Team carry a slender lead into the closing stretch, ahead six games to five as the friendly runs its course beneath the arena lights. On the first court the rubber is already settled; on the three that remain, the evening is very much undecided &mdash; a point here or there enough to swing the tally either way.
+        </p>
+
+        <div class="courts">
+          <div class="courts-head">
+            <span>Ct.</span>
+            <span class="h-red">Red Pair</span>
+            <span class="h-score">Score</span>
+            <span class="h-blue">Blue Pair</span>
+            <span class="h-status">State</span>
+          </div>
+          <div id="courts-body"><!-- rows injected --></div>
+        </div>
+
+        <p class="win-note" id="win-note"></p>
+      </div>
+
+      <!-- RIGHT: at a glance -->
+      <aside class="col-side">
+        <div class="glance">
+          <h3>At a Glance</h3>
+          <div class="rule">The Match Card</div>
+
+          <div class="fact"><span class="k">Fixture</span><span class="v" id="g-fixture">Red vs Blue</span></div>
+          <div class="fact"><span class="k">Date</span><span class="v" id="g-date">Monday 13 July 2026</span></div>
+          <div class="fact"><span class="k">Venue</span><span class="v" id="g-venue">TZH Badminton Arena</span></div>
+          <div class="fact"><span class="k">Red Captain</span><span class="v red" id="g-redcap">Wei Jie</span></div>
+          <div class="fact"><span class="k">Blue Captain</span><span class="v blue" id="g-bluecap">Zhang Hao</span></div>
+          <div class="fact"><span class="k">Courts in Play</span><span class="v" id="g-courts">4</span></div>
+          <div class="fact"><span class="k">Squads</span><span class="v">Twelve a side</span></div>
+
+          <div class="tally">
+            <div class="lab">Games Tally</div>
+            <div class="nums"><span class="r" id="g-tr">6</span><span class="d">&mdash;</span><span class="b" id="g-tb">5</span></div>
+          </div>
+
+          <p class="foot" id="g-foot">Red lead by a single game with three courts still to report.</p>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ================= LINE-UPS ================= -->
+    <section class="lineups">
+      <div class="lu-head">
+        <h2>The Line-Ups</h2>
+        <p>Full squads of twelve &mdash; captains marked &dagger; · court assignments at right</p>
+      </div>
+
+      <div class="lu-grid">
+        <div class="roster red">
+          <div class="roster-head">
+            <span class="rname" id="r-red-name">Red Team</span>
+            <span class="rcap">Twelve Players</span>
+          </div>
+          <ol class="players" id="red-list"><!-- injected --></ol>
+        </div>
+
+        <div class="lu-divider" aria-hidden="true"></div>
+
+        <div class="roster blue">
+          <div class="roster-head">
+            <span class="rname" id="r-blue-name">Blue Team</span>
+            <span class="rcap">Twelve Players</span>
+          </div>
+          <ol class="players" id="blue-list"><!-- injected --></ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= COLOPHON ================= -->
+    <footer class="colophon">
+      <span>The TZH Tribune · Sporting Chronicle</span>
+      <span class="mark">Printed on Match Day &mdash; MMXXVI</span>
+      <span>All results as reported courtside</span>
+    </footer>
+
+  </main>
+
+<script>
+  const MATCH = {
+    title: "TZH Friendly Match", subtitle: "Red vs Blue",
+    date: "Monday 13 July 2026", venue: "TZH Badminton Arena",
+    red:  { name: "Red Team",  games: 6, captain: "Wei Jie" },
+    blue: { name: "Blue Team", games: 5, captain: "Zhang Hao" },
+    redPlayers:  ["Wei Jie (C)","Marcus Tan","Kenji Wong","Arjun Rao","Daniel Lim","Ryan Ng","Samuel Goh","Ethan Chua","Lucas Teo","Nathan Sim","Oliver Yeo","Isaac Loh"],
+    bluePlayers: ["Zhang Hao (C)","Aaron Koh","Bryan Ho","Vikram Nair","Julian Toh","Leon Tay","Adrian Ong","Felix Low","Gabriel See","Sean Chan","Dylan Foo","Caleb Wee"],
+    courts: [
+      { court: 1, red: ["Wei Jie","Marcus Tan"],   blue: ["Zhang Hao","Aaron Koh"],  red_score: 21, blue_score: 18, status: "Final" },
+      { court: 2, red: ["Kenji Wong","Arjun Rao"],  blue: ["Bryan Ho","Vikram Nair"], red_score: 15, blue_score: 19, status: "Live" },
+      { court: 3, red: ["Daniel Lim","Ryan Ng"],    blue: ["Julian Toh","Leon Tay"],  red_score: 11, blue_score: 9,  status: "Live" },
+      { court: 4, red: ["Samuel Goh","Ethan Chua"], blue: ["Adrian Ong","Felix Low"], red_score: 8,  blue_score: 14, status: "Live" }
+    ],
+    redBench:  ["Lucas Teo","Nathan Sim","Oliver Yeo","Isaac Loh"],
+    blueBench: ["Gabriel See","Sean Chan","Dylan Foo","Caleb Wee"]
+  };
+
+  const stripC = n => n.replace(/\s*\(C\)\s*/,'').trim();
+  const isCap  = n => /\(C\)/.test(n);
+  const esc    = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // Map each clean player name -> assignment label ("Court n" / "Reserve")
+  const assign = {};
+  MATCH.courts.forEach(c => {
+    c.red.forEach(n => assign[n] = { label: 'Court ' + c.court, court: true });
+    c.blue.forEach(n => assign[n] = { label: 'Court ' + c.court, court: true });
+  });
+  MATCH.redBench.concat(MATCH.blueBench).forEach(n => {
+    if (!assign[n]) assign[n] = { label: 'Reserve', court: false };
+  });
+
+  // ---- Header / hero / glance text bindings ----
+  const set = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+
+  set('dl-date', esc(MATCH.date));
+  set('dl-venue', esc(MATCH.venue));
+  set('s-red-name', esc(MATCH.red.name));
+  set('s-blue-name', esc(MATCH.blue.name));
+  set('s-red-fig', MATCH.red.games);
+  set('s-blue-fig', MATCH.blue.games);
+  set('s-red-cap', esc(MATCH.red.captain));
+  set('s-blue-cap', esc(MATCH.blue.captain));
+
+  const lead = MATCH.red.games - MATCH.blue.games;
+  const leaderName = lead > 0 ? MATCH.red.name : (lead < 0 ? MATCH.blue.name : null);
+  const marginTxt = Math.abs(lead) === 1 ? 'a single game' : Math.abs(lead) + ' games';
+  set('hero-head', leaderName
+      ? esc(leaderName.replace(' Team','')) + ' Hold the Advantage as ' + (lead>0?'Blue':'Red') + ' Give Chase'
+      : 'Honours Even as Red and Blue Trade Games');
+
+  set('g-fixture', esc(MATCH.red.name) + ' <span style="color:var(--ink-faint);font-style:normal">v</span> ' + esc(MATCH.blue.name));
+  set('g-date', esc(MATCH.date));
+  set('g-venue', esc(MATCH.venue));
+  set('g-redcap', esc(MATCH.red.captain));
+  set('g-bluecap', esc(MATCH.blue.captain));
+  set('g-courts', MATCH.courts.length);
+  set('g-tr', MATCH.red.games);
+  set('g-tb', MATCH.blue.games);
+
+  const liveCourts = MATCH.courts.filter(c => c.status !== 'Final').length;
+  set('g-foot', (leaderName
+      ? esc(leaderName.replace(' Team','')) + ' lead by ' + marginTxt
+      : 'The sides are locked level') + (liveCourts ? ' with ' + liveCourts + ' court' + (liveCourts>1?'s':'') + ' still to report.' : '.'));
+
+  set('r-red-name', esc(MATCH.red.name));
+  set('r-blue-name', esc(MATCH.blue.name));
+
+  // ---- Courts table ----
+  const pairHtml = arr => arr.map(esc).join(' <span class="amp">&amp;</span> ');
+
+  const courtsBody = document.getElementById('courts-body');
+  courtsBody.innerHTML = MATCH.courts.map(c => {
+    const redWin = c.red_score > c.blue_score;
+    const blueWin = c.blue_score > c.red_score;
+    const isFinal = c.status === 'Final';
+    const rsCls = redWin ? 'lead' : (blueWin ? 'notlead' : '');
+    const bsCls = blueWin ? 'lead' : (redWin ? 'notlead' : '');
+    const statusHtml = isFinal
+      ? '<span class="status final">Final</span>'
+      : '<span class="status live"><span class="dot"></span>Live</span>';
+    return `
+      <div class="court-row">
+        <div class="ct">${c.court}<small>Court</small></div>
+        <div class="pair red-pair">${pairHtml(c.red)}</div>
+        <div class="score">
+          <span class="rs ${rsCls}">${c.red_score}</span>
+          <span class="dash">&mdash;</span>
+          <span class="bs ${bsCls}">${c.blue_score}</span>
+        </div>
+        <div class="pair blue-pair">${pairHtml(c.blue)}</div>
+        ${statusHtml}
+      </div>`;
+  }).join('');
+
+  // ---- Win note (from real data only) ----
+  const finals = MATCH.courts.filter(c => c.status === 'Final');
+  const redLeadingLive = MATCH.courts.filter(c => c.status !== 'Final' && c.red_score > c.blue_score).length;
+  const blueLeadingLive = MATCH.courts.filter(c => c.status !== 'Final' && c.blue_score > c.red_score).length;
+  let noteParts = [];
+  if (finals.length) {
+    const decided = finals.map(c => {
+      const winner = c.red_score > c.blue_score ? 'red' : 'blue';
+      const wname = winner === 'red' ? c.red : c.blue;
+      const cls = winner;
+      return `<b class="${cls}">${pairHtml(wname).replace(/<span class="amp">&amp;<\/span>/g,'&amp;')}</b> took Court ${c.court}`;
+    });
+    noteParts.push(decided.join('; '));
+  }
+  if (redLeadingLive || blueLeadingLive) {
+    let lead2 = [];
+    if (redLeadingLive) lead2.push(`<b class="red">Red</b> lead on ${redLeadingLive}`);
+    if (blueLeadingLive) lead2.push(`<b class="blue">Blue</b> lead on ${blueLeadingLive}`);
+    noteParts.push(lead2.join(', ') + ' of the courts still in play');
+  }
+  set('win-note', noteParts.join(' &mdash; ') + '.');
+
+  // ---- Line-ups ----
+  function renderRoster(players) {
+    return players.map((p, i) => {
+      const clean = stripC(p);
+      const cap = isCap(p);
+      const a = assign[clean] || { label: '', court: false };
+      const daggerHtml = cap ? ' <span class="dagger">&dagger;</span>' : '';
+      const aCls = a.court ? 'oncourt' : 'reserve';
+      return `
+        <li class="player ${cap ? 'captain' : ''}">
+          <span class="num">${i + 1}</span>
+          <span class="pname">${esc(clean)}${daggerHtml}</span>
+          <span class="assign ${aCls}">${esc(a.label)}</span>
+        </li>`;
+    }).join('');
+  }
+  document.getElementById('red-list').innerHTML = renderRoster(MATCH.redPlayers);
+  document.getElementById('blue-list').innerHTML = renderRoster(MATCH.bluePlayers);
+</script>
+</body>
+</html>

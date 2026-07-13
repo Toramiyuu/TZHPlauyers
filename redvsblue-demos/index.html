@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Red vs Blue — 10 Design Demos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0e13;--card:#141821;--line:rgba(255,255,255,.09);
+    --ink:#eef1f6;--dim:#98a1b3;--red:#ff3b45;--blue:#2f8bff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1000px 500px at 10% -10%,rgba(255,59,69,.10),transparent 60%),
+      radial-gradient(1000px 500px at 90% -10%,rgba(47,139,255,.10),transparent 60%),
+      var(--bg);
+    color:var(--ink);font-family:"Space Grotesk",system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+    min-height:100vh;padding:clamp(20px,4vw,56px) clamp(16px,4vw,56px) 64px;
+  }
+  .head{max-width:1400px;margin:0 auto clamp(24px,3vw,40px)}
+  .eyebrow{font-family:"JetBrains Mono";font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--dim)}
+  .head h1{font-size:clamp(28px,5vw,52px);font-weight:700;letter-spacing:-.02em;margin:10px 0 6px;line-height:1.02}
+  .head h1 .r{color:var(--red)}.head h1 .b{color:var(--blue)}
+  .head p{color:var(--dim);font-size:clamp(14px,1.4vw,17px);max-width:60ch;line-height:1.5}
+  .head .note{margin-top:14px;font-family:"JetBrains Mono";font-size:12.5px;color:var(--dim);border-left:2px solid var(--line);padding-left:12px;line-height:1.7}
+  .head .note b{color:var(--ink)}
+
+  .grid{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:clamp(16px,2vw,26px)}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;
+    display:flex;flex-direction:column;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+  }
+  .card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.22);box-shadow:0 18px 44px rgba(0,0,0,.45)}
+  .thumb{position:relative;aspect-ratio:16/10;background:#000;overflow:hidden;border-bottom:1px solid var(--line)}
+  .thumb iframe{
+    position:absolute;top:0;left:0;width:1440px;height:900px;border:0;
+    transform:scale(.2431);transform-origin:top left;pointer-events:none;background:#000;
+  }
+  .thumb .num{
+    position:absolute;top:10px;left:10px;z-index:2;font-family:"JetBrains Mono";font-weight:600;font-size:12px;
+    background:rgba(0,0,0,.6);backdrop-filter:blur(4px);color:#fff;padding:4px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.15)
+  }
+  .thumb .open{
+    position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;
+    background:rgba(8,10,14,.55);opacity:0;transition:opacity .18s ease;text-decoration:none;
+  }
+  .thumb:hover .open{opacity:1}
+  .thumb .open span{background:#fff;color:#0c0e13;font-weight:600;font-size:14px;padding:10px 20px;border-radius:999px}
+  .body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .body .tag{display:inline-flex;align-items:center;gap:7px;font-family:"JetBrains Mono";font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+  .dot{width:8px;height:8px;border-radius:50%}
+  .body h3{font-size:19px;font-weight:600;letter-spacing:-.01em}
+  .body p{color:var(--dim);font-size:14px;line-height:1.5;flex:1}
+  .body .go{margin-top:6px;font-size:14px;font-weight:600;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .body .go:hover{color:var(--blue)}
+  .body .go .arrow{transition:transform .18s ease}
+  .body .go:hover .arrow{transform:translateX(3px)}
+  .foot{max-width:1400px;margin:40px auto 0;color:var(--dim);font-family:"JetBrains Mono";font-size:12px;letter-spacing:.05em;text-align:center;line-height:1.8}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="eyebrow">TZH Badminton · Design Exploration</div>
+    <h1><span class="r">Red</span> vs <span class="b">Blue</span> — 10 Display Concepts</h1>
+    <p>Ten distinct UI directions for the friendly internal match display. Every demo shows the same data — both 12-player rosters, the Red 6 – Blue 5 games tally, and the four live court matchups — so you can compare styles like-for-like.</p>
+    <div class="note">Hover a card and click <b>Open</b> to view it full-screen. Each demo is fully responsive — resize the window (or open on your phone) to see the TV and mobile layouts. Nothing here touches the live site.</div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="foot">10 concepts · same match data · self-contained HTML · pick one (or mix two) and I'll build it into tzhplayers</div>
+
+<script>
+const DEMOS = [
+  {n:"01",file:"01-minimal-apple.html",title:"Minimal · Apple-light",r:"#ff453a",b:"#0a84ff",tag:"Calm",desc:"Airy, hairline dividers, ultra-light numerals. Glanceable and understated."},
+  {n:"02",file:"02-broadcast-tv.html",title:"Broadcast TV",r:"#e11d2a",b:"#1668dc",tag:"Sporty",desc:"Dark ESPN-style score bug, diagonal team split, huge condensed numbers, LIVE pulse."},
+  {n:"03",file:"03-esports-hud.html",title:"Esports HUD",r:"#ff2d43",b:"#1f9bff",tag:"Bold",desc:"Valorant-style angular panels, neon red-vs-blue clash, ranked scoreboard rosters."},
+  {n:"04",file:"04-retro-arcade.html",title:"Retro Arcade",r:"#ff4d4d",b:"#4da6ff",tag:"Playful",desc:"CRT Street-Fighter versus screen — pixel type, PLAYER SELECT rosters, ROUND cards."},
+  {n:"05",file:"05-editorial-print.html",title:"Editorial Print",r:"#a4232c",b:"#1c3f7a",tag:"Elegant",desc:"Broadsheet 'TZH Tribune' — serif masthead, ink rules, match-report typesetting."},
+  {n:"06",file:"06-neo-brutalist.html",title:"Neo-Brutalist",r:"#ff4438",b:"#2b5cff",tag:"Graphic",desc:"Thick black borders, hard offset shadows, flat blocks, oversized blocky scoreboard."},
+  {n:"07",file:"07-led-jumbotron.html",title:"LED Jumbotron",r:"#ff3b30",b:"#2f9bff",tag:"Stadium",desc:"Arena big-screen — glowing seven-segment digits, LED court rows, line-up board."},
+  {n:"08",file:"08-glass-aurora.html",title:"Glass · Aurora",r:"#ff5a6a",b:"#3aa0ff",tag:"Premium",desc:"Frosted glass cards over a red↔blue aurora, floating court tiles, soft depth."},
+  {n:"09",file:"09-kinetic-motion.html",title:"Kinetic Motion",r:"#ff3b45",b:"#2f8bff",tag:"Animated",desc:"Panels clash on load, scores count up from zero, looping live ticker along the bottom."},
+  {n:"10",file:"10-command-dashboard.html",title:"Command Dashboard",r:"#ef4444",b:"#3b82f6",tag:"Data",desc:"Control-room live-ops board — KPI tiles, split tally bar, court status grid, derived stats."},
+];
+
+document.getElementById("grid").innerHTML = DEMOS.map(d=>`
+  <div class="card">
+    <div class="thumb">
+      <span class="num">${d.n}</span>
+      <iframe src="${d.file}" loading="lazy" title="${d.title}" scrolling="no"></iframe>
+      <a class="open" href="${d.file}" target="_blank"><span>Open ↗</span></a>
+    </div>
+    <div class="body">
+      <div class="tag"><span class="dot" style="background:${d.r}"></span><span class="dot" style="background:${d.b}"></span>${d.tag}</div>
+      <h3>${d.title}</h3>
+      <p>${d.desc}</p>
+      <a class="go" href="${d.file}" target="_blank">Open full-screen <span class="arrow">→</span></a>
+    </div>
+  </div>
+`).join("");
+</script>
+</body>
+</html>
