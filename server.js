@@ -44,6 +44,7 @@ const DEFAULT_STATE = {
     { id: 'sg-mon', day: 'Monday', weekday: 1, time: '9–11pm', enabled: true },
   ],
   signups: [],
+  regulars: {}, // weekday (0=Sun..6=Sat) -> roster ids who always come that day
 };
 
 let state = JSON.parse(JSON.stringify(DEFAULT_STATE));

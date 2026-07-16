@@ -346,6 +346,26 @@ body.in-3d #joinModal{z-index:1300}
 .social-games-row .sg-time{width:120px}
 .sg-toggle{display:inline-flex;align-items:center;min-height:44px;padding:0 6px;cursor:pointer}
 .sg-toggle input{width:20px;height:20px;accent-color:var(--a-blue);cursor:pointer}
+/* Settings: Weekly Regulars editor */
+.reg-daybar{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 14px}
+.reg-day{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border2);background:var(--card);color:var(--text-2);border-radius:100px;padding:7px 14px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;font-family:inherit;min-height:40px;transition:var(--transition)}
+.reg-day:hover{border-color:var(--green-line);color:var(--text)}
+.reg-day.on{background:var(--green);border-color:var(--green);color:#fff}
+.reg-day-count{min-width:18px;padding:0 5px;border-radius:100px;background:var(--green-tint);color:var(--green-light);font-size:11px;font-weight:700;line-height:18px;text-align:center}
+.reg-day.on .reg-day-count{background:rgba(255,255,255,.28);color:#fff}
+.reg-players{display:flex;gap:8px;flex-wrap:wrap}
+.reg-chip{display:flex;align-items:center;gap:7px;border:1px solid var(--border2);background:var(--card);color:var(--text);border-radius:100px;padding:5px 13px 5px 6px;font-size:var(--fs-sm);cursor:pointer;font-family:inherit;min-height:40px;transition:var(--transition)}
+.reg-chip:hover{border-color:var(--green-line)}
+.reg-chip.on{background:var(--green-tint);border-color:var(--green-line);color:var(--green-light);font-weight:600}
+.reg-chip-tick{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;transition:var(--transition)}
+.reg-chip.on .reg-chip-tick{background:var(--green);border-color:var(--green)}
+.reg-empty{color:var(--muted);font-size:13px;padding:6px 0}
+/* Session tab: "Add regulars" prompt banner */
+.reg-prompt{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between;background:var(--green-tint);border:1px solid var(--green-line);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:12px}
+.reg-prompt-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.reg-prompt-day{font-size:var(--fs-sm);font-weight:700;color:var(--green-light)}
+.reg-prompt-names{font-size:var(--fs-xs);color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.reg-prompt .btn{flex-shrink:0}
 /* History modal nav helpers */
 .hist-nav{display:flex;align-items:center;justify-content:space-between;margin:14px 0 18px}
 .hist-nav-btns{display:flex;gap:8px}
@@ -1748,6 +1768,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <span id="sessionCount" class="admin-session-count"></span>
     </div>
     <div class="admin-helper-text">Tap a player to add/remove from today's session. Switch to <b>List</b> to set skill level &amp; mixed-doubles for the whole squad.</div>
+    <div id="regularsPrompt"></div>
     <div class="roster-viewtoggle" role="tablist" aria-label="Player view">
       <button class="rv-btn active" data-view="grid" role="tab" onclick="setRosterView('grid')">Grid</button>
       <button class="rv-btn" data-view="list" role="tab" onclick="setRosterView('list')">List</button>
@@ -2062,6 +2083,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     </div>
   </div>
 
+  <!-- Weekly Regulars -->
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z"/></svg></span> Weekly Regulars</div>
+    <div class="admin-helper-text">Players who always come on a given day. Pick a day, then tap everyone who&rsquo;s a regular. When a session date lands on that day, the Session tab lets you add them all with one tap.</div>
+    <div class="reg-daybar" id="regDayBar"></div>
+    <div class="reg-players" id="regPlayers"></div>
+    <div class="admin-btn-row admin-mt">
+      <button class="btn btn-primary btn-sm" onclick="saveRegulars()">Save regulars</button>
+    </div>
+  </div>
+
   </div><!-- /settings tab -->
 
 </div>
@@ -2082,7 +2114,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <details class="help-sec"><summary>Monthly Draw</summary><div>Import the token ballot and run the monthly prize draw. Winners and prizes appear on the prize-draw board.</div></details>
       <details class="help-sec"><summary>Sign-ups</summary><div>People who asked to join through the public form, newest first. Mark each one contacted once you&rsquo;ve reached out.</div></details>
       <details class="help-sec"><summary>Accounts</summary><div>Everyone who created a login. Reset a PIN to issue a new 6-digit code; deleting an account also removes its linked roster player.</div></details>
-      <details class="help-sec"><summary>Settings</summary><div>Share the viewer link, set the daily <b>site access code</b>, change the admin password, and choose which social game days appear on the public sign-up.</div></details>
+      <details class="help-sec"><summary>Settings</summary><div>Share the viewer link, set the daily <b>site access code</b>, change the admin password, choose which social game days appear on the public sign-up, and set <b>weekly regulars</b> &mdash; players who always come on a given day, added to the line-up in one tap.</div></details>
     </div>
   </div>
 </aside>
@@ -3273,6 +3305,7 @@ function renderAdmin() {
   document.getElementById('shareLink').textContent = window.location.origin + '/';
   renderSiteCodeSection();
   renderSocialGamesCard();
+  renderRegularsCard(true); // reinit the editor draft from freshly-loaded state
 }
 
 function renderCourtControls() {
@@ -3517,6 +3550,10 @@ function renderPlayersSection() {
     state.roster = (state.players || []).map(p => ({ id: p.id, name: p.name, photo: p.photo || null }));
   }
 
+  // One-tap prompt for the day's weekly regulars (own element; render it before
+  // any early return so it shows in both Grid and List views).
+  renderRegularsPrompt();
+
   const sessionIds = new Set((state.players || []).map(p => p.id));
   const guests = (state.players || []).filter(p => p.guest);
   const inSessionCount = (state.roster || []).filter(r => sessionIds.has(r.id)).length + guests.length;
@@ -3759,13 +3796,27 @@ async function deleteRosterPlayer(id, btn) {
   // Also pull them off any current court so the live display doesn't show a
   // deleted player (their id would otherwise linger in state.rounds).
   const { rounds: cleanedRounds, changed: roundsChanged } = stripPlayerFromRounds(state.rounds, id);
+  // Also drop them from the weekly-regulars map so a deleted player never lingers
+  // as a "regular" (which would otherwise resurface in the Session prompt).
+  let regulars = state.regulars, regularsChanged = false;
+  if (regulars && typeof regulars === 'object' && !Array.isArray(regulars)) {
+    const nr = {};
+    for (const k in regulars) {
+      const arr = (regulars[k] || []).filter(x => x !== id);
+      if (arr.length !== (regulars[k] || []).length) regularsChanged = true;
+      if (arr.length) nr[k] = arr;
+    }
+    if (regularsChanged) regulars = nr;
+  }
   const updates = { roster, players };
   if (sessionsChanged) updates.sessions = sessions;
   if (roundsChanged) updates.rounds = cleanedRounds;
+  if (regularsChanged) updates.regulars = regulars;
   await apiPost(updates);
   state.roster = roster; state.players = players;
   if (sessionsChanged) state.sessions = sessions;
   if (roundsChanged) state.rounds = cleanedRounds;
+  if (regularsChanged) { state.regulars = regulars; regularsDraft = regularsClone(regulars); }
   renderPlayersSection(); renderCourtControls(); renderRoundList(); renderViewer();
   notify('Removed from roster.');
 }
@@ -4546,6 +4597,143 @@ async function saveSocialGames() {
   renderSocialGamesCard();      // re-sync the card from the saved state
   updateJoinCtaVisibility();    // hide the public CTA if nothing is enabled now
   notify('Game days saved');
+}
+
+// ── WEEKLY REGULARS (settings editor) ─────────
+// Mirror of api/state.js regularsToAdd (tested there). Roster ids that are
+// regulars for `weekday`, still on the roster, and not already in the session.
+function regularsToAdd(regulars, weekday, sessionIds, rosterIds) {
+  const map = (regulars && typeof regulars === 'object') ? regulars : {};
+  const ids = Array.isArray(map[weekday]) ? map[weekday] : [];
+  const inSession = new Set(sessionIds || []);
+  const onRoster = new Set(rosterIds || []);
+  const seen = new Set(), out = [];
+  for (const id of ids) {
+    if (!onRoster.has(id) || inSession.has(id) || seen.has(id)) continue;
+    seen.add(id); out.push(id);
+  }
+  return out;
+}
+
+// Weekday (0=Sun..6=Sat) for an ISO date, or -1 if unparseable.
+function weekdayOfISO(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  return m ? new Date(+m[1], +m[2] - 1, +m[3]).getDay() : -1;
+}
+
+// Working copy of the regulars map, committed only on Save (like Social Games).
+// Editing the draft never touches state.regulars, so a 2s poll can't wipe an
+// in-progress edit and the live Session prompt stays on the saved data.
+let regularsDraft = null;    // { weekday(string): [ids] }
+let regDaySel = null;        // weekday currently open in the editor (0..6)
+
+function regularsClone(src) {
+  const out = {};
+  if (src && typeof src === 'object') {
+    for (const k in src) if (Array.isArray(src[k]) && src[k].length) out[k] = src[k].slice();
+  }
+  return out;
+}
+
+// reinit=true (re-)seeds the draft + selected day from the saved state — called
+// once when the admin panel (re)opens. Toggle handlers pass no arg so unsaved
+// edits survive re-renders.
+function renderRegularsCard(reinit) {
+  const bar = document.getElementById('regDayBar');
+  const wrap = document.getElementById('regPlayers');
+  if (!bar || !wrap) return;
+  if (reinit || regularsDraft === null) {
+    regularsDraft = regularsClone(state.regulars);
+    // Land on the current session's weekday so the editor opens where it matters.
+    const wd = weekdayOfISO(state.sessionDate || todayISO());
+    regDaySel = wd >= 0 ? wd : 1;
+  }
+  const roster = state.roster || [];
+  const rosterIds = new Set(roster.map(r => r.id));
+
+  bar.innerHTML = WEEKDAY_NAMES.map((nm, wd) => {
+    // Count only regulars that still exist on the roster.
+    const n = (regularsDraft[wd] || []).filter(id => rosterIds.has(id)).length;
+    const badge = n ? `<span class="reg-day-count">${n}</span>` : '';
+    return `<button type="button" class="reg-day${wd === regDaySel ? ' on' : ''}" onclick="selectRegularDay(${wd})">${nm.slice(0, 3)}${badge}</button>`;
+  }).join('');
+
+  if (!roster.length) {
+    wrap.innerHTML = '<div class="reg-empty">No roster players yet — add players in the Session tab first.</div>';
+    return;
+  }
+  const chosen = new Set(regularsDraft[regDaySel] || []);
+  wrap.innerHTML = roster.map(rp => {
+    const on = chosen.has(rp.id);
+    return `<button type="button" class="reg-chip${on ? ' on' : ''}" onclick="toggleRegularChip('${rp.id}')">
+      <span class="reg-chip-tick">${on ? '✓' : ''}</span>${escHtml(rp.name)}</button>`;
+  }).join('');
+}
+
+function selectRegularDay(wd) {
+  regDaySel = wd;
+  renderRegularsCard();
+}
+
+function toggleRegularChip(id) {
+  if (regularsDraft === null) regularsDraft = regularsClone(state.regulars);
+  const key = String(regDaySel);
+  const set = new Set(regularsDraft[key] || []);
+  if (set.has(id)) set.delete(id); else set.add(id);
+  const arr = [...set];
+  if (arr.length) regularsDraft[key] = arr; else delete regularsDraft[key];
+  renderRegularsCard();
+}
+
+async function saveRegulars() {
+  // Snapshot the draft, pull fresh state, then persist — matches saveSocialGames.
+  const regulars = regularsClone(regularsDraft || {});
+  await refreshState();
+  if (await apiPost({ regulars }) === null) return;
+  state.regulars = regulars;
+  regularsDraft = regularsClone(regulars);
+  renderRegularsCard();
+  renderRegularsPrompt();  // the Session-tab banner reflects the new save
+  notify('Regulars saved');
+}
+
+// Session-tab banner: when today's session weekday has regulars not yet in the
+// line-up, offer a one-tap "Add all". Reads SAVED state (not the editor draft).
+function renderRegularsPrompt() {
+  const el = document.getElementById('regularsPrompt');
+  if (!el) return;
+  const wd = weekdayOfISO(state.sessionDate || todayISO());
+  const sessionIds = (state.players || []).map(p => p.id);
+  const rosterIds = (state.roster || []).map(r => r.id);
+  const toAdd = regularsToAdd(state.regulars, wd, sessionIds, rosterIds);
+  if (wd < 0 || !toAdd.length) { el.innerHTML = ''; return; }
+  const byId = new Map((state.roster || []).map(r => [r.id, r]));
+  const names = toAdd.map(id => (byId.get(id) || {}).name).filter(Boolean);
+  el.innerHTML = `<div class="reg-prompt">
+    <div class="reg-prompt-txt">
+      <span class="reg-prompt-day">${WEEKDAY_NAMES[wd]} regulars</span>
+      <span class="reg-prompt-names">${escHtml(names.join(' · '))}</span>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="addAllRegulars()">+ Add all (${toAdd.length})</button>
+  </div>`;
+}
+
+async function addAllRegulars() {
+  await refreshState();
+  const wd = weekdayOfISO(state.sessionDate || todayISO());
+  const sessionIds = (state.players || []).map(p => p.id);
+  const byId = new Map((state.roster || []).map(r => [r.id, r]));
+  const toAdd = regularsToAdd(state.regulars, wd, sessionIds, [...byId.keys()]);
+  if (!toAdd.length) { renderRegularsPrompt(); return; }
+  const additions = toAdd.map(id => { const rp = byId.get(id); return { id: rp.id, name: rp.name, photo: rp.photo || null }; });
+  const players = [...(state.players || []), ...additions];
+  if (await apiPost({ players }) === null) return;
+  state.players = players;
+  renderPlayersSection();
+  renderCourtControls();
+  renderRoundList();
+  renderViewer();
+  notify(`Added ${additions.length} regular${additions.length > 1 ? 's' : ''} to today.`);
 }
 
 // ── DATE UTILS ───────────────────────────────

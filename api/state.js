@@ -75,6 +75,10 @@ const DEFAULT_STATE = {
     { id: 'sg-mon', day: 'Monday', weekday: 1, time: '9–11pm', enabled: true },
   ],
   signups: [],
+  // Weekly regulars: weekday (0=Sun..6=Sat) -> array of roster ids who always
+  // come that day. Admins set this in Settings; the admin Session tab surfaces a
+  // one-tap "Add regulars" prompt when the session date lands on a matching day.
+  regulars: {},
 };
 
 const DEFAULT_MD_PRIZES = ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'];
@@ -200,6 +204,28 @@ function awardSessionPoints(state, leavingDate) {
     ),
     awardedSessions: awarded.concat([leavingDate]),
   };
+}
+
+// ── WEEKLY REGULARS ──────────────────────────────────────────────────────────
+// Given the regulars map (weekday -> ids), a weekday (0=Sun..6=Sat), the ids
+// already in today's session, and the ids currently on the roster, return the
+// roster ids that should be offered by the admin's one-tap "Add regulars" button:
+// regulars for that day who still exist on the roster and aren't already playing.
+// Order-preserving, de-duped, and tolerant of number OR string weekday keys
+// (JS coerces regulars[1] === regulars["1"]). Pure — never mutates its inputs.
+function regularsToAdd(regulars, weekday, sessionIds, rosterIds) {
+  const map = (regulars && typeof regulars === 'object') ? regulars : {};
+  const ids = Array.isArray(map[weekday]) ? map[weekday] : [];
+  const inSession = new Set(sessionIds || []);
+  const onRoster = new Set(rosterIds || []);
+  const seen = new Set();
+  const out = [];
+  for (const id of ids) {
+    if (!onRoster.has(id) || inSession.has(id) || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out;
 }
 
 // ── LUCKY DRAW: paid-player entries with a 2-day window ──────────────────────
@@ -423,6 +449,9 @@ const handler = async function handler(req, res) {
       if (current.monthlySpin === undefined) current.monthlySpin = null;
       if (!Array.isArray(current.socialGames)) current.socialGames = DEFAULT_STATE.socialGames.map(g => ({ ...g }));
       if (!Array.isArray(current.signups)) current.signups = [];
+      // Weekly regulars: a plain weekday->ids object. Coerce anything else (old
+      // blobs, arrays, null) to {} so the editor and the Session prompt are safe.
+      if (!current.regulars || typeof current.regulars !== 'object' || Array.isArray(current.regulars)) current.regulars = {};
       if (!Array.isArray(current.endingSoon)) current.endingSoon = [];
       if (!Array.isArray(current.accounts)) current.accounts = [];
       if (current.siteCode) {
@@ -602,6 +631,7 @@ module.exports.applySessionDateChange = applySessionDateChange;
 module.exports.awardSessionPoints = awardSessionPoints;
 module.exports.paidEntryExpiry = paidEntryExpiry;
 module.exports.pruneExpiredPaid = pruneExpiredPaid;
+module.exports.regularsToAdd = regularsToAdd;
 module.exports.nextRolloverDate = nextRolloverDate;
 module.exports.rolloverSessionDate = rolloverSessionDate;
 module.exports.todayISO = todayISO;
