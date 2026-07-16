@@ -5,7 +5,7 @@
  * returns the regulars that should be offered: on the roster, not already
  * playing, de-duped, order-preserving. The frontend keeps an identical mirror. */
 'use strict';
-const { regularsToAdd } = require('../api/state.js');
+const { regularsToAdd, seedRegularPlayers, applySessionDateChange } = require('../api/state.js');
 
 let pass = 0, fail = 0;
 const check = (name, cond) => { if (cond) { pass++; } else { fail++; console.log('  FAIL  ' + name); } };
@@ -63,6 +63,56 @@ const ROSTER = ['p0', 'p1', 'p2', 'p5', 'p6'];
   regularsToAdd(reg, 1, session, ROSTER);
   check('regulars map untouched', eq(reg, { 1: ['p0', 'p5'] }));
   check('sessionIds untouched', eq(session, ['p5']));
+}
+
+// ── seedRegularPlayers: {id,name} for the weekday a date falls on ──
+{
+  // 2026-07-20 is a Monday (getDay()===1); 2026-07-16 is a Thursday (4)
+  const state = {
+    roster: [{ id: 'p0', name: 'Harvey' }, { id: 'p5', name: 'Alex' }, { id: 'p6', name: 'Kokyan' }],
+    regulars: { 1: ['p0', 'p6'], 4: ['p5'] },
+  };
+  check('seeds Monday regulars as {id,name}', eq(seedRegularPlayers(state, '2026-07-20'), [{ id: 'p0', name: 'Harvey' }, { id: 'p6', name: 'Kokyan' }]));
+  check('seeds Thursday regulars', eq(seedRegularPlayers(state, '2026-07-16'), [{ id: 'p5', name: 'Alex' }]));
+  check('no regulars for the weekday -> []', eq(seedRegularPlayers(state, '2026-07-21'), [])); // Tuesday
+  check('skips ids no longer on the roster', eq(seedRegularPlayers({ roster: [{ id: 'p0', name: 'Harvey' }], regulars: { 1: ['p0', 'gone'] } }, '2026-07-20'), [{ id: 'p0', name: 'Harvey' }]));
+  check('tolerates missing regulars -> []', eq(seedRegularPlayers({ roster: [{ id: 'p0', name: 'Harvey' }] }, '2026-07-20'), []));
+}
+
+// ── applySessionDateChange auto-adds regulars on a FRESH day ──
+{
+  const base = {
+    sessionDate: '2026-07-18', // a Saturday, no regulars set for it
+    players: [{ id: 'p9', name: 'Guest' }],
+    roster: [{ id: 'p0', name: 'Harvey' }, { id: 'p5', name: 'Alex' }],
+    regulars: { 1: ['p0'] }, // Harvey is a Monday regular
+    numCourts: 2, courtNumbers: [1, 2], sessions: {},
+  };
+  const r = applySessionDateChange(base, '2026-07-20', '2026-07-18'); // -> Monday
+  check('transition ok', r.ok === true);
+  check('fresh Monday auto-adds Harvey', eq(r.state.players, [{ id: 'p0', name: 'Harvey' }]));
+  check('does not mutate the input players', eq(base.players, [{ id: 'p9', name: 'Guest' }]));
+
+  // A weekday with no regulars starts empty (backward-compatible behaviour)
+  const r2 = applySessionDateChange(base, '2026-07-21', '2026-07-18'); // Tuesday, no regulars
+  check('fresh day without regulars stays empty', eq(r2.state.players, []));
+
+  // No regulars map at all -> empty (unchanged legacy behaviour)
+  const r3 = applySessionDateChange({ sessionDate: '2026-07-18', players: [{ id: 'p9', name: 'G' }], roster: [{ id: 'p0', name: 'Harvey' }], sessions: {} }, '2026-07-20', '2026-07-18');
+  check('no regulars map -> fresh day empty', eq(r3.state.players, []));
+}
+
+// ── Restoring a SAVED day keeps its players (regulars are NOT re-added) ──
+{
+  const base = {
+    sessionDate: '2026-07-18',
+    players: [],
+    roster: [{ id: 'p0', name: 'Harvey' }, { id: 'p5', name: 'Alex' }],
+    regulars: { 1: ['p0'] },
+    sessions: { '2026-07-20': { players: [{ id: 'p5', name: 'Alex' }], rounds: [], numCourts: 2, courtNumbers: [1, 2], courtRounds: [] } },
+  };
+  const r = applySessionDateChange(base, '2026-07-20', '2026-07-18');
+  check('restored saved Monday keeps its own players, not regulars', eq(r.state.players, [{ id: 'p5', name: 'Alex' }]));
 }
 
 console.log(`\nregulars tests: ${pass} passed, ${fail} failed`);

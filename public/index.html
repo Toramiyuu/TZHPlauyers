@@ -2087,7 +2087,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <!-- Weekly Regulars -->
   <div class="admin-card">
     <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z"/></svg></span> Weekly Regulars</div>
-    <div class="admin-helper-text">Players who always come on a given day. Pick a day, then tap everyone who&rsquo;s a regular. When a session date lands on that day, the Session tab lets you add them all with one tap.</div>
+    <div class="admin-helper-text">Players who always come on a given day. Pick a day, then tap everyone who&rsquo;s a regular. When a session date lands on that day, these players are added to the line-up automatically.</div>
     <div class="reg-daybar" id="regDayBar"></div>
     <input id="regSearch" type="text" class="admin-form-input reg-search"
       placeholder="Search players..." autocomplete="off" aria-label="Search players"
@@ -2119,7 +2119,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <details class="help-sec"><summary>Monthly Draw</summary><div>Import the token ballot and run the monthly prize draw. Winners and prizes appear on the prize-draw board.</div></details>
       <details class="help-sec"><summary>Sign-ups</summary><div>People who asked to join through the public form, newest first. Mark each one contacted once you&rsquo;ve reached out.</div></details>
       <details class="help-sec"><summary>Accounts</summary><div>Everyone who created a login. Reset a PIN to issue a new 6-digit code; deleting an account also removes its linked roster player.</div></details>
-      <details class="help-sec"><summary>Settings</summary><div>Share the viewer link, set the daily <b>site access code</b>, change the admin password, choose which social game days appear on the public sign-up, and set <b>weekly regulars</b> &mdash; players who always come on a given day, added to the line-up in one tap.</div></details>
+      <details class="help-sec"><summary>Settings</summary><div>Share the viewer link, set the daily <b>site access code</b>, change the admin password, choose which social game days appear on the public sign-up, and set <b>weekly regulars</b> &mdash; players who always come on a given day, added to the line-up automatically when the session date lands on that day.</div></details>
     </div>
   </div>
 </aside>
@@ -4710,24 +4710,48 @@ async function saveRegulars() {
   // Snapshot the draft, pull fresh state, then persist — matches saveSocialGames.
   const regulars = regularsClone(regularsDraft || {});
   await refreshState();
-  if (await apiPost({ regulars }) === null) return;
+  // Auto-add: if today's session lands on a weekday we just set regulars for,
+  // drop the missing ones straight into the line-up. This makes configuring
+  // "today's" regulars fill today immediately (no extra tap needed).
+  const wd = weekdayOfISO(state.sessionDate || todayISO());
+  const byId = new Map((state.roster || []).map(r => [r.id, r]));
+  const sessionIds = (state.players || []).map(p => p.id);
+  const toAdd = regularsToAdd(regulars, wd, sessionIds, [...byId.keys()]);
+  const players = toAdd.length
+    ? [...(state.players || []), ...toAdd.map(id => { const r = byId.get(id); return { id: r.id, name: r.name, photo: r.photo || null }; })]
+    : (state.players || []);
+  const updates = { regulars };
+  if (toAdd.length) updates.players = players;
+  if (await apiPost(updates) === null) return;
   state.regulars = regulars;
+  if (toAdd.length) {
+    state.players = players;
+    renderPlayersSection(); renderCourtControls(); renderRoundList(); renderViewer();
+  }
   regularsDraft = regularsClone(regulars);
   renderRegularsCard();
-  renderRegularsPrompt();  // the Session-tab banner reflects the new save
-  notify('Regulars saved');
+  renderRegularsPrompt();
+  notify(toAdd.length ? `Regulars saved — ${toAdd.length} added to today` : 'Regulars saved');
 }
 
-// Session-tab banner: when today's session weekday has regulars not yet in the
-// line-up, offer a one-tap "Add all". Reads SAVED state (not the editor draft).
+// Session-tab nudge: regulars are auto-added when the date is set (and on save),
+// so this only appears as a fallback when today's weekday HAS regulars but NONE
+// are in the line-up yet — e.g. the date was already set before regulars existed.
+// Once any are in (auto or manual), it stays hidden, so removing a no-show never
+// makes it nag. Reads SAVED state (not the editor draft).
 function renderRegularsPrompt() {
   const el = document.getElementById('regularsPrompt');
   if (!el) return;
   const wd = weekdayOfISO(state.sessionDate || todayISO());
-  const sessionIds = (state.players || []).map(p => p.id);
+  const sessionIds = new Set((state.players || []).map(p => p.id));
   const rosterIds = (state.roster || []).map(r => r.id);
-  const toAdd = regularsToAdd(state.regulars, wd, sessionIds, rosterIds);
-  if (wd < 0 || !toAdd.length) { el.innerHTML = ''; return; }
+  const onRoster = new Set(rosterIds);
+  const dayRegs = (wd >= 0 && state.regulars && Array.isArray(state.regulars[wd]))
+    ? state.regulars[wd].filter(id => onRoster.has(id)) : [];
+  const anyIn = dayRegs.some(id => sessionIds.has(id));
+  const toAdd = regularsToAdd(state.regulars, wd, [...sessionIds], rosterIds);
+  // Hide once any regular for the day is already in (they've been handled).
+  if (wd < 0 || anyIn || !toAdd.length) { el.innerHTML = ''; return; }
   const byId = new Map((state.roster || []).map(r => [r.id, r]));
   const names = toAdd.map(id => (byId.get(id) || {}).name).filter(Boolean);
   el.innerHTML = `<div class="reg-prompt">
@@ -4803,10 +4827,19 @@ async function setSessionDate() {
   // date locally — that desync is what made "the next day" silently revert.
   if (!result) return;
   if (result.error) return notify(result.error, 'warn');
-  state.sessionDate = newDate;
+  // Pull fresh state so the server-side effects of the date change show at once:
+  // a restored saved session, OR a fresh day auto-populated with this weekday's
+  // regulars (see applySessionDateChange). Falls back to a local set on failure.
+  const synced = await refreshState();
+  if (!synced || synced.sessionDate !== newDate) state.sessionDate = newDate;
   renderSessionDateSection();
+  renderPlayersSection();
+  renderCourtControls();
+  renderRoundList();
   renderViewer();
-  notify('Date set — previous session saved to history.');
+  // Neutral phrasing: the line-up may be auto-added regulars OR a restored day.
+  const inLineup = (state.players || []).length;
+  notify(inLineup ? `Date set — ${inLineup} in the line-up` : 'Date set — previous session saved to history.');
 }
 
 // ── HISTORY MODAL ─────────────────────────────

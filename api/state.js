@@ -228,6 +228,18 @@ function regularsToAdd(regulars, weekday, sessionIds, rosterIds) {
   return out;
 }
 
+// Session-player objects ({id,name}) for the weekly regulars of the weekday that
+// `iso` falls on — used to auto-populate a fresh session when its date is set to a
+// day the admin has regulars for. Resolves names against the current roster and
+// skips ids no longer on it. Pure — never mutates its inputs.
+function seedRegularPlayers(state, iso) {
+  state = state || {};
+  const roster = state.roster || [];
+  const byId = new Map(roster.map((r) => [r.id, r]));
+  const ids = regularsToAdd(state.regulars, isoWeekday(iso), [], [...byId.keys()]);
+  return ids.map((id) => { const r = byId.get(id); return { id: r.id, name: r.name }; });
+}
+
 // ── LUCKY DRAW: paid-player entries with a 2-day window ──────────────────────
 // A player ticked as "paid" for a session stays in the draw pool until 2 days
 // after that session date (Mon→Wed, Fri→Sun, Sun→Tue), then auto-prunes. Kept
@@ -285,8 +297,9 @@ function applySessionDateChange(state, newDate, today) {
       next.courtRounds = Array.isArray(saved.courtRounds) ? saved.courtRounds : [];
       delete sessions[newDate]; // it's the live day now, not a saved past day
     } else {
-      // Fresh day — clear the roster/rounds but keep the venue's court setup.
-      next.players = [];
+      // Fresh day — start empty but auto-add the weekly regulars for this
+      // weekday (Harvey always comes Monday, etc.). Keeps the venue's court setup.
+      next.players = seedRegularPlayers(state, newDate);
       next.rounds = [];
       next.courtRounds = [];
     }
@@ -632,6 +645,7 @@ module.exports.awardSessionPoints = awardSessionPoints;
 module.exports.paidEntryExpiry = paidEntryExpiry;
 module.exports.pruneExpiredPaid = pruneExpiredPaid;
 module.exports.regularsToAdd = regularsToAdd;
+module.exports.seedRegularPlayers = seedRegularPlayers;
 module.exports.nextRolloverDate = nextRolloverDate;
 module.exports.rolloverSessionDate = rolloverSessionDate;
 module.exports.todayISO = todayISO;
