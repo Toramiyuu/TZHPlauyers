@@ -353,6 +353,7 @@ body.in-3d #joinModal{z-index:1300}
 .reg-day.on{background:var(--green);border-color:var(--green);color:#fff}
 .reg-day-count{min-width:18px;padding:0 5px;border-radius:100px;background:var(--green-tint);color:var(--green-light);font-size:11px;font-weight:700;line-height:18px;text-align:center}
 .reg-day.on .reg-day-count{background:rgba(255,255,255,.28);color:#fff}
+.reg-search{width:100%;max-width:340px;margin-bottom:12px}
 .reg-players{display:flex;gap:8px;flex-wrap:wrap}
 .reg-chip{display:flex;align-items:center;gap:7px;border:1px solid var(--border2);background:var(--card);color:var(--text);border-radius:100px;padding:5px 13px 5px 6px;font-size:var(--fs-sm);cursor:pointer;font-family:inherit;min-height:40px;transition:var(--transition)}
 .reg-chip:hover{border-color:var(--green-line)}
@@ -2088,6 +2089,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z"/></svg></span> Weekly Regulars</div>
     <div class="admin-helper-text">Players who always come on a given day. Pick a day, then tap everyone who&rsquo;s a regular. When a session date lands on that day, the Session tab lets you add them all with one tap.</div>
     <div class="reg-daybar" id="regDayBar"></div>
+    <input id="regSearch" type="text" class="admin-form-input reg-search"
+      placeholder="Search players..." autocomplete="off" aria-label="Search players"
+      oninput="renderRegularChips()"
+      onkeydown="if(event.key==='Escape'){this.value='';renderRegularChips();}">
     <div class="reg-players" id="regPlayers"></div>
     <div class="admin-btn-row admin-mt">
       <button class="btn btn-primary btn-sm" onclick="saveRegulars()">Save regulars</button>
@@ -4647,23 +4652,39 @@ function renderRegularsCard(reinit) {
     // Land on the current session's weekday so the editor opens where it matters.
     const wd = weekdayOfISO(state.sessionDate || todayISO());
     regDaySel = wd >= 0 ? wd : 1;
+    const srch = document.getElementById('regSearch');
+    if (srch) srch.value = ''; // fresh open starts with an empty filter
   }
-  const roster = state.roster || [];
-  const rosterIds = new Set(roster.map(r => r.id));
-
+  const rosterIds = new Set((state.roster || []).map(r => r.id));
   bar.innerHTML = WEEKDAY_NAMES.map((nm, wd) => {
     // Count only regulars that still exist on the roster.
     const n = (regularsDraft[wd] || []).filter(id => rosterIds.has(id)).length;
     const badge = n ? `<span class="reg-day-count">${n}</span>` : '';
     return `<button type="button" class="reg-day${wd === regDaySel ? ' on' : ''}" onclick="selectRegularDay(${wd})">${nm.slice(0, 3)}${badge}</button>`;
   }).join('');
+  renderRegularChips();
+}
 
+// Chips for the selected day, narrowed by the search box. Kept separate from the
+// card so typing only re-renders the chip list — the search input keeps focus and
+// the day pills don't flicker. The #regSearch input lives in static markup, so its
+// value survives these re-renders.
+function renderRegularChips() {
+  const wrap = document.getElementById('regPlayers');
+  if (!wrap) return;
+  const roster = state.roster || [];
   if (!roster.length) {
     wrap.innerHTML = '<div class="reg-empty">No roster players yet — add players in the Session tab first.</div>';
     return;
   }
-  const chosen = new Set(regularsDraft[regDaySel] || []);
-  wrap.innerHTML = roster.map(rp => {
+  const q = (document.getElementById('regSearch')?.value || '').trim().toLowerCase();
+  const list = q ? roster.filter(rp => (rp.name || '').toLowerCase().includes(q)) : roster;
+  if (!list.length) {
+    wrap.innerHTML = `<div class="reg-empty">No players match &ldquo;${escHtml(q)}&rdquo;.</div>`;
+    return;
+  }
+  const chosen = new Set((regularsDraft && regularsDraft[regDaySel]) || []);
+  wrap.innerHTML = list.map(rp => {
     const on = chosen.has(rp.id);
     return `<button type="button" class="reg-chip${on ? ' on' : ''}" onclick="toggleRegularChip('${rp.id}')">
       <span class="reg-chip-tick">${on ? '✓' : ''}</span>${escHtml(rp.name)}</button>`;
@@ -4672,7 +4693,7 @@ function renderRegularsCard(reinit) {
 
 function selectRegularDay(wd) {
   regDaySel = wd;
-  renderRegularsCard();
+  renderRegularsCard(); // re-renders day-bar active state + (search-filtered) chips
 }
 
 function toggleRegularChip(id) {
