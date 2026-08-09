@@ -2,8 +2,9 @@ const express = require('express');
 const path = require('path');
 const os = require('os');
 // Reuse the serverless submit validator + clock so local dev matches production.
-const { buildSignups, todayISO, applySessionDateChange } = require('./api/state.js');
+const { buildSignups, todayISO, applySessionDateChange, publicProjection } = require('./api/state.js');
 const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction } = require('./api/accounts.js');
+const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction, DEFAULT_WEEKLY_SETTINGS } = require('./api/weekly.js');
 
 const app = express();
 app.use(express.json({ limit: '50mb' })); // large limit for base64 photos
@@ -45,6 +46,11 @@ const DEFAULT_STATE = {
   ],
   signups: [],
   regulars: {}, // weekday (0=Sun..6=Sat) -> roster ids who always come that day
+  attendance: {},
+  weeklyDraws: {},
+  weeklySettings: DEFAULT_WEEKLY_SETTINGS,
+  monthlyEligibility: null,
+  audit: [],
 };
 
 let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -62,9 +68,9 @@ app.get('/api/state', (req, res) => {
       return res.json({ locked: true, socialGames: openGames, today: todayISO() });
     }
   }
-  // redactState strips the accounts array (PIN hashes, salts, tokens) so the
-  // GET payload can never leak account credentials.
-  res.json({ ...redactState(state), serverTime: Date.now(), today: todayISO() });
+  // publicProjection strips accounts + private attendance/audit/eligibility and
+  // reduces weeklyDraws to public winners, matching production.
+  res.json({ ...publicProjection(state), serverTime: Date.now(), today: todayISO() });
 });
 
 // POST state — admin only, merges updates
@@ -112,10 +118,26 @@ app.post('/api/state', (req, res) => {
   if (Object.keys(updates).length === 0) {
     return res.json({ ok: true, state: { ...redactState(state), serverTime: Date.now() } });
   }
-  // Admin account-management actions (list / reset PIN / delete) mutate state in place.
+  // Admin account-management actions (approve / reject / reveal / lock / ...).
   if (updates.action && ADMIN_ACCOUNT_ACTIONS.has(updates.action)) {
-    const result = handleAdminAccountAction(state, updates);
+    const result = handleAdminAccountAction(state, updates, { adminPassword: ADMIN_PASSWORD });
     return res.status(result.status).json(result.body);
+  }
+  // Admin weekly-draw / attendance / monthly-eligibility actions.
+  if (updates.action && WEEKLY_ADMIN_ACTIONS.has(updates.action)) {
+    const result = handleWeeklyAdminAction(state, updates);
+    return res.status(result.status).json(result.body);
+  }
+  // Admin fetch of the full private ops data (kept out of public GET).
+  if (updates.action === 'adminGetOps') {
+    return res.json({
+      ok: true,
+      attendance: state.attendance || {},
+      weeklyDraws: state.weeklyDraws || {},
+      weeklySettings: state.weeklySettings || DEFAULT_WEEKLY_SETTINGS,
+      monthlyEligibility: state.monthlyEligibility || null,
+      audit: Array.isArray(state.audit) ? state.audit.slice(0, 300) : [],
+    });
   }
   // Session-date change uses the SAME shared logic as production (api/state.js)
   // so local dev reproduces the snapshot/restore/one-month-ahead behaviour.

@@ -22,6 +22,7 @@
   /* ── semantic ─── */
   --accent:#f0b429;--accent-line:rgba(240,180,41,.3);
   --red:#e5484d;--blue:#4f97ff;--warn:#cd7d2c;
+  --pink:#d6519f;/* Girl toggle + mixed-doubles chip */
   /* ── design tokens ─── */
   --sp-xs:4px;--sp-sm:8px;--sp-md:16px;--sp-lg:24px;--sp-xl:32px;--sp-2xl:48px;
   --radius-sm:8px;--radius-md:12px;--radius-lg:18px;--radius-xl:24px;
@@ -120,7 +121,7 @@ body.in-3d #joinModal{z-index:1300}
 .avatar{width:clamp(72px,7vw,104px);height:clamp(72px,7vw,104px);border-radius:50%;overflow:hidden;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0;object-fit:cover;font-size:clamp(22px,2.1vw,30px);box-shadow:var(--shadow-sm)}
 
 /* ── ADMIN ──────────────────────────────── */
-#admin{display:none;max-width:1400px;margin:0 auto;padding:24px 32px;gap:20px;flex-direction:column}
+#admin{display:none;max-width:1400px;margin:0 auto;padding:24px 32px;gap:20px;flex-direction:row;align-items:flex-start}
 .admin-header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:14px}
 .admin-header h1{font-size:20px;color:var(--green-light);font-weight:700}
 .btn{padding:9px 16px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-size:var(--fs-base);font-weight:600;transition:var(--transition);display:inline-flex;align-items:center;justify-content:center;gap:6px;letter-spacing:-.005em;line-height:1}
@@ -196,7 +197,11 @@ body.in-3d #joinModal{z-index:1300}
 .round-row-header .rl-set-live:hover{color:var(--text);border-color:var(--border2);background:var(--card2)}
 .round-row.live .round-row-header .rl-set-live{color:var(--green-light);border-color:rgba(0,113,227,.35);background:rgba(0,113,227,.08)}
 .court-editor{margin-bottom:14px}
-.court-editor h4{font-size:var(--fs-xs);color:var(--green-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:600}
+.court-editor h4{font-size:var(--fs-xs);color:var(--green-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+/* Live team-balance chips in the round editor (computed from current ids). */
+.court-balance{font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--muted);background:var(--card2);border:1px solid var(--border);border-radius:100px;padding:2px 9px;white-space:nowrap}
+.court-balance.off{color:var(--a-amber);background:var(--a-amber-tint);border-color:var(--accent-line)}
+.court-balance.mx{color:var(--pink);background:rgba(214,81,159,.10);border-color:rgba(214,81,159,.3)}
 .selectors-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .selectors-row select{background:var(--card);border:1px solid var(--border2);color:var(--text);padding:6px 8px;border-radius:var(--radius-sm);font-size:var(--fs-sm);outline:none;max-width:140px;cursor:pointer;font-family:inherit}
 .selectors-row select:focus{border-color:var(--green)}
@@ -680,10 +685,10 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 /* Players List view — bulk level + mixed table */
 .roster-list{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;margin-bottom:10px;background:var(--card)}
 .rl-empty{color:var(--muted);font-size:13px;padding:14px}
-.rl-head,.rl-row{display:grid;grid-template-columns:1fr auto 72px 44px;align-items:center;gap:12px;padding:10px 14px}
+.rl-head,.rl-row{display:grid;grid-template-columns:1fr auto 52px 72px 44px;align-items:center;gap:12px;padding:10px 14px}
 .rl-head{background:var(--card2);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.rl-head span:nth-child(3){text-align:center}
-.rl-head span:nth-child(4){text-align:right}
+.rl-head span:nth-child(3),.rl-head span:nth-child(4){text-align:center}
+.rl-head span:nth-child(5){text-align:right}
 .rl-row{border-top:1px solid var(--border)}
 .rl-row.in{background:var(--green-tint)}
 .rl-player{display:flex;align-items:center;gap:10px;min-width:0;cursor:pointer;border-radius:8px;padding:2px 4px;margin:-2px -4px}
@@ -703,9 +708,12 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .rl-seg-btn.on.adv{color:#8a5a00}
 .rl-toggle{width:42px;height:24px;border-radius:100px;border:none;background:var(--border2);cursor:pointer;padding:0;position:relative;transition:background .18s;margin:0 auto;display:block}
 .rl-toggle.on{background:var(--green)}
+.rl-toggle.girl.on{background:var(--pink)}
 .rl-knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:var(--shadow-sm);transition:transform .18s}
 .rl-toggle.on .rl-knob{transform:translateX(18px)}
 .rl-pts{text-align:right;font-size:14px;font-weight:700;color:var(--text)}
+/* 5 columns get tight on narrow phones — shrink the gap + level input so they fit at 390px */
+@media(max-width:430px){.rl-head,.rl-row{gap:7px;padding:10px 10px}.rl-lvl-inp{width:52px;padding:6px 4px}}
 /* Roster search + sort controls row */
 .roster-controls{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
 .roster-controls #rosterSearch{flex:1;min-width:160px;margin-bottom:0}
@@ -850,21 +858,95 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .md-import-note.warn{color:var(--accent)}
 
 /* ── ADMIN DASHBOARD ──────────────────────── */
-/* Persistent header */
-.admin-hdr{display:flex;align-items:center;justify-content:space-between;padding:var(--sp-md) 0 var(--sp-sm);gap:var(--sp-md);position:sticky;top:0;z-index:10;background:var(--dark);border-bottom:1px solid var(--border)}
+/* Persistent header — mobile only (desktop uses the sidebar brand) */
+.admin-hdr{display:none;align-items:center;justify-content:space-between;padding:var(--sp-md) 0 var(--sp-sm);gap:var(--sp-md);position:sticky;top:0;z-index:10;background:var(--dark);border-bottom:1px solid var(--border)}
 .admin-hdr-left{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
 .admin-hdr-brand{font-family:var(--font-apple);font-size:clamp(21px,2.4vw,28px);font-weight:600;color:var(--text);letter-spacing:-.02em;line-height:1.1}
 .admin-hdr-date{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .admin-hdr-actions{display:flex;gap:var(--sp-sm);flex-shrink:0;align-items:center}
 
-/* Tab bar — desktop default */
-.admin-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.admin-tabs::-webkit-scrollbar{display:none}
-.admin-tab-btn{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:10px var(--sp-md);cursor:pointer;font-size:var(--fs-base);font-weight:600;transition:color .15s,border-color .15s;display:flex;align-items:center;gap:6px;white-space:nowrap;font-family:inherit;margin-bottom:-1px;flex:1;justify-content:center}
-.admin-tab-btn:hover{color:var(--text)}
-.admin-tab-btn.active{color:var(--lime);border-bottom-color:var(--lime)}
-.tab-icon{font-size:15px;line-height:1}
-.tab-label{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+/* ── Grouped sidebar nav (desktop) + bottom nav (mobile) ── */
+.admin-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--sp-md)}
+
+/* Sidebar shell */
+.admin-sidebar{display:flex;flex-direction:column;width:248px;flex-shrink:0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--sp-lg) var(--sp-md);gap:var(--sp-md);position:sticky;top:var(--sp-md);align-self:center;max-height:calc(100vh - var(--sp-xl));overflow-y:auto;scrollbar-width:none;transition:width .22s var(--ease-out)}
+.admin-sidebar::-webkit-scrollbar{display:none}
+
+/* Brand row + collapse toggle */
+.asb-brand-row{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-sm)}
+.asb-brand{min-width:0}
+.asb-brand-title{font-family:var(--font-apple);font-size:19px;font-weight:600;color:var(--text);letter-spacing:-.02em;line-height:1.15}
+.asb-brand-date{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.asb-collapse{width:28px;height:28px;flex-shrink:0;border:1px solid var(--border);background:var(--card);border-radius:var(--radius-sm);color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:var(--transition)}
+.asb-collapse:hover{color:var(--text);border-color:var(--border2);background:var(--card2)}
+.asb-collapse .ic{width:16px;height:16px;transition:transform .22s var(--ease-out)}
+
+/* Search */
+.asb-search{position:relative;display:flex;align-items:center}
+.asb-search-ic{position:absolute;left:10px;width:15px;height:15px;color:var(--muted);pointer-events:none}
+.asb-search-input{width:100%;background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:8px 10px 8px 32px;border-radius:var(--radius-sm);font-size:var(--fs-base);outline:none;font-family:inherit;transition:border-color .15s}
+.asb-search-input:focus{border-color:var(--green)}
+
+/* Nav groups */
+.asb-nav{display:flex;flex-direction:column;gap:var(--sp-md)}
+.admin-nav-group{display:flex;flex-direction:column;gap:2px}
+.admin-nav-grouplabel{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);font-weight:700;padding:0 8px;margin-bottom:4px}
+.admin-nav-item{display:flex;align-items:center;gap:11px;width:100%;background:none;border:none;border-radius:var(--radius-sm);padding:9px 10px;cursor:pointer;color:var(--text-2);font-size:var(--fs-base);font-weight:500;font-family:inherit;text-align:left;transition:background .15s,color .15s}
+.admin-nav-item:hover{background:var(--card2);color:var(--text)}
+.admin-nav-item.active{background:var(--green-tint);color:var(--green-light);font-weight:600}
+.admin-nav-item .ani-ic{display:inline-flex;flex-shrink:0}
+.admin-nav-item .ic{width:19px;height:19px}
+.ani-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Nav badges */
+.nav-badge{flex-shrink:0;font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--muted)}
+.admin-nav-item.active .nav-badge{color:var(--green-light)}
+.nav-badge.accent{min-width:18px;height:18px;padding:0 6px;border-radius:100px;background:var(--a-blue);color:#fff;display:inline-flex;align-items:center;justify-content:center}
+
+/* Sidebar footer */
+.asb-foot{display:flex;flex-direction:column;gap:var(--sp-sm);padding-top:var(--sp-sm);border-top:1px solid var(--border)}
+.asb-foot-view{width:100%;justify-content:center;gap:8px}
+.asb-foot-row{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-sm)}
+.asb-foot-logout{background:none;border:none;color:var(--muted);font-size:var(--fs-sm);font-weight:600;font-family:inherit;cursor:pointer;padding:6px 8px;border-radius:var(--radius-sm);transition:var(--transition)}
+.asb-foot-logout:hover{color:var(--red);background:var(--card2)}
+
+/* Collapsed icon rail */
+.admin-sidebar.collapsed{width:66px;padding:var(--sp-md) 10px}
+.admin-sidebar.collapsed .asb-brand,.admin-sidebar.collapsed .asb-search,.admin-sidebar.collapsed .admin-nav-grouplabel,.admin-sidebar.collapsed .ani-label,.admin-sidebar.collapsed .nav-badge,.admin-sidebar.collapsed .asb-foot-logout,.admin-sidebar.collapsed .asb-foot-view .ani-label{display:none}
+.admin-sidebar.collapsed .asb-brand-row{justify-content:center}
+.admin-sidebar.collapsed .asb-collapse .ic{transform:scaleX(-1)}
+.admin-sidebar.collapsed .admin-nav-item{justify-content:center;padding:11px 0}
+.admin-sidebar.collapsed .asb-foot{align-items:center}
+.admin-sidebar.collapsed .asb-foot-view{padding:9px 0}
+
+/* Desktop main section title */
+.admin-main-hdr{display:flex;align-items:center;min-height:34px}
+.amh-title{font-family:var(--font-apple);font-size:clamp(22px,2.2vw,30px);font-weight:600;color:var(--text);letter-spacing:-.02em}
+
+/* Bottom nav (mobile) — hidden on desktop */
+.admin-bottomnav{display:none}
+.admin-bmn-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-family:inherit;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px 10px;min-height:56px;border-top:2px solid transparent}
+.admin-bmn-btn .ic{width:22px;height:22px}
+.admin-bmn-btn.active{color:var(--lime);border-top-color:var(--lime)}
+.bmn-label{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.admin-bmn-more{position:relative}
+.admin-bmn-more .signup-badge{position:absolute;top:5px;left:calc(50% + 6px)}
+
+/* Mobile "More" sheet (reuses .modal-overlay for the allowed scrim) */
+.admin-more-overlay{align-items:flex-end;justify-content:center;padding:0}
+.admin-more-sheet{width:100%;max-width:520px;background:var(--card);border-top-left-radius:var(--radius-xl);border-top-right-radius:var(--radius-xl);padding:var(--sp-sm) var(--sp-md) calc(var(--sp-md) + env(safe-area-inset-bottom,0));box-shadow:var(--shadow-lg);transform:translateY(100%);transition:transform .26s var(--ease-out)}
+.admin-more-overlay.open .admin-more-sheet{transform:translateY(0)}
+.ams-handle{width:38px;height:4px;border-radius:100px;background:var(--border2);margin:6px auto var(--sp-sm)}
+.ams-title{font-family:var(--font-mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.18em;color:var(--muted);font-weight:700;padding:0 4px var(--sp-sm)}
+.ams-item{display:flex;align-items:center;gap:12px;width:100%;background:none;border:none;padding:13px 8px;cursor:pointer;color:var(--text);font-size:var(--fs-md);font-weight:500;font-family:inherit;text-align:left;border-radius:var(--radius-sm);min-height:48px}
+.ams-item:hover{background:var(--card2)}
+.ams-item.active{color:var(--green-light);font-weight:600}
+.ams-item .ic{width:20px;height:20px;color:var(--muted);flex-shrink:0}
+.ams-item.active .ic{color:var(--green-light)}
+.ams-item .nav-badge{margin-left:auto}
+.ams-divider{height:1px;background:var(--border);margin:var(--sp-sm) 0}
+.ams-danger{color:var(--red)}
+.ams-danger .ic{color:var(--red)}
 
 /* Tab panels */
 .admin-tab-panel{display:none;flex-direction:column;gap:var(--sp-md)}
@@ -909,13 +991,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
 /* Mobile bottom tab bar */
 @media(max-width:640px){
-  #admin{padding:16px 16px 72px !important}
-  .admin-hdr{padding-top:var(--sp-sm)}
-  .admin-tabs{position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--card);border-top:1px solid var(--border2);border-bottom:none;margin-bottom:0;padding:0 env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
-  .admin-tab-btn{flex-direction:column;gap:2px;padding:8px 4px 10px;min-height:56px;border-bottom:none;border-top:2px solid transparent;margin-bottom:0;font-size:var(--fs-xs)}
-  .admin-tab-btn.active{border-bottom:none;border-top-color:var(--lime)}
-  .tab-icon{font-size:18px}
-  .tab-label{font-size:10px;font-weight:600;letter-spacing:.3px}
+  #admin{padding:16px 16px 76px !important}
+  .admin-sidebar{display:none}
+  .admin-main-hdr{display:none}
+  .admin-hdr{display:flex;padding-top:var(--sp-sm)}
+  .admin-bottomnav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--card);border-top:1px solid var(--border2);padding:0 env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
   /* Touch targets >=44px + >=16px inputs (no iOS zoom) for the new draw controls */
   .md-tube-step button{width:44px;height:44px;font-size:20px}
   .md-tube-step input{width:56px;height:44px;font-size:16px}
@@ -932,6 +1012,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
 /* ── FOCUS VISIBILITY ──────────────────── */
 .btn:focus-visible,.nav-btn:focus-visible,.admin-tab-btn:focus-visible,
+.admin-nav-item:focus-visible,.admin-bmn-btn:focus-visible,.asb-collapse:focus-visible,
+.asb-foot-logout:focus-visible,.ams-item:focus-visible,
 #membersBtn:focus-visible,#lbBtn:focus-visible,#adminBtn:focus-visible,
 .cal-chevron:focus-visible,.cal-strip-btn:focus-visible,
 .history-close:focus-visible,.members-close:focus-visible,
@@ -989,6 +1071,108 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .acct-photo-prev{width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid var(--a-blue);display:block}
 .acct-photo-ph{width:84px;height:84px;border-radius:50%;background:var(--a-card-2);border:3px solid var(--a-line);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:300;color:var(--a-ink-3)}
 .prof-uname{font-size:13px;color:var(--a-ink-3);margin:-2px 0 10px;text-align:center}
+/* ── Account v2: status screen + badges + account page ── */
+.st-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:12px;font-weight:600;line-height:1.3;border:1px solid var(--border2);color:var(--text-2)}
+.st-badge.ok{background:var(--green-tint);border-color:var(--green-line);color:var(--green-light)}
+.st-badge.wait{background:rgba(205,125,44,.14);border-color:rgba(205,125,44,.4);color:var(--warn)}
+.st-badge.bad{background:rgba(229,72,77,.12);border-color:rgba(229,72,77,.4);color:var(--red)}
+.st-hero{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;margin:2px 0 6px}
+.st-hero h2{font-size:19px;font-weight:700;color:var(--text);margin:0}
+.st-ic{width:44px;height:44px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.st-hero.ok{color:var(--green-light)} .st-hero.wait{color:var(--warn)} .st-hero.bad{color:var(--red)}
+.st-msg{font-size:var(--fs-sm);color:var(--text-2);text-align:center;margin:0 0 12px;line-height:1.5}
+.st-reason{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:var(--fs-sm);color:var(--text);margin-bottom:12px;line-height:1.45}
+.st-details{display:flex;flex-direction:column;gap:1px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:14px}
+.st-details>div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 12px;font-size:var(--fs-sm)}
+.st-details>div+div{border-top:1px solid var(--border)}
+.st-details span{color:var(--muted)} .st-details b{color:var(--text);font-weight:600;text-align:right}
+.st-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.acctpg-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.acctpg-av{width:52px;height:52px;border-radius:50%;object-fit:cover;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;color:#fff;flex-shrink:0}
+.acctpg-name{font-size:var(--fs-md);font-weight:600;color:var(--text)}
+.acctpg-phone{font-size:var(--fs-sm);color:var(--muted)}
+.acctpg-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+/* ── Admin accounts v2 ── */
+.pw-warning{display:flex;align-items:center;gap:8px;background:rgba(205,125,44,.12);border:1px solid rgba(205,125,44,.35);color:var(--warn);border-radius:var(--radius-sm);padding:9px 12px;font-size:var(--fs-sm);font-weight:500;margin-top:8px}
+.pw-warning .ic{width:18px;height:18px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.8}
+.acct-counters{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.acct-count{display:flex;flex-direction:column;align-items:center;min-width:64px;padding:8px 12px;border-radius:var(--radius-sm);background:var(--card2);border:1px solid var(--border)}
+.acct-count b{font-size:18px;font-weight:700;color:var(--text);line-height:1}
+.acct-count span{font-size:var(--fs-xs);color:var(--muted);margin-top:3px}
+.acct-count.ok b{color:var(--green-light)} .acct-count.wait b{color:var(--warn)} .acct-count.bad b{color:var(--red)}
+.acct-create{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+.acct-req{border:1px solid var(--border2);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:10px;background:var(--card)}
+.acct-req-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.acct-req-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.acct-warn{font-size:var(--fs-xs);color:var(--muted)}
+.acct-warn.ok{color:var(--green-light)}
+.acct-note{font-size:var(--fs-sm);color:var(--text-2);background:var(--card2);border-radius:var(--radius-sm);padding:8px 10px;margin-top:8px}
+.acct-inline{display:none;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px;width:100%}
+.acct-inline.show{display:flex}
+.acct-manage{flex-direction:column;align-items:stretch;gap:10px;flex:1 0 100%;border-top:1px solid var(--border);padding-top:10px;margin-top:10px}
+.acct-mng-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.acct-mng-lbl{font-size:var(--fs-xs);font-weight:600;color:var(--muted);min-width:82px}
+.acct-sel{max-width:220px}
+.acct-force{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-sm);color:var(--text-2);cursor:pointer}
+.acct-pw-input{max-width:240px}
+.acct-pw-shown{display:flex;flex-wrap:wrap;align-items:center;gap:8px;width:100%}
+.acct-pw-shown code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--card2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:6px 12px;font-size:15px;letter-spacing:.04em;color:var(--text)}
+.acct-pw-shown.err{color:var(--red);font-size:var(--fs-sm)}
+.acct-pw-timer{font-size:var(--fs-xs);color:var(--muted)}
+/* ── Lucky Draw sub-tabs + Weekly ── */
+.ld-subtabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--border)}
+.ld-subtab{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:9px 16px;cursor:pointer;font-size:var(--fs-base);font-weight:600;font-family:inherit;margin-bottom:-1px;transition:color .15s,border-color .15s}
+.ld-subtab:hover{color:var(--text)}
+.ld-subtab.active{color:var(--a-blue);border-bottom-color:var(--a-blue)}
+.ld-quick,.ld-quick-card{margin-top:4px}
+.ld-quick summary,.ld-quick-card summary{color:var(--text-2);font-size:var(--fs-sm);cursor:pointer}
+.week-nav{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.week-nav-btn{width:40px;height:40px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--card2);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.week-nav-btn:hover{border-color:var(--a-blue);color:var(--a-blue)}
+.week-nav-btn .ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.week-nav-mid{display:flex;align-items:center;gap:8px}
+.week-cal{width:20px;height:20px;fill:none;stroke:var(--a-blue);stroke-width:1.8}
+.week-label{font-size:var(--fs-md);font-weight:700;color:var(--text)}
+.ws-line{display:flex;justify-content:space-between;gap:10px;padding:7px 0;font-size:var(--fs-sm);border-bottom:1px solid var(--border)}
+.ws-line span{color:var(--muted)} .ws-line b{color:var(--text)}
+.ws-status{margin-top:10px;padding:8px 12px;border-radius:var(--radius-sm);background:var(--a-blue-tint);color:var(--a-blue);font-size:var(--fs-sm);font-weight:600}
+.ws-settings{padding-top:8px}
+.wk-group-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;font-size:var(--fs-md);color:var(--text)}
+.wk-rows{display:flex;flex-direction:column;gap:1px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.wk-row{display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--card);flex-wrap:wrap}
+.wk-row+.wk-row{border-top:1px solid var(--border)}
+.wk-row-main{flex:1;min-width:120px;display:flex;flex-direction:column}
+.wk-name{font-weight:600;color:var(--text);font-size:var(--fs-sm)}
+.wk-phone{font-size:var(--fs-xs);color:var(--muted)}
+.wk-chk{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-sm);color:var(--text-2);cursor:pointer;white-space:nowrap}
+.wk-elig{font-size:var(--fs-xs);font-weight:600;padding:3px 9px;border-radius:100px;white-space:nowrap}
+.wk-elig.ok{background:var(--green-tint);color:var(--green-light)}
+.wk-elig.no{background:rgba(229,72,77,.12);color:var(--red)}
+.wk-empty{color:var(--muted);font-size:var(--fs-sm);padding:8px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.wk-draw-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.wk-elig-count{font-size:var(--fs-sm);color:var(--muted)}
+.wk-winner{font-size:var(--fs-sm);font-weight:700;color:var(--green-light)}
+.wk-hist-row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--border);font-size:var(--fs-sm)}
+.wk-hist-win{color:var(--text-2)}
+/* ── Monthly eligibility ── */
+.me-recalc{font-size:var(--fs-xs);color:var(--muted);margin-bottom:8px}
+.me-list{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.me-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;background:var(--card);cursor:pointer}
+.me-row:hover{background:var(--card2)}
+.me-main{display:flex;flex-direction:column} .me-main b{color:var(--text);font-size:var(--fs-sm)}
+.me-sub{font-size:var(--fs-xs);color:var(--muted)}
+.me-detail{flex-direction:column;align-items:stretch;padding:10px 12px;background:var(--card2);border-top:1px solid var(--border)}
+.me-reason{font-size:var(--fs-sm);color:var(--red);margin-bottom:8px}
+.me-table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
+.me-table th,.me-table td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border)}
+.me-table th{color:var(--muted);font-weight:600}
+.me-ov{font-size:var(--fs-sm);color:var(--text-2);margin-top:8px}
+.md-sec-title{font-size:var(--fs-xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.md-sec-title:first-child{margin-top:2px}
+.audit-row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--border);font-size:var(--fs-sm)}
+.audit-main{color:var(--text-2);flex:1;min-width:180px} .audit-main b{color:var(--text)}
+.audit-val{color:var(--a-blue)} .audit-note{color:var(--muted)}
+.audit-time{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap}
 /* ── Admin help button + drawer (panel) ── */
 .admin-help-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--border2);background:var(--card);color:var(--green-light);font-size:15px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-family:inherit;line-height:1;transition:var(--transition);flex-shrink:0}
 .admin-help-btn:hover{background:var(--green-tint);border-color:var(--green-line)}
@@ -1080,6 +1264,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 /* Squads — the same Players "List" table system (variant 12), with team + captain controls */
 #frSquadSearch{width:100%;box-sizing:border-box;margin:6px 0 8px}
 .fr-squad{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--card);max-height:420px;overflow-y:auto;margin-top:6px}
+.fr-squad.fr-squad-drop{outline:2px dashed var(--a-blue,#0071e3);outline-offset:-2px}
 .frl-head,.frl-row{display:grid;grid-template-columns:1fr 72px 44px;align-items:center;gap:12px;padding:10px 14px}
 .frl-head{position:sticky;top:0;z-index:1;background:var(--card2);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .frl-head span:nth-child(2),.frl-head span:nth-child(3){text-align:center}
@@ -1133,8 +1318,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .fr-mu-del{border:none;background:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 6px}
 .fr-mu-del:hover{color:var(--fv-red)}
 /* Matchup board — Auto-Lineup buttons + drag/tap placement (replaces dropdowns) */
+#frMatchups{display:flex;gap:14px;align-items:flex-start}
+.frb-side-panel{flex:none;width:232px;position:sticky;top:64px;align-self:flex-start;max-height:calc(100vh - 84px);overflow-y:auto}
+.frb-main{flex:1;min-width:0}
+@media(max-width:820px){
+  #frMatchups{flex-direction:column}
+  .frb-side-panel{width:auto;position:sticky;top:56px;z-index:6;max-height:40vh;background:var(--dark);border-radius:var(--radius-md)}
+}
 .frb-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.frb-bench{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);padding:11px 12px;margin-bottom:14px}
+.frb-bench{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);padding:11px 12px;margin-bottom:14px;transition:border-color .13s,background .13s}
+.frb-bench.frb-bench-drop{border-color:var(--a-blue,#0071e3);background:var(--a-blue-tint,rgba(0,113,227,.14))}
 .frb-bench-hint{font-size:var(--fs-xs);color:var(--muted);margin-bottom:9px}
 .frb-side{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.08em;margin-bottom:6px}
 .frb-side.r{color:var(--fv-red)} .frb-side.b{color:var(--fv-blue)}
@@ -1150,7 +1343,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .frb-row.red{background:rgba(255,59,69,.06)} .frb-row.blue{background:rgba(47,139,255,.06)}
 .frb-slot{display:flex;align-items:center;gap:7px;height:40px;padding:0 10px;border-radius:9px;border:1.5px dashed var(--border2);background:var(--card);cursor:pointer;font-size:12.5px;font-weight:600;color:var(--muted);transition:border-color .13s,background .13s;min-width:0}
 .frb-slot.red{border-color:rgba(255,59,69,.4)} .frb-slot.blue{border-color:rgba(47,139,255,.45)}
-.frb-slot.filled{border-style:solid;color:var(--text)}
+.frb-slot.filled{border-style:solid;color:var(--text);cursor:grab}
+.frb-slot.filled:active{cursor:grabbing}
 .frb-slot.active,.frb-slot.dragover{border-color:var(--a-blue,#0071e3);border-style:solid;background:var(--a-blue-tint,rgba(0,113,227,.14))}
 .frb-slot .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .frb-slot .x{margin-left:auto;color:var(--muted);font-weight:700;font-size:15px;line-height:1}
@@ -1351,49 +1545,113 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   </div>
 </div>
 
-<!-- Account auth modal (public self-signup: username + 6-digit PIN) -->
+<!-- Account auth modal (v2: phone number + password, admin-approved) -->
 <div id="authModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="authTitle"
   onclick="if(event.target===this)closeAuthModal()">
   <div class="modal-box modal-center">
     <h2 id="authTitle" style="margin-bottom:6px">Welcome back</h2>
     <!-- Sign in -->
     <div id="authSignin">
-      <p class="modal-desc">Sign in to your TZH account.</p>
-      <input id="siUsername" class="modal-input" type="text" placeholder="Username" autocomplete="username"
-        maxlength="20" onkeydown="if(event.key==='Enter')document.getElementById('siPin').focus()">
-      <input id="siPin" class="modal-input pin-input" type="password" inputmode="numeric" maxlength="6"
-        placeholder="6-digit PIN" autocomplete="current-password"
+      <p class="modal-desc">Sign in with your phone number.</p>
+      <input id="siPhone" class="modal-input" type="tel" placeholder="Phone number (e.g. 012-345 6789)" autocomplete="tel"
+        maxlength="20" onkeydown="if(event.key==='Enter')document.getElementById('siPassword').focus()">
+      <input id="siPassword" class="modal-input" type="password" maxlength="100"
+        placeholder="Password" autocomplete="current-password"
         onkeydown="if(event.key==='Enter')submitSignin()">
       <div class="auth-error" id="siError" role="alert"></div>
       <div class="modal-actions">
         <button class="btn btn-primary" style="width:100%" onclick="submitSignin()">Sign in</button>
       </div>
-      <button type="button" class="auth-switch" onclick="setAuthMode('register')">New here? Create an account</button>
+      <button type="button" class="auth-switch" onclick="openForgotPassword()">Forgot password?</button>
+      <button type="button" class="auth-switch" onclick="setAuthMode('register')">New here? Request an account</button>
+      <button type="button" class="auth-switch" onclick="setAuthMode('status')">Check my request status</button>
     </div>
-    <!-- Create account -->
+    <!-- Request an account -->
     <div id="authRegister" style="display:none">
-      <p class="modal-desc">Create your TZH account.</p>
-      <div class="modal-photo-wrap" onclick="document.getElementById('regPhotoFile').click()">
-        <div id="regPhotoPreview"></div>
-      </div>
-      <input type="file" id="regPhotoFile" accept="image/*" style="display:none" onchange="previewRegPhoto(this)">
-      <span class="modal-photo-hint">Add a profile photo (optional)</span>
-      <input id="regName" class="modal-input" type="text" placeholder="Display name" maxlength="40" autocomplete="name">
-      <input id="regUsername" class="modal-input" type="text" placeholder="Username (letters, numbers, _)"
-        maxlength="20" autocomplete="username">
-      <input id="regPin" class="modal-input pin-input" type="password" inputmode="numeric" maxlength="6"
-        placeholder="Choose a 6-digit PIN" autocomplete="new-password"
+      <p class="modal-desc">Request a TZH account. An administrator will review and approve it.</p>
+      <input id="regName" class="modal-input" type="text" placeholder="Your name (helps us match you)" maxlength="40" autocomplete="name">
+      <input id="regPhone" class="modal-input" type="tel" placeholder="Phone number" maxlength="20" autocomplete="tel">
+      <input id="regPassword" class="modal-input" type="password" maxlength="100"
+        placeholder="Choose a password (6+ characters)" autocomplete="new-password">
+      <input id="regPassword2" class="modal-input" type="password" maxlength="100"
+        placeholder="Confirm password" autocomplete="new-password"
         onkeydown="if(event.key==='Enter')submitRegister()">
       <div class="auth-error" id="regError" role="alert"></div>
       <div class="modal-actions">
-        <button class="btn btn-primary" style="width:100%" onclick="submitRegister()">Create account</button>
+        <button class="btn btn-primary" style="width:100%" onclick="submitRegister()">Submit request</button>
       </div>
       <button type="button" class="auth-switch" onclick="setAuthMode('signin')">Have an account? Sign in</button>
+    </div>
+    <!-- Check request status (phone + password, no login) -->
+    <div id="authStatus" style="display:none">
+      <p class="modal-desc">Check your account request. Enter the phone number and password you used.</p>
+      <input id="stPhone" class="modal-input" type="tel" placeholder="Phone number" maxlength="20" autocomplete="tel">
+      <input id="stPassword" class="modal-input" type="password" maxlength="100"
+        placeholder="Password" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')submitStatusCheck()">
+      <div class="auth-error" id="stError" role="alert"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" style="width:100%" onclick="submitStatusCheck()">Check status</button>
+      </div>
+      <button type="button" class="auth-switch" onclick="setAuthMode('signin')">Back to sign in</button>
     </div>
   </div>
 </div>
 
-<!-- Account profile modal (edit name / PIN / photo — token-authed) -->
+<!-- Registration-status screen — shows what happened after a request -->
+<div id="statusModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="statusTitle"
+  onclick="if(event.target===this)closeStatusModal()">
+  <div class="modal-box modal-center">
+    <div id="statusBody"></div>
+    <div class="modal-actions" style="justify-content:center">
+      <button class="btn btn-secondary" onclick="closeStatusModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Player Account page (status + change password + contact admin) -->
+<div id="accountModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="accountTitle"
+  onclick="if(event.target===this)closeAccountModal()">
+  <div class="modal-box modal-center">
+    <h2 id="accountTitle">Your account</h2>
+    <div id="accountBody"></div>
+    <div class="modal-actions" style="justify-content:center">
+      <button class="btn btn-secondary" onclick="closeAccountModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Player "My Lucky Draw" — own eligibility + public winners -->
+<div id="myDrawModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="myDrawTitle"
+  onclick="if(event.target===this)closeMyDraw()">
+  <div class="modal-box modal-center">
+    <h2 id="myDrawTitle">My Lucky Draw</h2>
+    <div id="myDrawBody"></div>
+    <div class="modal-actions" style="justify-content:center">
+      <button class="btn btn-secondary" onclick="closeMyDraw()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Change password modal (self-service, current + new + confirm) -->
+<div id="changePwModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="changePwTitle"
+  onclick="if(event.target===this)closeChangePw()">
+  <div class="modal-box modal-center">
+    <h2 id="changePwTitle">Change password</h2>
+    <p class="modal-desc" id="changePwDesc">Enter your current password and a new one.</p>
+    <input id="cpCurrent" class="modal-input" type="password" maxlength="100" placeholder="Current password" autocomplete="current-password">
+    <input id="cpNew" class="modal-input" type="password" maxlength="100" placeholder="New password (6+ characters)" autocomplete="new-password">
+    <input id="cpNew2" class="modal-input" type="password" maxlength="100" placeholder="Confirm new password" autocomplete="new-password"
+      onkeydown="if(event.key==='Enter')submitChangePw()">
+    <div class="auth-error" id="cpError" role="alert"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="cpCancelBtn" onclick="closeChangePw()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitChangePw()">Save password</button>
+    </div>
+  </div>
+</div>
+
+<!-- Account profile modal (edit name / photo — token-authed) -->
 <div id="profileModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="profileTitle"
   onclick="if(event.target===this)closeProfileModal()">
   <div class="modal-box modal-center">
@@ -1405,8 +1663,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <span class="modal-photo-hint">Tap photo to change</span>
     <input id="profName" class="modal-input" type="text" placeholder="Display name" maxlength="40" autocomplete="name">
     <div class="prof-uname" id="profUsername"></div>
-    <input id="profPin" class="modal-input pin-input" type="password" inputmode="numeric" maxlength="6"
-      placeholder="New 6-digit PIN (leave blank to keep)" autocomplete="new-password">
     <div class="auth-error" id="profError" role="alert"></div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeProfileModal()">Cancel</button>
@@ -1723,30 +1979,59 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 <!-- Admin -->
 <div id="admin">
 
-  <!-- Persistent header -->
+  <!-- ── Grouped sidebar (desktop nav) ─────────── -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="asb-brand-row">
+      <div class="asb-brand">
+        <div class="asb-brand-title">Admin Panel</div>
+        <div class="asb-brand-date" id="headerDate"></div>
+      </div>
+      <button class="asb-collapse" onclick="toggleAdminSidebar()" aria-label="Collapse sidebar" title="Collapse / expand"><svg class="ic" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+    </div>
+    <div class="asb-search">
+      <svg class="ic asb-search-ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="sidebarSearch" type="text" class="asb-search-input" placeholder="Find a player…" autocomplete="off" aria-label="Find a player" oninput="sidebarSearchInput(this.value)" onkeydown="if(event.key==='Escape'){this.value='';sidebarSearchInput('');}">
+    </div>
+    <nav class="asb-nav">
+      <div class="admin-nav-group">
+        <div class="admin-nav-grouplabel">Today</div>
+        <button class="admin-nav-item" data-tab="session" onclick="setAdminTab('session')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg></span><span class="ani-label">Session</span><span class="nav-badge" id="navBadgeSession" style="display:none"></span></button>
+        <button class="admin-nav-item" data-tab="courts" onclick="setAdminTab('courts')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg></span><span class="ani-label">Courts</span><span class="nav-badge" id="navBadgeCourts" style="display:none"></span></button>
+        <button class="admin-nav-item" data-tab="engagement" onclick="setAdminTab('engagement')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg></span><span class="ani-label">Lucky Draw</span></button>
+      </div>
+      <div class="admin-nav-group">
+        <div class="admin-nav-grouplabel">Manage</div>
+        <button class="admin-nav-item" data-tab="friendly" onclick="setAdminTab('friendly')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M14.5 3.5 21 10l-2 2-6.5-6.5zM9.5 3.5 3 10l2 2 6.5-6.5M12 12l-7 7M12 12l7 7"/></svg></span><span class="ani-label">Friendly</span></button>
+        <button class="admin-nav-item" data-tab="signups" onclick="setAdminTab('signups')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M15 19a4 4 0 0 0-8 0M11 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M18 8v6M21 11h-6"/></svg></span><span class="ani-label">Sign-ups</span><span class="nav-badge accent" id="navBadgeSignups" style="display:none"></span></button>
+        <button class="admin-nav-item" data-tab="accounts" onclick="setAdminTab('accounts')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16.2c.6-1.9 2-2.9 3.5-2.9s2.9 1 3.5 2.9"/></svg></span><span class="ani-label">Accounts</span></button>
+        <button class="admin-nav-item" data-tab="settings" onclick="setAdminTab('settings')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 2h-4l-.5 2.4a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 22h4l.5-2.4a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg></span><span class="ani-label">Settings</span></button>
+      </div>
+    </nav>
+    <div class="asb-foot">
+      <button class="btn btn-secondary btn-sm asb-foot-view" onclick="showViewer()"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span><span class="ani-label">View Display</span></button>
+      <div class="asb-foot-row">
+        <button class="asb-foot-logout" onclick="logout()"><span class="ani-label">Log out</span></button>
+        <button class="admin-help-btn" id="adminHelpBtn" onclick="openHelp()" aria-label="Help and guided tour" title="Help &amp; guided tour">?</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main content ──────────────────────────── -->
+  <div class="admin-main">
+
+  <!-- Mobile-only top header -->
   <div class="admin-hdr">
     <div class="admin-hdr-left">
       <div class="admin-hdr-brand">Admin Panel</div>
-      <div class="admin-hdr-date" id="headerDate"></div>
     </div>
     <div class="admin-hdr-actions">
-      <button class="admin-help-btn" id="adminHelpBtn" onclick="openHelp()" aria-label="Help and guided tour" title="Help &amp; guided tour">?</button>
-      <button class="btn btn-ghost btn-sm" onclick="logout()">Log out</button>
-      <button class="btn btn-secondary btn-sm" onclick="showViewer()">View Display</button>
+      <button class="admin-help-btn" id="adminHelpBtnM" onclick="openHelp()" aria-label="Help and guided tour" title="Help &amp; guided tour">?</button>
+      <button class="btn btn-secondary btn-sm" onclick="showViewer()">Display</button>
     </div>
   </div>
 
-  <!-- Tab bar -->
-  <div class="admin-tabs" id="adminTabs">
-    <button class="admin-tab-btn" data-tab="session" onclick="setAdminTab('session')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg></span><span class="tab-label">Session</span></button>
-    <button class="admin-tab-btn" data-tab="courts" onclick="setAdminTab('courts')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg></span><span class="tab-label">Courts</span></button>
-    <button class="admin-tab-btn" data-tab="friendly" onclick="setAdminTab('friendly')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M14.5 3.5 21 10l-2 2-6.5-6.5zM9.5 3.5 3 10l2 2 6.5-6.5M12 12l-7 7M12 12l7 7"/></svg></span><span class="tab-label">Friendly</span></button>
-    <button class="admin-tab-btn" data-tab="engagement" onclick="setAdminTab('engagement')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg></span><span class="tab-label">Lucky Draw</span></button>
-    <button class="admin-tab-btn" data-tab="monthly" onclick="setAdminTab('monthly')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span><span class="tab-label">Monthly Draw</span></button>
-    <button class="admin-tab-btn" data-tab="signups" onclick="setAdminTab('signups')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M15 19a4 4 0 0 0-8 0M11 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M18 8v6M21 11h-6"/></svg></span><span class="tab-label">Sign-ups</span><span class="signup-badge" id="signupBadge" style="display:none"></span></button>
-    <button class="admin-tab-btn" data-tab="accounts" onclick="setAdminTab('accounts')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16.2c.6-1.9 2-2.9 3.5-2.9s2.9 1 3.5 2.9"/></svg></span><span class="tab-label">Accounts</span></button>
-    <button class="admin-tab-btn" data-tab="settings" onclick="setAdminTab('settings')"><span class="tab-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 2h-4l-.5 2.4a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 22h4l.5-2.4a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg></span><span class="tab-label">Settings</span></button>
-  </div>
+  <!-- Desktop-only active-section title -->
+  <div class="admin-main-hdr"><div class="amh-title" id="adminMainTitle">Session</div></div>
 
   <!-- ── SESSION TAB ─────────────────────────── -->
   <div class="admin-tab-panel" data-tab="session">
@@ -1768,7 +2053,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <span><span><svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 5.2a3 3 0 0 1 0 5.6M17.5 14.6c2 .7 3.5 2.3 3.5 4.4"/></svg></span> Players</span>
       <span id="sessionCount" class="admin-session-count"></span>
     </div>
-    <div class="admin-helper-text">Tap a player to add/remove from today's session. Switch to <b>List</b> to set skill level &amp; mixed-doubles for the whole squad.</div>
+    <div class="admin-helper-text">Tap a player to add/remove from today's session. Switch to <b>List</b> to set skill level (1.0&ndash;7.0) and the <b>Girl</b> &amp; <b>Mixed</b> toggles for the whole squad.</div>
     <div id="regularsPrompt"></div>
     <div class="roster-viewtoggle" role="tablist" aria-label="Player view">
       <button class="rv-btn active" data-view="grid" role="tab" onclick="setRosterView('grid')">Grid</button>
@@ -1894,11 +2179,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <!-- Squads -->
     <div class="admin-card">
       <div class="admin-card-title admin-card-title-row">Squads <span class="fr-count" id="frCount"></span></div>
-      <div class="admin-helper-text">Tap <b>R</b> or <b>B</b> to put a player on a team, and the &#9733; to set that team&rsquo;s captain. Add more people from the <b>Session</b> tab if you need them.</div>
+      <div class="admin-helper-text">Tap <b>R</b> or <b>B</b> to put a player on a team, and the &#9733; to set that team&rsquo;s captain. Add more people from the <b>Session</b> tab if you need them. Drag a player from a court here to take them off the team.</div>
       <input id="frSquadSearch" type="text" class="admin-form-input" placeholder="Search players..." autocomplete="off" aria-label="Search squad players"
         oninput="renderFriendlySquad(ensureFriendly())"
         onkeydown="if(event.key==='Escape'){this.value='';renderFriendlySquad(ensureFriendly());}">
-      <div class="fr-squad" id="frSquad"></div>
+      <div class="fr-squad" id="frSquad" ondragover="frSquadDragOver(event,this)" ondragleave="this.classList.remove('fr-squad-drop')" ondrop="frDropToSquad(event,this)"></div>
     </div>
 
     <!-- Court matchups -->
@@ -1922,57 +2207,87 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <!-- ── ENGAGEMENT TAB ─────────────────────── -->
   <div class="admin-tab-panel" data-tab="engagement">
 
-  <!-- Paid players — feeds the Lucky Draw pool, auto-expires after 2 days -->
-  <div class="admin-card">
-    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg></span> Paid Players &mdash; this session</div>
-    <div class="admin-helper-text" id="paidHint">Tick each player who has paid. They join the draw pool and stay until 2 days after the session, then drop off automatically.</div>
-    <div class="paid-picker" id="paidPicker"></div>
+  <!-- Weekly / Monthly sub-tabs -->
+  <div class="ld-subtabs">
+    <button class="ld-subtab active" data-sub="weekly" onclick="setLuckyTab('weekly')">Weekly</button>
+    <button class="ld-subtab" data-sub="monthly" onclick="setLuckyTab('monthly')">Monthly</button>
   </div>
 
-  <!-- Lucky Draw -->
+  <!-- ══ WEEKLY LUCKY DRAW ══ -->
+  <div class="ld-sub" data-sub="weekly">
+
+    <!-- Week selector -->
+    <div class="admin-card">
+      <div class="week-nav">
+        <button class="week-nav-btn" onclick="weekStep(-1)" aria-label="Previous week"><svg class="ic" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+        <div class="week-nav-mid">
+          <svg class="ic week-cal" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg>
+          <span id="weekLabel" class="week-label">This week</span>
+        </div>
+        <button class="week-nav-btn" onclick="weekStep(1)" aria-label="Next week"><svg class="ic" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+      <div class="admin-btn-row admin-mt">
+        <button class="btn btn-ghost btn-sm" onclick="weekToToday()">Current week</button>
+        <input id="weekPicker" type="date" class="admin-form-input draw-date-input" onchange="weekPick(this.value)" aria-label="Pick a week">
+      </div>
+    </div>
+
+    <!-- Schedule + live status -->
+    <div class="admin-card">
+      <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span> Draw schedule</div>
+      <div id="weeklyScheduleBody"></div>
+      <details class="ld-quick">
+        <summary>Change cutoff &amp; draw times</summary>
+        <div class="ws-settings" id="weeklySettingsForm"></div>
+      </details>
+    </div>
+
+    <!-- Mon / Fri / Sun session groups -->
+    <div id="weeklyGroups"></div>
+
+    <!-- History -->
+    <div class="admin-card">
+      <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M3 3v6h6M3 9a9 9 0 1 0 3-6.7L3 5"/></svg></span> Past weekly results</div>
+      <div id="weeklyHistory"></div>
+    </div>
+
+    <!-- Manual quick draw (legacy paid-pool spin, preserved) -->
+    <details class="admin-card ld-quick-card">
+      <summary class="admin-card-title" style="cursor:pointer"><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> Manual quick draw</summary>
+      <div class="admin-helper-text" id="paidHint">Tick each player who has paid, build a pool, then spin to pick winners — revealed live on the viewer.</div>
+      <div class="paid-picker" id="paidPicker"></div>
+      <div class="draw-pool-header admin-mt"><span class="admin-form-label">Pool</span><span class="draw-pool-count" id="drawPoolCount" style="display:none"></span></div>
+      <div class="draw-pool" id="drawPool"></div>
+      <div class="admin-btn-row admin-mt">
+        <button class="btn btn-secondary btn-sm" onclick="loadSessionIntoPool()">Pull today&#x2019;s session</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearDrawPool()">Clear pool</button>
+      </div>
+      <div class="admin-btn-row admin-mt">
+        <input id="drawNameInput" type="text" placeholder="Add name manually..." class="admin-form-input admin-flex" onkeydown="if(event.key===&#x27;Enter&#x27;)addDrawName()">
+        <button class="btn btn-secondary btn-sm" onclick="addDrawName()">Add</button>
+      </div>
+      <div class="divider"></div>
+      <div class="draw-date-row">
+        <label class="admin-form-label" for="drawDateInput">Draw date</label>
+        <input id="drawDateInput" type="date" class="admin-form-input draw-date-input" onchange="setDrawDate(this.value)" aria-label="Draw date">
+        <span class="draw-date-readable" id="drawDateReadable"></span>
+      </div>
+      <button class="btn btn-primary admin-spin-btn" id="spinBtn" onclick="spinDraw()"><svg class="ic" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4z"/><path d="M9 6v12"/></svg> <span id="spinBtnLabel">Spin &mdash; pick 1st winner</span></button>
+      <div id="drawResult"></div>
+    </details>
+
+  </div><!-- /weekly sub -->
+
+  <!-- ══ MONTHLY LUCKY DRAW ══ -->
+  <div class="ld-sub" data-sub="monthly" style="display:none">
+
+  <!-- Auto eligibility (attendance + payment) -->
   <div class="admin-card">
-    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> Lucky Draw</div>
-    <div class="admin-helper-text">Build a pool, set the draw date, then pick winners one at a time &mdash; each is revealed live on the viewer screen and removed from the pool.</div>
-
-    <!-- Pool -->
-    <div class="draw-pool-header admin-mt">
-      <span class="admin-form-label">Pool</span>
-      <span class="draw-pool-count" id="drawPoolCount" style="display:none"></span>
-    </div>
-    <div class="draw-pool" id="drawPool"></div>
-
-    <!-- Pool controls -->
-    <div class="admin-btn-row admin-mt">
-      <button class="btn btn-secondary btn-sm" onclick="loadSessionIntoPool()">Pull today&#x2019;s session</button>
-      <button class="btn btn-ghost btn-sm" onclick="clearDrawPool()">Clear pool</button>
-    </div>
-    <div class="admin-btn-row admin-mt">
-      <input id="drawNameInput" type="text" placeholder="Add name manually..."
-        class="admin-form-input admin-flex"
-        onkeydown="if(event.key===&#x27;Enter&#x27;)addDrawName()">
-      <button class="btn btn-secondary btn-sm" onclick="addDrawName()">Add</button>
-    </div>
-
-    <div class="divider"></div>
-
-    <!-- Draw date -->
-    <div class="draw-date-row">
-      <label class="admin-form-label" for="drawDateInput">Draw date</label>
-      <input id="drawDateInput" type="date" class="admin-form-input draw-date-input" onchange="setDrawDate(this.value)" aria-label="Draw date">
-      <span class="draw-date-readable" id="drawDateReadable"></span>
-    </div>
-
-    <!-- Spin -->
-    <button class="btn btn-primary admin-spin-btn" id="spinBtn" onclick="spinDraw()"><svg class="ic" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4z"/><path d="M9 6v12"/></svg> <span id="spinBtnLabel">Spin &mdash; pick 1st winner</span></button>
-
-    <!-- Ranked winners + draw history -->
-    <div id="drawResult"></div>
+    <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span> Monthly enrolment</span>
+      <button class="btn btn-secondary btn-sm" onclick="recomputeMonthlyElig()"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 4v4h-4"/></svg> Recalculate</button></div>
+    <div class="admin-helper-text">Players are auto-enrolled when they attended <b>and</b> paid every required session of their regular day(s) this month. Click a player to see the exact record.</div>
+    <div id="monthlyEligBody"></div>
   </div>
-
-  </div><!-- /engagement tab -->
-
-  <!-- ── MONTHLY LUCKY DRAW TAB ──────────────── -->
-  <div class="admin-tab-panel" data-tab="monthly">
 
   <!-- Month -->
   <div class="admin-card">
@@ -2020,7 +2335,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div id="mdHistory"></div>
   </div>
 
-  </div><!-- /monthly tab -->
+  </div><!-- /monthly sub -->
+  </div><!-- /engagement (lucky draw) tab -->
 
   <!-- ── SIGN-UPS TAB ────────────────────────── -->
   <div class="admin-tab-panel" data-tab="signups">
@@ -2034,10 +2350,30 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <!-- ── ACCOUNTS TAB (control system) ───────── -->
   <div class="admin-tab-panel" data-tab="accounts">
   <div class="admin-card">
-    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16.2c.6-1.9 2-2.9 3.5-2.9s2.9 1 3.5 2.9"/></svg></span> Member Accounts</div>
-    <div class="admin-helper-text">Everyone who created a login, newest first. PINs are encrypted and can never be shown — reset one to issue a new 6-digit code. Deleting an account also removes its linked roster player.</div>
+    <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16.2c.6-1.9 2-2.9 3.5-2.9s2.9 1 3.5 2.9"/></svg></span> Accounts</span>
+      <button class="btn btn-secondary btn-sm" onclick="loadAccountsTab()"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 4v4h-4"/></svg> Refresh</button></div>
+    <div class="pw-warning"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M12 8v4M12 16h.01"/></svg> Passwords are private. Only reveal a password when helping the account owner.</div>
+    <div class="acct-counters" id="acctCounters"></div>
+    <div class="admin-btn-row admin-mt">
+      <input id="acctSearch" type="text" class="admin-form-input admin-flex" placeholder="Search by name or phone…" autocomplete="off" oninput="renderAccountsTab()" onkeydown="if(event.key==='Escape'){this.value='';renderAccountsTab();}">
+      <button class="btn btn-ghost btn-sm" onclick="openCreateAccount()"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Create account</button>
+    </div>
+    <div id="createAccountForm" class="acct-create" style="display:none"></div>
+  </div>
+  <div class="admin-card" id="acctRequestsCard" style="display:none">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span> Account Requests</div>
+    <div class="admin-helper-text">New sign-up requests waiting for a decision. Approve links the account to an existing player.</div>
+    <div id="acctRequestsList"></div>
+  </div>
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M16 19a4 4 0 0 0-8 0M12 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/></svg></span> All Accounts</div>
     <div id="accountsList"></div>
   </div>
+  <details class="admin-card">
+    <summary class="admin-card-title" style="cursor:pointer"><span><svg class="ic" viewBox="0 0 24 24"><path d="M12 8v4l3 2M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9z"/></svg></span> Activity log</summary>
+    <div class="admin-helper-text">Every admin change to attendance, payments, draws, and accounts — most recent first.</div>
+    <div id="auditList"></div>
+  </details>
   </div><!-- /accounts tab -->
 
   <!-- ── SETTINGS TAB ───────────────────────── -->
@@ -2101,6 +2437,32 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
   </div><!-- /settings tab -->
 
+  </div><!-- /admin-main -->
+
+  <!-- Mobile bottom nav -->
+  <nav class="admin-bottomnav" id="adminBottomNav">
+    <button class="admin-bmn-btn" data-tab="session" onclick="setAdminTab('session')"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg><span class="bmn-label">Session</span></button>
+    <button class="admin-bmn-btn" data-tab="courts" onclick="setAdminTab('courts')"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg><span class="bmn-label">Courts</span></button>
+    <button class="admin-bmn-btn" data-tab="engagement" onclick="setAdminTab('engagement')"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg><span class="bmn-label">Draw</span></button>
+    <button class="admin-bmn-btn admin-bmn-more" id="bmnMore" onclick="openMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><circle cx="8" cy="8" r="1.7"/><circle cx="16" cy="8" r="1.7"/><circle cx="8" cy="16" r="1.7"/><circle cx="16" cy="16" r="1.7"/></svg><span class="bmn-label">More</span><span class="signup-badge" id="moreBadge" style="display:none"></span></button>
+  </nav>
+
+  <!-- Mobile "More" sheet -->
+  <div class="modal-overlay admin-more-overlay" id="moreSheet" onclick="if(event.target===this)closeMoreSheet()">
+    <div class="admin-more-sheet" role="dialog" aria-label="More">
+      <div class="ams-handle"></div>
+      <div class="ams-title">More</div>
+      <button class="ams-item" data-tab="friendly" onclick="setAdminTab('friendly');closeMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><path d="M14.5 3.5 21 10l-2 2-6.5-6.5zM9.5 3.5 3 10l2 2 6.5-6.5M12 12l-7 7M12 12l7 7"/></svg><span>Friendly</span></button>
+      <button class="ams-item" data-tab="signups" onclick="setAdminTab('signups');closeMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><path d="M15 19a4 4 0 0 0-8 0M11 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M18 8v6M21 11h-6"/></svg><span>Sign-ups</span><span class="nav-badge accent" id="moreBadgeSignups" style="display:none"></span></button>
+      <button class="ams-item" data-tab="accounts" onclick="setAdminTab('accounts');closeMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16.2c.6-1.9 2-2.9 3.5-2.9s2.9 1 3.5 2.9"/></svg><span>Accounts</span></button>
+      <button class="ams-item" data-tab="settings" onclick="setAdminTab('settings');closeMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 2h-4l-.5 2.4a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 22h4l.5-2.4a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg><span>Settings</span></button>
+      <div class="ams-divider"></div>
+      <button class="ams-item" onclick="showViewer();closeMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span>View Display</span></button>
+      <button class="ams-item" onclick="closeMoreSheet();openHelp()"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.5 1.5c0 1.5-2 2-2 3M12 17h.01"/></svg><span>Help &amp; Tour</span></button>
+      <button class="ams-item ams-danger" onclick="logout()"><svg class="ic" viewBox="0 0 24 24"><path d="M15 12H4M8 8l-4 4 4 4M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/></svg><span>Log out</span></button>
+    </div>
+  </div>
+
 </div>
 
 <!-- Admin Help drawer (panel) + interactive guided tour (item 4) -->
@@ -2113,12 +2475,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <div class="help-body">
     <button class="help-tour-btn" onclick="startTour()"><span class="help-tour-row"><svg class="ic" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg> Start the guided tour</span><span class="help-tour-sub">A 2-minute walkthrough of every tab</span></button>
     <div class="help-sec-list">
-      <details class="help-sec"><summary>Session</summary><div>Set tonight&rsquo;s date and tap players to add them to the line-up. In the <b>List</b> view, the <b>Level</b> picker (1.0&ndash;5.0) and <b>Mixed</b> toggle set a player&rsquo;s rating and mixed-doubles eligibility.</div></details>
+      <details class="help-sec"><summary>Session</summary><div>Set tonight&rsquo;s date and tap players to add them to the line-up. In the <b>List</b> view, the <b>Level</b> picker (1.0&ndash;7.0) and the <b>Girl</b> &amp; <b>Mixed</b> toggles set a player&rsquo;s rating and who plays mixed doubles &mdash; these drive level-balanced match generation.</div></details>
       <details class="help-sec"><summary>Courts</summary><div>Build rounds, choose which courts are active, and manage who&rsquo;s resting. Each court&rsquo;s current match shows live on the viewer screen.</div></details>
-      <details class="help-sec"><summary>Lucky Draw</summary><div>Tick the players who&rsquo;ve <b>paid</b> &mdash; they join the pool and stay for 2 days. Then <b>Spin</b> to pick a winner, revealed live on the viewer.</div></details>
-      <details class="help-sec"><summary>Monthly Draw</summary><div>Import the token ballot and run the monthly prize draw. Winners and prizes appear on the prize-draw board.</div></details>
+      <details class="help-sec"><summary>Lucky Draw &mdash; Weekly</summary><div>Pick a week, then mark each player <b>Present</b> and <b>Paid</b> for Monday, Friday and Sunday. Eligible = present + paid. The winner is drawn automatically at the scheduled time (default Wed 8pm), or draw one now &mdash; revealed live on the viewer. Past winners are kept in the history.</div></details>
+      <details class="help-sec"><summary>Lucky Draw &mdash; Monthly</summary><div>Players are auto-enrolled when they attended <b>and</b> paid every required session of their regular day this month. Click a player to see the exact record, or override it. You can still import a CSV ballot and run the prize draw as before.</div></details>
       <details class="help-sec"><summary>Sign-ups</summary><div>People who asked to join through the public form, newest first. Mark each one contacted once you&rsquo;ve reached out.</div></details>
-      <details class="help-sec"><summary>Accounts</summary><div>Everyone who created a login. Reset a PIN to issue a new 6-digit code; deleting an account also removes its linked roster player.</div></details>
+      <details class="help-sec"><summary>Accounts</summary><div>Players request an account with their <b>phone number</b> + password. Approve a request and link it to an existing player, or reject with a reason. To help someone who forgot their password, open <b>Manage</b> &rarr; <b>Reveal</b> (re-enter your admin password) or set a temporary password. Deleting an account keeps the player &mdash; it only unlinks the login.</div></details>
       <details class="help-sec"><summary>Settings</summary><div>Share the viewer link, set the daily <b>site access code</b>, change the admin password, choose which social game days appear on the public sign-up, and set <b>weekly regulars</b> &mdash; players who always come on a given day, added to the line-up automatically when the session date lands on that day.</div></details>
     </div>
   </div>
@@ -2157,6 +2519,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 </div>
 
 <script src="monthly-draw.js"></script>
+<script src="phone.js"></script>
+<script src="weekly-draw.js"></script>
+<script src="monthly-eligibility.js"></script>
+<script src="matchmaking.js"></script>
 <script>
 // ── STATE ────────────────────────────────────
 let state = null;
@@ -2298,6 +2664,7 @@ async function poll() {
   renderViewer();
   checkForNewSpin(state.luckyDraw);
   checkForNewMonthlyDraw(state.monthlyDraw);
+  checkForNewWeeklyDraw(state.weeklyDraws);
   if (adminOpen) {
     // First poll after the panel opens (e.g. a reload that ran showAdmin() before
     // state had loaded): do one full renderAdmin() so the Settings-tab cards —
@@ -2816,7 +3183,10 @@ function renderFriendlyMatchups(f) {
     const inner = p
       ? `${avatarHTML(p, 26)}<span class="nm">${escHtml(p.name)}</span><span class="x" onclick="event.stopPropagation();frClearSlot(${i},'${team}',${k})" aria-label="Remove">&#215;</span>`
       : `<span style="color:${team === 'red' ? 'var(--fv-red)' : 'var(--fv-blue)'};font-weight:800;flex:none">${team === 'red' ? 'R' : 'B'}</span><span class="nm">Add player</span>`;
-    return `<div class="frb-slot ${team}${p ? ' filled' : ''}${active ? ' active' : ''}" onclick="frSlotTap(${i},'${team}',${k})" ondragover="frDragOver(event,this)" ondragleave="this.classList.remove('dragover')" ondrop="frDrop(event,${i},'${team}',${k},this)">${inner}</div>`;
+    // Filled slots are draggable so a placed player can be pulled back to the bench,
+    // moved to another slot, or dragged out to the Squads list.
+    const drag = p ? ` draggable="true" ondragstart="frDragStart(event,'${id}','${team}')"` : '';
+    return `<div class="frb-slot ${team}${p ? ' filled' : ''}${active ? ' active' : ''}"${drag} onclick="frSlotTap(${i},'${team}',${k})" ondragover="frDragOver(event,this)" ondragleave="this.classList.remove('dragover')" ondrop="frDrop(event,${i},'${team}',${k},this)">${inner}</div>`;
   };
   const scoreCtl = (m, i, team) => {
     const field = team === 'red' ? 'redScore' : 'blueScore';
@@ -2849,17 +3219,24 @@ function renderFriendlyMatchups(f) {
       <div class="frb-foot"><button class="btn btn-ghost btn-sm frb-rec" onclick="recordFriendlyResult(${i})" title="Log this game's score, then reset for the next">Record result &amp; reset</button></div>
     </div>`).join('');
   const hasTeams = (f.redTeam.length || f.blueTeam.length);
-  el.innerHTML = `
-    <div class="frb-actions">
-      <button class="btn btn-primary btn-sm" onclick="autoFillFriendly()">Auto-fill courts</button>
-      <button class="btn btn-ghost btn-sm" onclick="reshuffleFriendly()">Reshuffle</button>
-    </div>
-    ${hasTeams ? `<div class="frb-bench">
-      <div class="frb-bench-hint">Bench &mdash; tap a player then a slot (or drag them across).</div>
+  // Bench lives in a sticky left panel (drop a placed player here to free them from a court);
+  // Auto-fill/Reshuffle + the court cards fill the main column on the right.
+  const benchBlock = hasTeams
+    ? `<div class="frb-bench" ondragover="frBenchDragOver(event,this)" ondragleave="this.classList.remove('frb-bench-drop')" ondrop="frDropToBench(event,this)">
+      <div class="frb-bench-hint">Bench &mdash; tap a player then a slot (or drag them across). Drag a player here to take them off a court.</div>
       <div class="frb-side r">RED</div>${rail('red')}
       <div class="frb-side b">BLUE</div>${rail('blue')}
-    </div>` : `<div class="admin-helper-text">Put players on Red/Blue in the <b>Squads</b> section above, then Auto-fill or drag them onto courts.</div>`}
-    ${f.matchups.length ? pods : `<div class="admin-helper-text">No courts yet &mdash; tap <b>Auto-fill courts</b>, or <b>Add court matchup</b> below.</div>`}
+    </div>`
+    : `<div class="admin-helper-text">Put players on Red/Blue in the <b>Squads</b> section above, then Auto-fill or drag them onto courts.</div>`;
+  el.innerHTML = `
+    <div class="frb-side-panel">${benchBlock}</div>
+    <div class="frb-main">
+      <div class="frb-actions">
+        <button class="btn btn-primary btn-sm" onclick="autoFillFriendly()">Auto-fill courts</button>
+        <button class="btn btn-ghost btn-sm" onclick="reshuffleFriendly()">Reshuffle</button>
+      </div>
+      ${f.matchups.length ? pods : `<div class="admin-helper-text">No courts yet &mdash; tap <b>Auto-fill courts</b>, or <b>Add court matchup</b> below.</div>`}
+    </div>
   `;
 }
 
@@ -3080,6 +3457,48 @@ function frDrop(e, i, team, k, el) {
   placeFriendlyPlayer(i, team, k, id);
   __frSel.pid = null; __frActive = null;
   renderFriendlyMatchups(f); saveFriendly();
+}
+// Drop a placed player back onto the bench → free them from whatever court they're on.
+// Bench membership is derived, so blanking their slot re-benches them automatically.
+function frBenchDragOver(e, el) { e.preventDefault(); try { e.dataTransfer.dropEffect = 'move'; } catch (_) {} el.classList.add('frb-bench-drop'); }
+function frDropToBench(e, el) {
+  e.preventDefault(); el.classList.remove('frb-bench-drop');
+  const raw = (e.dataTransfer && e.dataTransfer.getData('text/plain')) || '';
+  const id = raw.split('|')[0];
+  if (!id) return;
+  const f = ensureFriendly();
+  let changed = false;
+  (f.matchups || []).forEach(mm => {
+    if (Array.isArray(mm.red)) mm.red = mm.red.map(x => { if (x === id) { changed = true; return ''; } return x; });
+    if (Array.isArray(mm.blue)) mm.blue = mm.blue.map(x => { if (x === id) { changed = true; return ''; } return x; });
+  });
+  __frSel.pid = null; __frActive = null;
+  if (changed) { renderFriendlyMatchups(f); saveFriendly(); }
+}
+// Drop a player onto the Squads list → remove them from the Red/Blue team entirely
+// (also pulls them off any court and clears captaincy). Reversible via the row R/B buttons.
+function frSquadDragOver(e, el) { e.preventDefault(); try { e.dataTransfer.dropEffect = 'move'; } catch (_) {} el.classList.add('fr-squad-drop'); }
+function frDropToSquad(e, el) {
+  e.preventDefault(); el.classList.remove('fr-squad-drop');
+  const raw = (e.dataTransfer && e.dataTransfer.getData('text/plain')) || '';
+  const id = raw.split('|')[0];
+  if (!id) return;
+  removeFriendlyFromTeam(id);
+}
+function removeFriendlyFromTeam(id) {
+  const f = ensureFriendly();
+  const was = f.redTeam.includes(id) || f.blueTeam.includes(id);
+  f.redTeam = f.redTeam.filter(x => x !== id);
+  f.blueTeam = f.blueTeam.filter(x => x !== id);
+  if (f.redCaptain === id) f.redCaptain = null;
+  if (f.blueCaptain === id) f.blueCaptain = null;
+  (f.matchups || []).forEach(mm => {
+    if (Array.isArray(mm.red)) mm.red = mm.red.map(x => x === id ? '' : x);
+    if (Array.isArray(mm.blue)) mm.blue = mm.blue.map(x => x === id ? '' : x);
+  });
+  __frSel.pid = null; __frActive = null;
+  renderFriendlySquad(f); renderFriendlyMatchups(f); saveFriendly(); renderFriendlyViewer();
+  if (was) notify('Removed from the team.');
 }
 // Fill every unlocked court with fresh random pairs; locked courts keep theirs
 // (and their players stay out of the pool). Repeat-safe reshuffle.
@@ -3565,6 +3984,7 @@ function renderPlayersSection() {
 
   const countEl = document.getElementById('sessionCount');
   if (countEl) countEl.textContent = inSessionCount ? `${inSessionCount} playing today` : '';
+  updateAdminNavBadges();
 
   const grid = document.getElementById('rosterGrid');
   if (!grid) return;
@@ -4039,6 +4459,31 @@ function handleGenerate() {
   }
 }
 
+// Build the id -> {level, girl, mixed} map the balanced generator and the live
+// court-balance chips read. Roster carries the metadata; guests (in players, not
+// roster) and unrated players have no entry and fall through to level 4.0 inside
+// matchmaking.js. parseFloat(null)/NaN levels are handled there too.
+function buildMetaById() {
+  const meta = {};
+  (state.roster || []).forEach(r => {
+    meta[r.id] = { level: parseFloat(r.level), girl: !!r.girl, mixed: !!r.mixed };
+  });
+  return meta;
+}
+
+// Live balance chip(s) for a court in the round editor. Computed from the current
+// ids every render (never stored on the court) so a manual edit can't leave a
+// stale flag. The main chip shows the two team level-sums; it goes amber with a
+// trailing "!" when they differ by more than ±0.5. A separate MX chip marks a
+// real mixed-doubles court (girl+guy vs girl+guy).
+function courtChipHTML(court, metaById) {
+  const b = Matchmaking.courtBalanceInfo(court, metaById);
+  const off = b.gap > Matchmaking.TOL + 1e-9;
+  let html = `<span class="court-balance${off ? ' off' : ''}">${b.sum1.toFixed(1)} v ${b.sum2.toFixed(1)}${off ? ' !' : ''}</span>`;
+  if (b.bothMixed) html += ` <span class="court-balance mx">MX</span>`;
+  return html;
+}
+
 async function generateSchedule() {
   const numRounds = parseInt(document.getElementById('numRoundsInput').value) || 10;
   const players = state.players || [];
@@ -4048,7 +4493,8 @@ async function generateSchedule() {
   if (players.length < 4) return notify('Need at least 4 players.');
   if (players.length < perRound) return notify(`Need at least ${perRound} players for ${numCourts} court(s).`);
 
-  const rounds = smartSchedule(players, numCourts, numRounds);
+  const metaById = buildMetaById();
+  const rounds = Matchmaking.smartSchedule(players, numCourts, numRounds, metaById);
   const currentRound = 0;
   const courtRounds = new Array(numCourts).fill(0);
   // A brand-new schedule starts fresh games on every court, so no "ending
@@ -4062,7 +4508,15 @@ async function generateSchedule() {
   expandedRound = null;
   renderCourtControls();
   renderRoundList();
-  notify(`${rounds.length} rounds generated!`);
+  // Count courts outside ±0.5 so the admin knows how many need a hand-tweak
+  // (those chips are tinted amber in the round editor).
+  let over = 0;
+  rounds.forEach(rd => (rd.courts || []).forEach(c => {
+    if (Matchmaking.courtBalanceInfo(c, metaById).gap > Matchmaking.TOL + 1e-9) over++;
+  }));
+  notify(over
+    ? `${rounds.length} rounds generated. ${over} court${over === 1 ? '' : 's'} over ±0.5 (marked amber).`
+    : `${rounds.length} rounds generated!`);
 }
 
 async function addEmptyRound() {
@@ -4184,6 +4638,7 @@ function renderRoundList() {
   const wrap = document.getElementById('roundListWrap');
   if (wrap) wrap.style.display = (state.rounds || []).length ? '' : 'none';
   const activeCourts = getCourtRounds();
+  const metaById = buildMetaById();
   (state.rounds || []).forEach((round, i) => {
     const isLive = activeCourts.includes(i);
     const isExpanded = i === expandedRound;
@@ -4194,7 +4649,7 @@ function renderRoundList() {
     (round.courts || []).forEach((court, c) => {
       courtEditorsHTML += `
         <div class="court-editor">
-          <h4>Court ${courtLabel(c)}</h4>
+          <h4>Court ${courtLabel(c)} ${courtChipHTML(court, metaById)}</h4>
           <div class="selectors-row">
             <span class="rl-team-label">Team A:</span>
             ${buildPlayerSelect(`rl_${i}_c${c}_t1p1`, court.team1[0])}
@@ -5618,20 +6073,353 @@ function renderMdBoard() {
   el.innerHTML = html;
 }
 
+const ADMIN_TAB_TITLES = { session: 'Session', courts: 'Courts', friendly: 'Friendly', engagement: 'Lucky Draw', signups: 'Sign-ups', accounts: 'Accounts', settings: 'Settings' };
+// Overflow tabs — reachable via the mobile "More" sheet (keeps "More" lit when one is active).
+const ADMIN_MORE_TABS = ['friendly', 'signups', 'accounts', 'settings'];
+
 function setAdminTab(name) {
   currentAdminTab = name;
   localStorage.setItem('adminTab', name);
-  document.querySelectorAll('#adminTabs .admin-tab-btn').forEach(btn => {
+  // Highlight the matching nav item across every nav surface (sidebar + bottom nav + More sheet).
+  document.querySelectorAll('.admin-nav-item[data-tab], .admin-bmn-btn[data-tab], .ams-item[data-tab]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === name);
   });
+  const moreBtn = document.getElementById('bmnMore');
+  if (moreBtn) moreBtn.classList.toggle('active', ADMIN_MORE_TABS.includes(name));
   document.querySelectorAll('#admin .admin-tab-panel').forEach(panel => {
     panel.classList.toggle('active', panel.dataset.tab === name);
   });
+  const titleEl = document.getElementById('adminMainTitle');
+  if (titleEl) titleEl.textContent = ADMIN_TAB_TITLES[name] || '';
+  updateAdminNavBadges();
   if (name === 'monthly') renderMonthlyTab();
+  if (name === 'engagement') { renderMonthlyTab(); loadAdminOps().then(() => { renderWeeklyTab(); renderMonthlyElig(); }); }
   if (name === 'signups') renderSignupsTab();
   if (name === 'accounts') loadAccountsTab();
   if (name === 'friendly') renderFriendlyAdmin();
 }
+
+// ── Grouped-sidebar nav helpers ─────────────────────────────
+function toggleAdminSidebar() {
+  const sb = document.getElementById('adminSidebar');
+  if (!sb) return;
+  const collapsed = sb.classList.toggle('collapsed');
+  try { localStorage.setItem('adminSidebarCollapsed', collapsed ? '1' : '0'); } catch (e) {}
+}
+
+function setNavBadge(id, val, opts) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  opts = opts || {};
+  const show = opts.always || (typeof val === 'number' ? val > 0 : !!val);
+  el.textContent = val;
+  el.style.display = show ? 'inline-flex' : 'none';
+}
+
+// Live counts on the nav (Session players, current round, unhandled sign-ups).
+function updateAdminNavBadges() {
+  if (!state) return;
+  const sessionIds = new Set((state.players || []).map(p => p.id));
+  const guests = (state.players || []).filter(p => p.guest);
+  const playing = (state.roster || []).filter(r => sessionIds.has(r.id)).length + guests.length;
+  setNavBadge('navBadgeSession', playing);
+  setNavBadge('navBadgeCourts', 'R' + ((state.currentRound || 0) + 1), { always: true });
+  const lib = window.MonthlyDraw;
+  const su = lib ? lib.unhandledCount(state.signups || []) : (state.signups || []).filter(s => s && !s.handled).length;
+  setNavBadge('navBadgeSignups', su);
+  setNavBadge('moreBadge', su);
+  setNavBadge('moreBadgeSignups', su);
+}
+
+function openMoreSheet() { const s = document.getElementById('moreSheet'); if (s) s.classList.add('open'); }
+function closeMoreSheet() { const s = document.getElementById('moreSheet'); if (s) s.classList.remove('open'); }
+
+// Sidebar player search — drives the Session roster filter and jumps to that tab.
+function sidebarSearchInput(v) {
+  const rs = document.getElementById('rosterSearch');
+  if (rs) rs.value = v;
+  if (currentAdminTab !== 'session') setAdminTab('session');
+  renderPlayersSection();
+}
+
+// Which Lucky Draw sub-tab (weekly|monthly) is showing.
+let currentLuckyTab = 'weekly';
+function setLuckyTab(sub) {
+  currentLuckyTab = sub;
+  document.querySelectorAll('.ld-subtabs .ld-subtab').forEach(b => b.classList.toggle('active', b.dataset.sub === sub));
+  document.querySelectorAll('.admin-tab-panel[data-tab="engagement"] .ld-sub').forEach(p => { p.style.display = (p.dataset.sub === sub) ? '' : 'none'; });
+  if (sub === 'weekly') { renderWeeklyTab(); }
+  if (sub === 'monthly') { renderMonthlyTab(); renderMonthlyElig(); }
+}
+
+// ── ADMIN: WEEKLY LUCKY DRAW + attendance/payment ─────────────────────
+// Private ops data (attendance/weeklyDraws/settings/eligibility/audit) never
+// rides the public GET — the admin fetches it here with the admin password.
+let adminOps = { attendance: {}, weeklyDraws: {}, weeklySettings: null, monthlyEligibility: null, audit: [] };
+let weekAnchorISO = null;
+const WD_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const WD_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+async function loadAdminOps() {
+  const res = await apiPost({ action: 'adminGetOps' });
+  if (res === null || !res.ok) return adminOps;
+  adminOps = {
+    attendance: res.attendance || {}, weeklyDraws: res.weeklyDraws || {},
+    weeklySettings: res.weeklySettings || null, monthlyEligibility: res.monthlyEligibility || null,
+    audit: res.audit || [],
+  };
+  return adminOps;
+}
+
+function serverNowMs() { return Date.now() + (clockOffset || 0); }
+function serverTodayISO() { return (state && state.today) || new Date(serverNowMs()).toISOString().slice(0, 10); }
+function wkSettings() { return adminOps.weeklySettings || (state && state.weeklySettings) || (window.WeeklyDraw && WeeklyDraw.DEFAULT_SETTINGS) || { cutoff: { weekday: 3, time: '17:00' }, draw: { weekday: 3, time: '20:00' } }; }
+function fmtISO(iso) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ''); if (!m) return iso || ''; const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])); return d.getUTCDate() + ' ' + d.toLocaleString('en', { month: 'long', timeZone: 'UTC' }); }
+function fmtISOYear(iso) { const m = /^(\d{4})/.exec(iso || ''); return fmtISO(iso) + (m ? ' ' + m[1] : ''); }
+function fmtTime12(hhmm) { const p = String(hhmm || '').split(':'); let h = +p[0] || 0; const mm = p[1] || '00'; const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return h + ':' + mm + ' ' + ap; }
+
+function mondayOf(iso) { const w = WeeklyDraw.isoWeekday(iso); const off = (w + 6) % 7; return WeeklyDraw.addDaysISO(iso, -off); }
+function weekSessionDates(anchorISO) {
+  const mon = mondayOf(anchorISO);
+  const games = (state && state.socialGames) || [];
+  let wds = games.filter(g => g && g.enabled).map(g => Number.isFinite(g.weekday) ? g.weekday : -1).filter(w => w >= 0);
+  if (!wds.length) wds = [1, 5, 0];
+  wds = Array.from(new Set(wds)).sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7));
+  return wds.map(w => ({ weekday: w, date: WeeklyDraw.addDaysISO(mon, (w + 6) % 7) }));
+}
+
+function phoneForPlayer(playerId) {
+  const a = (adminAccountsCache || []).find(x => x.playerId === playerId);
+  if (a && a.phoneDisplay && window.Phone) return Phone.maskPhone(a.phone || a.phoneDisplay);
+  return '';
+}
+
+function renderWeeklyTab() {
+  if (!window.WeeklyDraw) return;
+  if (!weekAnchorISO) weekAnchorISO = serverTodayISO();
+  const mon = mondayOf(weekAnchorISO), sun = WeeklyDraw.addDaysISO(mon, 6);
+  const lbl = document.getElementById('weekLabel');
+  if (lbl) lbl.textContent = fmtISO(mon) + ' – ' + fmtISOYear(sun);
+  renderWeeklySchedule();
+  renderWeeklySettingsForm();
+  renderWeeklyGroups();
+  renderWeeklyHistory();
+}
+
+function renderWeeklySchedule() {
+  const el = document.getElementById('weeklyScheduleBody'); if (!el) return;
+  const s = wkSettings();
+  const now = serverNowMs();
+  // Live status for the soonest not-drawn session in the selected week.
+  const dates = weekSessionDates(weekAnchorISO);
+  let statusLine = 'No sessions scheduled this week.';
+  for (const d of dates) {
+    const drawn = !!(adminOps.weeklyDraws[d.date] && adminOps.weeklyDraws[d.date].status === 'drawn');
+    const ls = WeeklyDraw.liveStatus(d.date, s, now, drawn, 8);
+    if (!drawn) { statusLine = WD_NAMES[d.weekday] + ': ' + weeklyStatusText(ls, now); break; }
+    statusLine = WD_NAMES[d.weekday] + ': Draw completed';
+  }
+  el.innerHTML =
+    '<div class="ws-line"><span>Entry cutoff</span><b>' + WD_NAMES[s.cutoff.weekday] + ' at ' + fmtTime12(s.cutoff.time) + '</b></div>'
+    + '<div class="ws-line"><span>Automatic draw</span><b>' + WD_NAMES[s.draw.weekday] + ' at ' + fmtTime12(s.draw.time) + '</b></div>'
+    + '<div class="ws-status">' + escHtml(statusLine) + '</div>';
+}
+
+function weeklyStatusText(ls, now) {
+  if (ls.code === 'open') {
+    const hrs = Math.max(0, Math.round((ls.closesAt - now) / 3600000));
+    return hrs > 0 ? ('Entries open — close in ~' + hrs + 'h') : 'Entries open — closing soon';
+  }
+  if (ls.code === 'closed') return 'Entries closed — drawing tonight';
+  if (ls.code === 'due') return 'Automatic draw pending';
+  return ls.label;
+}
+
+function renderWeeklySettingsForm() {
+  const el = document.getElementById('weeklySettingsForm'); if (!el) return;
+  const s = wkSettings();
+  const daySel = (id, val) => '<select class="admin-form-input acct-sel" id="' + id + '">' + WD_NAMES.map((n, i) => '<option value="' + i + '"' + (i === val ? ' selected' : '') + '>' + n + '</option>').join('') + '</select>';
+  el.innerHTML =
+    '<div class="acct-mng-row"><span class="acct-mng-lbl">Cutoff</span>' + daySel('wsCutoffDay', s.cutoff.weekday) + '<input type="time" class="admin-form-input" id="wsCutoffTime" value="' + escHtml(s.cutoff.time) + '"></div>'
+    + '<div class="acct-mng-row"><span class="acct-mng-lbl">Draw</span>' + daySel('wsDrawDay', s.draw.weekday) + '<input type="time" class="admin-form-input" id="wsDrawTime" value="' + escHtml(s.draw.time) + '"></div>'
+    + '<div class="admin-btn-row admin-mt"><button class="btn btn-primary btn-sm" onclick="saveWeeklySettings()">Save schedule</button></div>';
+}
+
+async function saveWeeklySettings() {
+  const body = { action: 'weeklyDrawSettings', enabled: true,
+    cutoff: { weekday: +document.getElementById('wsCutoffDay').value, time: document.getElementById('wsCutoffTime').value },
+    draw: { weekday: +document.getElementById('wsDrawDay').value, time: document.getElementById('wsDrawTime').value } };
+  const res = await apiPost(body);
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not save.', 'warn'); return; }
+  await loadAdminOps(); renderWeeklyTab(); notify('Schedule saved.');
+}
+
+function renderWeeklyGroups() {
+  const wrap = document.getElementById('weeklyGroups'); if (!wrap) return;
+  const dates = weekSessionDates(weekAnchorISO);
+  const today = serverTodayISO();
+  wrap.innerHTML = dates.map(d => {
+    const day = adminOps.attendance[d.date];
+    const entries = day && day.entries ? Object.values(day.entries) : null;
+    const future = d.date > today;
+    const draw = adminOps.weeklyDraws[d.date];
+    const drawn = draw && draw.status === 'drawn';
+    let rows;
+    if (!entries) {
+      rows = '<div class="wk-empty">' + (future ? 'This session hasn’t happened yet.' : 'No attendance list yet.')
+        + ' <button class="btn btn-secondary btn-sm" onclick="seedWeeklyDay(\'' + d.date + '\')">Load players</button></div>';
+    } else if (!entries.length) {
+      rows = '<div class="wk-empty">No players registered for this session.</div>';
+    } else {
+      rows = '<div class="wk-rows">' + entries.map(e => weeklyRowHtml(d.date, e)).join('') + '</div>';
+    }
+    return '<div class="admin-card wk-group">'
+      + '<div class="wk-group-head"><div><b>' + WD_NAMES[d.weekday] + '</b>, ' + escHtml(fmtISOYear(d.date)) + '</div>'
+      + weeklyDrawBadge(draw, d.date) + '</div>'
+      + rows
+      + weeklyDrawActions(d.date, entries, drawn, draw)
+      + '</div>';
+  }).join('');
+}
+
+function weeklyRowHtml(date, e) {
+  const reason = WeeklyDraw.ineligibleReason(e);
+  const elig = !reason;
+  const phone = phoneForPlayer(e.playerId);
+  return '<div class="wk-row">'
+    + '<div class="wk-row-main"><span class="wk-name">' + escHtml(e.name || e.playerId) + '</span>'
+    + (phone ? '<span class="wk-phone">' + escHtml(phone) + '</span>' : '') + '</div>'
+    + '<label class="wk-chk"><input type="checkbox" ' + (e.present ? 'checked' : '') + ' onchange="toggleAtt(\'' + date + '\',\'' + e.playerId + '\',\'present\',this.checked)"> Present</label>'
+    + '<label class="wk-chk"><input type="checkbox" ' + (e.paid ? 'checked' : '') + ' onchange="toggleAtt(\'' + date + '\',\'' + e.playerId + '\',\'paid\',this.checked)"> Paid</label>'
+    + '<span class="wk-elig ' + (elig ? 'ok' : 'no') + '">' + (elig ? 'Eligible' : escHtml(reason)) + '</span>'
+    + '</div>';
+}
+
+function weeklyDrawBadge(draw, date) {
+  if (draw && draw.status === 'drawn' && draw.winner) return '<span class="st-badge ok">Winner: ' + escHtml(draw.winner.name) + '</span>';
+  return '<span class="st-badge wait">Not drawn</span>';
+}
+
+function weeklyDrawActions(date, entries, drawn, draw) {
+  const s = wkSettings();
+  const eligibleCount = entries ? entries.filter(e => e.present && e.paid).length : 0;
+  let html = '<div class="wk-draw-actions">';
+  html += '<span class="wk-elig-count">' + eligibleCount + ' eligible</span>';
+  if (drawn) {
+    html += '<span class="wk-winner">Winner: ' + escHtml(draw.winner ? draw.winner.name : '—') + '</span>';
+    html += '<button class="btn btn-ghost btn-sm" onclick="rerunWeekly(\'' + date + '\')">Rerun draw</button>';
+  } else {
+    html += '<button class="btn btn-primary btn-sm" ' + (eligibleCount ? '' : 'disabled') + ' onclick="drawWeekly(\'' + date + '\')">Draw winner now</button>';
+  }
+  html += '</div>';
+  return html;
+}
+
+async function toggleAtt(date, playerId, field, value) {
+  // Optimistic local update so the eligibility badge flips instantly.
+  const day = adminOps.attendance[date] || (adminOps.attendance[date] = { date, entries: {} });
+  const e = day.entries[playerId] || (day.entries[playerId] = { playerId, name: playerId, present: false, paid: false });
+  e[field] = value;
+  renderWeeklyGroups();
+  const res = await apiPost({ action: 'setAttendance', date, playerId, name: e.name, [field]: value });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not save.', 'warn'); await loadAdminOps(); renderWeeklyTab(); }
+}
+
+async function seedWeeklyDay(date) {
+  const res = await apiPost({ action: 'seedAttendance', date });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not load players.', 'warn'); return; }
+  await loadAdminOps(); renderWeeklyTab();
+  notify(res.added ? (res.added + ' players added.') : 'List up to date.');
+}
+
+async function drawWeekly(date, confirm) {
+  const res = await apiPost({ action: 'weeklyDraw', date, confirm: !!confirm });
+  if (res === null) return;
+  if (res.needsConfirm || (res.error && /already complete/i.test(res.error))) { notify('Already drawn — use Rerun to draw again.', 'warn'); return; }
+  if (res.ok === false) { notify(res.error || 'No eligible entries.', 'warn'); return; }
+  if (!res.ok) { notify(res.error || 'Could not draw.', 'warn'); return; }
+  await loadAdminOps(); renderWeeklyTab(); await refreshState();
+  notify('Winner: ' + (res.result && res.result.winner ? res.result.winner.name : '—'), 'ok', 5000);
+}
+function rerunWeekly(date) {
+  weeklyConfirm('Rerun this draw and pick a new winner?', () => drawWeekly(date, true));
+}
+
+function renderWeeklyHistory() {
+  const el = document.getElementById('weeklyHistory'); if (!el) return;
+  const draws = Object.values(adminOps.weeklyDraws || {}).filter(d => d && d.status === 'drawn')
+    .sort((a, b) => (b.drawnAt || 0) - (a.drawnAt || 0));
+  if (!draws.length) { el.innerHTML = '<div class="acct-empty">No completed weekly draws yet.</div>'; return; }
+  el.innerHTML = draws.map(d =>
+    '<div class="wk-hist-row"><div><b>' + WD_NAMES[d.weekday] + '</b>, ' + escHtml(fmtISOYear(d.date)) + '</div>'
+    + '<div class="wk-hist-win">Winner: <b>' + escHtml(d.winner ? d.winner.name : '—') + '</b> · ' + (d.eligibleCount || 0) + ' eligible entries</div></div>'
+  ).join('');
+}
+
+// ── ADMIN: MONTHLY eligibility (auto enrolment) ──
+function currentEligMonth() { return serverTodayISO().slice(0, 7); }
+async function recomputeMonthlyElig() {
+  const res = await apiPost({ action: 'recomputeMonthly', month: currentEligMonth() });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not recalculate.', 'warn'); return; }
+  await loadAdminOps(); renderMonthlyElig(); await refreshState();
+  notify('Eligibility recalculated.');
+}
+
+function renderMonthlyElig() {
+  const el = document.getElementById('monthlyEligBody'); if (!el) return;
+  const me = adminOps.monthlyEligibility;
+  if (!me || !me.players || !me.players.length) {
+    el.innerHTML = '<div class="acct-empty">No eligibility calculated yet. Click <b>Recalculate</b> to build this month’s list from attendance + payments.</div>';
+    return;
+  }
+  const recompLine = '<div class="me-recalc">Last recalculated ' + escHtml(fmtDateTime(me.computedAt)) + '</div>';
+  const rows = me.players.slice().sort((a, b) => (b.eligible - a.eligible) || a.name.localeCompare(b.name)).map(p => {
+    const eff = window.MonthlyEligibility ? MonthlyEligibility.effectiveEligible(p) : p.eligible;
+    const days = p.regularWeekdays.map(w => WD_SHORT[w]).join(', ');
+    return '<div class="me-row" onclick="toggleInline(\'me_' + p.playerId + '\')">'
+      + '<div class="me-main"><b>' + escHtml(p.name) + '</b><span class="me-sub">' + escHtml(days || '—') + ' · ' + p.attendedCount + '/' + p.requiredCount + '</span></div>'
+      + '<span class="st-badge ' + (eff ? 'ok' : 'bad') + '">' + (eff ? 'Eligible' : 'Not eligible') + '</span>'
+      + '</div>'
+      + '<div class="acct-inline me-detail" id="me_' + p.playerId + '" onclick="event.stopPropagation()">' + eligBreakdownHtml(p) + '</div>';
+  }).join('');
+  el.innerHTML = recompLine + '<div class="me-list">' + rows + '</div>';
+}
+
+function eligBreakdownHtml(p) {
+  const rows = (p.breakdown || []).map(b =>
+    '<tr><td>' + escHtml(fmtISO(b.date)) + '</td><td>' + (b.present ? 'Present' : 'Absent') + '</td><td>' + (b.paid ? 'Paid' : 'Unpaid') + '</td><td>' + (b.counted ? 'Counted' : 'Not counted') + '</td></tr>').join('');
+  const ov = p.override ? ('<div class="me-ov">Admin override: <b>' + (p.override.eligible ? 'Eligible' : 'Not eligible') + '</b>' + (p.override.reason ? ' — ' + escHtml(p.override.reason) : '') + '</div>') : '';
+  return (p.reason ? '<div class="me-reason">' + escHtml(p.reason) + '</div>' : '')
+    + '<table class="me-table"><thead><tr><th>Date</th><th>Attendance</th><th>Payment</th><th>Eligibility</th></tr></thead><tbody>' + (rows || '<tr><td colspan="4">No required sessions yet.</td></tr>') + '</tbody></table>'
+    + ov
+    + '<div class="admin-btn-row admin-mt"><button class="btn btn-secondary btn-sm" onclick="setEligOverride(\'' + p.playerId + '\',true)">Force eligible</button>'
+    + '<button class="btn btn-ghost btn-sm" onclick="setEligOverride(\'' + p.playerId + '\',false)">Force not eligible</button>'
+    + '<button class="btn btn-ghost btn-sm" onclick="setEligOverride(\'' + p.playerId + '\',null)">Clear override</button></div>';
+}
+
+async function setEligOverride(playerId, eligible) {
+  const res = await apiPost({ action: 'setMonthlyOverride', month: currentEligMonth(), playerId, eligible, reason: eligible === null ? '' : 'admin override' });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not set override.', 'warn'); return; }
+  await loadAdminOps(); renderMonthlyElig(); await refreshState();
+  notify('Override updated.');
+}
+
+// Lightweight confirm (avoids blocking window.confirm): uses the notif area + a callback.
+let __weeklyConfirmCb = null;
+function weeklyConfirm(msg, cb) {
+  __weeklyConfirmCb = cb;
+  const el = document.getElementById('notif');
+  el.innerHTML = escHtml(msg) + ' <button class="btn btn-primary btn-sm" style="margin-left:8px" onclick="runWeeklyConfirm()">Yes</button>';
+  el.classList.remove('notif-warn'); el.classList.add('show');
+  if (__notifTimer) clearTimeout(__notifTimer);
+  __notifTimer = setTimeout(() => { el.classList.remove('show'); __weeklyConfirmCb = null; }, 6000);
+}
+function runWeeklyConfirm() { const cb = __weeklyConfirmCb; __weeklyConfirmCb = null; document.getElementById('notif').classList.remove('show'); if (cb) cb(); }
 
 // ── NAVIGATION ───────────────────────────────
 function showAdmin() {
@@ -5644,6 +6432,8 @@ function showAdmin() {
   document.getElementById('adminBtn').style.display = 'none';
   const fv = document.getElementById('friendlyViewer'); // never cover the admin panel
   if (fv) { fv.style.display = 'none'; __fvSig = null; }
+  const sb = document.getElementById('adminSidebar');
+  try { if (sb) sb.classList.toggle('collapsed', localStorage.getItem('adminSidebarCollapsed') === '1'); } catch (e) {}
   if (state) { renderAdmin(); adminInitDone = true; }
   setAdminTab(currentAdminTab);
 }
@@ -5660,13 +6450,15 @@ function escHtml(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function notify(msg, type) {
+let __notifTimer = null;
+function notify(msg, type, duration) {
   const el = document.getElementById('notif');
   el.textContent = msg;
   const warn = type === 'warn' || type === 'error';
   el.classList.toggle('notif-warn', warn);
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2500);
+  if (__notifTimer) clearTimeout(__notifTimer);
+  __notifTimer = setTimeout(() => el.classList.remove('show'), duration || 2500);
 }
 
 function copyLink() {
@@ -6015,12 +6807,8 @@ document.addEventListener('keydown', (e) => {
 // ── ADMIN SIGN-UPS REVIEW ────────────────────
 // Unread badge only — cheap enough to run on every 2s poll (O(n) over a ≤500 cap).
 function renderSignupsBadge() {
-  const badge = document.getElementById('signupBadge');
-  if (!badge) return;
-  const lib = window.MonthlyDraw;
-  const n = lib ? lib.unhandledCount(state.signups || []) : (state.signups || []).filter(s => s && !s.handled).length;
-  badge.textContent = n;
-  badge.style.display = n > 0 ? 'inline-flex' : 'none';
+  // The sign-ups count now lives on the grouped-nav badges (sidebar + "More").
+  updateAdminNavBadges();
 }
 
 // Full list re-render — runs on tab activation and after each row action, NOT per poll.
@@ -6130,12 +6918,22 @@ async function deleteSignup(id, btn) {
   notify('Sign-up deleted.');
 }
 
-// ── ADMIN: ACCOUNTS CONTROL TAB ──────────────
-// Admins see every member login here. The list comes from the admin-only
-// `adminListAccounts` action (POST with admin password) — never from the public
-// GET state, which strips the accounts array entirely. PIN hashes/salts/tokens
-// are never sent to the client; the row shows "PIN set ✓" and offers a reset.
+// ── ADMIN: ACCOUNTS CONTROL TAB (v2) ─────────
+// Admins manage phone+password accounts here: approve/reject requests, reveal a
+// forgotten password (admin re-confirms their own password), lock/suspend, and
+// link to an existing roster player. The list comes from the admin-only
+// `adminListAccounts` action; passwords/hashes/tokens are never sent — a reveal
+// is a separate, audited round-trip that returns the plaintext once.
 let adminAccountsCache = [];
+let adminAcctCounts = {};
+const revealTimers = {};
+
+const ADMIN_STATUS = {
+  pending: { label: 'Pending', cls: 'wait' }, active: { label: 'Active', cls: 'ok' },
+  rejected: { label: 'Rejected', cls: 'bad' }, more_info: { label: 'More info', cls: 'wait' },
+  locked: { label: 'Locked', cls: 'bad' }, suspended: { label: 'Suspended', cls: 'bad' },
+};
+function adminStatusBadge(s) { const i = ADMIN_STATUS[s] || { label: s, cls: 'wait' }; return '<span class="st-badge ' + i.cls + '">' + escHtml(i.label) + '</span>'; }
 
 function acctFmtTs(ts) {
   if (!ts) return '—';
@@ -6151,6 +6949,17 @@ function acctFmtTsTime(ts) {
          d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
 }
 
+// <select> of existing roster players for linking. Marks who's already linked.
+function rosterSelectHtml(selId, currentId) {
+  const roster = (state && Array.isArray(state.roster)) ? state.roster : [];
+  const linkedIds = new Set(adminAccountsCache.filter(a => a.playerId).map(a => a.playerId));
+  const opts = ['<option value="">— choose player —</option>'].concat(roster.map(r => {
+    const taken = linkedIds.has(r.id) && r.id !== currentId;
+    return `<option value="${escHtml(r.id)}"${r.id === currentId ? ' selected' : ''}${taken ? ' disabled' : ''}>${escHtml(r.name)}${taken ? ' (linked)' : ''}</option>`;
+  }));
+  return `<select class="admin-form-input acct-sel" id="${selId}">${opts.join('')}</select>`;
+}
+
 async function loadAccountsTab() {
   const list = document.getElementById('accountsList');
   if (!list) return;
@@ -6162,78 +6971,303 @@ async function loadAccountsTab() {
     return;
   }
   adminAccountsCache = res.accounts;
+  adminAcctCounts = res.counts || {};
   renderAccountsTab();
+  loadAdminOps().then(renderAudit);
 }
 
-function renderAccountsTab() {
-  const list = document.getElementById('accountsList');
-  if (!list) return;
-  const accounts = adminAccountsCache;
-  if (!accounts.length) {
-    list.innerHTML = '<div class="acct-empty">No accounts yet. Members create one from the top-right of the viewer.</div>';
-    return;
-  }
-  list.innerHTML = accounts.map(a => {
-    const id = escHtml(a.id);
-    const name = escHtml(a.name || a.username);
-    const avatar = avatarHTML({ id: a.playerId || a.id, name: a.name || a.username, photo: a.photo }, 46);
-    const pinBadge = a.hasPin
-      ? '<span class="acct-pin-badge">PIN set ✓</span>'
-      : '<span class="acct-pin-badge none">No PIN</span>';
-    const linked = a.hasPlayer
-      ? `<span><b>${escHtml(String(a.points))}</b> pts</span>`
-      : '<span>No linked player</span>';
-    return `<div class="acct-row">
-      ${avatar}
-      <div class="acct-main">
-        <div class="acct-name-row">
-          <span class="acct-name">${name}</span>
-          <span class="acct-uname">@${escHtml(a.username)}</span>
-          ${pinBadge}
-        </div>
-        <div class="acct-meta">
-          ${linked}
-          <span>Joined <b>${escHtml(acctFmtTs(a.createdAt))}</b></span>
-          <span>Updated <b>${escHtml(acctFmtTs(a.updatedAt))}</b></span>
-          <span>Last login <b>${escHtml(acctFmtTsTime(a.lastLoginAt))}</b></span>
-        </div>
-      </div>
-      <div class="acct-actions">
-        <button class="btn btn-secondary btn-sm" onclick="toggleResetPin('${id}')"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> Reset PIN</button>
-        <button class="acct-del" onclick="deleteAccountAdmin('${id}',this)" title="Delete account" aria-label="Delete account ${name}">×</button>
-      </div>
-      <div class="acct-pin-form" id="pinForm_${id}">
-        <input class="acct-pin-input" id="pinInput_${id}" type="text" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="off">
-        <button class="btn btn-primary btn-sm" onclick="submitResetPin('${id}')">Set new PIN</button>
-        <button class="btn btn-ghost btn-sm" onclick="toggleResetPin('${id}')">Cancel</button>
-        <div class="acct-pin-err" id="pinErr_${id}"></div>
-      </div>
-    </div>`;
+const AUDIT_LABELS = {
+  'attendance.present': 'Attendance changed', 'attendance.paid': 'Payment changed', 'attendance.seed': 'Attendance seeded',
+  'weekly.draw': 'Weekly draw', 'weekly.settings': 'Weekly schedule', 'monthly.recompute': 'Monthly recalculated', 'monthly.override': 'Monthly override',
+  'account.register': 'Account requested', 'account.approve': 'Account approved', 'account.reject': 'Account rejected',
+  'account.more_info': 'More info requested', 'account.password_reveal': 'Password revealed', 'account.temp_password': 'Temp password set',
+  'account.password_change': 'Password changed', 'account.force_change': 'Force-change toggled', 'account.lock': 'Account locked',
+  'account.unlock': 'Account unlocked', 'account.suspend': 'Account suspended', 'account.reactivate': 'Account reactivated',
+  'account.link_player': 'Player linked', 'account.set_phone': 'Phone changed', 'account.admin_create': 'Account created',
+  'account.delete': 'Account deleted', 'account.autolock': 'Auto-locked',
+};
+function renderAudit() {
+  const el = document.getElementById('auditList'); if (!el) return;
+  const log = adminOps.audit || [];
+  if (!log.length) { el.innerHTML = '<div class="acct-empty">No activity recorded yet.</div>'; return; }
+  el.innerHTML = log.slice(0, 120).map(a => {
+    const lbl = AUDIT_LABELS[a.action] || a.action;
+    const who = a.target && a.target.label ? escHtml(a.target.label) : '';
+    const val = (a.prevValue != null || a.newValue != null) ? (escHtml(String(a.prevValue == null ? '' : a.prevValue)) + ' → ' + escHtml(String(a.newValue == null ? '' : a.newValue))) : '';
+    return '<div class="audit-row"><div class="audit-main"><b>' + escHtml(lbl) + '</b>' + (who ? ' · ' + who : '') + (val ? ' <span class="audit-val">' + val + '</span>' : '') + (a.note ? ' <span class="audit-note">' + escHtml(a.note) + '</span>' : '') + '</div><div class="audit-time">' + escHtml(fmtDateTime(a.at)) + ' · ' + escHtml(a.admin || 'admin') + '</div></div>';
   }).join('');
 }
 
-function toggleResetPin(id) {
-  const form = document.getElementById('pinForm_' + id);
-  if (!form) return;
-  const showing = form.classList.toggle('show');
-  const err = document.getElementById('pinErr_' + id);
-  if (err) { err.classList.remove('show'); err.textContent = ''; }
-  const input = document.getElementById('pinInput_' + id);
-  if (input) { input.value = ''; if (showing) input.focus(); }
+function renderAccountsTab() {
+  renderAcctCounters();
+  renderAcctRequests();
+  renderAcctList();
 }
 
-async function submitResetPin(id) {
-  const input = document.getElementById('pinInput_' + id);
-  const err = document.getElementById('pinErr_' + id);
-  const pin = (input ? input.value : '').trim();
-  const showErr = (m) => { if (err) { err.textContent = m; err.classList.add('show'); } };
-  if (!/^\d{6}$/.test(pin)) return showErr('PIN must be exactly 6 digits.');
-  const res = await apiPost({ action: 'adminResetPin', id, pin });
+function renderAcctCounters() {
+  const el = document.getElementById('acctCounters');
+  if (!el) return;
+  const c = adminAcctCounts || {};
+  const chips = [
+    ['Pending', c.pending || 0, 'wait'], ['Active', c.active || 0, 'ok'],
+    ['More info', c.more_info || 0, 'wait'], ['Rejected', c.rejected || 0, 'bad'],
+    ['Locked', c.locked || 0, 'bad'], ['Suspended', c.suspended || 0, 'bad'],
+  ];
+  el.innerHTML = chips.map(([lbl, n, cls]) => `<div class="acct-count ${cls}"><b>${n}</b><span>${lbl}</span></div>`).join('');
+}
+
+function renderAcctRequests() {
+  const card = document.getElementById('acctRequestsCard');
+  const list = document.getElementById('acctRequestsList');
+  if (!list || !card) return;
+  const reqs = adminAccountsCache.filter(a => a.status === 'pending' || a.status === 'more_info');
+  card.style.display = reqs.length ? '' : 'none';
+  list.innerHTML = reqs.map(requestCardHtml).join('');
+}
+
+function requestCardHtml(a) {
+  const id = escHtml(a.id);
+  const warn = [];
+  if (a.suggestedPlayerId) warn.push(`<span class="acct-warn ok">Matches player “${escHtml(a.suggestedPlayerName)}”</span>`);
+  else warn.push('<span class="acct-warn">No matching player found</span>');
+  return `<div class="acct-req">
+    <div class="acct-req-head">
+      <div>
+        <div class="acct-name">${escHtml(a.name || '(no name given)')}</div>
+        <div class="acct-uname">${escHtml(a.phoneDisplay || a.phone)}</div>
+      </div>
+      ${adminStatusBadge(a.status)}
+    </div>
+    <div class="acct-meta"><span>Requested <b>${escHtml(acctFmtTs(a.requestedAt))}</b></span>${warn.join('')}</div>
+    ${a.status === 'more_info' && a.moreInfoMsg ? `<div class="acct-note">You asked: ${escHtml(a.moreInfoMsg)}</div>` : ''}
+    <div class="acct-req-actions">
+      ${rosterSelectHtml('appSel_' + id, a.suggestedPlayerId || '')}
+      <button class="btn btn-primary btn-sm" onclick="approveAccount('${id}')"><svg class="ic" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg> Approve &amp; link</button>
+      <button class="btn btn-secondary btn-sm" onclick="toggleInline('rej_${id}')">Reject</button>
+      <button class="btn btn-ghost btn-sm" onclick="toggleInline('inf_${id}')">Request info</button>
+    </div>
+    <div class="acct-inline" id="rej_${id}">
+      <input class="admin-form-input admin-flex" id="rejReason_${id}" placeholder="Reason (shown to the player)">
+      <button class="btn btn-primary btn-sm" onclick="rejectAccount('${id}')">Confirm reject</button>
+    </div>
+    <div class="acct-inline" id="inf_${id}">
+      <input class="admin-form-input admin-flex" id="infMsg_${id}" placeholder="What do you need from them?">
+      <button class="btn btn-primary btn-sm" onclick="moreInfoAccount('${id}')">Send</button>
+    </div>
+  </div>`;
+}
+
+function renderAcctList() {
+  const list = document.getElementById('accountsList');
+  if (!list) return;
+  const q = (document.getElementById('acctSearch') || {}).value || '';
+  const needle = q.trim().toLowerCase();
+  let accounts = adminAccountsCache;
+  if (needle) {
+    accounts = accounts.filter(a =>
+      (a.name || '').toLowerCase().includes(needle) ||
+      (a.phoneDisplay || '').toLowerCase().includes(needle) ||
+      (a.phone || '').includes(needle.replace(/\D/g, '')));
+  }
+  if (!accounts.length) {
+    list.innerHTML = '<div class="acct-empty">' + (needle ? 'No accounts match your search.' : 'No accounts yet. Members request one from the top-right of the viewer.') + '</div>';
+    return;
+  }
+  list.innerHTML = accounts.map(accountCardHtml).join('');
+}
+
+function accountCardHtml(a) {
+  const id = escHtml(a.id);
+  const name = escHtml(a.name || '(no name)');
+  const avatar = avatarHTML({ id: a.playerId || a.id, name: a.name || '?', photo: a.photo }, 46);
+  const linked = a.hasPlayer ? `<span>Linked ✓</span>` : '<span class="acct-warn">Not linked</span>';
+  const canReveal = a.canReveal;
+  const statusBtns = [];
+  if (a.status === 'active') { statusBtns.push(`<button class="btn btn-ghost btn-sm" onclick="lockAccount('${id}')">Lock</button>`); statusBtns.push(`<button class="btn btn-ghost btn-sm" onclick="suspendAccount('${id}')">Suspend</button>`); }
+  if (a.status === 'locked') statusBtns.push(`<button class="btn btn-secondary btn-sm" onclick="acctStatusAction('${id}','adminUnlockAccount','Unlocked')">Unlock</button>`);
+  if (a.status === 'suspended') statusBtns.push(`<button class="btn btn-secondary btn-sm" onclick="acctStatusAction('${id}','adminReactivateAccount','Reactivated')">Reactivate</button>`);
+  return `<div class="acct-row">
+    ${avatar}
+    <div class="acct-main">
+      <div class="acct-name-row">
+        <span class="acct-name">${name}</span>
+        <span class="acct-uname">${escHtml(a.phoneDisplay || a.phone || 'no phone')}</span>
+        ${adminStatusBadge(a.status)}
+        ${a.forceChange ? '<span class="st-badge wait">Must change pw</span>' : ''}
+        ${a.tempPassword ? '<span class="st-badge wait">Temp pw</span>' : ''}
+      </div>
+      <div class="acct-meta">
+        ${linked}
+        <span>Last login <b>${escHtml(acctFmtTsTime(a.lastLoginAt))}</b></span>
+        <span>Failed <b>${escHtml(String(a.failedAttempts || 0))}</b></span>
+        <span>Pw changed <b>${escHtml(acctFmtTs(a.pwChangedAt))}</b></span>
+      </div>
+    </div>
+    <div class="acct-actions">
+      <button class="btn btn-secondary btn-sm" onclick="toggleInline('mng_${id}')"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 2.6 7"/></svg> Manage</button>
+      <button class="acct-del" onclick="deleteAccountAdmin('${id}',this)" title="Delete account" aria-label="Delete account ${name}">×</button>
+    </div>
+    <div class="acct-inline acct-manage" id="mng_${id}">
+      <div class="acct-mng-row">
+        <span class="acct-mng-lbl">Password</span>
+        <button class="btn btn-secondary btn-sm" onclick="toggleReveal('${id}')" ${canReveal ? '' : 'disabled title="No stored password or key"'}>Reveal</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleInline('chpw_${id}')">Change</button>
+        <button class="btn btn-ghost btn-sm" onclick="setTempPw('${id}')">Temp password</button>
+        <label class="acct-force"><input type="checkbox" ${a.forceChange ? 'checked' : ''} onchange="toggleForceChange('${id}',this.checked)"> Force change at next login</label>
+      </div>
+      <div class="acct-inline" id="rev_${id}">
+        <input class="admin-form-input acct-pw-input" id="revPw_${id}" type="password" placeholder="Re-enter admin password" autocomplete="off" onkeydown="if(event.key==='Enter')doRevealPw('${id}')">
+        <button class="btn btn-primary btn-sm" onclick="doRevealPw('${id}')">Show password</button>
+        <div class="acct-pw-shown" id="revShown_${id}"></div>
+      </div>
+      <div class="acct-inline" id="chpw_${id}">
+        <input class="admin-form-input acct-pw-input" id="chpwVal_${id}" type="text" placeholder="New password (6+ chars)" autocomplete="off">
+        <button class="btn btn-primary btn-sm" onclick="adminChangePw('${id}')">Set password</button>
+      </div>
+      <div class="acct-mng-row">
+        <span class="acct-mng-lbl">Player link</span>
+        ${rosterSelectHtml('linkSel_' + id, a.playerId || '')}
+        <button class="btn btn-secondary btn-sm" onclick="linkAccountPlayer('${id}')">Link</button>
+      </div>
+      <div class="acct-mng-row">
+        <span class="acct-mng-lbl">Status</span>
+        ${statusBtns.join('') || '<span class="acct-uname">—</span>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleInline(elId) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const showing = el.classList.toggle('show');
+  if (showing) { const inp = el.querySelector('input,select'); if (inp) setTimeout(() => inp.focus(), 30); }
+}
+
+function patchAcct(res) {
+  if (res && res.account) {
+    adminAccountsCache = adminAccountsCache.map(a => a.id === res.account.id ? res.account : a);
+  }
+}
+
+async function approveAccount(id) {
+  const sel = document.getElementById('appSel_' + id);
+  const playerId = sel ? sel.value : '';
+  if (!playerId) { notify('Choose a player to link first.', 'warn'); return; }
+  const res = await apiPost({ action: 'adminApproveAccount', id, playerId });
   if (res === null) return;
-  if (!res.ok) return showErr(res.error || 'Could not reset PIN.');
-  if (res.account) adminAccountsCache = adminAccountsCache.map(a => a.id === id ? res.account : a);
-  renderAccountsTab();
-  notify('PIN reset. New code is active.');
+  if (!res.ok) { notify(res.error || 'Could not approve.', 'warn'); return; }
+  notify('Account approved.');
+  await loadAccountsTab();
+  await refreshState();
+}
+
+async function rejectAccount(id) {
+  const reason = (document.getElementById('rejReason_' + id) || {}).value || '';
+  if (!reason.trim()) { notify('Enter a rejection reason.', 'warn'); return; }
+  const res = await apiPost({ action: 'adminRejectAccount', id, reason: reason.trim() });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not reject.', 'warn'); return; }
+  notify('Request rejected.');
+  await loadAccountsTab();
+}
+
+async function moreInfoAccount(id) {
+  const message = (document.getElementById('infMsg_' + id) || {}).value || '';
+  if (!message.trim()) { notify('Enter a message.', 'warn'); return; }
+  const res = await apiPost({ action: 'adminRequestMoreInfo', id, message: message.trim() });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not send.', 'warn'); return; }
+  notify('Message saved — the player will see it.');
+  await loadAccountsTab();
+}
+
+async function acctStatusAction(id, action, label) {
+  const res = await apiPost({ action, id });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not update.', 'warn'); return; }
+  notify(label + '.');
+  await loadAccountsTab();
+}
+function lockAccount(id) { acctStatusAction(id, 'adminLockAccount', 'Account locked'); }
+function suspendAccount(id) { acctStatusAction(id, 'adminSuspendAccount', 'Account suspended'); }
+
+async function linkAccountPlayer(id) {
+  const sel = document.getElementById('linkSel_' + id);
+  const playerId = sel ? sel.value : '';
+  if (!playerId) { notify('Choose a player.', 'warn'); return; }
+  const res = await apiPost({ action: 'adminLinkPlayer', id, playerId });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not link.', 'warn'); return; }
+  notify('Linked to player.');
+  patchAcct(res); await loadAccountsTab(); await refreshState();
+}
+
+function toggleReveal(id) { toggleInline('rev_' + id); }
+
+async function doRevealPw(id) {
+  const pwEl = document.getElementById('revPw_' + id);
+  const shown = document.getElementById('revShown_' + id);
+  const password = pwEl ? pwEl.value : '';
+  if (!password) { notify('Re-enter your admin password to reveal.', 'warn'); return; }
+  // Sent as confirmPassword — `password` is the admin-auth field (stripped by the API).
+  const res = await apiPost({ action: 'adminRevealPassword', id, confirmPassword: password });
+  if (res === null) return;
+  if (!res.ok) { if (shown) { shown.className = 'acct-pw-shown err'; shown.textContent = res.error || 'Could not reveal.'; } return; }
+  if (pwEl) pwEl.value = '';
+  if (shown) {
+    shown.className = 'acct-pw-shown';
+    shown.innerHTML = `<code id="revCode_${escHtml(id)}">${escHtml(res.password)}</code>`
+      + `<button class="btn btn-ghost btn-sm" onclick="copyReveal('${escHtml(id)}')">Copy</button>`
+      + `<button class="btn btn-ghost btn-sm" onclick="hideReveal('${escHtml(id)}')">Hide</button>`
+      + `<span class="acct-pw-timer" id="revTimer_${escHtml(id)}">hides in 30s</span>`;
+    let left = 30;
+    clearInterval(revealTimers[id]);
+    revealTimers[id] = setInterval(() => {
+      left--; const t = document.getElementById('revTimer_' + id);
+      if (t) t.textContent = 'hides in ' + left + 's';
+      if (left <= 0) hideReveal(id);
+    }, 1000);
+  }
+}
+function copyReveal(id) {
+  const code = document.getElementById('revCode_' + id);
+  if (code && navigator.clipboard) navigator.clipboard.writeText(code.textContent).then(() => notify('Password copied.'));
+}
+function hideReveal(id) {
+  clearInterval(revealTimers[id]);
+  const shown = document.getElementById('revShown_' + id);
+  if (shown) { shown.innerHTML = ''; shown.className = 'acct-pw-shown'; }
+}
+
+async function adminChangePw(id) {
+  const el = document.getElementById('chpwVal_' + id);
+  const newPassword = el ? el.value : '';
+  if (newPassword.length < 6) { notify('Password must be at least 6 characters.', 'warn'); return; }
+  const res = await apiPost({ action: 'adminChangePassword', id, newPassword });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not set password.', 'warn'); return; }
+  if (el) el.value = '';
+  notify('Password updated.');
+  patchAcct(res); renderAccountsTab();
+}
+
+async function setTempPw(id) {
+  const res = await apiPost({ action: 'adminSetTempPassword', id });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not set temp password.', 'warn'); return; }
+  patchAcct(res); renderAccountsTab();
+  // Show the temp password once so the admin can read it out to the player.
+  document.getElementById('revShown_' + id) && (document.getElementById('revShown_' + id).innerHTML = '');
+  notify('Temporary password: ' + res.tempPassword, 'ok', 8000);
+  window.setTimeout(() => toggleInline('mng_' + id), 10);
+}
+
+async function toggleForceChange(id, value) {
+  const res = await apiPost({ action: 'adminForceChange', id, value });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not update.', 'warn'); return; }
+  patchAcct(res);
 }
 
 async function deleteAccountAdmin(id, btn) {
@@ -6245,13 +7279,41 @@ async function deleteAccountAdmin(id, btn) {
   const res = await apiPost({ action: 'adminDeleteAccount', id });
   if (res === null) return;
   if (!res.ok) { notify(res.error || 'Could not delete account.', 'warn'); return; }
-  adminAccountsCache = adminAccountsCache.filter(a => a.id !== id);
-  renderAccountsTab();
-  // Linked roster player was removed server-side — refresh live state so the
-  // roster and leaderboard reflect the deletion everywhere.
+  notify('Account deleted (player kept).');
+  await loadAccountsTab();
   await refreshState();
-  if (typeof renderPlayersSection === 'function') renderPlayersSection();
-  notify('Account deleted.');
+}
+
+// ── admin: create a member account manually ──
+function openCreateAccount() {
+  const form = document.getElementById('createAccountForm');
+  if (!form) return;
+  if (form.style.display !== 'none') { form.style.display = 'none'; return; }
+  form.style.display = '';
+  form.innerHTML = `
+    <div class="acct-mng-row"><span class="acct-mng-lbl">Name</span><input class="admin-form-input admin-flex" id="caName" placeholder="Display name"></div>
+    <div class="acct-mng-row"><span class="acct-mng-lbl">Phone</span><input class="admin-form-input admin-flex" id="caPhone" placeholder="012-345 6789"></div>
+    <div class="acct-mng-row"><span class="acct-mng-lbl">Player</span>${rosterSelectHtml('caPlayer', '')}</div>
+    <div class="acct-mng-row"><span class="acct-mng-lbl">Password</span><input class="admin-form-input admin-flex" id="caPw" placeholder="Leave blank for a temporary password"></div>
+    <div class="admin-btn-row admin-mt"><button class="btn btn-primary btn-sm" onclick="submitCreateAccount()">Create account</button><button class="btn btn-ghost btn-sm" onclick="openCreateAccount()">Cancel</button></div>`;
+}
+
+async function submitCreateAccount() {
+  const name = (document.getElementById('caName') || {}).value || '';
+  const phone = (document.getElementById('caPhone') || {}).value || '';
+  const playerId = (document.getElementById('caPlayer') || {}).value || '';
+  const password = (document.getElementById('caPw') || {}).value || '';
+  if (!phone.trim() || !playerId) { notify('Phone and a linked player are required.', 'warn'); return; }
+  const body = { action: 'adminCreateAccount', phone: phone.trim(), name: name.trim(), playerId };
+  if (password.trim()) body.newPassword = password.trim(); // `password` is the admin-auth field
+  const res = await apiPost(body);
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not create account.', 'warn'); return; }
+  if (res.tempPassword) notify('Account created. Temporary password: ' + res.tempPassword, 'ok', 8000);
+  else notify('Account created.');
+  document.getElementById('createAccountForm').style.display = 'none';
+  await loadAccountsTab();
+  await refreshState();
 }
 
 // ── MEMBERS MODAL ────────────────────────────
@@ -6330,11 +7392,12 @@ async function setPoints(id, val) {
   renderLeaderboard();
 }
 
-// ── PLAYER LEVEL + MIXED-DOUBLES (per-player, global metadata) ─────────
+// ── PLAYER LEVEL + GIRL/MIXED (per-player, global metadata) ─────────
 // Set per player in the Players "List" view (a Grid ⇄ List toggle flips the
-// roster into a table — variant 12). Level is a free rating from 1 to 5 (any
-// value, e.g. 3.5); Mixed-doubles is a yes/no. Both are stored on the roster
-// player (global, persists across sessions); metadata only (no matchmaking effect).
+// roster into a table — variant 12). Level is a free rating from 1.0 to 7.0 in
+// 0.5 steps; Girl and Mixed-doubles are yes/no. All are stored on the roster
+// player (global, persists across sessions) and now drive level-balanced +
+// mixed-aware match generation (see public/matchmaking.js).
 
 // Which Players view is active (per-device). Grid = tap-to-add cards;
 // List = bulk level/mixed table.
@@ -6346,8 +7409,8 @@ function setRosterView(v) {
   renderPlayersSection();
 }
 
-// Render the List view: one row per player with a 1.0–5.0 level picker,
-// a mixed-doubles toggle, and their points. Rows for players in tonight's
+// Render the List view: one row per player with a 1.0–7.0 level picker, a Girl
+// toggle, a mixed-doubles toggle, and their points. Rows for players in tonight's
 // session get a subtle blue tint.
 function renderRosterList(listEl, visibleRoster, sessionIds, q) {
   if (!state.roster || state.roster.length === 0) {
@@ -6359,39 +7422,47 @@ function renderRosterList(listEl, visibleRoster, sessionIds, q) {
     return;
   }
   const rows = visibleRoster.map(rp => {
-    // Level: a free rating from 1 to 5 (any value, e.g. 3.5). A number input
-    // lets the admin type any value in range; blank leaves it "not set".
+    // Level: a free rating from 1.0 to 7.0 in 0.5 steps. A number input lets the
+    // admin type any value in range; blank leaves it "not set" (reads as 4.0 when
+    // generating). setPlayerLevel rounds to the nearest 0.5.
     const lvVal = (rp.level == null || rp.level === '') ? '' : rp.level;
-    const seg = `<input type="number" class="rl-lvl-inp${rp.level ? ' set' : ''}" min="1" max="5" step="0.1" inputmode="decimal" placeholder="&mdash;" value="${lvVal}" onchange="setPlayerLevel('${rp.id}',this.value)" aria-label="Level for ${escHtml(rp.name)}">`;
+    const seg = `<input type="number" class="rl-lvl-inp${rp.level ? ' set' : ''}" min="1" max="7" step="0.5" inputmode="decimal" placeholder="&mdash;" value="${lvVal}" onchange="setPlayerLevel('${rp.id}',this.value)" aria-label="Level for ${escHtml(rp.name)}">`;
+    const gl = !!rp.girl;
     const mx = !!rp.mixed;
     const inS = sessionIds.has(rp.id);
     // The player cell toggles today's session (like tapping a Grid card); the
-    // Level/Mixed cells are separate columns so tapping them never toggles it.
+    // Level/Girl/Mixed cells are separate columns so tapping them never toggles it.
     return `<div class="rl-row${inS ? ' in' : ''}">
       <div class="rl-player" onclick="toggleRosterPlayer('${rp.id}')" role="button" tabindex="0" aria-pressed="${inS}" title="${inS ? 'Playing today — tap to remove from session' : "Tap to add to today's session"}">
         <span class="rl-check${inS ? ' on' : ''}" aria-hidden="true">${inS ? '✓' : ''}</span>
         ${avatarHTML(rp, 32)}<span class="rl-name">${escHtml(rp.name)}</span>
       </div>
       <div class="rl-level">${seg}</div>
+      <div class="rl-girl"><button class="rl-toggle girl${gl ? ' on' : ''}" role="switch" aria-checked="${gl}" onclick="togglePlayerGirl('${rp.id}')" aria-label="${escHtml(rp.name)} is a girl ${gl ? 'yes' : 'no'}"><span class="rl-knob"></span></button></div>
       <div class="rl-mixed"><button class="rl-toggle${mx ? ' on' : ''}" role="switch" aria-checked="${mx}" onclick="togglePlayerMixed('${rp.id}')" aria-label="Mixed doubles for ${escHtml(rp.name)} ${mx ? 'eligible' : 'not eligible'}"><span class="rl-knob"></span></button></div>
       <div class="rl-pts">${rp.points || 0}</div>
     </div>`;
   }).join('');
-  listEl.innerHTML = `<div class="rl-head"><span>Player</span><span>Level</span><span>Mixed</span><span>Pts</span></div>${rows}`;
+  listEl.innerHTML = `<div class="rl-head"><span>Player</span><span>Level</span><span>Girl</span><span>Mixed</span><span>Pts</span></div>${rows}`;
 }
 
 // Optimistic edits: set locally + render instantly, then persist. An empty
-// input clears the level; any other value is clamped to the 1–5 range.
+// input clears the level; any other value is rounded to the nearest 0.5 and
+// clamped to the 1–7 range (Matchmaking.roundLevel — shared with the generator).
 async function setPlayerLevel(id, level) {
   const cur = (state.roster || []).find(r => r.id === id);
   if (!cur) return;
-  let nextLv = null;
-  const s = (level == null ? '' : String(level)).trim();
-  if (s !== '') {
-    const n = parseFloat(s);
-    if (!isNaN(n)) nextLv = String(Math.round(Math.min(5, Math.max(1, n)) * 10) / 10);
-  }
+  const rounded = Matchmaking.roundLevel(level);
+  const nextLv = rounded == null ? null : String(rounded);
   const roster = (state.roster || []).map(r => r.id === id ? { ...r, level: nextLv } : r);
+  state.roster = roster;
+  renderPlayersSection();
+  await apiPost({ roster });
+}
+async function togglePlayerGirl(id) {
+  const cur = (state.roster || []).find(r => r.id === id);
+  if (!cur) return;
+  const roster = (state.roster || []).map(r => r.id === id ? { ...r, girl: !r.girl } : r);
   state.roster = roster;
   renderPlayersSection();
   await apiPost({ roster });
@@ -6926,9 +7997,9 @@ function closeHelp() {
 
 // Each step: which admin tab to show first, the element to spotlight, and copy.
 const TOUR_STEPS = [
-  { tab: null,         sel: '#adminTabs',        title: 'Seven tabs run everything', text: 'Each tab is one job — Session, Courts, Lucky Draw, Monthly Draw, Sign-ups, Accounts and Settings. We’ll walk through the main ones.' },
+  { tab: null,         sel: '#adminSidebar',     title: 'Grouped nav runs everything', text: 'The sidebar groups every job — Today (Session, Courts, Lucky Draw) and Manage (Friendly, Sign-ups, Accounts, Settings). We’ll walk through the main ones.' },
   { tab: 'session',    sel: '#sessionDateInput', title: 'Set tonight’s date', text: 'Pick today’s play date. Changing it saves the previous day to history and awards every player who played their points.' },
-  { tab: 'session',    sel: '#rosterGrid',       title: 'Add players & set levels', text: 'Tap a player to add them to tonight’s session. In the List view the Level picker (1.0–5.0) and the Mixed toggle set their rating and mixed-doubles eligibility.' },
+  { tab: 'session',    sel: '#rosterGrid',       title: 'Add players & set levels', text: 'Tap a player to add them to tonight’s session. In the List view the Level picker (1.0–7.0) and the Girl & Mixed toggles set their rating and who plays mixed doubles — these balance the generated matches.' },
   { tab: 'engagement', sel: '#paidPicker',       title: 'Tick who has paid', text: 'Tick the players who’ve paid — they drop into the draw pool and stay there for 2 days, then leave automatically.' },
   { tab: 'engagement', sel: '#spinBtn',          title: 'Spin for a winner', text: 'Once the pool has players, Spin picks a winner at random — revealed live on everyone’s viewer screen.' },
   { tab: 'settings',   sel: '#siteCodeInput',    title: 'Set the daily access code', text: 'Give players today’s short code to unlock the site. Generate a fresh one whenever you like.' },
@@ -7019,6 +8090,7 @@ function closeOpenOverlays() {
   if (isOpen('mdBoardModal')) { closeMdBoard();      closed = true; }
   if (isOpen('mdHistModal'))  { closeMdHist();       closed = true; }
   if (isOpen('historyModal')) { closeHistoryModal(); closed = true; }
+  if (isOpen('moreSheet'))    { closeMoreSheet();    closed = true; }
   if (isOpen('joinModal'))    { closeJoinModal();    closed = true; }
   return closed;
 }
@@ -7058,6 +8130,33 @@ function checkForNewMonthlyDraw(md) {
   // winner reveal + auto-hide fire on wall-clock time even if the shuffle stalls.
   clearTimeout(pickerSafetyTimer);
   pickerSafetyTimer = setTimeout(() => displayPickerWinner(spin), Math.max(0, finishedAt - now) + 120);
+}
+
+// Weekly Lucky Draw live reveal — the public weeklyDraws projection carries a
+// `spin` descriptor when a session is drawn (manual or by the cron). Reuse the
+// shared overlay, serialized against the other two draw sources (F2).
+let lastWeeklySpinId = null;
+function checkForNewWeeklyDraw(weeklyDraws) {
+  if (!weeklyDraws || typeof weeklyDraws !== 'object') return;
+  let spin = null;
+  for (const d of Object.keys(weeklyDraws)) {
+    const s = weeklyDraws[d] && weeklyDraws[d].spin;
+    if (s && s.id && (!spin || s.startAt > spin.startAt)) spin = s;
+  }
+  if (!spin || !spin.id || spin.id === lastWeeklySpinId) return;
+  const now = clockNow();
+  const finishedAt = spin.startAt + spin.durationMs;
+  if (now > finishedAt + SPIN_GRACE_MS) { lastWeeklySpinId = spin.id; return; } // stale — consume
+  if (activeRevealKind && activeRevealKind !== 'weekly') return;
+  lastWeeklySpinId = spin.id;
+  activeRevealKind = 'weekly';
+  const aug = Object.assign({}, spin, { title: 'Weekly Lucky Draw', noPrize: true, rank: 1 });
+  if (pickerRaf) { cancelAnimationFrame(pickerRaf); pickerRaf = null; }
+  showPickerOverlay(aug);
+  if (prefersReducedMotion() || now >= finishedAt) { displayPickerWinner(aug); return; }
+  animatePicker(aug);
+  clearTimeout(pickerSafetyTimer);
+  pickerSafetyTimer = setTimeout(() => displayPickerWinner(aug), Math.max(0, finishedAt - now) + 120);
 }
 
 function showPickerOverlay(spin) {
@@ -7146,16 +8245,27 @@ function displayPickerWinner(spin) {
 }
 
 // ── USER ACCOUNTS ─────────────────────────────
-// Simple self-signup accounts: username + 6-digit PIN. Each account is linked to
-// a roster player (created at signup), so editing name/photo flows straight to
-// the live court display. Session = a random token from the server, kept in
-// localStorage and replayed for profile edits. PIN hashing + redaction of the
-// accounts array from every GET live server-side (api/accounts.js).
-let acctSession = null;        // { token, id, username, playerId }
-let regPhotoData = null;       // pending registration photo (dataURL)
+// Player accounts v2: PHONE NUMBER + password, admin-approved. Registration is a
+// REQUEST (status pending) until an admin approves and links it to an existing
+// roster player. Session = a random token from the server (only for active
+// accounts), kept in localStorage. Passwords are reversibly encrypted server-side
+// for the admin reveal helper; the accounts array is redacted from every GET.
+let acctSession = null;        // { token, id, playerId, phone, name }
 let profPhotoData = null;      // current/edited profile photo (dataURL or null)
 let profPhotoTouched = false;  // only send `photo` on update if the user changed it
 let __acctSig = null;          // last-rendered widget signature (poll-safe)
+let statusCreds = null;        // {phone,password} kept in memory to refresh the status screen
+let forcePwChange = false;     // true while a forced (post-login) password change is open
+
+// Player-facing metadata for every account status.
+const ACCT_STATUS = {
+  pending:   { label: 'Pending Approval',        tone: 'wait', msg: 'Your account request has been submitted and is waiting for administrator approval.' },
+  active:    { label: 'Approved',                tone: 'ok',   msg: 'Your account has been approved. You may now log in.' },
+  rejected:  { label: 'Rejected',                tone: 'bad',  msg: 'Your account request was not approved.' },
+  more_info: { label: 'More Information Required', tone: 'wait', msg: 'The administrator needs more information before approving your account.' },
+  locked:    { label: 'Account Locked',          tone: 'bad',  msg: 'Your account is locked. Please contact the TZH administrator.' },
+  suspended: { label: 'Account Suspended',       tone: 'bad',  msg: 'Your account has been suspended. Please contact the TZH administrator.' },
+};
 
 function loadAcctSession() {
   try {
@@ -7190,6 +8300,12 @@ async function acctPost(action, payload) {
   }
 }
 
+function fmtDateTime(ms) {
+  if (!ms) return '—';
+  try { return new Date(ms).toLocaleString([], { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+  catch { return '—'; }
+}
+
 // The account's live roster player (source of truth for name/photo), or null.
 function acctPlayer() {
   if (!acctSession || !state || !Array.isArray(state.roster)) return null;
@@ -7198,7 +8314,7 @@ function acctPlayer() {
 
 function acctAvatarHtml(player, cls) {
   if (player && player.photo) return `<img class="${cls}" src="${player.photo}" alt="">`;
-  const name = (player && player.name) || (acctSession && acctSession.username) || '?';
+  const name = (player && player.name) || (acctSession && acctSession.name) || '?';
   const id = (player && player.id) || (acctSession && acctSession.playerId) || name;
   return `<span class="${cls}" style="background:${getColor(id)}">${escHtml(getInitials(name))}</span>`;
 }
@@ -7210,8 +8326,8 @@ function renderAccountWidget() {
   if (!wrap) return;
   const player = acctPlayer();
   const sig = acctSession
-    ? 'in|' + acctSession.username + '|' + acctSession.playerId + '|'
-      + ((player && player.name) || acctSession.username) + '|'
+    ? 'in|' + acctSession.playerId + '|'
+      + ((player && player.name) || acctSession.name) + '|'
       + ((player && player.photo) ? 'P' + player.photo.length : '0')
     : 'out';
   if (sig === __acctSig) return;
@@ -7224,7 +8340,7 @@ function renderAccountWidget() {
       + ' Sign in</button>';
     return;
   }
-  const name = (player && player.name) || acctSession.username;
+  const name = (player && player.name) || acctSession.name || 'Player';
   wrap.innerHTML =
     '<button class="vh-acct-btn" type="button" onclick="toggleAcctMenu(event)" aria-haspopup="true">'
       + acctAvatarHtml(player, 'vh-acct-av')
@@ -7234,10 +8350,14 @@ function renderAccountWidget() {
     + '<div class="acct-menu" id="acctMenu">'
       + '<div class="acct-menu-head">'
         + '<div class="acct-menu-name">' + escHtml(name) + '</div>'
-        + '<div class="acct-menu-uname">@' + escHtml(acctSession.username) + '</div>'
+        + '<div class="acct-menu-uname">' + escHtml(acctSession.phone || '') + '</div>'
       + '</div>'
+      + '<button class="acct-menu-item" type="button" onclick="openAccountModal()">'
+        + '<svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/></svg> My account</button>'
       + '<button class="acct-menu-item" type="button" onclick="openProfileModal()">'
         + '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg> Edit profile</button>'
+      + '<button class="acct-menu-item" type="button" onclick="openMyLuckyDraw()">'
+        + '<svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg> My Lucky Draw</button>'
       + '<button class="acct-menu-item danger" type="button" onclick="acctLogout()">'
         + '<svg class="ic" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg> Log out</button>'
     + '</div>';
@@ -7267,64 +8387,147 @@ function renderPhotoPreview(elId, photo) {
 }
 
 function setAuthMode(mode) {
-  const reg = mode === 'register';
-  document.getElementById('authSignin').style.display = reg ? 'none' : '';
-  document.getElementById('authRegister').style.display = reg ? '' : 'none';
-  document.getElementById('authTitle').textContent = reg ? 'Create account' : 'Welcome back';
-  hideErr('siError'); hideErr('regError');
-  setTimeout(() => { const f = document.getElementById(reg ? 'regName' : 'siUsername'); if (f) f.focus(); }, 60);
+  const panes = { signin: 'authSignin', register: 'authRegister', status: 'authStatus' };
+  Object.keys(panes).forEach(k => { const el = document.getElementById(panes[k]); if (el) el.style.display = (k === mode) ? '' : 'none'; });
+  const titles = { signin: 'Welcome back', register: 'Request an account', status: 'Check request status' };
+  document.getElementById('authTitle').textContent = titles[mode] || 'Welcome back';
+  ['siError', 'regError', 'stError'].forEach(hideErr);
+  const focusId = { signin: 'siPhone', register: 'regName', status: 'stPhone' }[mode];
+  setTimeout(() => { const f = document.getElementById(focusId); if (f) f.focus(); }, 60);
 }
 
 function openAuthModal() {
   const wrap = document.getElementById('accountWidget');
   if (wrap) wrap.classList.remove('open');
-  ['siUsername', 'siPin', 'regName', 'regUsername', 'regPin'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-  regPhotoData = null;
-  renderPhotoPreview('regPhotoPreview', null);
+  ['siPhone', 'siPassword', 'regName', 'regPhone', 'regPassword', 'regPassword2', 'stPhone', 'stPassword']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('authModal').classList.add('open');
   setAuthMode('signin');
 }
 function closeAuthModal() { document.getElementById('authModal').classList.remove('open'); }
 
-async function previewRegPhoto(input) {
-  const file = input.files && input.files[0];
-  if (!file) return;
-  regPhotoData = await compressPhoto(file);
-  renderPhotoPreview('regPhotoPreview', regPhotoData);
-}
-
 async function submitSignin() {
-  const username = document.getElementById('siUsername').value.trim();
-  const pin = document.getElementById('siPin').value.trim();
+  const phone = document.getElementById('siPhone').value.trim();
+  const password = document.getElementById('siPassword').value;
   hideErr('siError');
-  if (!username || !/^\d{6}$/.test(pin)) { showErr('siError', 'Enter your username and 6-digit PIN.'); return; }
-  const res = await acctPost('loginAccount', { username, pin });
-  if (!res.ok) { showErr('siError', (res.data && res.data.error) || 'Could not sign in.'); return; }
+  if (!phone || !password) { showErr('siError', 'Enter your phone number and password.'); return; }
+  const res = await acctPost('loginAccount', { phone, password });
+  if (res.data && res.data.blocked) {
+    // Correct password but not active — show the status screen instead of an error.
+    statusCreds = { phone, password };
+    closeAuthModal();
+    showStatusScreen(res.data.account);
+    return;
+  }
+  if (!res.ok || !res.data.ok) { showErr('siError', (res.data && res.data.error) || 'Could not sign in.'); return; }
   onAuthSuccess(res.data);
-  notify('Signed in!');
+  if (res.data.forceChange) { openChangePw(true); notify('Please set a new password.'); }
+  else notify('Signed in!');
 }
 
 async function submitRegister() {
   const name = document.getElementById('regName').value.trim();
-  const username = document.getElementById('regUsername').value.trim();
-  const pin = document.getElementById('regPin').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const confirmPassword = document.getElementById('regPassword2').value;
   hideErr('regError');
-  if (!name) { showErr('regError', 'Enter a display name.'); return; }
-  if (username.length < 3) { showErr('regError', 'Username must be at least 3 characters.'); return; }
-  if (!/^[A-Za-z0-9_]+$/.test(username)) { showErr('regError', 'Username can only use letters, numbers and _.'); return; }
-  if (!/^\d{6}$/.test(pin)) { showErr('regError', 'PIN must be exactly 6 digits.'); return; }
-  const res = await acctPost('registerAccount', { name, username, pin, photo: regPhotoData || null });
-  if (!res.ok) { showErr('regError', (res.data && res.data.error) || 'Could not create account.'); return; }
-  onAuthSuccess(res.data);
-  notify('Account created!');
+  if (!phone) { showErr('regError', 'Enter your phone number.'); return; }
+  if (window.Phone && !Phone.isValidMalaysianPhone(phone)) { showErr('regError', 'Enter a valid Malaysian phone number.'); return; }
+  if (password.length < 6) { showErr('regError', 'Password must be at least 6 characters.'); return; }
+  if (password !== confirmPassword) { showErr('regError', 'Passwords do not match.'); return; }
+  const res = await acctPost('registerAccount', { name, phone, password, confirmPassword });
+  if (!res.ok || !res.data.ok) { showErr('regError', (res.data && res.data.error) || 'Could not submit request.'); return; }
+  statusCreds = { phone, password };
+  closeAuthModal();
+  showStatusScreen(res.data.account);
+  notify('Request submitted!');
+}
+
+async function submitStatusCheck() {
+  const phone = document.getElementById('stPhone').value.trim();
+  const password = document.getElementById('stPassword').value;
+  hideErr('stError');
+  if (!phone || !password) { showErr('stError', 'Enter your phone number and password.'); return; }
+  const res = await acctPost('accountStatus', { phone, password });
+  if (!res.ok || !res.data.ok) { showErr('stError', (res.data && res.data.error) || 'Could not find your request.'); return; }
+  statusCreds = { phone, password };
+  closeAuthModal();
+  showStatusScreen(res.data.account);
+}
+
+// ── registration-status screen ─────────────────
+function statusBadgeHtml(status) {
+  const info = ACCT_STATUS[status] || { label: status, tone: 'wait' };
+  return '<span class="st-badge ' + info.tone + '">' + escHtml(info.label) + '</span>';
+}
+
+function showStatusScreen(acc) {
+  const info = ACCT_STATUS[acc.status] || ACCT_STATUS.pending;
+  let extra = '';
+  if (acc.status === 'rejected' && acc.rejectedReason) {
+    extra += '<div class="st-reason"><b>Reason:</b> ' + escHtml(acc.rejectedReason) + '</div>';
+  }
+  if (acc.status === 'more_info' && acc.moreInfoMsg) {
+    extra += '<div class="st-reason"><b>Administrator’s message:</b> ' + escHtml(acc.moreInfoMsg) + '</div>';
+  }
+  if ((acc.status === 'suspended' && acc.suspendedReason)) extra += '<div class="st-reason"><b>Reason:</b> ' + escHtml(acc.suspendedReason) + '</div>';
+  const details =
+    '<div class="st-details">'
+    + '<div><span>Phone</span><b>' + escHtml(acc.phone || '') + '</b></div>'
+    + '<div><span>Request date</span><b>' + fmtDateTime(acc.requestedAt) + '</b></div>'
+    + '<div><span>Status</span><b>' + statusBadgeHtml(acc.status) + '</b></div>'
+    + '<div><span>Last update</span><b>' + fmtDateTime(acc.updatedAt) + '</b></div>'
+    + '</div>';
+  let actions = '<div class="st-actions">';
+  actions += '<button class="btn btn-secondary btn-sm" onclick="refreshStatusScreen()">Refresh status</button>';
+  if (acc.status === 'active') actions += '<button class="btn btn-primary btn-sm" onclick="closeStatusModal();openAuthModal()">Log in</button>';
+  if (acc.status === 'rejected' || acc.status === 'more_info') actions += '<button class="btn btn-primary btn-sm" onclick="closeStatusModal();openAuthModal();setAuthMode(\'register\')">Update &amp; resubmit</button>';
+  actions += '<button class="btn btn-ghost btn-sm" onclick="openContactAdmin()">Contact administrator</button>';
+  actions += '</div>';
+  document.getElementById('statusBody').innerHTML =
+    '<div class="st-hero ' + info.tone + '">' + statusIcon(info.tone) + '<h2>' + escHtml(info.label) + '</h2></div>'
+    + '<p class="st-msg">' + escHtml(info.msg) + '</p>'
+    + extra + details + actions;
+  document.getElementById('statusModal').classList.add('open');
+}
+
+function statusIcon(tone) {
+  if (tone === 'ok') return '<svg class="st-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12.5l2.5 2.5 5-5.5"/></svg>';
+  if (tone === 'bad') return '<svg class="st-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>';
+  return '<svg class="st-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 2"/></svg>';
+}
+
+async function refreshStatusScreen() {
+  if (!statusCreds) return;
+  const res = await acctPost('accountStatus', statusCreds);
+  if (res.ok && res.data && res.data.account) showStatusScreen(res.data.account);
+  else notify('Could not refresh — please try again.', 'warn');
+}
+function closeStatusModal() { document.getElementById('statusModal').classList.remove('open'); }
+
+function openContactAdmin() {
+  showInfoModal('Contact the administrator',
+    'Please contact the TZH administrator for help with your account or password. '
+    + 'For your security, approvals and passwords are handled in person — not by SMS, WhatsApp or email.');
+}
+function openForgotPassword() {
+  showInfoModal('Forgot password?',
+    'Please contact the TZH administrator for help with your password. '
+    + 'The administrator can look up your account by phone number and give you a temporary password to sign in with.');
+}
+// Reuse the status modal shell for simple info messages.
+function showInfoModal(title, msg) {
+  document.getElementById('statusBody').innerHTML =
+    '<div class="st-hero wait"><svg class="st-ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8h.01M11 12h1v4h1"/></svg><h2>' + escHtml(title) + '</h2></div>'
+    + '<p class="st-msg">' + escHtml(msg) + '</p>';
+  document.getElementById('statusModal').classList.add('open');
 }
 
 function onAuthSuccess(data) {
   const acc = (data && data.account) || {};
-  saveAcctSession({ token: data.token, id: acc.id, username: acc.username, playerId: acc.playerId });
+  saveAcctSession({ token: data.token, id: acc.id, playerId: acc.playerId, phone: acc.phone, name: acc.name });
   closeAuthModal();
   renderAccountWidget();
-  // Pull fresh state so the new roster player (and any name/photo) shows at once.
   refreshState().then(() => { renderViewer(); renderAccountWidget(); });
 }
 
@@ -7335,7 +8538,7 @@ async function refreshAccountSession() {
   if (res.status === 401) { saveAcctSession(null); renderAccountWidget(); return; }
   if (res.ok && res.data && res.data.account) {
     const acc = res.data.account;
-    saveAcctSession({ token: acctSession.token, id: acc.id, username: acc.username, playerId: acc.playerId });
+    saveAcctSession({ token: acctSession.token, id: acc.id, playerId: acc.playerId, phone: acc.phone, name: acc.name });
     renderAccountWidget();
   }
 }
@@ -7348,15 +8551,119 @@ function acctLogout() {
   if (token) acctPost('logoutAccount', { token }); // best-effort server-side invalidation
 }
 
-// ── profile modal ─────────────────────────────
+// ── player account page ───────────────────────
+function openAccountModal() {
+  const wrap = document.getElementById('accountWidget');
+  if (wrap) wrap.classList.remove('open');
+  if (!acctSession) return openAuthModal();
+  const player = acctPlayer();
+  const name = (player && player.name) || acctSession.name || 'Player';
+  document.getElementById('accountBody').innerHTML =
+    '<div class="acctpg-top">' + acctAvatarHtml(player, 'acctpg-av') + '<div><div class="acctpg-name">' + escHtml(name) + '</div>'
+      + '<div class="acctpg-phone">' + escHtml(acctSession.phone || '') + '</div></div></div>'
+    + '<div class="st-details">'
+      + '<div><span>Account status</span><b>' + statusBadgeHtml('active') + '</b></div>'
+      + '<div><span>Registration</span><b>Approved</b></div>'
+    + '</div>'
+    + '<div class="acctpg-actions">'
+      + '<button class="btn btn-secondary btn-sm" onclick="closeAccountModal();openChangePw(false)">Change password</button>'
+      + '<button class="btn btn-ghost btn-sm" onclick="openContactAdmin()">Contact administrator</button>'
+    + '</div>';
+  document.getElementById('accountModal').classList.add('open');
+}
+function closeAccountModal() { document.getElementById('accountModal').classList.remove('open'); }
+
+// ── player "My Lucky Draw" view (own eligibility + public winners) ──
+function openMyLuckyDraw() {
+  const wrap = document.getElementById('accountWidget'); if (wrap) wrap.classList.remove('open');
+  if (!acctSession) return openAuthModal();
+  const body = document.getElementById('myDrawBody');
+  if (body) body.innerHTML = '<div class="acct-empty">Loading…</div>';
+  document.getElementById('myDrawModal').classList.add('open');
+  acctPost('accountDrawInfo', { token: acctSession.token }).then(res => {
+    if (res.status === 401) { saveAcctSession(null); renderAccountWidget(); closeMyDraw(); notify('Session expired — please sign in again.', 'warn'); return; }
+    renderMyDraw(res.data || {});
+  });
+}
+function closeMyDraw() { document.getElementById('myDrawModal').classList.remove('open'); }
+
+function renderMyDraw(data) {
+  const body = document.getElementById('myDrawBody'); if (!body) return;
+  let html = '';
+  const m = data.monthly;
+  html += '<div class="md-sec-title">This month</div>';
+  if (m) {
+    html += '<div class="st-details"><div><span>Monthly draw</span><b>'
+      + (m.eligible ? '<span class="st-badge ok">Enrolled</span>' : '<span class="st-badge bad">Not enrolled</span>') + '</b></div>'
+      + '<div><span>Sessions counted</span><b>' + (m.attendedCount || 0) + '/' + (m.requiredCount || 0) + '</b></div></div>';
+    if (!m.eligible && m.reason) html += '<div class="st-reason">' + escHtml(m.reason) + '</div>';
+  } else {
+    html += '<div class="acct-empty">Monthly eligibility hasn’t been calculated yet.</div>';
+  }
+  html += '<div class="md-sec-title">My recent sessions</div>';
+  if (data.weekly && data.weekly.length) {
+    html += '<div class="st-details">' + data.weekly.map(w => '<div><span>' + escHtml(fmtISOYear(w.date)) + '</span><b>'
+      + (w.present ? 'Present' : 'Absent') + ' · ' + (w.paid ? 'Paid' : 'Unpaid')
+      + (w.won ? ' · <span class="st-badge ok">Won!</span>' : (w.eligible ? ' · Eligible' : '')) + '</b></div>').join('') + '</div>';
+  } else {
+    html += '<div class="acct-empty">No recent session records yet.</div>';
+  }
+  html += '<div class="md-sec-title">Recent winners</div>' + publicWinnersHtml();
+  body.innerHTML = html;
+}
+
+function publicWinnersHtml() {
+  const items = [];
+  const wd = (state && state.weeklyDraws) || {};
+  Object.keys(wd).forEach(d => { const r = wd[d]; if (r && r.status === 'drawn' && r.winner) items.push({ at: r.drawnAt || 0, label: (WD_NAMES[r.weekday] || '') + ' ' + fmtISOYear(d), name: r.winner.name }); });
+  const md = (state && state.monthlyDraw) || {};
+  (md.results || []).forEach(r => items.push({ at: r.at || 0, label: 'Monthly — ' + (r.prize || ''), name: r.name }));
+  items.sort((a, b) => b.at - a.at);
+  const top = items.slice(0, 8);
+  if (!top.length) return '<div class="acct-empty">No winners yet.</div>';
+  return '<div class="st-details">' + top.map(i => '<div><span>' + escHtml(i.label) + '</span><b>' + escHtml(i.name) + '</b></div>').join('') + '</div>';
+}
+
+// ── change password (self-service, optionally forced) ──
+function openChangePw(forced) {
+  forcePwChange = !!forced;
+  ['cpCurrent', 'cpNew', 'cpNew2'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  hideErr('cpError');
+  document.getElementById('changePwDesc').textContent = forced
+    ? 'For your security, please set a new password before continuing.'
+    : 'Enter your current password and a new one.';
+  document.getElementById('cpCancelBtn').style.display = forced ? 'none' : '';
+  document.getElementById('changePwModal').classList.add('open');
+  setTimeout(() => { const f = document.getElementById('cpCurrent'); if (f) f.focus(); }, 60);
+}
+function closeChangePw() { if (forcePwChange) return; document.getElementById('changePwModal').classList.remove('open'); }
+
+async function submitChangePw() {
+  if (!acctSession) return;
+  const currentPassword = document.getElementById('cpCurrent').value;
+  const newPassword = document.getElementById('cpNew').value;
+  const confirmPassword = document.getElementById('cpNew2').value;
+  hideErr('cpError');
+  if (newPassword.length < 6) { showErr('cpError', 'New password must be at least 6 characters.'); return; }
+  if (newPassword !== confirmPassword) { showErr('cpError', 'Passwords do not match.'); return; }
+  const res = await acctPost('changePassword', { token: acctSession.token, currentPassword, newPassword, confirmPassword });
+  if (res.status === 401 && (!res.data || !res.data.error || /session/i.test(res.data.error))) {
+    if (res.data && /current/i.test(res.data.error || '')) { showErr('cpError', res.data.error); return; }
+  }
+  if (!res.ok || !res.data.ok) { showErr('cpError', (res.data && res.data.error) || 'Could not change password.'); return; }
+  forcePwChange = false;
+  document.getElementById('changePwModal').classList.remove('open');
+  notify('Password changed.');
+}
+
+// ── profile modal (name / photo only) ─────────
 function openProfileModal() {
   const wrap = document.getElementById('accountWidget');
   if (wrap) wrap.classList.remove('open');
   if (!acctSession) return openAuthModal();
   const player = acctPlayer();
-  document.getElementById('profName').value = (player && player.name) || acctSession.username || '';
-  document.getElementById('profPin').value = '';
-  document.getElementById('profUsername').textContent = '@' + acctSession.username;
+  document.getElementById('profName').value = (player && player.name) || acctSession.name || '';
+  document.getElementById('profUsername').textContent = acctSession.phone || '';
   profPhotoData = (player && player.photo) || null;
   profPhotoTouched = false;
   renderPhotoPreview('profPhotoPreview', profPhotoData);
@@ -7377,12 +8684,9 @@ async function previewProfPhoto(input) {
 async function submitProfile() {
   if (!acctSession) return;
   const name = document.getElementById('profName').value.trim();
-  const pin = document.getElementById('profPin').value.trim();
   hideErr('profError');
   if (!name) { showErr('profError', 'Enter a display name.'); return; }
-  if (pin && !/^\d{6}$/.test(pin)) { showErr('profError', 'New PIN must be exactly 6 digits.'); return; }
   const payload = { token: acctSession.token, name };
-  if (pin) payload.pin = pin;
   if (profPhotoTouched) payload.photo = profPhotoData || null; // null clears the photo
   const res = await acctPost('updateAccount', payload);
   if (res.status === 401) {
