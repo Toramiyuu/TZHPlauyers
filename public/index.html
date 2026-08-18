@@ -25,6 +25,7 @@
   --pink:#d6519f;/* Girl toggle + mixed-doubles chip */
   /* ── design tokens ─── */
   --sp-xs:4px;--sp-sm:8px;--sp-md:16px;--sp-lg:24px;--sp-xl:32px;--sp-2xl:48px;
+  --rest-sticky-top:8px; /* JS overrides to clear the mobile admin header */
   --radius-sm:8px;--radius-md:12px;--radius-lg:18px;--radius-xl:24px;
   --shadow-sm:0 1px 2px rgba(0,0,0,.06);--shadow-md:0 4px 16px rgba(0,0,0,.08);--shadow-lg:0 12px 40px rgba(0,0,0,.12);
   --fs-xs:12px;--fs-sm:13px;--fs-base:14px;--fs-md:16px;--fs-lg:19px;--fs-xl:23px;--fs-2xl:32px;
@@ -208,8 +209,49 @@ body.in-3d #joinModal{z-index:1300}
 .vs-small{font-size:11px;color:var(--accent);font-weight:700;padding:0 4px}
 .amp{color:var(--muted);font-size:11px}
 
+/* ── PLAYER PICKER (searchable popover; replaces the native <select>) ── */
+.pslot{display:inline-flex;align-items:center;gap:7px;min-width:150px;max-width:210px;flex:1 1 150px;background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:5px 8px;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);color:var(--text);text-align:left;transition:border-color .15s,box-shadow .15s}
+.pslot:hover{border-color:var(--green)}
+.pslot.pslot-active{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,113,227,.18)}
+.pslot .avatar{width:22px;height:22px;border-width:1px;box-shadow:none}
+.pslot-face{display:inline-flex;align-items:center;gap:7px;min-width:0;flex:1}
+.pslot-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.pslot-empty{color:var(--muted);font-weight:400}
+.pslot-chev{width:15px;height:15px;flex-shrink:0;margin-left:auto;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pslot-pop{display:none;position:absolute;z-index:400;width:320px;max-width:calc(100vw - 16px);background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);overflow:hidden;flex-direction:column}
+.pslot-pop.open{display:flex}
+.pslot-pop svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pslot-search{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border)}
+.pslot-search-ic{width:16px;height:16px;flex-shrink:0;color:var(--muted)}
+#pslotSearch{flex:1;min-width:0;border:none;outline:none;background:transparent;font-family:inherit;font-size:var(--fs-md);color:var(--text)}
+#pslotSearch::placeholder{color:var(--muted)}
+.pslot-count{font-size:var(--fs-xs);color:var(--muted);font-weight:600;flex-shrink:0}
+.pslot-list{overflow-y:auto;max-height:min(46vh,340px);padding:4px}
+.pslot-group{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:9px 10px 4px}
+.pslot-row{display:flex;align-items:center;gap:10px;width:100%;padding:7px 10px;border:none;border-radius:var(--radius-sm);background:transparent;cursor:pointer;font-family:inherit;text-align:left;color:var(--text)}
+.pslot-row .avatar{width:26px;height:26px;border-width:1px;box-shadow:none}
+.pslot-row-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:var(--fs-md);font-weight:500}
+.pslot-row.is-hl{background:var(--card2)}
+.pslot-row.is-sel{background:rgba(0,113,227,.08)}
+.pslot-row.is-dim{opacity:.55}
+.pslot-lv{flex-shrink:0;font-size:var(--fs-xs);font-weight:700;color:var(--muted);background:var(--card2);border-radius:100px;padding:2px 8px;min-width:34px;text-align:center}
+.pslot-badge{flex-shrink:0;font-size:10px;font-weight:700;border-radius:100px;padding:2px 8px;letter-spacing:.01em}
+.pslot-badge.warn{color:#a3282c;background:rgba(229,72,77,.14)}
+.pslot-badge.court{color:var(--muted);background:var(--card2)}
+.pslot-check{flex-shrink:0;color:var(--green);font-weight:700;font-size:15px}
+.pslot-none{padding:16px 12px;text-align:center;color:var(--muted);font-size:var(--fs-sm)}
+.pslot-empty-btn{display:flex;align-items:center;gap:9px;width:100%;padding:11px 14px;border:none;border-top:1px solid var(--border);background:transparent;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);color:var(--muted);text-align:left}
+.pslot-empty-btn:hover{background:var(--card2);color:var(--text)}
+.pslot-empty-ic{display:inline-flex;color:var(--muted)}
+.pslot-empty-ic svg{width:20px;height:20px}
+
 /* ── RESTING ─────────────────────────────── */
-.resting-strip{margin-top:10px;padding:8px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted)}
+/* Sticky so it follows the admin while scrolling through court controls / rounds.
+   --rest-sticky-top is set from JS to clear the mobile admin header. */
+#restingStrip{position:sticky;top:var(--rest-sticky-top);z-index:9;margin-top:10px}
+#restingStrip:empty{display:none}
+#restingStrip.is-pinned .resting-strip{box-shadow:var(--shadow-md);border-color:var(--border2)}
+.resting-strip{padding:8px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);transition:box-shadow .18s ease,border-color .18s ease}
 .resting-strip strong{color:var(--text)}
 .resting-avatars{display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap}
 .rest-chip{display:flex;align-items:center;gap:5px;background:var(--dark);border:1px solid var(--border);border-radius:100px;padding:3px 8px 3px 4px;font-size:11px;transition:background-color .18s ease,border-color .18s ease,color .18s ease}
@@ -2614,7 +2656,13 @@ async function apiPost(updates) {
 function isEditing() {
   const el = document.activeElement;
   if (!el) return false;
-  return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT';
+  if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return true;
+  // A focused player-picker button, or an open picker popover, counts as editing
+  // — parity with a focused native <select> — so a poll tick can't rebuild the
+  // Up Next editor and wipe an in-progress pick before "Save" reads it.
+  if (el.classList && el.classList.contains('pslot')) return true;
+  const pop = document.getElementById('pslotPop');
+  return !!(pop && pop.classList.contains('open'));
 }
 
 // poll() must NOT overwrite local state / rebuild admin edit surfaces while the
@@ -3898,7 +3946,27 @@ function renderRestingPlayers(courtRounds) {
       <div class="resting-avatars">${chips}</div>
     </div>
   `;
+  syncRestSticky();
 }
+
+// Keep the sticky "Resting this round" strip clear of the mobile admin header,
+// and add a soft shadow once it's pinned so it reads as floating over content.
+let _restStickyObserver = null;
+function syncRestSticky() {
+  const strip = document.getElementById('restingStrip');
+  if (!strip || !strip.firstElementChild) return;
+  const hdr = document.querySelector('.admin-hdr');
+  const hdrH = (hdr && getComputedStyle(hdr).display !== 'none') ? hdr.offsetHeight : 0;
+  const top = hdrH + 8;
+  document.documentElement.style.setProperty('--rest-sticky-top', top + 'px');
+  if (_restStickyObserver) _restStickyObserver.disconnect();
+  _restStickyObserver = new IntersectionObserver(([e]) => {
+    strip.classList.toggle('is-pinned',
+      e.intersectionRatio < 1 && e.boundingClientRect.top <= top + 1);
+  }, { threshold: [1], rootMargin: `-${top + 1}px 0px 0px 0px` });
+  _restStickyObserver.observe(strip);
+}
+window.addEventListener('resize', syncRestSticky);
 
 // ── QUICK ROUND NAV ───────────────────────────
 async function stepAllCourts(delta) {
@@ -4627,8 +4695,24 @@ function playerSelectOptions(players, selectedId, escFn) {
   return `<option value=""${emptySel}>— empty —</option>` + opts;
 }
 
-function buildPlayerSelect(elId, selectedId) {
-  return `<select id="${elId}">${playerSelectOptions(state.players, selectedId, escHtml)}</select>`;
+// Chevron + face for the player-picker button. The button carries the picked id
+// in its `value` (like the old <select>), so saveRound/saveNextUp read it
+// unchanged. Same "empty/unknown resolves to '' " invariant as playerSelectOptions.
+function pslotChevSVG() {
+  return `<svg class="pslot-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>`;
+}
+function playerSlotFace(id) {
+  const known = (state.players || []).some(p => p.id === id);
+  if (!id || !known) return `<span class="pslot-face pslot-empty">Tap to pick</span>`;
+  const p = playerById(id);
+  return `<span class="pslot-face">${avatarHTML(p, 22)}<span class="pslot-name">${escHtml(p.name)}</span></span>`;
+}
+function buildPlayerSelect(elId, selectedId, roundIndex, courtIndex) {
+  const known = (state.players || []).some(p => p.id === selectedId);
+  const val = (known && selectedId) ? selectedId : '';
+  return `<button type="button" class="pslot${val ? '' : ' is-empty'}" id="${elId}" value="${escHtml(val)}"`
+    + ` data-round="${roundIndex}" data-court="${courtIndex}" aria-haspopup="listbox"`
+    + ` onclick="openPlayerPicker(this)">${playerSlotFace(val)}${pslotChevSVG()}</button>`;
 }
 
 function renderRoundList() {
@@ -4649,17 +4733,17 @@ function renderRoundList() {
     (round.courts || []).forEach((court, c) => {
       courtEditorsHTML += `
         <div class="court-editor">
-          <h4>Court ${courtLabel(c)} ${courtChipHTML(court, metaById)}</h4>
+          <h4>Court ${courtLabel(c)} <span id="chip_${i}_${c}">${courtChipHTML(court, metaById)}</span></h4>
           <div class="selectors-row">
             <span class="rl-team-label">Team A:</span>
-            ${buildPlayerSelect(`rl_${i}_c${c}_t1p1`, court.team1[0])}
+            ${buildPlayerSelect(`rl_${i}_c${c}_t1p1`, court.team1[0], i, c)}
             <span class="amp">&amp;</span>
-            ${buildPlayerSelect(`rl_${i}_c${c}_t1p2`, court.team1[1])}
+            ${buildPlayerSelect(`rl_${i}_c${c}_t1p2`, court.team1[1], i, c)}
             <span class="vs-small">VS</span>
             <span class="rl-team-label">Team B:</span>
-            ${buildPlayerSelect(`rl_${i}_c${c}_t2p1`, court.team2[0])}
+            ${buildPlayerSelect(`rl_${i}_c${c}_t2p1`, court.team2[0], i, c)}
             <span class="amp">&amp;</span>
-            ${buildPlayerSelect(`rl_${i}_c${c}_t2p2`, court.team2[1])}
+            ${buildPlayerSelect(`rl_${i}_c${c}_t2p2`, court.team2[1], i, c)}
           </div>
         </div>
       `;
@@ -4729,14 +4813,14 @@ function renderNextUpEditor() {
         <h4>Court ${courtLabel(i)} <span class="upnext-edit-round">${escHtml(label)}</span></h4>
         <div class="selectors-row">
           <span class="rl-team-label">Team A:</span>
-          ${buildPlayerSelect(`un_c${i}_t1p1`, court.team1?.[0])}
+          ${buildPlayerSelect(`un_c${i}_t1p1`, court.team1?.[0], ni, i)}
           <span class="amp">&amp;</span>
-          ${buildPlayerSelect(`un_c${i}_t1p2`, court.team1?.[1])}
+          ${buildPlayerSelect(`un_c${i}_t1p2`, court.team1?.[1], ni, i)}
           <span class="vs-small">VS</span>
           <span class="rl-team-label">Team B:</span>
-          ${buildPlayerSelect(`un_c${i}_t2p1`, court.team2?.[0])}
+          ${buildPlayerSelect(`un_c${i}_t2p1`, court.team2?.[0], ni, i)}
           <span class="amp">&amp;</span>
-          ${buildPlayerSelect(`un_c${i}_t2p2`, court.team2?.[1])}
+          ${buildPlayerSelect(`un_c${i}_t2p2`, court.team2?.[1], ni, i)}
         </div>
       </div>`;
   }
@@ -4772,6 +4856,237 @@ async function saveNextUp() {
   renderRoundList();
   renderViewer();
   notify('Up Next saved!');
+}
+
+// ── PLAYER PICKER POPOVER ─────────────────────
+// A single shared, searchable popover replaces the native <select> in the round
+// and Up Next editors. It groups the roster by who is free / resting / already
+// on a court in the SAME round, reading the LIVE (possibly unsaved) arrangement
+// from the sibling picker buttons so the groups reflect the edit in progress.
+let _pslotBtn = null;   // the picker button currently being edited
+let _pslotRows = [];    // visible option rows, in DOM order (for keyboard nav)
+let _pslotIdx = -1;     // highlighted row index
+
+function ensurePslotPop() {
+  let pop = document.getElementById('pslotPop');
+  if (pop) return pop;
+  pop = document.createElement('div');
+  pop.id = 'pslotPop';
+  pop.className = 'pslot-pop';
+  pop.innerHTML =
+    '<div class="pslot-search">' +
+      '<svg class="pslot-search-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5l-4-4"/></svg>' +
+      '<input type="text" id="pslotSearch" placeholder="Search players…" autocomplete="off" spellcheck="false" aria-label="Search players">' +
+      '<span class="pslot-count" id="pslotCount"></span>' +
+    '</div>' +
+    '<div class="pslot-list" id="pslotList" role="listbox"></div>' +
+    '<button type="button" class="pslot-empty-btn" id="pslotEmptyBtn">' +
+      '<span class="pslot-empty-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/><path d="M9.5 9.5l5 5M14.5 9.5l-5 5"/></svg></span>' +
+      'Leave this slot empty' +
+    '</button>';
+  document.body.appendChild(pop);
+  pop.querySelector('#pslotSearch').addEventListener('input', filterPslot);
+  pop.querySelector('#pslotSearch').addEventListener('keydown', onPslotKeydown);
+  pop.querySelector('#pslotEmptyBtn').addEventListener('click', () => pickPslot(''));
+  return pop;
+}
+
+function openPlayerPicker(btn) {
+  const already = _pslotBtn === btn && document.getElementById('pslotPop')?.classList.contains('open');
+  closePlayerPicker();
+  if (already) return; // second click on the same slot closes it
+
+  _pslotBtn = btn;
+  const pop = ensurePslotPop();
+  const roundIndex = parseInt(btn.dataset.round, 10);
+  const selectedId = btn.value || '';
+
+  // Who is placed elsewhere in this same round, read live from sibling buttons.
+  // Scope to the active button's OWN editor: the round editor and the Up Next
+  // editor can both target the same round index, and scanning across both would
+  // double-count (e.g. flag the current pick as "on another court").
+  const scope = btn.closest('.round-editor') || btn.closest('#upNextEditor') || document;
+  const assigned = new Map(); // id -> court index (0-based)
+  scope.querySelectorAll('.pslot').forEach(b => {
+    if (b === btn) return;
+    if (parseInt(b.dataset.round, 10) !== roundIndex) return;
+    const v = b.value;
+    if (v && !assigned.has(v)) assigned.set(v, parseInt(b.dataset.court, 10));
+  });
+
+  // "Sat out N" = consecutive rounds benched immediately before this round.
+  const streaks = roundIndex > 0
+    ? computeRestStreaks(state.rounds, state.players, roundIndex - 1) : {};
+  const meta = buildMetaById();
+  const levelOf = id => {
+    const lv = meta[id]?.level;
+    return Number.isFinite(lv) ? lv.toFixed(1) : '';
+  };
+
+  const free = [], resting = [], onCourt = [];
+  (state.players || []).forEach(p => {
+    if (!p || !p.id) return;
+    if (assigned.has(p.id)) { onCourt.push({ p, court: assigned.get(p.id) }); return; }
+    const n = streaks[p.id] || 0;
+    if (n >= 1 && p.id !== selectedId) resting.push({ p, n });
+    else free.push({ p, n });
+  });
+  free.sort((a, b) => {
+    if (a.p.id === selectedId) return -1;
+    if (b.p.id === selectedId) return 1;
+    return (a.p.name || '').localeCompare(b.p.name || '');
+  });
+  resting.sort((a, b) => b.n - a.n || (a.p.name || '').localeCompare(b.p.name || ''));
+  onCourt.sort((a, b) => a.court - b.court || (a.p.name || '').localeCompare(b.p.name || ''));
+
+  pop._groups = { free, resting, onCourt, selectedId, levelOf };
+  pop._total = (state.players || []).length;
+
+  const search = document.getElementById('pslotSearch');
+  search.value = '';
+  renderPslotList('');
+
+  pop.classList.add('open');
+  btn.classList.add('pslot-active');
+  positionPslot(btn, pop);
+  setTimeout(() => search.focus(), 0);
+  document.addEventListener('mousedown', onPslotOutside, true);
+  window.addEventListener('resize', closePlayerPicker);
+}
+
+function renderPslotList(query) {
+  const pop = document.getElementById('pslotPop');
+  if (!pop || !pop._groups) return;
+  const { free, resting, onCourt, selectedId, levelOf } = pop._groups;
+  const q = (query || '').trim().toLowerCase();
+  const match = p => !q || (p.name || '').toLowerCase().includes(q);
+
+  const rowHTML = (p, opts = {}) => {
+    const lv = levelOf(p.id);
+    const sel = p.id === selectedId;
+    const badge = opts.badge
+      ? `<span class="pslot-badge ${opts.badgeCls || ''}">${escHtml(opts.badge)}</span>` : '';
+    const lvHTML = lv ? `<span class="pslot-lv">${lv}</span>` : '';
+    const check = sel ? '<span class="pslot-check" aria-hidden="true">✓</span>' : '';
+    return `<button type="button" class="pslot-row${sel ? ' is-sel' : ''}${opts.dim ? ' is-dim' : ''}"`
+      + ` role="option" data-id="${escHtml(p.id)}">`
+      + `${avatarHTML(p, 26)}<span class="pslot-row-name">${escHtml(p.name)}</span>`
+      + `${badge}${lvHTML}${check}</button>`;
+  };
+
+  const freeF = free.filter(x => match(x.p));
+  const restF = resting.filter(x => match(x.p));
+  const courtF = onCourt.filter(x => match(x.p));
+  let html = '';
+  if (freeF.length) html += '<div class="pslot-group">Free now</div>' + freeF.map(x => rowHTML(x.p)).join('');
+  if (restF.length) html += '<div class="pslot-group">Resting</div>'
+    + restF.map(x => rowHTML(x.p, { badge: `Sat out ${x.n}`, badgeCls: 'warn' })).join('');
+  if (courtF.length) html += '<div class="pslot-group">On another court</div>'
+    + courtF.map(x => rowHTML(x.p, { badge: `Court ${courtLabel(x.court)}`, badgeCls: 'court', dim: true })).join('');
+  if (!freeF.length && !restF.length && !courtF.length) html += '<div class="pslot-none">No players match.</div>';
+
+  const listEl = document.getElementById('pslotList');
+  listEl.innerHTML = html;
+  _pslotRows = Array.from(listEl.querySelectorAll('.pslot-row'));
+  _pslotRows.forEach((el, idx) => {
+    el.addEventListener('click', () => pickPslot(el.dataset.id));
+    el.addEventListener('mousemove', () => setPslotHighlight(idx));
+  });
+  const shown = freeF.length + restF.length + courtF.length;
+  document.getElementById('pslotCount').textContent = `${shown} / ${pop._total}`;
+  let start = _pslotRows.findIndex(el => el.classList.contains('is-sel'));
+  if (start < 0) start = _pslotRows.length ? 0 : -1;
+  setPslotHighlight(start);
+}
+
+function filterPslot() {
+  renderPslotList(document.getElementById('pslotSearch').value);
+}
+
+function setPslotHighlight(i) {
+  _pslotRows.forEach((el, idx) => el.classList.toggle('is-hl', idx === i));
+  _pslotIdx = i;
+}
+
+function movePslot(delta) {
+  if (!_pslotRows.length) return;
+  const i = (_pslotIdx + delta + _pslotRows.length) % _pslotRows.length;
+  setPslotHighlight(i);
+  _pslotRows[i].scrollIntoView({ block: 'nearest' });
+}
+
+function onPslotKeydown(e) {
+  if (e.key === 'ArrowDown') { e.preventDefault(); movePslot(1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); movePslot(-1); }
+  else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (_pslotIdx >= 0 && _pslotRows[_pslotIdx]) pickPslot(_pslotRows[_pslotIdx].dataset.id);
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    const btn = _pslotBtn;
+    closePlayerPicker();
+    btn?.focus();
+  }
+}
+
+function pickPslot(id) {
+  const btn = _pslotBtn;
+  if (btn) {
+    const known = (state.players || []).some(p => p.id === id);
+    const val = (known && id) ? id : '';
+    btn.value = val;
+    btn.classList.toggle('is-empty', !val);
+    btn.innerHTML = playerSlotFace(val) + pslotChevSVG();
+    refreshCourtChip(btn);
+  }
+  closePlayerPicker();
+  btn?.focus();
+}
+
+// Live team-balance chip refresh after a pick (round editor only; Up Next has no
+// chip). Reads the four current picker values for that court and recomputes.
+function refreshCourtChip(btn) {
+  const m = /^rl_(\d+)_c(\d+)_/.exec(btn.id || '');
+  if (!m) return;
+  const i = m[1], c = m[2];
+  const chip = document.getElementById(`chip_${i}_${c}`);
+  if (!chip) return;
+  const get = role => document.getElementById(`rl_${i}_c${c}_${role}`)?.value || '';
+  const court = { team1: [get('t1p1'), get('t1p2')], team2: [get('t2p1'), get('t2p2')] };
+  chip.innerHTML = courtChipHTML(court, buildMetaById());
+}
+
+function positionPslot(btn, pop) {
+  const r = btn.getBoundingClientRect();
+  const sx = window.scrollX, sy = window.scrollY;
+  const width = Math.min(Math.max(r.width, 300), 360, window.innerWidth - 16);
+  pop.style.width = width + 'px';
+  let left = Math.min(r.left + sx, sx + window.innerWidth - width - 8);
+  left = Math.max(left, sx + 8);
+  pop.style.left = left + 'px';
+  const ph = pop.offsetHeight;
+  const spaceBelow = window.innerHeight - r.bottom;
+  const top = (spaceBelow < ph + 12 && r.top > spaceBelow)
+    ? r.top + sy - ph - 6      // flip above when there's more room there
+    : r.bottom + sy + 6;       // default: drop below the button
+  pop.style.top = Math.max(sy + 8, top) + 'px';
+}
+
+function onPslotOutside(e) {
+  const pop = document.getElementById('pslotPop');
+  if (!pop) return;
+  if (pop.contains(e.target)) return;
+  if (_pslotBtn && _pslotBtn.contains(e.target)) return; // let its own onclick toggle
+  closePlayerPicker();
+}
+
+function closePlayerPicker() {
+  const pop = document.getElementById('pslotPop');
+  if (pop) pop.classList.remove('open');
+  if (_pslotBtn) _pslotBtn.classList.remove('pslot-active');
+  document.removeEventListener('mousedown', onPslotOutside, true);
+  window.removeEventListener('resize', closePlayerPicker);
+  _pslotBtn = null; _pslotRows = []; _pslotIdx = -1;
 }
 
 // ── SMART SCHEDULE ────────────────────────────
