@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Levels, Girl/Mixed & Balanced Matches</title>
+<style>
+:root{
+  --green:#0071e3;--green-light:#0066cc;--green-tint:rgba(0,113,227,.16);--green-line:rgba(0,113,227,.42);
+  --dark:#e8f0fb;--card:#ffffff;--card2:#e2ecfa;--elev:#d6e5f8;
+  --border:#cbdcf2;--border2:#b3cbeb;
+  --text:#1d1d1f;--text-2:#424245;--muted:#86868b;
+  --accent:#f0b429;--red:#e5484d;
+  --radius-sm:8px;--radius-md:12px;--radius-lg:18px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.06);--shadow-md:0 4px 16px rgba(0,0,0,.08);
+  --pink:#d6519f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;background:var(--dark);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;letter-spacing:-.01em;padding:24px 16px 60px}
+.wrap{max-width:680px;margin:0 auto}
+h1{font-size:23px;font-weight:800;letter-spacing:-.02em;margin-bottom:4px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+.mock-note{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a5a00;background:rgba(240,180,41,.18);border:1px solid rgba(240,180,41,.4);border-radius:100px;padding:2px 10px;margin-bottom:10px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;margin-bottom:22px;box-shadow:var(--shadow-sm)}
+.card-title{font-size:16px;font-weight:700;margin-bottom:2px}
+.helper{color:var(--muted);font-size:12.5px;margin-bottom:14px}
+.helper b{color:var(--text-2)}
+
+/* ── List view ── */
+.roster-list{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--card)}
+.rl-head,.rl-row{display:grid;grid-template-columns:1fr auto 52px 72px 44px;align-items:center;gap:10px;padding:10px 14px}
+.rl-head{background:var(--card2);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rl-head span:nth-child(3),.rl-head span:nth-child(4){text-align:center}
+.rl-head span:nth-child(5){text-align:right}
+.rl-row{border-top:1px solid var(--border)}
+.rl-row.in{background:var(--green-tint)}
+.rl-player{display:flex;align-items:center;gap:10px;min-width:0}
+.rl-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.rl-check.on{background:var(--green);border-color:var(--green)}
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0}
+.rl-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rl-lvl-inp{width:66px;background:var(--dark);border:1px solid var(--border2);color:var(--muted);font-size:13px;font-weight:600;padding:6px 8px;border-radius:8px;font-family:inherit;text-align:center}
+.rl-lvl-inp.set{color:var(--text);border-color:var(--green)}
+.rl-lvl-inp:focus{outline:none;border-color:var(--green)}
+.rl-toggle{width:42px;height:24px;border-radius:100px;border:none;background:var(--border2);cursor:pointer;padding:0;position:relative;transition:background .18s;margin:0 auto;display:block}
+.rl-toggle.on{background:var(--green)}
+.rl-toggle.girl.on{background:var(--pink)}
+.rl-knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:var(--shadow-sm);transition:transform .18s}
+.rl-toggle.on .rl-knob{transform:translateX(18px)}
+.rl-pts{text-align:right;font-size:14px;font-weight:700}
+
+/* ── Round editor ── */
+.round-row{border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:10px;overflow:hidden;background:var(--card)}
+.round-head{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--card2);font-weight:700;font-size:14px}
+.live-badge{font-size:11px;font-weight:700;color:var(--green-light);background:var(--green-tint);border-radius:100px;padding:2px 9px}
+.court-editor{padding:11px 14px;border-top:1px solid var(--border)}
+.court-editor h4{font-size:13px;font-weight:700;color:var(--text-2);display:flex;align-items:center;margin-bottom:7px}
+.court-balance{font-size:11px;font-weight:700;color:var(--muted);background:var(--card2);border:1px solid var(--border);border-radius:100px;padding:2px 9px;margin-left:8px;white-space:nowrap}
+.court-balance.off{color:#8a5a00;background:rgba(255,170,0,.12);border-color:rgba(255,170,0,.35)}
+.court-balance.mx{color:var(--pink);background:rgba(214,81,159,.10);border-color:rgba(214,81,159,.3)}
+.teams{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tp{display:flex;align-items:center;gap:6px;background:var(--dark);border:1px solid var(--border);border-radius:100px;padding:4px 12px 4px 5px;font-size:13px;font-weight:600}
+.tp .av{width:22px;height:22px;font-size:9px}
+.tp .lv{font-size:10.5px;font-weight:700;color:var(--muted)}
+.tp.girl .lv{color:var(--pink)}
+.vs{font-size:11px;font-weight:800;color:var(--muted);padding:0 3px}
+.amp{color:var(--muted);font-size:12px}
+.gen-note{margin-top:12px;font-size:12.5px;color:var(--text-2);background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:12px;color:var(--muted)}
+.legend .court-balance{margin-left:0}
+@media(max-width:420px){.rl-head,.rl-row{gap:7px;padding:10px 10px}.rl-lvl-inp{width:56px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Player Levels &amp; Balanced Matches</h1>
+  <div class="sub">Visual mockup of the proposed feature — nothing here is wired to real data.</div>
+
+  <div class="card">
+    <span class="mock-note">Players tab — List view</span>
+    <div class="card-title">Squad levels &amp; toggles</div>
+    <div class="helper">Level is <b>1.0–7.0 in 0.5 steps</b> (was 1.0–5.0). New <b>Girl</b> toggle (pink) next to the existing <b>Mixed</b> toggle. Tap a toggle below — they're clickable in this mockup.</div>
+    <div class="roster-list">
+      <div class="rl-head"><span>Player</span><span>Level</span><span>Girl</span><span>Mixed</span><span>Pts</span></div>
+      <div class="rl-row in">
+        <div class="rl-player"><span class="rl-check on">✓</span><span class="av" style="background:#0071e3">TH</span><span class="rl-name">Thomas</span></div>
+        <input class="rl-lvl-inp set" type="number" min="1" max="7" step="0.5" value="6.5">
+        <button class="rl-toggle girl" onclick="this.classList.toggle('on')"><span class="rl-knob"></span></button>
+        <button class="rl-toggle" onclick="this.classList.toggle('on')"><span class="rl-knob"></span></button>
+        <div class="rl-pts">42</div>
+      </div>
+      <div class="rl-row in">
+        <div class="rl-player"><span class="rl-check on">✓</span><span class="av" style="background:#d6519f">MI</span><span class="rl-name">Michelle</span></div>
+        <input class="rl-lvl-inp set" type="number" min="1" max="7" step="0.5" value="5.0">
+        <button class="rl-toggle girl on" onclick="this.classList.toggle('on')"><span class="rl-knob"></span></button>
+        <button class="rl-toggle on" onclick="this.classList.toggle('on')"><span class="rl-knob"></span></button>
+        <div class="rl-pts">38</div>
+      </div>
+      <div class="rl-row in">
+        <div class="rl-player"><span class="rl-check on">✓</span><span class="av" style="background:#f0b429">AK</span><span class="rl-name">Akmal</span></div>
+        <input class="rl-lvl-inp set" type="number" min="1" max="7" step="0.5" value="1.5">
+        <button class="rl-toggle girl" onclick="this.classList.toggle('on')"><span class="rl-knob"></span></button>
+        <button class="rl-toggle on" onclick="this.classList.toggle('on')"><span class="rl-knob"></span></button>
+        <div class="rl-pts">12</div>
+      </div>
+      <div class="rl-row in">
+        <div class="rl-player"><span class="rl-check on">✓</span><span class="av" style="background:#58a6ff">SL</span><span class="rl-name">Su Lin</span></div>
+        <input class="rl-lvl-inp set" type="number" min="1" max="7" step="0.5" value="3.0">
+        <button class="rl-toggle girl on" onclick="this.classList.toggle('on')"><span class="rl-knob"></span></button>
+        <button class="rl-toggle" onclick="this.classList.toggle('on')"><span class="rl-knob"></span></button>
+        <div class="rl-pts">25</div>
+      </div>
+      <div class="rl-row">
+        <div class="rl-player"><span class="rl-check"></span><span class="av" style="background:#7d8590">JR</span><span class="rl-name">Jaryl</span></div>
+        <input class="rl-lvl-inp" type="number" min="1" max="7" step="0.5" placeholder="—">
+        <button class="rl-toggle girl" onclick="this.classList.toggle('on')"><span class="rl-knob"></span></button>
+        <button class="rl-toggle" onclick="this.classList.toggle('on')"><span class="rl-knob"></span></button>
+        <div class="rl-pts">7</div>
+      </div>
+    </div>
+    <div class="gen-note">Unrated players (blank level, like Jaryl) count as <b>4.0</b> when generating — no one is ever blocked.</div>
+  </div>
+
+  <div class="card">
+    <span class="mock-note">Courts tab — generated round</span>
+    <div class="card-title">Level-balanced round with live chips</div>
+    <div class="helper">Each court shows its <b>team level sums</b>. Teams are matched so sums stay within <b>±0.5</b>; when that's impossible the closest match is used and the chip turns <b>amber</b>. <b>MX</b> marks a proper mixed-doubles court (girl+guy vs girl+guy).</div>
+
+    <div class="round-row">
+      <div class="round-head">Round 3 <span class="live-badge">● Live</span></div>
+      <div class="court-editor">
+        <h4>Court 1 <span class="court-balance">8.0 v 8.0</span></h4>
+        <div class="teams">
+          <span class="tp"><span class="av" style="background:#0071e3">TH</span>Thomas <span class="lv">6.5</span></span><span class="amp">&amp;</span>
+          <span class="tp"><span class="av" style="background:#f0b429">AK</span>Akmal <span class="lv">1.5</span></span>
+          <span class="vs">VS</span>
+          <span class="tp"><span class="av" style="background:#7d8590">JR</span>Jaryl <span class="lv">4.0</span></span><span class="amp">&amp;</span>
+          <span class="tp"><span class="av" style="background:#cd7f32">WK</span>Wei Kang <span class="lv">4.0</span></span>
+        </div>
+      </div>
+      <div class="court-editor">
+        <h4>Court 2 <span class="court-balance">9.0 v 8.5</span> <span class="court-balance mx">MX</span></h4>
+        <div class="teams">
+          <span class="tp girl"><span class="av" style="background:#d6519f">MI</span>Michelle <span class="lv">5.0</span></span><span class="amp">&amp;</span>
+          <span class="tp"><span class="av" style="background:#8957e5">DN</span>Danish <span class="lv">4.0</span></span>
+          <span class="vs">VS</span>
+          <span class="tp girl"><span class="av" style="background:#58a6ff">SL</span>Su Lin <span class="lv">3.0</span></span><span class="amp">&amp;</span>
+          <span class="tp"><span class="av" style="background:#0066cc">HR</span>Harith <span class="lv">5.5</span></span>
+        </div>
+      </div>
+      <div class="court-editor">
+        <h4>Court 3 <span class="court-balance off">11.5 v 10.0 ⚠</span></h4>
+        <div class="teams">
+          <span class="tp"><span class="av" style="background:#134331">KV</span>Kavin <span class="lv">6.0</span></span><span class="amp">&amp;</span>
+          <span class="tp"><span class="av" style="background:#b02020">RZ</span>Ridzuan <span class="lv">5.5</span></span>
+          <span class="vs">VS</span>
+          <span class="tp"><span class="av" style="background:#8a5a00">FZ</span>Faiz <span class="lv">5.0</span></span><span class="amp">&amp;</span>
+          <span class="tp"><span class="av" style="background:#555e6b">AD</span>Adam <span class="lv">5.0</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="gen-note">✅ 10 rounds generated! <b>1 match outside ±0.5</b> (marked ⚠) — tap it to hand-tweak. Rest rotation and partner variety still apply; girls with Mixed <b>off</b> are only ever partnered with other girls.</div>
+
+    <div class="legend">
+      <span class="court-balance">8.0 v 8.0</span> balanced &nbsp;·&nbsp;
+      <span class="court-balance off">⚠</span> closest possible, over tolerance &nbsp;·&nbsp;
+      <span class="court-balance mx">MX</span> mixed doubles court
+    </div>
+  </div>
+</div>
+</body>
+</html>

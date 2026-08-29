@@ -203,11 +203,21 @@ body.in-3d #joinModal{z-index:1300}
 .court-balance{font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--muted);background:var(--card2);border:1px solid var(--border);border-radius:100px;padding:2px 9px;white-space:nowrap}
 .court-balance.off{color:var(--a-amber);background:var(--a-amber-tint);border-color:var(--accent-line)}
 .court-balance.mx{color:var(--pink);background:rgba(214,81,159,.10);border-color:rgba(214,81,159,.3)}
-.selectors-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.selectors-row select{background:var(--card);border:1px solid var(--border2);color:var(--text);padding:6px 8px;border-radius:var(--radius-sm);font-size:var(--fs-sm);outline:none;max-width:140px;cursor:pointer;font-family:inherit}
-.selectors-row select:focus{border-color:var(--green)}
-.vs-small{font-size:11px;color:var(--accent);font-weight:700;padding:0 4px}
-.amp{color:var(--muted);font-size:11px}
+.selectors-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* A team (label + its two picker slots) wraps/stacks as one unit. */
+.team-block{display:flex;align-items:center;gap:8px;min-width:0}
+.team-slots{display:flex;align-items:center;gap:6px;min-width:0}
+.vs-small{font-size:11px;color:var(--accent);font-weight:700;padding:0 4px;flex-shrink:0}
+.amp{color:var(--muted);font-size:11px;flex-shrink:0}
+/* Mobile: stack the two teams; each team's two slots split the width evenly. */
+@media(max-width:640px){
+  .selectors-row{flex-direction:column;align-items:stretch;gap:10px}
+  .team-block{flex-direction:column;align-items:stretch;gap:6px}
+  .team-slots{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+  .team-slots .pslot{min-width:0;max-width:none;width:100%}
+  .rl-team-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  .selectors-row>.vs-small{align-self:center;padding:2px 0}
+}
 
 /* ── PLAYER PICKER (searchable popover; replaces the native <select>) ── */
 .pslot{display:inline-flex;align-items:center;gap:7px;min-width:150px;max-width:210px;flex:1 1 150px;background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:5px 8px;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);color:var(--text);text-align:left;transition:border-color .15s,box-shadow .15s}
@@ -251,8 +261,17 @@ body.in-3d #joinModal{z-index:1300}
 #restingStrip{position:sticky;top:var(--rest-sticky-top);z-index:9;margin-top:10px}
 #restingStrip:empty{display:none}
 #restingStrip.is-pinned .resting-strip{box-shadow:var(--shadow-md);border-color:var(--border2)}
-.resting-strip{padding:8px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);transition:box-shadow .18s ease,border-color .18s ease}
+.resting-strip{padding:8px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);transition:box-shadow .18s ease,border-color .18s ease;cursor:grab;user-select:none;-webkit-user-select:none}
 .resting-strip strong{color:var(--text)}
+/* Picked-up strip: fixed wherever the admin parked it (see initRestStripDrag) */
+#restingStrip.rest-floating{position:fixed;margin-top:0;z-index:320;width:max-content;max-width:min(92vw,720px)}
+#restingStrip.rest-floating .resting-strip{box-shadow:var(--shadow-md);border-color:var(--border2)}
+#restingStrip.rest-dragging .resting-strip{cursor:grabbing}
+.rest-head{display:flex;align-items:center;gap:6px}
+.rest-grip{width:22px;height:22px;flex:none;border-radius:6px;border:none;background:transparent;color:var(--muted);cursor:grab;touch-action:none;padding:0;display:grid;place-items:center}
+.rest-grip::before{content:"";width:11px;height:15px;background-image:radial-gradient(circle,currentColor 1.3px,transparent 1.4px);background-size:5.5px 5px}
+.rest-grip:hover,.rest-grip:focus-visible{color:var(--a-blue,#0071e3)}
+.rest-grip:focus-visible{outline:2px solid var(--a-blue,#0071e3);outline-offset:1px}
 .resting-avatars{display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap}
 .rest-chip{display:flex;align-items:center;gap:5px;background:var(--dark);border:1px solid var(--border);border-radius:100px;padding:3px 8px 3px 4px;font-size:11px;transition:background-color .18s ease,border-color .18s ease,color .18s ease}
 /* Bench-watch heat: the longer a player has sat out (2+ rounds), the redder */
@@ -1336,10 +1355,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .fr-seed-n{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--muted);text-align:center}
 .fr-seed-nm{font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fr-seed-nm .cap{color:var(--gold,#f5b301)}
-.fr-seed-mv{display:inline-flex;gap:3px;flex:none}
-.fr-seed-mv button{width:22px;height:22px;border-radius:6px;border:1px solid var(--border2);background:var(--card);color:var(--muted);cursor:pointer;font-size:8px;line-height:1;padding:0;display:grid;place-items:center;font-family:inherit}
-.fr-seed-mv button:disabled{opacity:.3;cursor:default}
-.fr-seed-mv button:not(:disabled):hover{border-color:var(--a-blue,#0071e3);color:var(--a-blue,#0071e3)}
+.fr-seed-row{cursor:grab;user-select:none;-webkit-user-select:none}
+.fr-seed-grip{width:26px;height:26px;flex:none;border-radius:6px;border:none;background:transparent;color:var(--muted);cursor:grab;touch-action:none;padding:0;display:grid;place-items:center}
+.fr-seed-grip::before{content:"";width:11px;height:15px;background-image:radial-gradient(circle,currentColor 1.3px,transparent 1.4px);background-size:5.5px 5px}
+.fr-seed-grip:hover,.fr-seed-grip:focus-visible{color:var(--a-blue,#0071e3)}
+.fr-seed-grip:focus-visible{outline:2px solid var(--a-blue,#0071e3);outline-offset:1px}
+.fr-seed-row.dragging{cursor:grabbing;background:var(--card,#fff);box-shadow:0 6px 18px rgba(0,0,0,.14);border-radius:9px;position:relative;z-index:3}
+.fr-seed-row.dragging .fr-seed-grip{cursor:grabbing}
 @media(max-width:560px){.fr-split{grid-template-columns:1fr}}
 .fr-teambtns{display:flex;gap:4px;flex:none}
 .fr-tb{width:30px;height:28px;border-radius:7px;border:1px solid var(--border2);background:var(--dark);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
@@ -1387,7 +1409,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .frb-slot.red{border-color:rgba(255,59,69,.4)} .frb-slot.blue{border-color:rgba(47,139,255,.45)}
 .frb-slot.filled{border-style:solid;color:var(--text);cursor:grab}
 .frb-slot.filled:active{cursor:grabbing}
-.frb-slot.active,.frb-slot.dragover{border-color:var(--a-blue,#0071e3);border-style:solid;background:var(--a-blue-tint,rgba(0,113,227,.14))}
+.frb-slot.active,.frb-slot.dragover,.frb-slot.pslot-active{border-color:var(--a-blue,#0071e3);border-style:solid;background:var(--a-blue-tint,rgba(0,113,227,.14))}
 .frb-slot .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .frb-slot .x{margin-left:auto;color:var(--muted);font-weight:700;font-size:15px;line-height:1}
 .frb-score{display:flex;align-items:center;gap:4px}
@@ -2654,6 +2676,11 @@ async function apiPost(updates) {
 
 // ── POLLING ──────────────────────────────────
 function isEditing() {
+  // A seed-row drag in progress counts as editing — a poll re-render would
+  // destroy the DOM node being dragged mid-gesture.
+  if (typeof __frSeedDrag !== 'undefined' && __frSeedDrag) return true;
+  // Same for a live "Resting this round" strip drag (see initRestStripDrag).
+  if (typeof __restDrag !== 'undefined' && __restDrag && __restDrag.moved) return true;
   const el = document.activeElement;
   if (!el) return false;
   if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return true;
@@ -3159,14 +3186,11 @@ function renderFriendlySquad(f) {
     if (!ids.length) return `<div class="fr-split-col ${side}"><div class="fr-split-h">${label} <b>0</b></div><div class="fr-split-empty">Nobody yet</div></div>`;
     const rows = ids.map((id, idx) => {
       const p = playerById(id) || { id, name: frNameOf(id) };
-      return `<div class="fr-seed-row">
+      return `<div class="fr-seed-row" data-pid="${id}" onpointerdown="frSeedDragStart(event,'${side}','${id}')">
         <span class="fr-seed-n">${idx + 1}</span>
         ${avatarHTML(p, 22)}
         <span class="fr-seed-nm">${escHtml(p.name)}${capId === id ? ' <span class="cap">&#9733;</span>' : ''}</span>
-        <span class="fr-seed-mv">
-          <button ${idx === 0 ? 'disabled' : ''} onclick="moveFriendlySeed('${side}','${id}',-1)" title="Move up a seed" aria-label="Move up a seed">&#9650;</button>
-          <button ${idx === ids.length - 1 ? 'disabled' : ''} onclick="moveFriendlySeed('${side}','${id}',1)" title="Move down a seed" aria-label="Move down a seed">&#9660;</button>
-        </span>
+        <button class="fr-seed-grip" onkeydown="frSeedKey(event,'${side}','${id}')" title="Drag to reorder seed" aria-label="Drag to reorder seed (or use arrow keys)"></button>
       </div>`;
     }).join('');
     return `<div class="fr-split-col ${side}"><div class="fr-split-h">${label} <b>${ids.length}</b> <span class="fr-seed-cap">seeds</span></div><div class="fr-seed-list">${rows}</div></div>`;
@@ -3214,6 +3238,9 @@ function friendlyPlacedIds(f) {
 function renderFriendlyMatchups(f) {
   const el = document.getElementById('frMatchups');
   if (!el) return;
+  // A board rebuild orphans an open slot picker's anchor node — close it first
+  // (a pick itself already closed the popover before this runs, so no conflict).
+  if (typeof _pslotBtn !== 'undefined' && _pslotBtn && _pslotBtn.classList?.contains('frb-slot')) closePlayerPicker();
   const placed = friendlyPlacedIds(f);
   const sess = friendlySessionSet();
   const rail = (team) => {
@@ -3234,7 +3261,7 @@ function renderFriendlyMatchups(f) {
     // Filled slots are draggable so a placed player can be pulled back to the bench,
     // moved to another slot, or dragged out to the Squads list.
     const drag = p ? ` draggable="true" ondragstart="frDragStart(event,'${id}','${team}')"` : '';
-    return `<div class="frb-slot ${team}${p ? ' filled' : ''}${active ? ' active' : ''}"${drag} onclick="frSlotTap(${i},'${team}',${k})" ondragover="frDragOver(event,this)" ondragleave="this.classList.remove('dragover')" ondrop="frDrop(event,${i},'${team}',${k},this)">${inner}</div>`;
+    return `<div class="frb-slot ${team}${p ? ' filled' : ''}${active ? ' active' : ''}"${drag} onclick="frSlotTap(${i},'${team}',${k},this)" ondragover="frDragOver(event,this)" ondragleave="this.classList.remove('dragover')" ondrop="frDrop(event,${i},'${team}',${k},this)">${inner}</div>`;
   };
   const scoreCtl = (m, i, team) => {
     const field = team === 'red' ? 'redScore' : 'blueScore';
@@ -3271,7 +3298,7 @@ function renderFriendlyMatchups(f) {
   // Auto-fill/Reshuffle + the court cards fill the main column on the right.
   const benchBlock = hasTeams
     ? `<div class="frb-bench" ondragover="frBenchDragOver(event,this)" ondragleave="this.classList.remove('frb-bench-drop')" ondrop="frDropToBench(event,this)">
-      <div class="frb-bench-hint">Bench &mdash; tap a player then a slot (or drag them across). Drag a player here to take them off a court.</div>
+      <div class="frb-bench-hint">Bench &mdash; tap a court slot to pick a player from a list, tap a player then a slot, or drag them across. Drag a player here to take them off a court.</div>
       <div class="frb-side r">RED</div>${rail('red')}
       <div class="frb-side b">BLUE</div>${rail('blue')}
     </div>`
@@ -3334,6 +3361,7 @@ function setFriendlyCaptain(id) {
 }
 // Seeding: the team array order IS the seed order (1st = index 0). Move a player
 // up/down by swapping with their neighbour among the shown (session) players.
+// Kept for keyboard reordering (arrow keys on the grip); pointer users drag.
 function moveFriendlySeed(team, id, dir) {
   const f = ensureFriendly();
   const arr = team === 'red' ? f.redTeam : f.blueTeam;
@@ -3345,6 +3373,67 @@ function moveFriendlySeed(team, id, dir) {
   if (i < 0 || j < 0) return;
   arr[i] = shown[sj]; arr[j] = id;
   renderFriendlySquad(f); saveFriendly(); renderFriendlyViewer();
+}
+// Rewrite a team's seed order from a dragged list: the shown (session) players
+// take the new order while hidden (non-session) players keep their array slots.
+function applyFriendlySeedOrder(arr, orderedShownIds) {
+  const shownSet = new Set(orderedShownIds);
+  let k = 0;
+  return arr.map(id => shownSet.has(id) ? orderedShownIds[k++] : id);
+}
+function reorderFriendlySeeds(team, orderedShownIds) {
+  const f = ensureFriendly();
+  if (team === 'red') f.redTeam = applyFriendlySeedOrder(f.redTeam, orderedShownIds);
+  else f.blueTeam = applyFriendlySeedOrder(f.blueTeam, orderedShownIds);
+  renderFriendlySquad(f); saveFriendly(); renderFriendlyViewer();
+}
+// Drag-to-reorder for the seed lists. Mouse can grab anywhere on the row; touch
+// must start on the grip (touch-action:none there) so the panel still scrolls.
+// The row is live-moved in the DOM while dragging; order commits on release.
+let __frSeedDrag = null;
+function frSeedDragStart(e, side, id) {
+  if (__frSeedDrag || (e.button !== undefined && e.button !== 0)) return;
+  if (e.pointerType !== 'mouse' && !e.target.closest('.fr-seed-grip')) return;
+  const row = e.currentTarget, list = row.parentElement;
+  if (!list || list.querySelectorAll('.fr-seed-row').length < 2) return;
+  e.preventDefault();
+  __frSeedDrag = { side, id, row, list };
+  row.classList.add('dragging');
+  if (row.setPointerCapture) { try { row.setPointerCapture(e.pointerId); } catch (_) {} }
+  window.addEventListener('pointermove', frSeedDragMove);
+  window.addEventListener('pointerup', frSeedDragEnd);
+  window.addEventListener('pointercancel', frSeedDragEnd);
+}
+function frSeedDragMove(e) {
+  const d = __frSeedDrag; if (!d) return;
+  const others = [...d.list.querySelectorAll('.fr-seed-row')].filter(r => r !== d.row);
+  let before = null;
+  for (const r of others) {
+    const rect = r.getBoundingClientRect();
+    if (e.clientY < rect.top + rect.height / 2) { before = r; break; }
+  }
+  if (before !== d.row && before !== d.row.nextSibling) {
+    d.list.insertBefore(d.row, before);
+    d.list.querySelectorAll('.fr-seed-n').forEach((n, i) => { n.textContent = i + 1; });
+  }
+}
+function frSeedDragEnd() {
+  const d = __frSeedDrag; if (!d) return;
+  __frSeedDrag = null;
+  window.removeEventListener('pointermove', frSeedDragMove);
+  window.removeEventListener('pointerup', frSeedDragEnd);
+  window.removeEventListener('pointercancel', frSeedDragEnd);
+  d.row.classList.remove('dragging');
+  reorderFriendlySeeds(d.side, [...d.list.querySelectorAll('.fr-seed-row')].map(r => r.dataset.pid));
+}
+function frSeedKey(e, side, id) {
+  const dir = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0;
+  if (!dir) return;
+  e.preventDefault();
+  moveFriendlySeed(side, id, dir);
+  const row = document.querySelector(`.fr-seed-row[data-pid="${id}"]`);
+  const grip = row && row.querySelector('.fr-seed-grip');
+  if (grip) grip.focus();
 }
 function addFriendlyMatchup() {
   const f = ensureFriendly();
@@ -3410,8 +3499,9 @@ function frPickPlayer(id, team) {
   __frActive = null;
   renderFriendlyMatchups(f);
 }
-// Tap a slot: place an armed player, clear a filled slot, or arm an empty one.
-function frSlotTap(i, team, k) {
+// Tap a slot: place an armed bench player, otherwise open the same searchable
+// player picker the round / Up Next editors use (see openFriendlySlotPicker).
+function frSlotTap(i, team, k, el) {
   const f = ensureFriendly();
   const m = f.matchups[i]; if (!m) return;
   if (__frSel.pid) {
@@ -3422,15 +3512,56 @@ function frSlotTap(i, team, k) {
     }
     return;
   }
-  if ((m[team] || [])[k]) {
-    m[team][k] = '';
-    __frActive = null;
-    renderFriendlyMatchups(f); saveFriendly();
-    return;
-  }
-  const key = i + ':' + team + ':' + k;
-  __frActive = (__frActive === key ? null : key);
-  renderFriendlyMatchups(f);
+  __frActive = null;
+  openFriendlySlotPicker(el, i, team, k);
+}
+
+// Friendly court slots reuse the shared picker popover: the list is that side's
+// squad only (session-filtered, same as the bench), grouped bench-first with a
+// "Court N" badge for players already placed — picking one of those moves them
+// here, because placeFriendlyPlayer keeps a player on at most one court.
+// "Leave this slot empty" clears the slot.
+function openFriendlySlotPicker(el, i, team, k) {
+  if (!el) return;
+  const f = ensureFriendly();
+  const m = f.matchups[i]; if (!m) return;
+  const sess = friendlySessionSet();
+  const squad = (team === 'red' ? f.redTeam : f.blueTeam).filter(id => sess.has(id));
+  const selectedId = (m[team] || [])[k] || '';
+  const placedAt = new Map(); // id -> display court number (this slot excluded)
+  (f.matchups || []).forEach((mm, mi) => ['red', 'blue'].forEach(t =>
+    (mm[t] || []).forEach((id, kk) => {
+      if (id && !(mi === i && t === team && kk === k) && !placedAt.has(id)) placedAt.set(id, mm.court || mi + 1);
+    })));
+  const meta = buildMetaById();
+  const levelOf = id => {
+    const lv = meta[id]?.level;
+    return Number.isFinite(lv) ? lv.toFixed(1) : '';
+  };
+  const free = [], onCourt = [];
+  squad.forEach(id => {
+    const p = playerById(id) || { id, name: frNameOf(id) };
+    if (placedAt.has(id)) onCourt.push({ p, court: placedAt.get(id), badge: `Court ${placedAt.get(id)}` });
+    else free.push({ p });
+  });
+  free.sort((a, b) => {
+    if (a.p.id === selectedId) return -1;
+    if (b.p.id === selectedId) return 1;
+    return (a.p.name || '').localeCompare(b.p.name || '');
+  });
+  onCourt.sort((a, b) => a.court - b.court || (a.p.name || '').localeCompare(b.p.name || ''));
+  const groups = {
+    free, resting: [], onCourt, selectedId, levelOf,
+    labels: { free: 'On the bench', onCourt: 'On a court' }
+  };
+  openPslotAt(el, groups, squad.length, id => {
+    const f2 = ensureFriendly();
+    const mm = f2.matchups[i]; if (!mm) return;
+    if (!id) { if (Array.isArray(mm[team])) mm[team][k] = ''; }
+    else placeFriendlyPlayer(i, team, k, id);
+    __frSel.pid = null; __frActive = null;
+    renderFriendlyMatchups(f2); saveFriendly();
+  });
 }
 function frClearSlot(i, team, k) {
   const f = ensureFriendly();
@@ -3942,10 +4073,14 @@ function renderRestingPlayers(courtRounds) {
 
   strip.innerHTML = `
     <div class="resting-strip">
-      <strong>Resting this round:</strong>
+      <div class="rest-head">
+        <button type="button" class="rest-grip" title="Drag to move this panel &mdash; double-click to snap it back" aria-label="Move the resting panel (drag; double-click to snap back)"></button>
+        <strong>Resting this round:</strong>
+      </div>
       <div class="resting-avatars">${chips}</div>
     </div>
   `;
+  initRestStripDrag();
   syncRestSticky();
 }
 
@@ -3955,6 +4090,12 @@ let _restStickyObserver = null;
 function syncRestSticky() {
   const strip = document.getElementById('restingStrip');
   if (!strip || !strip.firstElementChild) return;
+  // Parked somewhere by a drag → fixed positioning owns it; no pin-observing.
+  if (applyRestFloat()) {
+    if (_restStickyObserver) _restStickyObserver.disconnect();
+    strip.classList.remove('is-pinned');
+    return;
+  }
   const hdr = document.querySelector('.admin-hdr');
   const hdrH = (hdr && getComputedStyle(hdr).display !== 'none') ? hdr.offsetHeight : 0;
   const top = hdrH + 8;
@@ -3967,6 +4108,86 @@ function syncRestSticky() {
   _restStickyObserver.observe(strip);
 }
 window.addEventListener('resize', syncRestSticky);
+
+// ── Resting strip: pick up & move ─────────────
+// The pinned strip can end up covering whatever the admin is editing (e.g. the
+// Up Next override), so it can be dragged anywhere and parked there — the spot
+// persists per device. Double-click (or double-tap the grip) docks it back into
+// the normal sticky flow. Mouse drags start anywhere on the strip; touch drags
+// start on the grip, whose touch-action:none stops the page scrolling instead.
+const REST_POS_KEY = 'restStripPos';
+let __restDrag = null;
+
+// Applies (and re-clamps) the saved parked position. Returns true when the
+// strip is floating. Position + classes live on the persistent #restingStrip
+// host, so a poll re-render of the chips inside can't knock the strip loose.
+function applyRestFloat() {
+  const host = document.getElementById('restingStrip');
+  if (!host || !host.firstElementChild) return false;
+  if (__restDrag && __restDrag.moved) return true; // mid-drag: hands off
+  let pos = null;
+  try { pos = JSON.parse(localStorage.getItem(REST_POS_KEY) || 'null'); } catch (_) {}
+  if (!pos || typeof pos.x !== 'number' || typeof pos.y !== 'number') {
+    host.classList.remove('rest-floating');
+    host.style.left = host.style.top = '';
+    return false;
+  }
+  host.classList.add('rest-floating');
+  const w = host.offsetWidth || 320, h = host.offsetHeight || 44;
+  host.style.left = Math.max(4, Math.min(pos.x, window.innerWidth - w - 4)) + 'px';
+  host.style.top = Math.max(4, Math.min(pos.y, window.innerHeight - h - 4)) + 'px';
+  return true;
+}
+
+function initRestStripDrag() {
+  const host = document.getElementById('restingStrip');
+  if (!host || host.dataset.dragWired) return;
+  host.dataset.dragWired = '1';
+  const endDrag = () => {
+    if (!__restDrag) return;
+    const moved = __restDrag.moved;
+    __restDrag = null;
+    host.classList.remove('rest-dragging');
+    if (moved) {
+      try {
+        localStorage.setItem(REST_POS_KEY, JSON.stringify({
+          x: parseFloat(host.style.left) || 0,
+          y: parseFloat(host.style.top) || 0
+        }));
+      } catch (_) {}
+      syncRestSticky();
+    }
+  };
+  host.addEventListener('pointerdown', e => {
+    if (!e.target.closest('.resting-strip')) return;
+    if (e.button > 0) return;
+    if (e.pointerType !== 'mouse' && !e.target.closest('.rest-grip')) return;
+    const r = host.getBoundingClientRect();
+    __restDrag = { dx: e.clientX - r.left, dy: e.clientY - r.top, sx: e.clientX, sy: e.clientY, moved: false };
+  });
+  window.addEventListener('pointermove', e => {
+    if (!__restDrag) return;
+    if (!__restDrag.moved) {
+      // 5px dead zone so a plain click never counts as a drag.
+      if (Math.hypot(e.clientX - __restDrag.sx, e.clientY - __restDrag.sy) < 5) return;
+      __restDrag.moved = true;
+      host.classList.add('rest-floating', 'rest-dragging');
+      host.classList.remove('is-pinned');
+    }
+    const w = host.offsetWidth, h = host.offsetHeight;
+    host.style.left = Math.max(4, Math.min(e.clientX - __restDrag.dx, window.innerWidth - w - 4)) + 'px';
+    host.style.top = Math.max(4, Math.min(e.clientY - __restDrag.dy, window.innerHeight - h - 4)) + 'px';
+    e.preventDefault();
+  }, { passive: false });
+  window.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointercancel', endDrag);
+  host.addEventListener('dblclick', e => {
+    if (!e.target.closest('.resting-strip')) return;
+    try { localStorage.removeItem(REST_POS_KEY); } catch (_) {}
+    applyRestFloat();
+    syncRestSticky();
+  });
+}
 
 // ── QUICK ROUND NAV ───────────────────────────
 async function stepAllCourts(delta) {
@@ -4715,6 +4936,27 @@ function buildPlayerSelect(elId, selectedId, roundIndex, courtIndex) {
     + ` onclick="openPlayerPicker(this)">${playerSlotFace(val)}${pslotChevSVG()}</button>`;
 }
 
+// One team = its label + its two picker slots kept together, so the row wraps as
+// whole teams (never orphaning a label or "&") and can stack cleanly on mobile.
+// `prefix` is the shared id stem: `rl_${i}_c${c}` (round editor) or `un_c${i}`
+// (Up Next). roundIndex/courtIndex drive the picker's grouping. Used by both.
+function selectorsRowHTML(prefix, roundIndex, courtIndex, court) {
+  const slot = (role, id) => buildPlayerSelect(`${prefix}_${role}`, id, roundIndex, courtIndex);
+  const team = (label, roleA, roleB, ids) => `
+    <div class="team-block">
+      <span class="rl-team-label">${label}</span>
+      <div class="team-slots">
+        ${slot(roleA, ids?.[0])}<span class="amp">&amp;</span>${slot(roleB, ids?.[1])}
+      </div>
+    </div>`;
+  return `
+    <div class="selectors-row">
+      ${team('Team A', 't1p1', 't1p2', court.team1)}
+      <span class="vs-small">VS</span>
+      ${team('Team B', 't2p1', 't2p2', court.team2)}
+    </div>`;
+}
+
 function renderRoundList() {
   const list = document.getElementById('roundList');
   if (!list) return;
@@ -4734,17 +4976,7 @@ function renderRoundList() {
       courtEditorsHTML += `
         <div class="court-editor">
           <h4>Court ${courtLabel(c)} <span id="chip_${i}_${c}">${courtChipHTML(court, metaById)}</span></h4>
-          <div class="selectors-row">
-            <span class="rl-team-label">Team A:</span>
-            ${buildPlayerSelect(`rl_${i}_c${c}_t1p1`, court.team1[0], i, c)}
-            <span class="amp">&amp;</span>
-            ${buildPlayerSelect(`rl_${i}_c${c}_t1p2`, court.team1[1], i, c)}
-            <span class="vs-small">VS</span>
-            <span class="rl-team-label">Team B:</span>
-            ${buildPlayerSelect(`rl_${i}_c${c}_t2p1`, court.team2[0], i, c)}
-            <span class="amp">&amp;</span>
-            ${buildPlayerSelect(`rl_${i}_c${c}_t2p2`, court.team2[1], i, c)}
-          </div>
+          ${selectorsRowHTML(`rl_${i}_c${c}`, i, c, court)}
         </div>
       `;
     });
@@ -4811,17 +5043,7 @@ function renderNextUpEditor() {
     html += `
       <div class="court-editor">
         <h4>Court ${courtLabel(i)} <span class="upnext-edit-round">${escHtml(label)}</span></h4>
-        <div class="selectors-row">
-          <span class="rl-team-label">Team A:</span>
-          ${buildPlayerSelect(`un_c${i}_t1p1`, court.team1?.[0], ni, i)}
-          <span class="amp">&amp;</span>
-          ${buildPlayerSelect(`un_c${i}_t1p2`, court.team1?.[1], ni, i)}
-          <span class="vs-small">VS</span>
-          <span class="rl-team-label">Team B:</span>
-          ${buildPlayerSelect(`un_c${i}_t2p1`, court.team2?.[0], ni, i)}
-          <span class="amp">&amp;</span>
-          ${buildPlayerSelect(`un_c${i}_t2p2`, court.team2?.[1], ni, i)}
-        </div>
+        ${selectorsRowHTML(`un_c${i}`, ni, i, court)}
       </div>`;
   }
   if (anyEditable) html += `<button class="btn btn-primary btn-sm" onclick="saveNextUp()">Save Up Next</button>`;
@@ -4891,13 +5113,34 @@ function ensurePslotPop() {
   return pop;
 }
 
-function openPlayerPicker(btn) {
-  const already = _pslotBtn === btn && document.getElementById('pslotPop')?.classList.contains('open');
+// Shared open/anchor plumbing: anchors the popover to `anchor`, renders the
+// given groups, and (optionally) routes the pick through `onPick(id)` instead
+// of the default .pslot button commit — that's how the Friendly board reuses
+// this picker without pretending its slots are .pslot buttons.
+function openPslotAt(anchor, groups, total, onPick) {
+  const already = _pslotBtn === anchor && document.getElementById('pslotPop')?.classList.contains('open');
   closePlayerPicker();
   if (already) return; // second click on the same slot closes it
 
-  _pslotBtn = btn;
+  _pslotBtn = anchor;
   const pop = ensurePslotPop();
+  pop._groups = groups;
+  pop._total = total;
+  pop._onPick = onPick || null;
+
+  const search = document.getElementById('pslotSearch');
+  search.value = '';
+  renderPslotList('');
+
+  pop.classList.add('open');
+  anchor.classList.add('pslot-active');
+  positionPslot(anchor, pop);
+  setTimeout(() => search.focus(), 0);
+  document.addEventListener('mousedown', onPslotOutside, true);
+  window.addEventListener('resize', closePlayerPicker);
+}
+
+function openPlayerPicker(btn) {
   const roundIndex = parseInt(btn.dataset.round, 10);
   const selectedId = btn.value || '';
 
@@ -4939,19 +5182,7 @@ function openPlayerPicker(btn) {
   resting.sort((a, b) => b.n - a.n || (a.p.name || '').localeCompare(b.p.name || ''));
   onCourt.sort((a, b) => a.court - b.court || (a.p.name || '').localeCompare(b.p.name || ''));
 
-  pop._groups = { free, resting, onCourt, selectedId, levelOf };
-  pop._total = (state.players || []).length;
-
-  const search = document.getElementById('pslotSearch');
-  search.value = '';
-  renderPslotList('');
-
-  pop.classList.add('open');
-  btn.classList.add('pslot-active');
-  positionPslot(btn, pop);
-  setTimeout(() => search.focus(), 0);
-  document.addEventListener('mousedown', onPslotOutside, true);
-  window.addEventListener('resize', closePlayerPicker);
+  openPslotAt(btn, { free, resting, onCourt, selectedId, levelOf }, (state.players || []).length);
 }
 
 function renderPslotList(query) {
@@ -4977,12 +5208,13 @@ function renderPslotList(query) {
   const freeF = free.filter(x => match(x.p));
   const restF = resting.filter(x => match(x.p));
   const courtF = onCourt.filter(x => match(x.p));
+  const labels = Object.assign({ free: 'Free now', resting: 'Resting', onCourt: 'On another court' }, pop._groups.labels || {});
   let html = '';
-  if (freeF.length) html += '<div class="pslot-group">Free now</div>' + freeF.map(x => rowHTML(x.p)).join('');
-  if (restF.length) html += '<div class="pslot-group">Resting</div>'
+  if (freeF.length) html += `<div class="pslot-group">${labels.free}</div>` + freeF.map(x => rowHTML(x.p)).join('');
+  if (restF.length) html += `<div class="pslot-group">${labels.resting}</div>`
     + restF.map(x => rowHTML(x.p, { badge: `Sat out ${x.n}`, badgeCls: 'warn' })).join('');
-  if (courtF.length) html += '<div class="pslot-group">On another court</div>'
-    + courtF.map(x => rowHTML(x.p, { badge: `Court ${courtLabel(x.court)}`, badgeCls: 'court', dim: true })).join('');
+  if (courtF.length) html += `<div class="pslot-group">${labels.onCourt}</div>`
+    + courtF.map(x => rowHTML(x.p, { badge: x.badge || `Court ${courtLabel(x.court)}`, badgeCls: 'court', dim: true })).join('');
   if (!freeF.length && !restF.length && !courtF.length) html += '<div class="pslot-none">No players match.</div>';
 
   const listEl = document.getElementById('pslotList');
@@ -5030,6 +5262,14 @@ function onPslotKeydown(e) {
 }
 
 function pickPslot(id) {
+  // Custom commit path (Friendly board): hand the pick to the opener's callback.
+  // Capture it before closePlayerPicker() clears it off the popover.
+  const onPick = document.getElementById('pslotPop')?._onPick;
+  if (onPick) {
+    closePlayerPicker();
+    onPick(id || '');
+    return;
+  }
   const btn = _pslotBtn;
   if (btn) {
     const known = (state.players || []).some(p => p.id === id);
@@ -5082,7 +5322,7 @@ function onPslotOutside(e) {
 
 function closePlayerPicker() {
   const pop = document.getElementById('pslotPop');
-  if (pop) pop.classList.remove('open');
+  if (pop) { pop.classList.remove('open'); pop._onPick = null; }
   if (_pslotBtn) _pslotBtn.classList.remove('pslot-active');
   document.removeEventListener('mousedown', onPslotOutside, true);
   window.removeEventListener('resize', closePlayerPicker);
