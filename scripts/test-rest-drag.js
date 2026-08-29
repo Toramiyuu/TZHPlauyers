@@ -135,6 +135,14 @@ const check = (name, cond) => { if (!cond) failures.push(name); };
     dragSrc.includes('dblclick') && dragSrc.includes('removeItem'));
   check('a plain click never counts as a drag (dead zone before floating)',
     dragSrc.includes('Math.hypot'));
+
+  // Shared design: the strip must reuse the Friendly bench system (hint line,
+  // caps group labels, chip rails) so both "who's off court" surfaces match.
+  check('resting chips reuse the bench chip class', renderSrc.includes('frb-chip rest-chip'));
+  check('wait-length group labels reuse the bench label class', renderSrc.includes('frb-side rest-side'));
+  check('heading reuses the bench hint style', renderSrc.includes('frb-bench-hint'));
+  check('chip rows reuse the bench rail class', renderSrc.includes('frb-rail'));
+  check('old per-chip count pill is gone', !html.includes('rest-count'));
 }
 
 // ── poll race: isEditing() must hold while a strip drag is live ────

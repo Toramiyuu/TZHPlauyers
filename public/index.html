@@ -261,29 +261,32 @@ body.in-3d #joinModal{z-index:1300}
 #restingStrip{position:sticky;top:var(--rest-sticky-top);z-index:9;margin-top:10px}
 #restingStrip:empty{display:none}
 #restingStrip.is-pinned .resting-strip{box-shadow:var(--shadow-md);border-color:var(--border2)}
-.resting-strip{padding:8px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);transition:box-shadow .18s ease,border-color .18s ease;cursor:grab;user-select:none;-webkit-user-select:none}
-.resting-strip strong{color:var(--text)}
+/* Same card + label + chip design as the Friendly bench (.frb-bench system):
+   the strip reuses .frb-bench-hint / .frb-side / .frb-rail / .frb-chip and
+   only layers the rest-specific bits (grip, heat ramp) on top. */
+.resting-strip{padding:11px 12px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);transition:box-shadow .18s ease,border-color .18s ease;cursor:grab;user-select:none;-webkit-user-select:none}
 /* Picked-up strip: fixed wherever the admin parked it (see initRestStripDrag) */
 #restingStrip.rest-floating{position:fixed;margin-top:0;z-index:320;width:max-content;max-width:min(92vw,720px)}
 #restingStrip.rest-floating .resting-strip{box-shadow:var(--shadow-md);border-color:var(--border2)}
 #restingStrip.rest-dragging .resting-strip{cursor:grabbing}
-.rest-head{display:flex;align-items:center;gap:6px}
+.rest-head{display:flex;align-items:center;gap:6px;margin-bottom:9px}
+.rest-head .frb-bench-hint{margin-bottom:0}
 .rest-grip{width:22px;height:22px;flex:none;border-radius:6px;border:none;background:transparent;color:var(--muted);cursor:grab;touch-action:none;padding:0;display:grid;place-items:center}
 .rest-grip::before{content:"";width:11px;height:15px;background-image:radial-gradient(circle,currentColor 1.3px,transparent 1.4px);background-size:5.5px 5px}
 .rest-grip:hover,.rest-grip:focus-visible{color:var(--a-blue,#0071e3)}
 .rest-grip:focus-visible{outline:2px solid var(--a-blue,#0071e3);outline-offset:1px}
-.resting-avatars{display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap}
-.rest-chip{display:flex;align-items:center;gap:5px;background:var(--dark);border:1px solid var(--border);border-radius:100px;padding:3px 8px 3px 4px;font-size:11px;transition:background-color .18s ease,border-color .18s ease,color .18s ease}
-/* Bench-watch heat: the longer a player has sat out (2+ rounds), the redder */
-.rest-count{font-size:10px;font-weight:700;color:var(--muted);background:var(--card2);border-radius:100px;padding:1px 6px;margin-left:1px;letter-spacing:.02em}
+/* Bench-watch heat: the longer a player has sat out (2+ rounds), the redder.
+   Chips are .frb-chip; these classes only add the ramp + non-interactive cursor. */
+.rest-chip{cursor:default}
+.rest-chip:hover{transform:none}
+.rest-side{color:var(--muted)}
+.rest-side.heat-1{color:#a3282c}
+.rest-side.heat-2{color:#8f1f24}
+.rest-side.heat-3,.rest-side.heat-4{color:#e5484d}
 .rest-chip.heat-1{background:rgba(229,72,77,.14);border-color:rgba(229,72,77,.34);color:#a3282c}
-.rest-chip.heat-1 .rest-count{color:#a3282c;background:rgba(229,72,77,.18)}
 .rest-chip.heat-2{background:rgba(229,72,77,.30);border-color:rgba(229,72,77,.52);color:#8f1f24}
-.rest-chip.heat-2 .rest-count{color:#8f1f24;background:rgba(255,255,255,.45)}
 .rest-chip.heat-3{background:rgba(229,72,77,.62);border-color:rgba(229,72,77,.78);color:#fff}
-.rest-chip.heat-3 .rest-count{color:#fff;background:rgba(255,255,255,.24)}
 .rest-chip.heat-4{background:rgba(229,72,77,.86);border-color:#e5484d;color:#fff;box-shadow:0 0 0 2px rgba(229,72,77,.30)}
-.rest-chip.heat-4 .rest-count{color:#fff;background:rgba(255,255,255,.26)}
 
 /* ── UNIFIED MODALS ──────────────────────── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);z-index:300;align-items:center;justify-content:center;padding:var(--sp-md)}
@@ -1416,6 +1419,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .frb-score button{width:28px;height:28px;border-radius:8px;border:1px solid var(--border2);background:var(--dark);font-size:16px;font-weight:700;color:var(--text);cursor:pointer;line-height:1;font-family:inherit}
 .frb-score button:active{transform:scale(.93)}
 .frb-score .n{min-width:24px;text-align:center;font-family:var(--font-mono);font-size:18px;font-weight:700}
+/* The number is a real input now (type OR tap the steppers) — chrome hidden
+   until focus so it still reads like the plain score it used to be. */
+.frb-score input.n{width:40px;border:1px solid transparent;border-radius:8px;background:transparent;padding:2px 0;appearance:textfield;-moz-appearance:textfield}
+.frb-score input.n::-webkit-outer-spin-button,.frb-score input.n::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.frb-score input.n:focus{outline:none;border-color:var(--a-blue,#0071e3);background:var(--card,#fff)}
 .frb-row.red .frb-score .n{color:var(--fv-red)} .frb-row.blue .frb-score .n{color:var(--fv-blue)}
 .frb-lock,.frb-es{width:30px;height:28px;border-radius:7px;border:1px solid var(--border2);background:var(--dark);color:var(--muted);cursor:pointer;display:grid;place-items:center;flex:none}
 .frb-lock.on{background:#fff6e0;border-color:#f0d79a;color:#8a5a00}
@@ -3266,7 +3274,7 @@ function renderFriendlyMatchups(f) {
   const scoreCtl = (m, i, team) => {
     const field = team === 'red' ? 'redScore' : 'blueScore';
     const val = (team === 'red' ? m.redScore : m.blueScore) || 0;
-    return `<div class="frb-score"><button onclick="stepFriendlyScore(${i},'${field}',-1,this)" aria-label="Minus">&minus;</button><span class="n">${val}</span><button onclick="stepFriendlyScore(${i},'${field}',1,this)" aria-label="Plus">+</button></div>`;
+    return `<div class="frb-score"><button onclick="stepFriendlyScore(${i},'${field}',-1,this)" aria-label="Minus">&minus;</button><input class="n" type="number" inputmode="numeric" min="0" max="99" value="${val}" aria-label="${team === 'red' ? 'Red' : 'Blue'} score" onfocus="this.select()" oninput="typeFriendlyScore(${i},'${field}',this)" onblur="blurFriendlyScore(${i},'${field}',this)" onkeydown="if(event.key==='Enter')this.blur()"><button onclick="stepFriendlyScore(${i},'${field}',1,this)" aria-label="Plus">+</button></div>`;
   };
   const courtPicker = (m, i) => `<div class="fr-mu-courts" role="radiogroup" aria-label="Court for matchup ${i + 1}">` +
     Array.from({ length: COURT_POOL }, (_, k) => k + 1).map(n => {
@@ -3577,7 +3585,35 @@ function stepFriendlyScore(i, field, delta, btn) {
   const next = Math.max(0, Math.min(99, ((field === 'redScore' ? m.redScore : m.blueScore) || 0) + delta));
   m[field] = next;
   const n = btn && btn.parentElement && btn.parentElement.querySelector('.n');
-  if (n) n.textContent = next;
+  if (n) n.value = next;
+  saveFriendly();
+}
+// The score can also be TYPED (the .n between the steppers is a real input).
+// State commits on every keystroke (clamped 0–99) so "Record result" always
+// reads the on-screen number; the network save is debounced while typing and
+// forced on blur. An emptied field is mid-edit — blur restores the real score.
+// The focused input holds the 2s poll via isEditing(), so no re-render race.
+let __frScoreSaveT = null;
+function typeFriendlyScore(i, field, el) {
+  if (el.value === '') return;
+  const f = ensureFriendly();
+  const m = f.matchups[i]; if (!m) return;
+  const v = Math.max(0, Math.min(99, Math.round(Number(el.value)) || 0));
+  if (String(v) !== el.value) el.value = v; // e.g. "555" → 99, "-3"/"007" normalised
+  m[field] = v;
+  clearTimeout(__frScoreSaveT);
+  __frScoreSaveT = setTimeout(saveFriendly, 400);
+}
+function blurFriendlyScore(i, field, el) {
+  const f = ensureFriendly();
+  const m = f.matchups[i]; if (!m) return;
+  if (el.value === '') {
+    el.value = (field === 'redScore' ? m.redScore : m.blueScore) || 0;
+    return;
+  }
+  typeFriendlyScore(i, field, el);
+  clearTimeout(__frScoreSaveT);
+  __frScoreSaveT = null;
   saveFriendly();
 }
 function toggleFriendlyLock(i) {
@@ -4062,22 +4098,31 @@ function renderRestingPlayers(courtRounds) {
     .map(p => ({ p, n: Math.max(1, streaks[p.id] || 0) }))
     .sort((a, b) => b.n - a.n || (a.p.name || '').localeCompare(b.p.name || ''));
 
-  const chips = withCount.map(({ p, n }) => {
+  // Same design language as the Friendly bench: a caps group label per wait
+  // length (like the bench's RED/BLUE) over a rail of outlined player chips.
+  // withCount is sorted worst-wait first, so groups come out longest-first.
+  const groups = [];
+  for (const { p, n } of withCount) {
+    const g = groups[groups.length - 1];
+    if (g && g.n === n) g.players.push(p); else groups.push({ n, players: [p] });
+  }
+  const blocks = groups.map(({ n, players }) => {
     const level = restHeatLevel(n);
-    const cls = 'rest-chip' + (level ? ` heat-${level}` : '');
-    const label = `${n} round${n === 1 ? '' : 's'}`;
-    const title = `${p.name} hasn't played in ${n} round${n === 1 ? '' : 's'}`;
-    return `<div class="${cls}" title="${escHtml(title)}">${avatarHTML(p, 20)}` +
-           `<span>${escHtml(p.name)}</span><span class="rest-count">${label}</span></div>`;
+    const heat = level ? ` heat-${level}` : '';
+    const chips = players.map(p => {
+      const title = `${p.name} hasn't played in ${n} round${n === 1 ? '' : 's'}`;
+      return `<span class="frb-chip rest-chip${heat}" title="${escHtml(title)}">${avatarHTML(p, 22)} ${escHtml(p.name)}</span>`;
+    }).join('');
+    return `<div class="frb-side rest-side${heat}">${n} ROUND${n === 1 ? '' : 'S'}</div><div class="frb-rail">${chips}</div>`;
   }).join('');
 
   strip.innerHTML = `
     <div class="resting-strip">
       <div class="rest-head">
         <button type="button" class="rest-grip" title="Drag to move this panel &mdash; double-click to snap it back" aria-label="Move the resting panel (drag; double-click to snap back)"></button>
-        <strong>Resting this round:</strong>
+        <span class="frb-bench-hint">Resting this round &mdash; longest wait first.</span>
       </div>
-      <div class="resting-avatars">${chips}</div>
+      ${blocks}
     </div>
   `;
   initRestStripDrag();
