@@ -130,8 +130,11 @@ const check = (name, cond) => { if (!cond) failures.push(name); };
   const pickSrc = extractFn('pickPslot', html) || '';
   check('pickPslot routes through _onPick when set',
     pickSrc.includes('_onPick'));
-  check('pickPslot checks _onPick BEFORE the state.players validation',
-    pickSrc.indexOf('_onPick') > -1 && pickSrc.indexOf('_onPick') < pickSrc.indexOf('state.players'));
+  // The default commit (and its state.players validation) lives in
+  // commitPslotValue; the friendly path must divert to _onPick before it.
+  check('pickPslot checks _onPick BEFORE the default commit',
+    pickSrc.indexOf('_onPick') > -1 && pickSrc.indexOf('_onPick') < pickSrc.indexOf('commitPslotValue')
+    && (extractFn('commitPslotValue', html) || '').includes('state.players'));
   const closeSrc = extractFn('closePlayerPicker', html) || '';
   check('closePlayerPicker clears the custom commit callback',
     closeSrc.includes('_onPick = null'));

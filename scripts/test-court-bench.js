@@ -161,6 +161,22 @@ const court = (t1, t2) => ({ team1: t1, team2: t2 });
   check('wait-length group labels reuse the bench label class', benchSrc.includes('frb-side rest-side'));
   const pickerSrc = extractFn('openCourtSlotPicker', html) || '';
   check('slot tap opens the shared picker popover', pickerSrc.includes('openPslotAt'));
+  // Bench placement: beside the round list (sticky side panel), not the court cards.
+  const boardAt = html.indexOf('<div class="crt-board">');
+  check('bench board wraps the round list',
+    boardAt > -1 && html.indexOf('id="restingStrip"', boardAt) > -1
+    && html.indexOf('id="roundListWrap"', boardAt) > -1
+    && html.indexOf('id="roundListWrap"', boardAt) < html.indexOf('</div><!-- /courts tab -->'));
+  check('court cards grid is no longer inside the bench board',
+    html.indexOf('id="courtCtrlGrid"') < boardAt);
+  // Bench chips drop onto round/Up Next editor slots via the shared commit.
+  const pickSrc = extractFn('pickPslot', html) || '';
+  const commitSrc = extractFn('commitPslotValue', html) || '';
+  check('commitPslotValue sets the slot face in place',
+    commitSrc.includes('playerSlotFace') && commitSrc.includes('refreshCourtChip'));
+  check('popover pick routes through the shared commit', pickSrc.includes('commitPslotValue'));
+  check('.pslot slots accept bench-chip drops (delegated)',
+    /closest\('\.pslot'\)/.test(html) && html.split('commitPslotValue').length >= 4);
   const isEditingSrc = extractFn('isEditing', html) || '';
   check('isEditing() holds the poll while a bench chip is armed',
     isEditingSrc.includes('__crtSel'));
