@@ -25,7 +25,6 @@
   --pink:#d6519f;/* Girl toggle + mixed-doubles chip */
   /* ── design tokens ─── */
   --sp-xs:4px;--sp-sm:8px;--sp-md:16px;--sp-lg:24px;--sp-xl:32px;--sp-2xl:48px;
-  --rest-sticky-top:8px; /* JS overrides to clear the mobile admin header */
   --radius-sm:8px;--radius-md:12px;--radius-lg:18px;--radius-xl:24px;
   --shadow-sm:0 1px 2px rgba(0,0,0,.06);--shadow-md:0 4px 16px rgba(0,0,0,.08);--shadow-lg:0 12px 40px rgba(0,0,0,.12);
   --fs-xs:12px;--fs-sm:13px;--fs-base:14px;--fs-md:16px;--fs-lg:19px;--fs-xl:23px;--fs-2xl:32px;
@@ -255,30 +254,19 @@ body.in-3d #joinModal{z-index:1300}
 .pslot-empty-ic{display:inline-flex;color:var(--muted)}
 .pslot-empty-ic svg{width:20px;height:20px}
 
-/* ── RESTING ─────────────────────────────── */
-/* Sticky so it follows the admin while scrolling through court controls / rounds.
-   --rest-sticky-top is set from JS to clear the mobile admin header. */
-#restingStrip{position:sticky;top:var(--rest-sticky-top);z-index:9;margin-top:10px}
-#restingStrip:empty{display:none}
-#restingStrip.is-pinned .resting-strip{box-shadow:var(--shadow-md);border-color:var(--border2)}
-/* Same card + label + chip design as the Friendly bench (.frb-bench system):
-   the strip reuses .frb-bench-hint / .frb-side / .frb-rail / .frb-chip and
-   only layers the rest-specific bits (grip, heat ramp) on top. */
-.resting-strip{padding:11px 12px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);transition:box-shadow .18s ease,border-color .18s ease;cursor:grab;user-select:none;-webkit-user-select:none}
-/* Picked-up strip: fixed wherever the admin parked it (see initRestStripDrag) */
-#restingStrip.rest-floating{position:fixed;margin-top:0;z-index:320;width:max-content;max-width:min(92vw,720px)}
-#restingStrip.rest-floating .resting-strip{box-shadow:var(--shadow-md);border-color:var(--border2)}
-#restingStrip.rest-dragging .resting-strip{cursor:grabbing}
-.rest-head{display:flex;align-items:center;gap:6px;margin-bottom:9px}
-.rest-head .frb-bench-hint{margin-bottom:0}
-.rest-grip{width:22px;height:22px;flex:none;border-radius:6px;border:none;background:transparent;color:var(--muted);cursor:grab;touch-action:none;padding:0;display:grid;place-items:center}
-.rest-grip::before{content:"";width:11px;height:15px;background-image:radial-gradient(circle,currentColor 1.3px,transparent 1.4px);background-size:5.5px 5px}
-.rest-grip:hover,.rest-grip:focus-visible{color:var(--a-blue,#0071e3)}
-.rest-grip:focus-visible{outline:2px solid var(--a-blue,#0071e3);outline-offset:1px}
+/* ── RESTING BENCH (Courts tab board) ────── */
+/* Same board layout + design as the Friendly matchups tab: a sticky bench side
+   panel (.frb-bench reused directly) beside the editable court cards. */
+.crt-board{display:flex;gap:14px;align-items:flex-start;margin-top:10px}
+.crt-bench-panel{flex:none;width:232px;position:sticky;top:64px;align-self:flex-start;max-height:calc(100vh - 84px);overflow-y:auto}
+.crt-bench-panel:empty{display:none}
+.crt-board .court-ctrl-grid{flex:1;min-width:0;margin-top:0}
+@media(max-width:820px){
+  .crt-board{flex-direction:column}
+  .crt-bench-panel{width:auto;align-self:stretch;position:sticky;top:56px;z-index:6;max-height:40vh;background:var(--dark);border-radius:var(--radius-md)}
+}
 /* Bench-watch heat: the longer a player has sat out (2+ rounds), the redder.
-   Chips are .frb-chip; these classes only add the ramp + non-interactive cursor. */
-.rest-chip{cursor:default}
-.rest-chip:hover{transform:none}
+   Chips are .frb-chip; these classes only add the ramp on top. */
 .rest-side{color:var(--muted)}
 .rest-side.heat-1{color:#a3282c}
 .rest-side.heat-2{color:#8f1f24}
@@ -442,11 +430,16 @@ body.in-3d #joinModal{z-index:1300}
 
 /* ── COURTS CTRL ─────────────────────────── */
 .court-ctrl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-top:10px}
-.court-ctrl-card{background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.court-ctrl-card{background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.crt-head{display:flex;align-items:center;gap:8px}
+/* Court slots reuse the Friendly board's .frb-slot look; .crt-row is the same
+   two-slot grid minus the score column, with a neutral (non-team) tint. */
+.crt-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;align-items:center;padding:7px;border-radius:11px;background:var(--card2)}
+.crt-vs{text-align:center;font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--muted);margin:-2px 0}
 .cc-label{font-size:var(--fs-sm);color:var(--green-light);font-weight:600;white-space:nowrap}
 .cc-round{flex:1;text-align:center;font-size:var(--fs-base);font-weight:600;color:var(--text)}
 .cc-round small{display:block;font-size:var(--fs-xs);color:var(--muted);font-weight:400}
-.cc-ending{flex:1 0 100%;margin-top:2px;background:transparent;color:var(--warn);border:1px solid var(--warn);white-space:nowrap}
+.cc-ending{margin-top:2px;background:transparent;color:var(--warn);border:1px solid var(--warn);white-space:nowrap}
 .cc-ending:hover{background:rgba(205,125,44,.1)}
 .cc-ending.active{background:var(--warn);color:#fff;border-color:var(--warn)}
 .cc-ending.active:hover{background:#b86e22}
@@ -2179,12 +2172,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <button class="nav-btn" id="nextRoundBtn" onclick="stepAllCourts(1)">Next →</button>
     </div>
 
-    <!-- Per-court controls -->
+    <!-- Per-court controls: resting bench (left) + editable court cards (right),
+         same board layout + interactions as the Friendly matchups tab -->
     <div class="admin-subsection-label">Individual Court Control</div>
-    <div class="court-ctrl-grid" id="courtCtrlGrid"></div>
-
-    <!-- Resting players -->
-    <div id="restingStrip"></div>
+    <div class="crt-board">
+      <div class="crt-bench-panel" id="restingStrip"></div>
+      <div class="court-ctrl-grid" id="courtCtrlGrid"></div>
+    </div>
 
     <!-- Up Next controls -->
     <div class="admin-btn-row admin-mt">
@@ -2687,8 +2681,9 @@ function isEditing() {
   // A seed-row drag in progress counts as editing — a poll re-render would
   // destroy the DOM node being dragged mid-gesture.
   if (typeof __frSeedDrag !== 'undefined' && __frSeedDrag) return true;
-  // Same for a live "Resting this round" strip drag (see initRestStripDrag).
-  if (typeof __restDrag !== 'undefined' && __restDrag && __restDrag.moved) return true;
+  // An armed bench chip on the Courts board is a pick-in-progress — a poll
+  // state overwrite could yank the player out from under the pending slot tap.
+  if (typeof __crtSel !== 'undefined' && __crtSel.pid) return true;
   const el = document.activeElement;
   if (!el) return false;
   if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return true;
@@ -3953,19 +3948,38 @@ function renderCourtControls() {
   const numCourts = state.numCourts || 1;
   const courtRounds = getCourtRounds();
   const totalRounds = (state.rounds || []).length;
+  // Rebuilding the grid orphans a picker anchored on one of its slots — close
+  // it first (same guard renderFriendlyMatchups uses for .frb-slot anchors).
+  if (typeof _pslotBtn !== 'undefined' && _pslotBtn && _pslotBtn.classList?.contains('crt-slot')) closePlayerPicker();
+  // A player slot on the court card: filled slots drag + clear like the
+  // Friendly board's .frb-slot; any slot taps open the shared player picker.
+  const slot = (court, i, team, k) => {
+    const id = (court?.[team] || [])[k] || '';
+    const p = id ? playerById(id) : null;
+    const inner = p
+      ? `${avatarHTML(p, 26)}<span class="nm">${escHtml(p.name)}</span><span class="x" onclick="event.stopPropagation();crtClearSlot(${i},'${team}',${k})" aria-label="Remove">&#215;</span>`
+      : `<span class="nm">Add player</span>`;
+    const drag = p ? ` draggable="true" ondragstart="crtDragStart(event,'${id}')"` : '';
+    return `<div class="frb-slot crt-slot${p ? ' filled' : ''}"${drag} onclick="crtSlotTap(${i},'${team}',${k},this)" ondragover="frDragOver(event,this)" ondragleave="this.classList.remove('dragover')" ondrop="crtDrop(event,${i},'${team}',${k},this)">${inner}</div>`;
+  };
   grid.innerHTML = '';
   for (let i = 0; i < numCourts; i++) {
     const ri = courtRounds[i] ?? 0;
     const label = state.rounds?.[ri]?.label || `Round ${ri + 1}`;
-    const summary = roundCourtSummary(state.rounds?.[ri], i);
+    const court = state.rounds?.[ri]?.courts?.[i];
     const ending = !!state.endingSoon?.[i];
     const card = document.createElement('div');
     card.className = 'court-ctrl-card';
     card.innerHTML = `
-      <span class="cc-label">C${courtLabel(i)}</span>
-      <button class="btn btn-ghost btn-sm" onclick="advanceCourt(${i},-1)" ${ri <= 0 ? 'disabled' : ''}>←</button>
-      <div class="cc-round">${label}<small>${summary}</small></div>
-      <button class="btn btn-accent btn-sm" onclick="advanceCourt(${i},1)" ${ri >= totalRounds - 1 ? 'disabled' : ''}>→</button>
+      <div class="crt-head">
+        <span class="cc-label">C${courtLabel(i)}</span>
+        <button class="btn btn-ghost btn-sm" onclick="advanceCourt(${i},-1)" ${ri <= 0 ? 'disabled' : ''}>←</button>
+        <div class="cc-round">${label}</div>
+        <button class="btn btn-accent btn-sm" onclick="advanceCourt(${i},1)" ${ri >= totalRounds - 1 ? 'disabled' : ''}>→</button>
+      </div>
+      <div class="crt-row">${slot(court, i, 'team1', 0)}${slot(court, i, 'team1', 1)}</div>
+      <div class="crt-vs">VS</div>
+      <div class="crt-row">${slot(court, i, 'team2', 0)}${slot(court, i, 'team2', 1)}</div>
       <button class="btn btn-sm cc-ending${ending ? ' active' : ''}" onclick="toggleEndingSoon(${i})" aria-pressed="${ending}" title="${ending ? 'Remove the ending-soon flag from Court ' + courtLabel(i) : 'Tell viewers Court ' + courtLabel(i) + ' is ending soon'}">Ending Soon</button>
     `;
     grid.appendChild(card);
@@ -3995,15 +4009,6 @@ function renderCourtControls() {
   const nextUpToggle = document.getElementById('showNextUpToggle');
   if (nextUpToggle) nextUpToggle.checked = state.showNextUp !== false;
   renderNextUpEditor();
-}
-
-function roundCourtSummary(round, courtIdx) {
-  const court = round?.courts?.[courtIdx];
-  if (!court) return '—';
-  const ids = [court.team1?.[0], court.team1?.[1], court.team2?.[0], court.team2?.[1]];
-  if (ids.every(id => !id)) return 'Not assigned yet';
-  const n = id => playerById(id)?.name || '?';
-  return `${n(ids[0])} & ${n(ids[1])} vs ${n(ids[2])} & ${n(ids[3])}`;
 }
 
 // Pure: ensure every round carries a court slot for each active court. A
@@ -4087,7 +4092,6 @@ function renderRestingPlayers(courtRounds) {
   }
 
   const resting = (state.players || []).filter(p => !activePlayers.has(p.id));
-  if (!resting.length) { strip.innerHTML = ''; return; }
 
   // How many rounds each resting player has sat out in a row, measured up to the
   // furthest-progressed court. Resting this round guarantees ≥ 1; the redness
@@ -4098,9 +4102,9 @@ function renderRestingPlayers(courtRounds) {
     .map(p => ({ p, n: Math.max(1, streaks[p.id] || 0) }))
     .sort((a, b) => b.n - a.n || (a.p.name || '').localeCompare(b.p.name || ''));
 
-  // Same design language as the Friendly bench: a caps group label per wait
-  // length (like the bench's RED/BLUE) over a rail of outlined player chips.
-  // withCount is sorted worst-wait first, so groups come out longest-first.
+  // Same bench as the Friendly board (.frb-bench reused directly): a caps group
+  // label per wait length (like the bench's RED/BLUE) over rails of chips that
+  // tap-to-arm or drag onto a court slot. Dropping a playing player here rests them.
   const groups = [];
   for (const { p, n } of withCount) {
     const g = groups[groups.length - 1];
@@ -4111,127 +4115,164 @@ function renderRestingPlayers(courtRounds) {
     const heat = level ? ` heat-${level}` : '';
     const chips = players.map(p => {
       const title = `${p.name} hasn't played in ${n} round${n === 1 ? '' : 's'}`;
-      return `<span class="frb-chip rest-chip${heat}" title="${escHtml(title)}">${avatarHTML(p, 22)} ${escHtml(p.name)}</span>`;
+      return `<span class="frb-chip rest-chip${heat}${__crtSel.pid === p.id ? ' picked' : ''}" draggable="true" onclick="crtPickPlayer('${p.id}')" ondragstart="crtDragStart(event,'${p.id}')" title="${escHtml(title)}">${avatarHTML(p, 22)} ${escHtml(p.name)}</span>`;
     }).join('');
     return `<div class="frb-side rest-side${heat}">${n} ROUND${n === 1 ? '' : 'S'}</div><div class="frb-rail">${chips}</div>`;
   }).join('');
 
   strip.innerHTML = `
-    <div class="resting-strip">
-      <div class="rest-head">
-        <button type="button" class="rest-grip" title="Drag to move this panel &mdash; double-click to snap it back" aria-label="Move the resting panel (drag; double-click to snap back)"></button>
-        <span class="frb-bench-hint">Resting this round &mdash; longest wait first.</span>
-      </div>
-      ${blocks}
+    <div class="frb-bench" ondragover="frBenchDragOver(event,this)" ondragleave="this.classList.remove('frb-bench-drop')" ondrop="crtDropToBench(event,this)">
+      <div class="frb-bench-hint">Bench &mdash; tap a court slot to pick a player from a list, tap a player then a slot, or drag them across. Drag a player here to take them off a court.</div>
+      ${blocks || `<div class="frb-rail empty">Everyone's on a court.</div>`}
     </div>
   `;
-  initRestStripDrag();
-  syncRestSticky();
 }
 
-// Keep the sticky "Resting this round" strip clear of the mobile admin header,
-// and add a soft shadow once it's pinned so it reads as floating over content.
-let _restStickyObserver = null;
-function syncRestSticky() {
-  const strip = document.getElementById('restingStrip');
-  if (!strip || !strip.firstElementChild) return;
-  // Parked somewhere by a drag → fixed positioning owns it; no pin-observing.
-  if (applyRestFloat()) {
-    if (_restStickyObserver) _restStickyObserver.disconnect();
-    strip.classList.remove('is-pinned');
+// ── Courts board: bench ↔ court slot placement ─
+// Same interaction model as the Friendly matchups board, but the "teams" are
+// the current round each court is showing: edits write straight into
+// state.rounds[courtRounds[i]].courts[i] and persist via apiPost({ rounds }).
+let __crtSel = { pid: null }; // armed bench chip (ephemeral, per-device)
+
+// Pure: place `id` into court i's team/k slot inside a fresh rounds array.
+// The player is first cleared from every court's currently-shown round entry
+// AND from every court of the target round, so they can never be on two courts
+// at once (now or when another court later advances into the target round).
+// Unit tested in scripts/test-court-bench.js.
+function applyCourtPlacement(rounds, courtRounds, numCourts, courtIdx, team, k, id) {
+  const out = JSON.parse(JSON.stringify(rounds || []));
+  const ri = courtRounds[courtIdx] ?? 0;
+  if (!out[ri]) return null;
+  const wipe = (court) => {
+    if (!court) return;
+    ['team1', 'team2'].forEach(t => {
+      if (Array.isArray(court[t])) court[t] = court[t].map(x => x === id ? '' : x);
+    });
+  };
+  for (let j = 0; j < numCourts; j++) wipe(out[courtRounds[j] ?? 0]?.courts?.[j]);
+  (out[ri].courts || []).forEach(wipe);
+  if (!Array.isArray(out[ri].courts)) out[ri].courts = [];
+  while (out[ri].courts.length <= courtIdx) out[ri].courts.push({ team1: ['', ''], team2: ['', ''] });
+  const court = out[ri].courts[courtIdx];
+  if (!Array.isArray(court[team])) court[team] = ['', ''];
+  court[team][k] = id;
+  return out;
+}
+
+// Pure: clear `id` (or, with id='' + a slot, that one slot) from every court's
+// currently-shown round entry. Returns null when nothing changed.
+// Unit tested in scripts/test-court-bench.js.
+function applyCourtRemoval(rounds, courtRounds, numCourts, id) {
+  const out = JSON.parse(JSON.stringify(rounds || []));
+  let changed = false;
+  for (let j = 0; j < numCourts; j++) {
+    const court = out[courtRounds[j] ?? 0]?.courts?.[j];
+    if (!court) continue;
+    ['team1', 'team2'].forEach(t => {
+      if (Array.isArray(court[t])) court[t] = court[t].map(x => { if (x === id) { changed = true; return ''; } return x; });
+    });
+  }
+  return changed ? out : null;
+}
+
+async function commitCourtRounds(rounds) {
+  state.rounds = rounds;
+  renderCourtControls(); // re-renders the bench + Up Next too
+  renderRoundList();
+  renderViewer();
+  await apiPost({ rounds });
+}
+
+function placeCourtPlayer(courtIdx, team, k, id) {
+  const rounds = applyCourtPlacement(state.rounds, getCourtRounds(), state.numCourts || 1, courtIdx, team, k, id);
+  if (!rounds) return;
+  __crtSel.pid = null;
+  commitCourtRounds(rounds);
+}
+// Tap a bench chip: arm/disarm them for the next slot tap.
+function crtPickPlayer(id) {
+  __crtSel.pid = (__crtSel.pid === id ? null : id);
+  renderCourtControls();
+}
+// Tap a slot: place an armed bench player, otherwise open the same searchable
+// player picker the round / Up Next editors use.
+function crtSlotTap(i, team, k, el) {
+  if (__crtSel.pid) {
+    if ((state.players || []).some(p => p.id === __crtSel.pid)) placeCourtPlayer(i, team, k, __crtSel.pid);
+    else { __crtSel.pid = null; renderCourtControls(); }
     return;
   }
-  const hdr = document.querySelector('.admin-hdr');
-  const hdrH = (hdr && getComputedStyle(hdr).display !== 'none') ? hdr.offsetHeight : 0;
-  const top = hdrH + 8;
-  document.documentElement.style.setProperty('--rest-sticky-top', top + 'px');
-  if (_restStickyObserver) _restStickyObserver.disconnect();
-  _restStickyObserver = new IntersectionObserver(([e]) => {
-    strip.classList.toggle('is-pinned',
-      e.intersectionRatio < 1 && e.boundingClientRect.top <= top + 1);
-  }, { threshold: [1], rootMargin: `-${top + 1}px 0px 0px 0px` });
-  _restStickyObserver.observe(strip);
+  openCourtSlotPicker(el, i, team, k);
 }
-window.addEventListener('resize', syncRestSticky);
-
-// ── Resting strip: pick up & move ─────────────
-// The pinned strip can end up covering whatever the admin is editing (e.g. the
-// Up Next override), so it can be dragged anywhere and parked there — the spot
-// persists per device. Double-click (or double-tap the grip) docks it back into
-// the normal sticky flow. Mouse drags start anywhere on the strip; touch drags
-// start on the grip, whose touch-action:none stops the page scrolling instead.
-const REST_POS_KEY = 'restStripPos';
-let __restDrag = null;
-
-// Applies (and re-clamps) the saved parked position. Returns true when the
-// strip is floating. Position + classes live on the persistent #restingStrip
-// host, so a poll re-render of the chips inside can't knock the strip loose.
-function applyRestFloat() {
-  const host = document.getElementById('restingStrip');
-  if (!host || !host.firstElementChild) return false;
-  if (__restDrag && __restDrag.moved) return true; // mid-drag: hands off
-  let pos = null;
-  try { pos = JSON.parse(localStorage.getItem(REST_POS_KEY) || 'null'); } catch (_) {}
-  if (!pos || typeof pos.x !== 'number' || typeof pos.y !== 'number') {
-    host.classList.remove('rest-floating');
-    host.style.left = host.style.top = '';
-    return false;
+// Court slots reuse the shared picker popover, grouped like the round editor:
+// free / resting (with "Sat out N") / on another court (picking one moves them
+// here). "Leave this slot empty" clears the slot.
+function openCourtSlotPicker(el, i, team, k) {
+  if (!el) return;
+  const courtRounds = getCourtRounds();
+  const numCourts = state.numCourts || 1;
+  const ri = courtRounds[i] ?? 0;
+  const selectedId = state.rounds?.[ri]?.courts?.[i]?.[team]?.[k] || '';
+  const assigned = new Map(); // id -> court index currently showing them
+  for (let j = 0; j < numCourts; j++) {
+    const court = state.rounds?.[courtRounds[j] ?? 0]?.courts?.[j];
+    if (!court) continue;
+    ['team1', 'team2'].forEach(t => (court[t] || []).forEach((id, kk) => {
+      if (id && !(j === i && t === team && kk === k) && !assigned.has(id)) assigned.set(id, j);
+    }));
   }
-  host.classList.add('rest-floating');
-  const w = host.offsetWidth || 320, h = host.offsetHeight || 44;
-  host.style.left = Math.max(4, Math.min(pos.x, window.innerWidth - w - 4)) + 'px';
-  host.style.top = Math.max(4, Math.min(pos.y, window.innerHeight - h - 4)) + 'px';
-  return true;
-}
-
-function initRestStripDrag() {
-  const host = document.getElementById('restingStrip');
-  if (!host || host.dataset.dragWired) return;
-  host.dataset.dragWired = '1';
-  const endDrag = () => {
-    if (!__restDrag) return;
-    const moved = __restDrag.moved;
-    __restDrag = null;
-    host.classList.remove('rest-dragging');
-    if (moved) {
-      try {
-        localStorage.setItem(REST_POS_KEY, JSON.stringify({
-          x: parseFloat(host.style.left) || 0,
-          y: parseFloat(host.style.top) || 0
-        }));
-      } catch (_) {}
-      syncRestSticky();
-    }
+  const streaks = ri > 0 ? computeRestStreaks(state.rounds, state.players, ri - 1) : {};
+  const meta = buildMetaById();
+  const levelOf = id => {
+    const lv = meta[id]?.level;
+    return Number.isFinite(lv) ? lv.toFixed(1) : '';
   };
-  host.addEventListener('pointerdown', e => {
-    if (!e.target.closest('.resting-strip')) return;
-    if (e.button > 0) return;
-    if (e.pointerType !== 'mouse' && !e.target.closest('.rest-grip')) return;
-    const r = host.getBoundingClientRect();
-    __restDrag = { dx: e.clientX - r.left, dy: e.clientY - r.top, sx: e.clientX, sy: e.clientY, moved: false };
+  const free = [], resting = [], onCourt = [];
+  (state.players || []).forEach(p => {
+    if (!p || !p.id) return;
+    if (assigned.has(p.id)) { onCourt.push({ p, court: assigned.get(p.id) }); return; }
+    const n = streaks[p.id] || 0;
+    if (n >= 1 && p.id !== selectedId) resting.push({ p, n });
+    else free.push({ p, n });
   });
-  window.addEventListener('pointermove', e => {
-    if (!__restDrag) return;
-    if (!__restDrag.moved) {
-      // 5px dead zone so a plain click never counts as a drag.
-      if (Math.hypot(e.clientX - __restDrag.sx, e.clientY - __restDrag.sy) < 5) return;
-      __restDrag.moved = true;
-      host.classList.add('rest-floating', 'rest-dragging');
-      host.classList.remove('is-pinned');
-    }
-    const w = host.offsetWidth, h = host.offsetHeight;
-    host.style.left = Math.max(4, Math.min(e.clientX - __restDrag.dx, window.innerWidth - w - 4)) + 'px';
-    host.style.top = Math.max(4, Math.min(e.clientY - __restDrag.dy, window.innerHeight - h - 4)) + 'px';
-    e.preventDefault();
-  }, { passive: false });
-  window.addEventListener('pointerup', endDrag);
-  window.addEventListener('pointercancel', endDrag);
-  host.addEventListener('dblclick', e => {
-    if (!e.target.closest('.resting-strip')) return;
-    try { localStorage.removeItem(REST_POS_KEY); } catch (_) {}
-    applyRestFloat();
-    syncRestSticky();
+  free.sort((a, b) => {
+    if (a.p.id === selectedId) return -1;
+    if (b.p.id === selectedId) return 1;
+    return (a.p.name || '').localeCompare(b.p.name || '');
   });
+  resting.sort((a, b) => b.n - a.n || (a.p.name || '').localeCompare(b.p.name || ''));
+  onCourt.sort((a, b) => a.court - b.court || (a.p.name || '').localeCompare(b.p.name || ''));
+  openPslotAt(el, { free, resting, onCourt, selectedId, levelOf }, (state.players || []).length, id => {
+    if (!id) crtClearSlot(i, team, k);
+    else placeCourtPlayer(i, team, k, id);
+  });
+}
+function crtClearSlot(i, team, k) {
+  const rounds = JSON.parse(JSON.stringify(state.rounds || []));
+  const court = rounds[getCourtRounds()[i] ?? 0]?.courts?.[i];
+  if (!court || !Array.isArray(court[team])) return;
+  court[team][k] = '';
+  __crtSel.pid = null;
+  commitCourtRounds(rounds);
+}
+// Drag-and-drop (desktop pointer). Touch devices use tap-to-place above.
+function crtDragStart(e, id) {
+  try { e.dataTransfer.setData('text/plain', id); e.dataTransfer.effectAllowed = 'move'; } catch (_) {}
+}
+function crtDrop(e, i, team, k, el) {
+  e.preventDefault(); el.classList.remove('dragover');
+  const id = ((e.dataTransfer && e.dataTransfer.getData('text/plain')) || '').split('|')[0];
+  if (!id) return;
+  placeCourtPlayer(i, team, k, id);
+}
+// Drop a playing player onto the bench → rest them (blank their court slot).
+function crtDropToBench(e, el) {
+  e.preventDefault(); el.classList.remove('frb-bench-drop');
+  const id = ((e.dataTransfer && e.dataTransfer.getData('text/plain')) || '').split('|')[0];
+  if (!id) return;
+  __crtSel.pid = null;
+  const rounds = applyCourtRemoval(state.rounds, getCourtRounds(), state.numCourts || 1, id);
+  if (rounds) commitCourtRounds(rounds);
 }
 
 // ── QUICK ROUND NAV ───────────────────────────
