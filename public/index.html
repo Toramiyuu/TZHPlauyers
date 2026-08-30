@@ -262,7 +262,11 @@ body.in-3d #joinModal{z-index:1300}
 .crt-bench-panel:empty{display:none}
 .crt-main{flex:1;min-width:0}
 @media(max-width:820px){
-  .crt-board{flex-direction:column}
+  /* Stacked: align-items:stretch overrides the desktop flex-start, otherwise
+     .crt-main shrink-wraps to the round list's nowrap summaries (~3× viewport)
+     and the whole page overflows sideways on phones. */
+  .crt-board{flex-direction:column;align-items:stretch}
+  .crt-main{max-width:100%}
   .crt-bench-panel{width:auto;align-self:stretch;position:sticky;top:56px;z-index:6;max-height:40vh;background:var(--dark);border-radius:var(--radius-md)}
 }
 /* Bench-watch heat: the longer a player has sat out (2+ rounds), the redder.
@@ -1382,8 +1386,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .frb-side-panel{flex:none;width:232px;position:sticky;top:64px;align-self:flex-start;max-height:calc(100vh - 84px);overflow-y:auto}
 .frb-main{flex:1;min-width:0}
 @media(max-width:820px){
-  #frMatchups{flex-direction:column}
-  .frb-side-panel{width:auto;position:sticky;top:56px;z-index:6;max-height:40vh;background:var(--dark);border-radius:var(--radius-md)}
+  /* Stacked: stretch overrides the desktop flex-start alignment so neither
+     column shrink-wraps to its content width (page-overflow bug on phones). */
+  #frMatchups{flex-direction:column;align-items:stretch}
+  .frb-main{max-width:100%}
+  .frb-side-panel{width:auto;align-self:stretch;position:sticky;top:56px;z-index:6;max-height:40vh;background:var(--dark);border-radius:var(--radius-md)}
 }
 .frb-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .frb-bench{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);padding:11px 12px;margin-bottom:14px;transition:border-color .13s,background .13s}

@@ -180,6 +180,12 @@ const court = (t1, t2) => ({ team1: t1, team2: t2 });
   const isEditingSrc = extractFn('isEditing', html) || '';
   check('isEditing() holds the poll while a bench chip is armed',
     isEditingSrc.includes('__crtSel'));
+  // Mobile: the stacked board must stretch its columns — with the desktop
+  // align-items:flex-start inherited, .crt-main shrink-wraps to the round
+  // list's nowrap summaries and the whole page overflows sideways on phones.
+  check('mobile board stacks with stretched columns (no sideways overflow)',
+    /\.crt-board\{flex-direction:column;align-items:stretch\}/.test(html)
+    && /#frMatchups\{flex-direction:column;align-items:stretch\}/.test(html));
   // The old floating/parkable strip is fully removed.
   check('old strip drag machinery is gone',
     !html.includes('initRestStripDrag') && !html.includes('restStripPos') && !html.includes('rest-floating'));
