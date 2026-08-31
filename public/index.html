@@ -1065,8 +1065,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   .md-add-tubes,.md-add-phone,.draw-date-input,.draw-history-date-input{font-size:16px;min-height:44px}
   .md-undo-btn{min-height:44px}
 }
-/* Desktop multi-column helpers */
-@media(min-width:640px){
+/* Desktop multi-column helpers (641: must not co-match the 640 mobile block) */
+@media(min-width:641px){
   .admin-2col{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-md)}
   .admin-3col{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-md)}
 }
