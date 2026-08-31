@@ -267,7 +267,7 @@ body.in-3d #joinModal{z-index:1300}
      and the whole page overflows sideways on phones. */
   .crt-board{flex-direction:column;align-items:stretch}
   .crt-main{max-width:100%}
-  .crt-bench-panel{width:auto;align-self:stretch;position:sticky;top:56px;z-index:6;max-height:40vh;background:var(--dark);border-radius:var(--radius-md)}
+  .crt-bench-panel{width:auto;align-self:stretch;position:static;top:auto;z-index:auto;max-height:none;overflow-y:visible;background:transparent;border-radius:var(--radius-md)}
 }
 /* Bench-watch heat: the longer a player has sat out (2+ rounds), the redder.
    Chips are .frb-chip; these classes only add the ramp on top. */
@@ -1052,7 +1052,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
 /* Mobile bottom tab bar */
 @media(max-width:640px){
-  #admin{padding:16px 16px 76px !important}
+  #admin{padding:16px 16px calc(76px + env(safe-area-inset-bottom,0px)) !important}
   .admin-sidebar{display:none}
   .admin-main-hdr{display:none}
   .admin-hdr{display:flex;padding-top:var(--sp-sm)}
@@ -1390,7 +1390,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
      column shrink-wraps to its content width (page-overflow bug on phones). */
   #frMatchups{flex-direction:column;align-items:stretch}
   .frb-main{max-width:100%}
-  .frb-side-panel{width:auto;align-self:stretch;position:sticky;top:56px;z-index:6;max-height:40vh;background:var(--dark);border-radius:var(--radius-md)}
+  .frb-side-panel{width:auto;align-self:stretch;position:static;top:auto;z-index:auto;max-height:none;overflow-y:visible;background:transparent;border-radius:var(--radius-md)}
 }
 .frb-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .frb-bench{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);padding:11px 12px;margin-bottom:14px;transition:border-color .13s,background .13s}
