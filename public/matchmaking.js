@@ -241,6 +241,45 @@
     return pair.idx.reduce((s, i) => s + levels[i], 0);
   }
 
+  // ── Session pair history (repeat-matchup warnings) ──────────────
+  // How often each pair of players has been partners / opponents across a
+  // session's rounds. Keys are 'idA|idB' with the ids sorted, so lookups are
+  // order-independent.
+  function pairKey(a, b) {
+    return a < b ? a + '|' + b : b + '|' + a;
+  }
+  function pairCounts(rounds) {
+    const partner = {}, opponent = {};
+    const bump = (m, a, b) => { if (a && b && a !== b) m[pairKey(a, b)] = (m[pairKey(a, b)] || 0) + 1; };
+    (rounds || []).forEach(r => (r?.courts || []).forEach(ct => {
+      const t1 = ct?.team1 || [], t2 = ct?.team2 || [];
+      bump(partner, t1[0], t1[1]);
+      bump(partner, t2[0], t2[1]);
+      t1.forEach(a => t2.forEach(b => bump(opponent, a, b)));
+    }));
+    return { partner, opponent };
+  }
+  // Messages for one court whose pairs repeat more than `threshold` (default 3)
+  // times in the session, e.g. "Thomas has partnered Desmond 4 times".
+  function courtPairWarnings(court, counts, nameOf, threshold) {
+    const th = (typeof threshold === 'number') ? threshold : 3;
+    const out = [];
+    const seen = new Set();
+    const chk = (a, b, m, verb) => {
+      if (!a || !b || a === b) return;
+      const k = verb + ':' + pairKey(a, b);
+      if (seen.has(k)) return;
+      seen.add(k);
+      const n = m[pairKey(a, b)] || 0;
+      if (n > th) out.push(nameOf(a) + ' has ' + verb + ' ' + nameOf(b) + ' ' + n + ' times');
+    };
+    const t1 = court?.team1 || [], t2 = court?.team2 || [];
+    chk(t1[0], t1[1], counts.partner, 'partnered');
+    chk(t2[0], t2[1], counts.partner, 'partnered');
+    t1.forEach(a => t2.forEach(b => chk(a, b, counts.opponent, 'played against')));
+    return out;
+  }
+
   return {
     UNRATED,
     TOL,
@@ -249,5 +288,8 @@
     levelOf,
     courtBalanceInfo,
     smartSchedule,
+    pairKey,
+    pairCounts,
+    courtPairWarnings,
   };
 });

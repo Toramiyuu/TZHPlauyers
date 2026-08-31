@@ -180,12 +180,42 @@ const court = (t1, t2) => ({ team1: t1, team2: t2 });
   const isEditingSrc = extractFn('isEditing', html) || '';
   check('isEditing() holds the poll while a bench chip is armed',
     isEditingSrc.includes('__crtSel'));
-  // Mobile: the stacked board must stretch its columns — with the desktop
-  // align-items:flex-start inherited, .crt-main shrink-wraps to the round
-  // list's nowrap summaries and the whole page overflows sideways on phones.
-  check('mobile board stacks with stretched columns (no sideways overflow)',
-    /\.crt-board\{flex-direction:column;align-items:stretch\}/.test(html)
-    && /#frMatchups\{flex-direction:column;align-items:stretch\}/.test(html));
+  // The Courts board is stacked at every width (bench above the round list,
+  // no side column) and must stretch its columns — without align-items:stretch
+  // .crt-main shrink-wraps to the round list's nowrap summaries and the whole
+  // page overflows sideways.
+  check('board stacks with stretched columns (no sideways overflow)',
+    /\.crt-board\{display:flex;flex-direction:column;align-items:stretch/.test(html)
+    && /#frMatchups\{display:flex;flex-direction:column;align-items:stretch/.test(html));
+  check('bench side column is gone (no sticky 232px bench panel)',
+    !/\.crt-bench-panel\{[^}]*position:sticky/.test(html));
+  // Desktop: the bench docks under the sidebar nav (#benchDock); it returns
+  // inline to the board on mobile or when the sidebar collapses to the rail.
+  const sbAt = html.indexOf('id="adminSidebar"');
+  check('bench dock sits inside the sidebar below the nav',
+    sbAt > -1 && html.indexOf('id="benchDock"', sbAt) > -1
+    && html.indexOf('id="benchDock"', sbAt) < html.indexOf('class="asb-foot"', sbAt));
+  const placeSrc = extractFn('placeCourtsBench', html) || '';
+  check('placeCourtsBench docks on desktop, returns inline otherwise',
+    placeSrc.includes('benchDock') && placeSrc.includes('restingStrip')
+    && placeSrc.includes("collapsed") && placeSrc.includes('min-width:641px')
+    && placeSrc.includes('insertBefore'));
+  const setTabSrc = extractFn('setAdminTab', html) || '';
+  check('tab switches and sidebar toggle re-place the bench',
+    setTabSrc.includes('placeCourtsBench')
+    && (extractFn('toggleAdminSidebar', html) || '').includes('placeCourtsBench'));
+  check('collapsed rail hides the dock', html.includes('.admin-sidebar.collapsed #benchDock{display:none}'));
+  // Friendly bench: rendered into its own sidebar dock (innerHTML, not moved —
+  // the whole matchup board rebuilds on every interaction).
+  const frMatchupsSrc = extractFn('renderFriendlyMatchups', html) || '';
+  check('friendly bench renders into #frBenchDock on desktop, inline otherwise',
+    html.indexOf('id="frBenchDock"', sbAt) > -1
+    && html.indexOf('id="frBenchDock"', sbAt) < html.indexOf('class="asb-foot"', sbAt)
+    && frMatchupsSrc.includes('frBenchDock') && frMatchupsSrc.includes('min-width:641px')
+    && frMatchupsSrc.includes('collapsed')
+    && html.includes('.admin-sidebar.collapsed #frBenchDock{display:none}'));
+  check('friendly board no longer keeps a sticky side column',
+    !/\.frb-side-panel\{[^}]*position:sticky/.test(html));
   // The old floating/parkable strip is fully removed.
   check('old strip drag machinery is gone',
     !html.includes('initRestStripDrag') && !html.includes('restStripPos') && !html.includes('rest-floating'));
