@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-/* Tests for weekly-draw pure logic (public/weekly-draw.js).
- * Covers cutoff/draw instants (MYT), candidate seeding, eligibility (present&&paid),
- * deterministic winner selection, and live status transitions. */
+/* Tests for the surviving weekly-draw.js helpers (public/weekly-draw.js):
+ * ISO weekday / date maths in MYT, candidate seeding, eligibility (present&&paid),
+ * deterministic winner pick. (Schedule/draw functions retired in 2026-09.) */
 'use strict';
 const W = require('../public/weekly-draw.js');
 
@@ -13,31 +13,17 @@ check('weekday: 2026-07-20 is Monday(1)', W.isoWeekday('2026-07-20') === 1);
 check('weekday: 2026-07-22 is Wednesday(3)', W.isoWeekday('2026-07-22') === 3);
 check('weekday: 2026-07-24 is Friday(5)', W.isoWeekday('2026-07-24') === 5);
 check('weekday: 2026-07-26 is Sunday(0)', W.isoWeekday('2026-07-26') === 0);
+check('weekday: junk -> -1', W.isoWeekday('nope') === -1);
 
 // onOrAfterWeekday to Wednesday(3)
 check('Mon->Wed same week', W.onOrAfterWeekday('2026-07-20', 3) === '2026-07-22');
 check('Fri->next Wed', W.onOrAfterWeekday('2026-07-24', 3) === '2026-07-29');
 check('Sun->next Wed', W.onOrAfterWeekday('2026-07-26', 3) === '2026-07-29');
+check('addDaysISO across month end', W.addDaysISO('2026-07-30', 3) === '2026-08-02');
 
-// MYT instant: Wed 20:00 MYT for 2026-07-22 == 2026-07-22T12:00:00Z
-const drawMs = W.drawsAt('2026-07-20', W.DEFAULT_SETTINGS);
-check('drawsAt Monday session = Wed 22 20:00 MYT (=12:00 UTC)',
-  new Date(drawMs).toISOString() === '2026-07-22T12:00:00.000Z');
-const closeMs = W.closesAt('2026-07-20', W.DEFAULT_SETTINGS);
-check('closesAt Monday session = Wed 22 17:00 MYT (=09:00 UTC)',
-  new Date(closeMs).toISOString() === '2026-07-22T09:00:00.000Z');
-
-// isDrawable / entriesOpen around the boundary
-check('not drawable before draw time', W.isDrawable('2026-07-20', W.DEFAULT_SETTINGS, drawMs - 1) === false);
-check('drawable at draw time', W.isDrawable('2026-07-20', W.DEFAULT_SETTINGS, drawMs) === true);
-check('entries open before cutoff', W.entriesOpen('2026-07-20', W.DEFAULT_SETTINGS, closeMs - 1) === true);
-check('entries closed at cutoff', W.entriesOpen('2026-07-20', W.DEFAULT_SETTINGS, closeMs) === false);
-
-// live status transitions
-check('status open before cutoff', W.liveStatus('2026-07-20', W.DEFAULT_SETTINGS, closeMs - 1000, false).code === 'open');
-check('status closed between cutoff and draw', W.liveStatus('2026-07-20', W.DEFAULT_SETTINGS, closeMs + 1000, false).code === 'closed');
-check('status due after draw time (not drawn)', W.liveStatus('2026-07-20', W.DEFAULT_SETTINGS, drawMs + 1000, false).code === 'due');
-check('status drawn when winner exists', W.liveStatus('2026-07-20', W.DEFAULT_SETTINGS, drawMs + 1000, true).code === 'drawn');
+// MYT instant: 20:00 MYT on 2026-07-22 == 2026-07-22T12:00:00Z
+check('mytInstant 20:00 MYT = 12:00 UTC', new Date(W.mytInstant('2026-07-22', '20:00')).toISOString() === '2026-07-22T12:00:00.000Z');
+check('mytInstant junk date -> NaN (no throw)', Number.isNaN(W.mytInstant('nope', '20:00')));
 
 // candidate list: session players first, then regulars, deduped
 const roster = [
@@ -73,17 +59,9 @@ check('pickWinner rng=0 -> first', W.pickWinner(many, rngFirst).playerId === 'a'
 check('pickWinner rng~1 -> last', W.pickWinner(many, rngLast).playerId === 'c');
 check('pickWinner empty -> null', W.pickWinner([], rngFirst) === null);
 
-// buildDrawResult
-const res = W.buildDrawResult('2026-07-20', 1, entries, rngFirst, 'cron', 1700000000000);
-check('buildDrawResult ok with a winner', res.ok === true && res.winner.playerId === 'p6');
-check('buildDrawResult eligibleCount', res.eligibleCount === 1);
-check('buildDrawResult drawnBy', res.drawnBy === 'cron');
-const resEmpty = W.buildDrawResult('2026-07-20', 1, {}, rngFirst, 'cron', 1700000000000);
-check('buildDrawResult empty -> ok:false, winner null', resEmpty.ok === false && resEmpty.winner === null);
-
 // tolerant of junk
-check('closesAt junk date -> NaN (no throw)', Number.isNaN(W.closesAt('nope', W.DEFAULT_SETTINGS)));
 check('candidateList null inputs -> [] (no throw)', W.candidateList(null, 1, null, null).length === 0);
+check('retired schedule exports are gone', W.drawsAt === undefined && W.closesAt === undefined && W.liveStatus === undefined && W.buildDrawResult === undefined);
 
 console.log(`\nweekly-draw.js: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

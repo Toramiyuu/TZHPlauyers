@@ -1,17 +1,10 @@
 /*
- * weekly-draw.js — pure logic for the Weekly Lucky Draw.
- * Loaded in the browser via <script src> (window.WeeklyDraw) and required by Node tests.
- * No dependencies, no build step. Pure — the clock (nowMs) and randomness (rng) are
- * ALWAYS injected so every function is deterministic under test.
- *
- * Model: each session day (Mon/Fri/Sun) has its own attendance record. A player is
- * ELIGIBLE for that day's draw when Present AND Paid. Entries for a session close at
- * the next configured cutoff (default Wed 17:00 MYT) and the winner is drawn at the
- * next configured draw time (default Wed 20:00 MYT). Each session day draws its own
- * single winner and keeps its own history.
- *
- * Timezone: instants are computed in Malaysia time (UTC+8, no DST) via an injected
- * offsetHours (default 8) so this matches the server's TZ_OFFSET_HOURS.
+ * weekly-draw.js — small pure helpers shared by the attendance records + Monthly
+ * eligibility: ISO date maths in Malaysia time, the per-night candidate list, and
+ * present&&paid eligibility. (The Weekly Lucky Draw schedule/draw functions that
+ * used to live here were retired in 2026-09 — see public/session-draw.js.)
+ * Loaded in the browser via <script src> (window.WeeklyDraw) and required by Node.
+ * No dependencies, no build step, no clock: everything is injected.
  */
 (function (root, factory) {
   const api = factory();
@@ -51,59 +44,6 @@
     const hh = Number(parts[0]) || 0, mm = Number(parts[1]) || 0;
     const off = offsetHours == null ? DEFAULT_OFFSET_HOURS : Number(offsetHours);
     return Date.UTC(+m[1], +m[2] - 1, +m[3], hh, mm) - off * 3600 * 1000;
-  }
-
-  const DEFAULT_SETTINGS = {
-    enabled: true,
-    cutoff: { weekday: 3, time: '17:00' }, // Wed 17:00 MYT
-    draw: { weekday: 3, time: '20:00' },   // Wed 20:00 MYT
-  };
-
-  function settingsOf(settings) {
-    const s = settings && typeof settings === 'object' ? settings : {};
-    const cutoff = s.cutoff && typeof s.cutoff === 'object' ? s.cutoff : DEFAULT_SETTINGS.cutoff;
-    const draw = s.draw && typeof s.draw === 'object' ? s.draw : DEFAULT_SETTINGS.draw;
-    return {
-      enabled: s.enabled !== false,
-      cutoff: { weekday: cutoff.weekday == null ? 3 : Number(cutoff.weekday), time: cutoff.time || '17:00' },
-      draw: { weekday: draw.weekday == null ? 3 : Number(draw.weekday), time: draw.time || '20:00' },
-    };
-  }
-
-  /** ms instant when entries for a `date` session close. */
-  function closesAt(date, settings, offsetHours) {
-    const s = settingsOf(settings);
-    return mytInstant(onOrAfterWeekday(date, s.cutoff.weekday), s.cutoff.time, offsetHours);
-  }
-  /** ms instant when a `date` session is auto-drawn. */
-  function drawsAt(date, settings, offsetHours) {
-    const s = settingsOf(settings);
-    return mytInstant(onOrAfterWeekday(date, s.draw.weekday), s.draw.time, offsetHours);
-  }
-  /** True once the auto-draw time for `date` has arrived. */
-  function isDrawable(date, settings, nowMs, offsetHours) {
-    return Number(nowMs) >= drawsAt(date, settings, offsetHours);
-  }
-  /** True while entries can still be edited (before the cutoff). */
-  function entriesOpen(date, settings, nowMs, offsetHours) {
-    return Number(nowMs) < closesAt(date, settings, offsetHours);
-  }
-
-  /**
-   * Live status for the schedule panel. `drawn` = a winner already exists.
-   * Returns { code, label, closesAt, drawsAt }. Countdown text is formatted by
-   * the caller from the returned instants.
-   */
-  function liveStatus(date, settings, nowMs, drawn, offsetHours) {
-    const c = closesAt(date, settings, offsetHours);
-    const d = drawsAt(date, settings, offsetHours);
-    const now = Number(nowMs);
-    let code, label;
-    if (drawn) { code = 'drawn'; label = 'Draw completed'; }
-    else if (now >= d) { code = 'due'; label = 'Automatic draw pending'; }
-    else if (now >= c) { code = 'closed'; label = 'Entries closed — drawing tonight'; }
-    else { code = 'open'; label = 'Entries open'; }
-    return { code, label, closesAt: c, drawsAt: d };
   }
 
   /**
@@ -158,30 +98,8 @@
     return list[i];
   }
 
-  /**
-   * Build a full draw-result record for `date`. Pure: rng + nowMs injected.
-   * `by` = 'cron' | 'admin'. Returns null (with a marker) when there are no
-   * eligible entries so the caller can record a "failed"/empty draw.
-   */
-  function buildDrawResult(date, weekday, entries, rng, by, nowMs) {
-    const eligible = eligibleFromAttendance(entries);
-    const winner = pickWinner(eligible, rng);
-    return {
-      date,
-      weekday,
-      eligible,
-      eligibleCount: eligible.length,
-      winner: winner || null,
-      drawnAt: Number(nowMs) || 0,
-      drawnBy: by || 'admin',
-      ok: !!winner,
-    };
-  }
-
   return {
-    DEFAULT_SETTINGS, settingsOf,
     isoWeekday, addDaysISO, onOrAfterWeekday, mytInstant,
-    closesAt, drawsAt, isDrawable, entriesOpen, liveStatus,
-    candidateList, ineligibleReason, eligibleFromAttendance, pickWinner, buildDrawResult,
+    candidateList, ineligibleReason, eligibleFromAttendance, pickWinner,
   };
 });

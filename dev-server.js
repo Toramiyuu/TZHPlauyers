@@ -14,14 +14,26 @@ const path = require('path');
 
 // ── In-memory Upstash stub, injected before api/state.js is required ─────────
 let STORE = null;
+const HASHES = new Map(); // key -> Map(field -> string)  (the `court-draws` results hash)
 require.cache[require.resolve('@upstash/redis')] = {
   id: require.resolve('@upstash/redis'), loaded: true, exports: {
-    Redis: class { async get() { return STORE; } async set(_k, v) { STORE = v; return 'OK'; } },
+    Redis: class {
+      async get() { return STORE; }
+      async set(_k, v) { STORE = v; return 'OK'; }
+      async hget(k, f) { const h = HASHES.get(k); return h && h.has(f) ? h.get(f) : null; }
+      async hgetall(k) { const h = HASHES.get(k); if (!h || !h.size) return null; return Object.fromEntries(h); }
+      async hsetnx(k, f, v) { let h = HASHES.get(k); if (!h) { h = new Map(); HASHES.set(k, h); } if (h.has(f)) return 0; h.set(f, String(v)); return 1; }
+    },
   },
 };
 process.env.KV_REST_API_URL = 'http://local-stub';
 process.env.KV_REST_API_TOKEN = 'local-stub';
+// Let the demo seed pre-date the real feature epoch so past nights get drawn locally.
+process.env.DRAW_EPOCH = '2026-08-01';
 const apiHandler = require('./api/state.js');
+const drawsHandler = require('./api/draws.js');
+const cronDrawHandler = require('./api/cron-session-draw.js');
+const SD = require('./public/session-draw.js');
 
 // ── Seed demo state (incl. weekly regulars) so the feature is visible ────────
 function iso(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
@@ -45,6 +57,7 @@ STORE = {
   endingSoon: [],
   sessionDate: todayIso,
   sessions: {},
+  feeTier: '3h',
   // Weekly regulars: today's weekday has 3 (Harvey among them) so the Session
   // tab shows the "Add regulars" prompt on load; two other days are populated
   // so the editor's day badges look realistic.
@@ -62,7 +75,39 @@ STORE = {
   ],
   signups: [],
   accounts: [],
+  drawSettings: { winners: 2 },
+  sessionDrawAt: SD.scheduledDrawAt(todayIso),
 };
+
+// ── Seed the last three draw-day nights so the Lucky Draw page has content ──
+// Most recent (still pending) and older ones (due -> auto-drawn on first view).
+// Each night: ~14 players; most paid the same night (eligible), one paid AFTER
+// the draw time (late, not eligible), one unpaid.
+(function seedDrawNights() {
+  const nights = [];
+  for (let back = 1; back <= 21 && nights.length < 3; back++) {
+    const d = new Date(today); d.setDate(d.getDate() - back);
+    const isoD = iso(d);
+    if (SD.isDrawDay(isoD)) nights.push(isoD);
+  }
+  STORE.attendance = {};
+  nights.forEach((date, ni) => {
+    const start = (ni * 5) % 30;
+    const players = STORE.roster.slice(start, start + 14).map((r) => ({ id: r.id, name: r.name }));
+    STORE.sessions[date] = { players, rounds: [], numCourts: 2, courtNumbers: [1, 2], courtRounds: [], feeTier: '3h', drawAt: SD.scheduledDrawAt(date) };
+    const drawAt = SD.scheduledDrawAt(date);
+    const paidSameNight = SD.mytInstant(date, '22:30');
+    const entries = {};
+    players.forEach((p, i) => {
+      const paid = i !== 0;                                     // player 0 never pays
+      const paidAt = !paid ? null : (i === 1 ? drawAt + 2 * 3600 * 1000 : paidSameNight + i * 60000); // player 1 pays late
+      entries[p.id] = { playerId: p.id, name: p.name, present: true, paid, source: 'session',
+        payment: { fee: 25, tier: '3h', method: paid ? (i % 2 ? 'cash' : 'tng') : null, paidAt, markedBy: paid ? 'admin' : null, feeOverridden: false, createdAt: paidSameNight, updatedAt: paidSameNight } };
+    });
+    STORE.attendance[date] = { date, weekday: SD.isoWeekday(date), updatedAt: paidSameNight, entries, payments: { tier: '3h', generatedAt: paidSameNight, generatedBy: 'admin' } };
+  });
+  STORE.__seededDrawNights = nights;
+})();
 
 // ── Adapt Node's req/res to the Vercel-style handler contract ────────────────
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.webp': 'image/webp', '.woff2': 'font/woff2' };
@@ -80,8 +125,26 @@ function serveStatic(req, res) {
   });
 }
 
+function shimRes(res) {
+  return {
+    setHeader: (k, v) => res.setHeader(k, v),
+    status(code) { res.statusCode = code; return this; },
+    json(obj) { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(obj)); return this; },
+    end() { res.end(); return this; },
+  };
+}
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
+  if (url.pathname === '/api/draws') {
+    const query = Object.fromEntries(url.searchParams.entries());
+    drawsHandler({ method: req.method, query, headers: req.headers, body: {} }, shimRes(res));
+    return;
+  }
+  if (url.pathname === '/api/cron-session-draw') {
+    cronDrawHandler({ method: req.method, query: {}, headers: req.headers, body: {} }, shimRes(res));
+    return;
+  }
   if (url.pathname === '/api/state') {
     const query = Object.fromEntries(url.searchParams.entries());
     let raw = '';
@@ -108,5 +171,6 @@ server.listen(PORT, () => {
   console.log(`\n  TZH dev preview running (in-memory, Node-26 safe)\n`);
   console.log(`  Viewer:  http://localhost:${PORT}/`);
   console.log(`  Admin:   http://localhost:${PORT}/?admin   (password: TZH123)\n`);
-  console.log(`  Seeded: session date ${todayIso}; today's regulars = Harvey, Sharmin, Kokyan (Alex already in).\n`);
+  console.log(`  Seeded: session date ${todayIso}; today's regulars = Harvey, Sharmin, Kokyan (Alex already in).`);
+  console.log(`  Lucky Draw nights seeded: ${STORE.__seededDrawNights.join(', ')}  ->  http://localhost:${PORT}/#draw\n`);
 });

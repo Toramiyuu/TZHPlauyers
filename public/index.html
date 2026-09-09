@@ -67,9 +67,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .vh-right{display:flex;align-items:center;gap:clamp(10px,1.2vw,16px);flex-wrap:wrap;justify-content:flex-end}
 .vh-live{display:inline-flex;align-items:center;gap:7px;font-size:clamp(12px,1.3vw,14px);font-weight:500;color:var(--a-ink-2)}
 .vh-nav{display:flex;gap:8px;flex-wrap:wrap}
-.vh-nav #membersBtn,.vh-nav #lbBtn,.vh-nav #mdBoardBtn,.vh-nav #viewerJoinBtn,.vh-nav #td3Btn{font-family:var(--font-apple);font-size:14px;font-weight:500;letter-spacing:-.01em;text-transform:none;padding:8px 16px;border-radius:980px;border:none;background:var(--a-card-2);color:var(--a-ink);cursor:pointer;transition:background .2s ease;display:inline-flex;align-items:center;gap:7px;min-height:36px;text-decoration:none}
-.vh-nav #membersBtn:hover,.vh-nav #lbBtn:hover,.vh-nav #mdBoardBtn:hover,.vh-nav #viewerJoinBtn:hover,.vh-nav #td3Btn:hover{background:#ececee;color:var(--a-ink)}
-.vh-nav #membersBtn .ic,.vh-nav #lbBtn .ic,.vh-nav #mdBoardBtn .ic,.vh-nav #viewerJoinBtn .ic,.vh-nav #td3Btn .ic{width:15px;height:15px;color:var(--a-ink-2)}
+.vh-nav #membersBtn,.vh-nav #lbBtn,.vh-nav #mdBoardBtn,.vh-nav #viewerJoinBtn,.vh-nav #td3Btn,.vh-nav #drawBtn{font-family:var(--font-apple);font-size:14px;font-weight:500;letter-spacing:-.01em;text-transform:none;padding:8px 16px;border-radius:980px;border:none;background:var(--a-card-2);color:var(--a-ink);cursor:pointer;transition:background .2s ease;display:inline-flex;align-items:center;gap:7px;min-height:36px;text-decoration:none}
+.vh-nav #membersBtn:hover,.vh-nav #lbBtn:hover,.vh-nav #mdBoardBtn:hover,.vh-nav #viewerJoinBtn:hover,.vh-nav #td3Btn:hover,.vh-nav #drawBtn:hover{background:#ececee;color:var(--a-ink)}
+.vh-nav #membersBtn .ic,.vh-nav #lbBtn .ic,.vh-nav #mdBoardBtn .ic,.vh-nav #viewerJoinBtn .ic,.vh-nav #td3Btn .ic,.vh-nav #drawBtn .ic{width:15px;height:15px;color:var(--a-ink-2)}
 /* 3D arena overlay — full-screen iframe host, toggled by enter3D()/exit3D() */
 #arena3d{position:fixed;inset:0;z-index:1200;background:#eef4fd;display:none}
 #arena3d.open{display:block}
@@ -967,6 +967,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 /* Nav badges */
 .nav-badge{flex-shrink:0;font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--muted)}
 .admin-nav-item.active .nav-badge{color:var(--green-light)}
+/* Count pills keep white text on their blue fill when the item is active (was blue-on-blue) */
+.admin-nav-item.active .nav-badge.accent{color:#fff}
 .nav-badge.accent{min-width:18px;height:18px;padding:0 6px;border-radius:100px;background:var(--a-blue);color:#fff;display:inline-flex;align-items:center;justify-content:center}
 
 /* Sidebar footer */
@@ -1055,6 +1057,208 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .site-code-value{font-size:32px;font-family:monospace;font-weight:700;color:var(--green-light);letter-spacing:8px;background:var(--dark);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 24px;display:inline-block}
 .site-code-none{font-size:var(--fs-base);color:var(--muted)}
 
+/* ── PAYMENTS (per-player session fees) ─────────────────────────── */
+/* Courts footer: "+ Add Round Manually" left, "End of the day" bottom-right */
+.crt-foot{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-sm);flex-wrap:wrap}
+.crt-foot-end{display:flex;flex-direction:column;align-items:flex-end;gap:4px;margin-left:auto}
+.crt-foot-status{background:none;border:none;padding:0;font-family:inherit;font-size:var(--fs-xs);color:var(--muted);white-space:nowrap;cursor:pointer}
+.crt-foot-status:hover{color:var(--green-light)}
+.crt-foot-status.done{color:var(--green-light)}
+/* Ink-dark CTA — distinct from the blue primary, still Apple-minimal */
+.btn-eod{background:var(--text);color:#fff;box-shadow:var(--shadow-sm)}
+.btn-eod:hover{background:var(--text-2)}
+.btn-eod:active{background:var(--text)}
+.btn-eod:disabled{opacity:.5;cursor:not-allowed}
+/* Session fee tier segmented control (Session card + End of the day modal); .pm-tier-seg = per-row editor */
+.fee-row{display:flex;align-items:center;gap:var(--sp-sm);flex-wrap:wrap;margin-top:var(--sp-md);padding-top:var(--sp-md);border-top:1px solid var(--border)}
+.fee-hint{flex-basis:100%;margin:0}
+.fee-seg .rl-seg-btn,.pm-tier-seg .rl-seg-btn{min-height:36px;padding:6px 14px;font-size:var(--fs-sm)}
+.fee-seg .rl-seg-btn.on,.pm-tier-seg .rl-seg-btn.on{color:var(--green-light)}
+/* End of the day modal */
+.eod-tier{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-sm);flex-wrap:wrap;margin:var(--sp-md) 0}
+.eod-warn{background:rgba(205,125,44,.12);border:1px solid rgba(205,125,44,.35);color:var(--warn);border-radius:var(--radius-sm);padding:9px 12px;font-size:var(--fs-sm);margin-bottom:var(--sp-sm)}
+.eod-result{font-size:var(--fs-md);font-weight:600;color:var(--text);margin:0 0 var(--sp-xs)}
+.eod-result-sub{font-size:var(--fs-sm);color:var(--muted)}
+/* Payments tab — mobile-first list */
+.pm-wrap{width:100%}
+.pm-cal-nav{margin:2px 0 10px}
+.pm-cal-month{font-size:var(--fs-lg)}
+.pm-cal-wrap{margin:0;padding:0 0 4px}
+.cal-strip-btn.s-sess:not(.s-sel):not(.s-has) .cal-strip-dot{background:var(--border2)}
+.pm-date-line{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0 var(--sp-md);font-size:var(--fs-sm);font-weight:600;color:var(--text)}
+.pm-save-state{font-size:var(--fs-xs);font-weight:600;color:var(--muted);opacity:0;transition:opacity .2s ease}
+.pm-save-state.show{opacity:1}
+.pm-save-state.ok{color:var(--green-light)}
+.pm-save-state.err{color:var(--red)}
+.pm-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--sp-sm);margin-bottom:var(--sp-md)}
+.pm-stat{min-width:0;padding:10px 6px}
+.pm-stat b{font-size:20px}
+.pm-stat span{white-space:nowrap}
+.pm-stat{cursor:pointer;font-family:inherit;transition:var(--transition);text-align:center}
+.pm-stat:hover{border-color:var(--green-line)}
+.pm-stat.active{border-color:var(--green);box-shadow:0 0 0 2px var(--green-tint)}
+.pm-stat b{line-height:1.1}
+.pm-of{display:block;font-size:var(--fs-xs);font-weight:600;color:var(--muted);margin-top:2px}
+.pm-progress{width:100%;height:4px;border-radius:2px;background:var(--border);margin-top:6px;overflow:hidden}
+.pm-progress i{display:block;height:100%;background:var(--green);border-radius:2px}
+.pm-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:var(--sp-sm)}
+.pm-filter-sel{max-width:220px}
+/* Payments popup: reuses #membersModal's overlay + box; content is one-hue bars + name lists */
+#pmModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:350;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+#pmModal.open{display:flex}
+.pm-modal-box{max-width:720px}
+.pm-hero{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:18px 16px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:18px}
+.pm-hero-big{font-family:var(--font-apple);font-size:clamp(34px,6vw,46px);font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--text)}
+.pm-hero-big.owe{color:var(--red)}
+.pm-hero-sub{font-size:var(--fs-sm);color:var(--muted);font-weight:500}
+.pm-hero .pm-progress{max-width:320px;height:6px;margin-top:10px}
+.pm-sec{margin-bottom:18px}
+.pm-sec-hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:var(--fs-xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.pm-sec-hd b{color:var(--text);letter-spacing:0;text-transform:none;font-size:var(--fs-sm)}
+.pm-bar-row{display:grid;grid-template-columns:84px 1fr auto;align-items:center;gap:12px;padding:7px 0}
+.pm-bar-lbl{font-size:var(--fs-base);font-weight:600;color:var(--text)}
+.pm-bar-track{height:10px;border-radius:2px 4px 4px 2px;background:var(--card2);overflow:hidden}
+.pm-bar-fill{display:block;height:100%;background:var(--green);border-radius:0 4px 4px 0;min-width:2px;transition:width .25s ease}
+.pm-bar-fill.zero{min-width:0}
+.pm-bar-val{font-size:var(--fs-sm);font-weight:600;color:var(--text-2);white-space:nowrap}
+.pm-mgroup{border:1px solid var(--border);border-radius:var(--radius-md);background:var(--card);padding:10px 14px;margin-bottom:8px}
+.pm-mgroup-hd{display:flex;justify-content:space-between;align-items:baseline;font-size:var(--fs-base);font-weight:700;color:var(--text);margin-bottom:4px}
+.pm-mgroup-hd span{font-size:var(--fs-sm);font-weight:600;color:var(--muted)}
+.pm-mgroup-names{font-size:var(--fs-sm);color:var(--text-2);line-height:1.6}
+.pm-owe-list{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+.pm-owe-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 14px;font-size:var(--fs-base);font-weight:600}
+.pm-owe-row+.pm-owe-row{border-top:1px solid var(--border)}
+.pm-owe-row .nm{color:var(--red)}
+.pm-owe-row .amt{color:var(--red);font-size:var(--fs-sm)}
+.pm-modal-empty{text-align:center;color:var(--muted);font-size:var(--fs-sm);padding:14px}
+.pm-owing{font-size:var(--fs-sm);line-height:1.6;color:var(--red);font-weight:600}
+.pm-name.owing{color:var(--red)}
+/* By night / By member view toggle (same segmented control as the 2h/3h and Grid/List pickers) */
+.pm-view-seg{display:inline-flex;margin:0 0 var(--sp-md)}
+.pm-view-seg .rl-seg-btn{min-height:36px;padding:6px 18px;font-size:var(--fs-sm)}
+.pm-view-seg .rl-seg-btn.on{color:var(--green-light)}
+/* Member ledger: one tappable row per player, owing first, red balance until settled */
+.pm-mem-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+.pm-mem-toolbar{flex-wrap:wrap}
+.pm-mem-search{flex:1;min-width:160px;max-width:320px}
+.pm-mem-list{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--card)}
+.pm-mem-row{display:grid;grid-template-columns:minmax(0,1fr) auto 16px;align-items:center;column-gap:12px;width:100%;min-height:56px;padding:10px 12px;background:none;border:none;border-radius:0;text-align:left;font-family:inherit;color:var(--text);cursor:pointer;transition:var(--transition)}
+.pm-mem-row+.pm-mem-row{border-top:1px solid var(--border)}
+.pm-mem-row:hover{background:var(--card2)}
+.pm-mem-main{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pm-mem-sub{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pm-mem-amt{font-size:var(--fs-sm);font-weight:600;color:var(--muted);white-space:nowrap}
+.pm-mem-amt.owe{color:var(--red)}
+.pm-mem-chev{display:flex;color:var(--muted)}
+.pm-mem-chev .ic{width:16px;height:16px}
+/* Member popup: points + outstanding side by side, then the night-by-night breakdown */
+.pm-modal-save{display:block;text-align:center;margin:-16px 0 12px;min-height:16px}
+.pm-mem-hero{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-sm);margin-bottom:18px}
+.pm-mem-stat{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;padding:16px 12px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md)}
+.pm-mem-stat b{font-family:var(--font-apple);font-size:clamp(26px,4.5vw,36px);font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--text)}
+.pm-mem-stat span{font-size:var(--fs-xs);color:var(--muted);font-weight:600}
+.pm-mem-stat.owe b{color:var(--red)}
+.pm-mem-sess-list{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--card)}
+.pm-mem-sess{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;column-gap:12px;padding:10px 12px}
+.pm-mem-sess+.pm-mem-sess{border-top:1px solid var(--border)}
+.pm-mem-sess.paid{background:rgba(0,113,227,.04)}
+.pm-mem-sess-main{min-width:0}
+.pm-mem-sess-date{font-weight:600;color:var(--text);font-size:var(--fs-base)}
+.pm-mem-sess-sub{font-size:var(--fs-xs);color:var(--muted)}
+.pm-mem-sess.paid .pm-mem-sess-sub{color:var(--green-light)}
+.pm-mem-sess-amt{font-weight:700;font-size:var(--fs-base);color:var(--text-2);white-space:nowrap}
+.pm-mem-sess-amt.owe{color:var(--red)}
+.pm-mem-hist{margin-top:18px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--card)}
+.pm-mem-hist summary{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:44px;padding:10px 14px;cursor:pointer;list-style:none;font-size:var(--fs-sm);font-weight:700;color:var(--text)}
+.pm-mem-hist summary::-webkit-details-marker{display:none}
+.pm-mem-hist summary b{font-weight:600;color:var(--muted);margin-left:auto}
+.pm-mem-hist summary::after{content:"+";color:var(--muted);font-size:17px;font-weight:400;line-height:1;flex-shrink:0}
+.pm-mem-hist[open] summary::after{content:"\2013"}
+.pm-mem-hist[open] summary{border-bottom:1px solid var(--border)}
+.pm-mem-hist .pm-mem-sess-list{border:none;border-radius:0}
+.pm-list{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--card)}
+.pm-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"main tier ctrl" "meta tier ctrl";column-gap:12px;row-gap:4px;align-items:center;padding:10px 12px}
+.pm-row+.pm-row{border-top:1px solid var(--border)}
+.pm-row.paid{background:rgba(0,113,227,.04)}
+.pm-main{grid-area:main;min-width:0}
+.pm-tier{grid-area:tier;display:flex;align-items:center;min-height:44px}
+.pm-fee-custom-lbl{font-size:var(--fs-xs);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.pm-name{font-weight:600;color:var(--text);font-size:var(--fs-base);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pm-phone{font-size:var(--fs-xs);color:var(--muted)}
+.pm-meta{grid-area:meta;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:28px}
+.pm-fee{position:relative;background:var(--card2);border:1px solid var(--border);border-radius:100px;padding:4px 11px;font-size:var(--fs-xs);font-weight:600;color:var(--text-2);cursor:pointer;font-family:inherit;transition:var(--transition)}
+.pm-fee::after{content:"";position:absolute;inset:-8px}
+.pm-fee:hover,.pm-fee[aria-expanded="true"]{border-color:var(--green-line);color:var(--green-light);background:var(--green-tint)}
+.pm-fee.custom{border-style:dashed}
+/* Owed money reads red until the row is marked paid */
+.pm-row:not(.paid) .pm-fee{color:var(--red);border-color:rgba(229,72,77,.35);background:rgba(229,72,77,.08)}
+.pm-row:not(.paid) .pm-fee:hover,.pm-row:not(.paid) .pm-fee[aria-expanded="true"]{color:var(--red);border-color:var(--red);background:rgba(229,72,77,.14)}
+.pm-paidline{font-size:var(--fs-xs);color:var(--green-light);font-weight:500}
+.pm-ctrl{grid-area:ctrl;display:flex;align-items:center;min-height:44px}
+.pm-seg .rl-seg-btn{min-height:40px;padding:0 13px;font-size:var(--fs-sm)}
+.pm-seg .rl-seg-btn.on{color:var(--green-light)}
+.pm-seg .rl-seg-btn.on.unpaid{color:var(--text-2)}
+.pm-seg .rl-seg-btn:disabled{opacity:.6;cursor:wait}
+.pm-fee-editor{grid-column:1/-1;display:flex;align-items:center;gap:var(--sp-sm);flex-wrap:wrap;padding:10px 12px;margin:6px -12px -10px;background:var(--card2);border-top:1px solid var(--border)}
+.pm-fee-custom{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-sm);color:var(--muted)}
+.pm-fee-input{width:84px;text-align:center;font-size:16px}
+.pm-empty{padding:24px 12px;text-align:center;color:var(--muted);font-size:var(--fs-sm);display:flex;flex-direction:column;align-items:center;gap:10px}
+/* Session Lucky Draw — public page (#drawPage) + admin list; mobile-first, mirrors the Payments list */
+#drawPage{display:none;position:fixed;inset:0;background:var(--a-bg);z-index:250;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom,0px)}
+#drawPage.open{display:block}
+.sd-page{max-width:640px;margin:0 auto;padding:12px 16px 40px}
+.sd-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 0 12px;position:sticky;top:0;background:var(--a-bg);z-index:2}
+.sd-title{font-family:var(--font-apple);font-size:clamp(24px,5vw,32px);font-weight:700;letter-spacing:-.02em;color:var(--text);margin:0;line-height:1.1}
+.sd-sub{font-size:var(--fs-sm);color:var(--muted);margin-top:4px}
+.sd-close{position:static;flex:none;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--border);border-radius:50%}
+.sd-how{padding:12px 14px;border-radius:var(--radius-md);background:var(--a-blue-tint);color:var(--text);font-size:var(--fs-sm);line-height:1.5;margin-bottom:14px}
+.sd-how b{color:var(--a-blue);margin-right:6px}
+.sd-list{display:flex;flex-direction:column;gap:12px}
+.sd-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
+.sd-card.done{border-color:var(--a-blue-2)}
+.sd-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:12px 14px 10px}
+.sd-date{font-weight:700;color:var(--text);font-size:var(--fs-md)}
+.sd-when{font-size:var(--fs-xs);color:var(--muted);margin-top:2px}
+.sd-status{flex:none;font-size:12px;font-weight:600;padding:3px 10px;border-radius:100px;border:1px solid var(--border2);color:var(--text-2);white-space:nowrap}
+.sd-status.done{background:var(--a-blue-tint);border-color:transparent;color:var(--a-blue)}
+.sd-status.due{background:rgba(205,125,44,.14);border-color:transparent;color:var(--warn)}
+.sd-winners{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 12px}
+.sd-win-chip{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:100px;background:var(--a-blue);color:#fff;font-weight:700;font-size:var(--fs-base);letter-spacing:-.01em}
+.sd-win-chip .ic{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sd-nowin{padding:0 14px 12px;font-size:var(--fs-sm);color:var(--muted)}
+.sd-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:0 14px 12px}
+.sd-stat{display:flex;flex-direction:column;align-items:center;min-width:0;padding:8px 4px;border-radius:var(--radius-sm);background:var(--card2);border:1px solid var(--border)}
+.sd-stat b{font-size:20px;font-weight:700;color:var(--text);line-height:1.1}
+.sd-stat span{font-size:11px;color:var(--muted);white-space:nowrap;margin-top:3px}
+.sd-stat.win{background:var(--a-blue-tint);border-color:transparent}
+.sd-stat.win b{color:var(--a-blue)}
+.sd-names-wrap{border-top:1px solid var(--border)}
+.sd-names-wrap summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;cursor:pointer;font-size:var(--fs-sm);font-weight:600;color:var(--text);min-height:44px}
+.sd-names-wrap summary::-webkit-details-marker{display:none}
+.sd-names-wrap summary b{font-weight:600;color:var(--muted);display:inline-flex;align-items:center;gap:8px}
+.sd-tog{width:22px;height:22px;border-radius:50%;background:var(--card2);border:1px solid var(--border2);color:var(--muted);font-size:15px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+.sd-tog::before{content:'+'}
+.sd-names-wrap[open] .sd-tog::before{content:'\2212'}
+.sd-names{list-style:none;margin:0;padding:0 14px 12px;display:flex;flex-direction:column;gap:4px}
+.sd-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);background:var(--card2);font-size:var(--fs-sm);color:var(--text);min-height:40px}
+.sd-row.win{background:var(--a-blue-tint);font-weight:700;color:var(--a-blue)}
+.sd-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sd-win-tag{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:100px;background:var(--a-blue);color:#fff}
+.sd-meta{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap}
+.sd-late{font-size:var(--fs-xs);font-weight:600;color:var(--warn);white-space:nowrap}
+.sd-none{padding:0 14px 12px;font-size:var(--fs-sm);color:var(--muted)}
+.sd-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;padding:10px 14px;border-top:1px solid var(--border);font-size:var(--fs-xs);color:var(--muted);background:var(--card2)}
+.sd-seed{font-family:var(--font-mono);white-space:nowrap}
+.sd-verified{color:var(--green-light);font-weight:600}
+.sd-unverified{color:var(--red);font-weight:600}
+.sd-admin-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--border)}
+.sd-more{display:flex;justify-content:center;padding:16px 0 0}
+.sd-setting{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px}
+.sd-setting .admin-form-label{margin:0}
+.sd-stepper{display:inline-flex;align-items:center;gap:6px}
+.sd-stepper .btn{width:40px;height:40px;padding:0;font-size:20px;display:inline-flex;align-items:center;justify-content:center}
+.sd-winners-input{width:64px;text-align:center;font-size:16px;min-height:40px}
+
 /* Mobile bottom tab bar */
 @media(max-width:640px){
   #admin{padding:16px 16px calc(76px + env(safe-area-inset-bottom,0px)) !important}
@@ -1069,6 +1273,42 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   .draw-rank-del{min-width:44px;min-height:44px}
   .md-add-tubes,.md-add-phone,.draw-date-input,.draw-history-date-input{font-size:16px;min-height:44px}
   .md-undo-btn{min-height:44px}
+  /* Payments: 44px targets, stacked Courts footer, full-width tier control */
+  .crt-foot{flex-direction:column;align-items:stretch}
+  .crt-foot .btn{width:100%;min-height:44px}
+  .crt-foot-end{align-items:stretch;margin-left:0}
+  .crt-foot-status{text-align:center;white-space:normal;min-height:32px}
+  .fee-seg{display:flex;width:100%}
+  .fee-seg .rl-seg-btn{min-height:44px;flex:1}
+  .pm-tier-seg .rl-seg-btn,.pm-seg .rl-seg-btn{min-height:44px}
+  .pm-cal-wrap .cal-strip-btn{width:44px;height:44px}
+  .pm-cal-nav .cal-chevron{width:40px;height:40px}
+  .pm-stat b{font-size:17px}
+  .pm-stat span{font-size:11px}
+  .pm-fee-editor .btn,.pm-empty .btn{min-height:44px}
+  .pm-filter-sel{width:100%;max-width:none;min-height:44px;font-size:16px}
+  .pm-bar-row{grid-template-columns:64px 1fr auto;padding:8px 0}
+  /* Phone rows: name + 2h/3h on the first line, the Unpaid/Cash/TnG/DuitNow control full-width beneath */
+  .pm-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"main tier" "ctrl ctrl" "meta meta"}
+  .pm-ctrl .pm-seg{display:flex;width:100%}
+  .pm-seg .rl-seg-btn{flex:1;padding:0 6px}
+  /* By member on phones: full-width toggle + search, breakdown rows stack date/amount over the control */
+  .pm-view-seg{display:flex;width:100%}
+  .pm-view-seg .rl-seg-btn{flex:1;min-height:44px}
+  .pm-mem-toolbar{flex-direction:column;align-items:stretch}
+  .pm-mem-search{max-width:none;min-height:44px;font-size:16px}
+  .pm-mem-sess{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"main amt" "ctrl ctrl";row-gap:6px}
+  .pm-mem-sess-main{grid-area:main}
+  .pm-mem-sess-amt{grid-area:amt}
+  .pm-mem-sess .pm-ctrl{grid-area:ctrl}
+  .pm-mem-sess .pm-seg{display:flex;width:100%}
+  /* Session Lucky Draw: 44px targets, tighter page padding */
+  .sd-page{padding:8px 12px 40px}
+  .sd-stat b{font-size:18px}
+  .sd-stepper .btn{width:44px;height:44px}
+  .sd-winners-input{min-height:44px}
+  .sd-admin-row .btn{width:100%;min-height:44px}
+  .sd-more .btn{min-height:44px}
 }
 /* Desktop multi-column helpers (641: must not co-match the 640 mobile block) */
 @media(min-width:641px){
@@ -1185,41 +1425,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .acct-pw-shown code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--card2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:6px 12px;font-size:15px;letter-spacing:.04em;color:var(--text)}
 .acct-pw-shown.err{color:var(--red);font-size:var(--fs-sm)}
 .acct-pw-timer{font-size:var(--fs-xs);color:var(--muted)}
-/* ── Lucky Draw sub-tabs + Weekly ── */
+/* ── Lucky Draw sub-tabs ── */
 .ld-subtabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:1px solid var(--border)}
 .ld-subtab{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:9px 16px;cursor:pointer;font-size:var(--fs-base);font-weight:600;font-family:inherit;margin-bottom:-1px;transition:color .15s,border-color .15s}
 .ld-subtab:hover{color:var(--text)}
 .ld-subtab.active{color:var(--a-blue);border-bottom-color:var(--a-blue)}
-.ld-quick,.ld-quick-card{margin-top:4px}
-.ld-quick summary,.ld-quick-card summary{color:var(--text-2);font-size:var(--fs-sm);cursor:pointer}
-.week-nav{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.week-nav-btn{width:40px;height:40px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--card2);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
-.week-nav-btn:hover{border-color:var(--a-blue);color:var(--a-blue)}
-.week-nav-btn .ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.week-nav-mid{display:flex;align-items:center;gap:8px}
-.week-cal{width:20px;height:20px;fill:none;stroke:var(--a-blue);stroke-width:1.8}
-.week-label{font-size:var(--fs-md);font-weight:700;color:var(--text)}
-.ws-line{display:flex;justify-content:space-between;gap:10px;padding:7px 0;font-size:var(--fs-sm);border-bottom:1px solid var(--border)}
-.ws-line span{color:var(--muted)} .ws-line b{color:var(--text)}
-.ws-status{margin-top:10px;padding:8px 12px;border-radius:var(--radius-sm);background:var(--a-blue-tint);color:var(--a-blue);font-size:var(--fs-sm);font-weight:600}
-.ws-settings{padding-top:8px}
-.wk-group-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;font-size:var(--fs-md);color:var(--text)}
-.wk-rows{display:flex;flex-direction:column;gap:1px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
-.wk-row{display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--card);flex-wrap:wrap}
-.wk-row+.wk-row{border-top:1px solid var(--border)}
-.wk-row-main{flex:1;min-width:120px;display:flex;flex-direction:column}
-.wk-name{font-weight:600;color:var(--text);font-size:var(--fs-sm)}
-.wk-phone{font-size:var(--fs-xs);color:var(--muted)}
-.wk-chk{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-sm);color:var(--text-2);cursor:pointer;white-space:nowrap}
-.wk-elig{font-size:var(--fs-xs);font-weight:600;padding:3px 9px;border-radius:100px;white-space:nowrap}
-.wk-elig.ok{background:var(--green-tint);color:var(--green-light)}
-.wk-elig.no{background:rgba(229,72,77,.12);color:var(--red)}
-.wk-empty{color:var(--muted);font-size:var(--fs-sm);padding:8px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.wk-draw-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
-.wk-elig-count{font-size:var(--fs-sm);color:var(--muted)}
-.wk-winner{font-size:var(--fs-sm);font-weight:700;color:var(--green-light)}
-.wk-hist-row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:9px 0;border-bottom:1px solid var(--border);font-size:var(--fs-sm)}
-.wk-hist-win{color:var(--text-2)}
+.ld-quick-card{margin-top:4px}
+.ld-quick-card summary{color:var(--text-2);font-size:var(--fs-sm);cursor:pointer}
 /* ── Monthly eligibility ── */
 .me-recalc{font-size:var(--fs-xs);color:var(--muted);margin-bottom:8px}
 .me-list{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
@@ -1620,6 +1832,52 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   </div>
 </div>
 
+<!-- End of the day: create one payment record per player in tonight's line-up (idempotent) -->
+<div id="eodModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="eodTitle" onclick="if(event.target===this)closeEodModal()">
+  <div class="modal-box">
+    <h2 id="eodTitle">End of the day</h2>
+    <div id="eodConfirm">
+      <p class="modal-desc">Creates one payment record per player in tonight&rsquo;s line-up at the default fee. Anyone who left after 2 hours can be switched to <b>2h</b> on their row in the payment list. Records that already exist are left untouched, so pressing this twice is safe.</p>
+      <div class="st-details">
+        <div><span>Session</span><b id="eodDate"></b></div>
+        <div><span>Players</span><b id="eodCount"></b></div>
+        <div><span>Default fee</span><b id="eodFee"></b></div>
+      </div>
+      <div class="eod-tier">
+        <span class="admin-form-label">Default for tonight</span>
+        <div class="rl-seg fee-seg" role="group" aria-label="Session fee tier">
+          <button type="button" class="rl-seg-btn" data-tier="2h" onclick="setSessionFeeTier('2h')">2h &middot; RM20</button>
+          <button type="button" class="rl-seg-btn" data-tier="3h" onclick="setSessionFeeTier('3h')">3h &middot; RM25</button>
+        </div>
+      </div>
+      <div class="eod-warn" id="eodWarn" style="display:none"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeEodModal()">Cancel</button>
+        <button class="btn btn-primary" id="eodGenerateBtn" onclick="confirmEndOfDay()">Generate</button>
+      </div>
+    </div>
+    <div id="eodResult" style="display:none">
+      <p class="eod-result" id="eodResultText"></p>
+      <p class="eod-result-sub" id="eodResultSub"></p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeEodModal()">Done</button>
+        <button class="btn btn-primary" onclick="closeEodModal();setAdminTab('payments')">Open payment list &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payments popup (Paid / Unpaid / Collected tiles) — same shell as the Membership Tier modal -->
+<div id="pmModal" role="dialog" aria-modal="true" aria-labelledby="pmModalTitle" onclick="if(event.target===this)closePmModal()">
+  <div class="members-box pm-modal-box">
+    <button class="members-close" onclick="closePmModal()" aria-label="Close">&#x2715;</button>
+    <div class="members-eyebrow" id="pmModalEyebrow"></div>
+    <h2 class="members-headline" id="pmModalTitle"></h2>
+    <span class="pm-save-state pm-modal-save" id="pmModalSave" aria-live="polite"></span>
+    <div id="pmModalBody"></div>
+  </div>
+</div>
+
 <!-- Account auth modal (v2: phone number + password, admin-approved) -->
 <div id="authModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="authTitle"
   onclick="if(event.target===this)closeAuthModal()">
@@ -1978,6 +2236,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <span class="vh-live"><span class="status-dot"></span>Live</span>
       <div class="vh-nav">
         <button id="membersBtn" onclick="openMembersModal()"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6M10 20l.5-4M14 20l-.5-4"/></svg> Members</button>
+        <button id="drawBtn" onclick="openDrawPage()"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg> Lucky Draw</button>
         <button id="lbBtn" onclick="openLbModal()"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M8.5 12 7 21l5-2.8 5 2.8-1.5-9"/></svg> Leaderboard</button>
         <button id="viewerJoinBtn" onclick="openJoinModal()"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Join social games</button>
         <button id="td3Btn" type="button" onclick="enter3D()" title="Switch to the 3D arena view (best on desktop)"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg> 3D View</button>
@@ -2015,6 +2274,20 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <button class="lb-close" onclick="closeLbModal()" aria-label="Close leaderboard">&#x2715;</button>
     <h2 class="lb-header" id="lbTitle">Leaderboard</h2>
     <div class="lb-list" id="leaderboardList"></div>
+  </div>
+</div>
+
+<!-- Lucky Draw page — public (site-code gated), mobile-first. Data from GET /api/draws;
+     one card per session night, newest first, with four expandable name lists. -->
+<div id="drawPage" role="dialog" aria-modal="true" aria-labelledby="drawPageTitle">
+  <div class="sd-page">
+    <div class="sd-head">
+      <div><h2 id="drawPageTitle" class="sd-title">Lucky Draw</h2><div class="sd-sub" id="drawPageSub"></div></div>
+      <button class="lb-close sd-close" onclick="closeDrawPage()" aria-label="Close Lucky Draw">&#x2715;</button>
+    </div>
+    <div class="sd-how" id="drawPageHow"></div>
+    <div class="sd-list" id="drawPageList"><div class="acct-empty">Loading&hellip;</div></div>
+    <div class="sd-more" id="drawPageMore" style="display:none"><button class="btn btn-secondary btn-sm" onclick="loadDrawPage(true)">Show older sessions</button></div>
   </div>
 </div>
 
@@ -2072,6 +2345,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <div class="admin-nav-grouplabel">Today</div>
         <button class="admin-nav-item" data-tab="session" onclick="setAdminTab('session')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg></span><span class="ani-label">Session</span><span class="nav-badge" id="navBadgeSession" style="display:none"></span></button>
         <button class="admin-nav-item" data-tab="courts" onclick="setAdminTab('courts')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg></span><span class="ani-label">Courts</span><span class="nav-badge" id="navBadgeCourts" style="display:none"></span></button>
+        <button class="admin-nav-item" data-tab="payments" onclick="setAdminTab('payments')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 14h3"/></svg></span><span class="ani-label">Payments</span><span class="nav-badge accent" id="navBadgePayments" style="display:none"></span></button>
         <button class="admin-nav-item" data-tab="engagement" onclick="setAdminTab('engagement')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg></span><span class="ani-label">Lucky Draw</span></button>
       </div>
       <div class="admin-nav-group">
@@ -2123,6 +2397,15 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <input id="sessionDateInput" type="date" class="admin-form-input">
       <button class="btn btn-primary btn-sm" onclick="setSessionDate()">Set Date</button>
       <button class="btn btn-ghost btn-sm" onclick="openHistoryModal()">View History →</button>
+    </div>
+    <!-- Session fee tier: what "End of the day" charges every player tonight -->
+    <div class="fee-row">
+      <span class="admin-form-label">Default session fee</span>
+      <div class="rl-seg fee-seg" role="group" aria-label="Session fee tier">
+        <button type="button" class="rl-seg-btn" data-tier="2h" onclick="setSessionFeeTier('2h')">2h &middot; RM20</button>
+        <button type="button" class="rl-seg-btn" data-tier="3h" onclick="setSessionFeeTier('3h')">3h &middot; RM25</button>
+      </div>
+      <span class="admin-helper-text fee-hint">Starting fee for <b>End of the day</b>. Most players stay the full 3h; switch anyone who left after 2h to RM20 on their row in Payments.</span>
     </div>
   </div>
 
@@ -2223,14 +2506,65 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
           </div>
           <div id="roundList"></div>
         </div>
-        <div class="admin-mt">
+        <!-- Footer: manual round (left) + End of the day payment generation (bottom-right) -->
+        <div class="crt-foot admin-mt">
           <button class="btn btn-ghost btn-sm" onclick="addEmptyRound()">+ Add Round Manually</button>
+          <div class="crt-foot-end">
+            <button class="btn btn-eod btn-sm" id="eodBtn" onclick="openEodModal()"><svg class="ic" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>End of the day</button>
+            <button type="button" class="crt-foot-status" id="eodStatus" style="display:none" onclick="setAdminTab('payments')"></button>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   </div><!-- /courts tab -->
+
+  <!-- ── PAYMENTS TAB (per-player session fees; admin-only data via adminGetOps) ── -->
+  <div class="admin-tab-panel" data-tab="payments">
+
+  <div class="admin-card pm-wrap">
+    <div class="admin-card-title admin-card-title-row">
+      <span><span><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 14h3"/></svg></span> Payments</span>
+      <span class="admin-session-count" id="pmTierNote"></span>
+    </div>
+    <!-- By night = one session's list (calendar below). By member = everyone's running balance
+         across every night on record; tap a member for points, outstanding and the breakdown. -->
+    <div class="rl-seg pm-view-seg" role="tablist" aria-label="Payments view" id="pmViewSeg">
+      <button type="button" class="rl-seg-btn on" role="tab" data-view="night" aria-selected="true" onclick="pmSetView('night')">By night</button>
+      <button type="button" class="rl-seg-btn" role="tab" data-view="member" aria-selected="false" onclick="pmSetView('member')">By member</button>
+    </div>
+    <div id="pmNightView">
+    <!-- Calendar strip (same system as Session History): tap any night; dots mark nights with
+         payment records (blue) or a saved session without records (grey) -->
+    <div class="hist-nav pm-cal-nav">
+      <span class="cal-month-big pm-cal-month" id="pmCalMonth"></span>
+      <div class="hist-nav-btns">
+        <button class="cal-chevron" onclick="pmCalStep(-1)" aria-label="Previous month">&#8249;</button>
+        <button class="cal-chevron" onclick="pmCalStep(1)" aria-label="Next month">&#8250;</button>
+      </div>
+    </div>
+    <div class="cal-strip-wrap pm-cal-wrap"><div class="cal-strip" id="pmCalGrid"></div></div>
+    <div class="pm-date-line"><span id="pmDateLabel">&mdash;</span><span class="pm-save-state" id="pmSaveState" aria-live="polite"></span></div>
+    <div class="pm-stats" id="pmStats"></div>
+    <!-- List filter: same dropdown style as the Session tab's sort control -->
+    <div class="pm-toolbar">
+      <select id="pmFilterSel" class="admin-form-input roster-sort pm-filter-sel" aria-label="Filter payments" onchange="setPmFilter(this.value)"></select>
+    </div>
+    <div class="pm-list" id="pmList"></div>
+    </div><!-- /pmNightView -->
+    <div id="pmMemberView" style="display:none">
+      <div class="pm-date-line"><span>Running balance across every night on record</span><span class="pm-save-state" id="pmMemSaveState" aria-live="polite"></span></div>
+      <div class="pm-stats pm-mem-stats" id="pmMemStats"></div>
+      <div class="pm-toolbar pm-mem-toolbar">
+        <input id="pmMemSearch" type="text" class="admin-form-input pm-mem-search" placeholder="Search members" aria-label="Search members" autocomplete="off" oninput="setPmMemQuery(this.value)">
+        <select id="pmMemFilterSel" class="admin-form-input roster-sort pm-filter-sel" aria-label="Filter members" onchange="setPmMemFilter(this.value)"></select>
+      </div>
+      <div class="pm-mem-list" id="pmMemList"></div>
+    </div><!-- /pmMemberView -->
+  </div>
+
+  </div><!-- /payments tab -->
 
   <!-- ── FRIENDLY TAB (Red vs Blue) ─────────────── -->
   <div class="admin-tab-panel" data-tab="friendly">
@@ -2290,48 +2624,37 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <!-- ── ENGAGEMENT TAB ─────────────────────── -->
   <div class="admin-tab-panel" data-tab="engagement">
 
-  <!-- Weekly / Monthly sub-tabs -->
+  <!-- Session draws / Monthly sub-tabs -->
   <div class="ld-subtabs">
-    <button class="ld-subtab active" data-sub="weekly" onclick="setLuckyTab('weekly')">Weekly</button>
+    <button class="ld-subtab active" data-sub="weekly" onclick="setLuckyTab('weekly')">Session draws</button>
     <button class="ld-subtab" data-sub="monthly" onclick="setLuckyTab('monthly')">Monthly</button>
   </div>
 
-  <!-- ══ WEEKLY LUCKY DRAW ══ -->
+  <!-- ══ SESSION DRAWS (automatic per-session Lucky Draw) ══ -->
   <div class="ld-sub" data-sub="weekly">
 
-    <!-- Week selector -->
+    <!-- Fixed schedule + winners setting -->
     <div class="admin-card">
-      <div class="week-nav">
-        <button class="week-nav-btn" onclick="weekStep(-1)" aria-label="Previous week"><svg class="ic" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
-        <div class="week-nav-mid">
-          <svg class="ic week-cal" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg>
-          <span id="weekLabel" class="week-label">This week</span>
+      <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span> Automatic draw</span>
+        <button class="btn btn-secondary btn-sm" onclick="openDrawPage()"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Open public page</button></div>
+      <div class="admin-helper-text" id="sdAdminHow"></div>
+      <div class="sd-setting">
+        <label class="admin-form-label" for="sdWinnersInput">Winners per draw</label>
+        <div class="sd-stepper">
+          <button class="btn btn-ghost btn-sm" type="button" onclick="stepDrawWinners(-1)" aria-label="Fewer winners">&minus;</button>
+          <input id="sdWinnersInput" type="number" min="1" max="10" step="1" inputmode="numeric" class="admin-form-input sd-winners-input" onchange="setDrawWinners(this.value)" aria-label="Winners per draw">
+          <button class="btn btn-ghost btn-sm" type="button" onclick="stepDrawWinners(1)" aria-label="More winners">+</button>
         </div>
-        <button class="week-nav-btn" onclick="weekStep(1)" aria-label="Next week"><svg class="ic" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
-      </div>
-      <div class="admin-btn-row admin-mt">
-        <button class="btn btn-ghost btn-sm" onclick="weekToToday()">Current week</button>
-        <input id="weekPicker" type="date" class="admin-form-input draw-date-input" onchange="weekPick(this.value)" aria-label="Pick a week">
+        <span class="pm-save-state" id="sdSaveState"></span>
       </div>
     </div>
 
-    <!-- Schedule + live status -->
+    <!-- Sessions newest first (same cards as the public page, plus "Run draw now") -->
     <div class="admin-card">
-      <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span> Draw schedule</div>
-      <div id="weeklyScheduleBody"></div>
-      <details class="ld-quick">
-        <summary>Change cutoff &amp; draw times</summary>
-        <div class="ws-settings" id="weeklySettingsForm"></div>
-      </details>
-    </div>
-
-    <!-- Mon / Fri / Sun session groups -->
-    <div id="weeklyGroups"></div>
-
-    <!-- History -->
-    <div class="admin-card">
-      <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M3 3v6h6M3 9a9 9 0 1 0 3-6.7L3 5"/></svg></span> Past weekly results</div>
-      <div id="weeklyHistory"></div>
+      <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> Sessions</span>
+        <button class="btn btn-ghost btn-sm" onclick="loadAdminDraws(false)"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 4v4h-4"/></svg> Refresh</button></div>
+      <div id="sdAdminList"><div class="acct-empty">Loading&hellip;</div></div>
+      <div class="sd-more" id="sdAdminMore" style="display:none"><button class="btn btn-secondary btn-sm" onclick="loadAdminDraws(true)">Show older sessions</button></div>
     </div>
 
     <!-- Manual quick draw (legacy paid-pool spin, preserved) -->
@@ -2359,7 +2682,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <div id="drawResult"></div>
     </details>
 
-  </div><!-- /weekly sub -->
+  </div><!-- /session draws sub -->
 
   <!-- ══ MONTHLY LUCKY DRAW ══ -->
   <div class="ld-sub" data-sub="monthly" style="display:none">
@@ -2535,6 +2858,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div class="admin-more-sheet" role="dialog" aria-label="More">
       <div class="ams-handle"></div>
       <div class="ams-title">More</div>
+      <button class="ams-item" data-tab="payments" onclick="setAdminTab('payments');closeMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 14h3"/></svg><span>Payments</span><span class="nav-badge accent" id="moreBadgePayments" style="display:none"></span></button>
       <button class="ams-item" data-tab="friendly" onclick="setAdminTab('friendly');closeMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><path d="M14.5 3.5 21 10l-2 2-6.5-6.5zM9.5 3.5 3 10l2 2 6.5-6.5M12 12l-7 7M12 12l7 7"/></svg><span>Friendly</span></button>
       <button class="ams-item" data-tab="signups" onclick="setAdminTab('signups');closeMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><path d="M15 19a4 4 0 0 0-8 0M11 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M18 8v6M21 11h-6"/></svg><span>Sign-ups</span><span class="nav-badge accent" id="moreBadgeSignups" style="display:none"></span></button>
       <button class="ams-item" data-tab="accounts" onclick="setAdminTab('accounts');closeMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16.2c.6-1.9 2-2.9 3.5-2.9s2.9 1 3.5 2.9"/></svg><span>Accounts</span></button>
@@ -2559,8 +2883,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <button class="help-tour-btn" onclick="startTour()"><span class="help-tour-row"><svg class="ic" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg> Start the guided tour</span><span class="help-tour-sub">A 2-minute walkthrough of every tab</span></button>
     <div class="help-sec-list">
       <details class="help-sec"><summary>Session</summary><div>Set tonight&rsquo;s date and tap players to add them to the line-up. In the <b>List</b> view, the <b>Level</b> picker (1.0&ndash;7.0) and the <b>Girl</b> &amp; <b>Mixed</b> toggles set a player&rsquo;s rating and who plays mixed doubles &mdash; these drive level-balanced match generation.</div></details>
-      <details class="help-sec"><summary>Courts</summary><div>Build rounds, choose which courts are active, and manage who&rsquo;s resting. Each court&rsquo;s current match shows live on the viewer screen.</div></details>
-      <details class="help-sec"><summary>Lucky Draw &mdash; Weekly</summary><div>Pick a week, then mark each player <b>Present</b> and <b>Paid</b> for Monday, Friday and Sunday. Eligible = present + paid. The winner is drawn automatically at the scheduled time (default Wed 8pm), or draw one now &mdash; revealed live on the viewer. Past winners are kept in the history.</div></details>
+      <details class="help-sec"><summary>Courts</summary><div>Build rounds, choose which courts are active, and manage who&rsquo;s resting. Each court&rsquo;s current match shows live on the viewer screen. When play ends, press <b>End of the day</b> (bottom of the tab) to create tonight&rsquo;s payment records.</div></details>
+      <details class="help-sec"><summary>Payments</summary><div>The fee depends on how long each person stayed: <b>2h &middot; RM20</b> or <b>3h &middot; RM25</b>. The Session tab sets the default for the night; after <b>End of the day</b> every player in the line-up gets a row here at that default. Tap <b>2h</b> or <b>3h</b> on a row for early leavers, tap <b>Cash</b>, <b>TnG</b> or <b>DuitNow</b> as each person pays (one tap), or <b>Unpaid</b> to undo. Tap the amount for a one-off custom fee. Pressing End of the day again only adds players who joined later. Switch to <b>By member</b> to see everyone&rsquo;s running balance across every night on record; tap a member for their points, total outstanding and a night-by-night breakdown, and settle any night right there. A night is never removed from history while someone on it still owes.</div></details>
+      <details class="help-sec"><summary>Lucky Draw &mdash; Session draws</summary><div>Every Monday, Friday and Sunday session gets one automatic draw at <b>9:00 AM</b> four mornings later (Mon &rarr; Fri, Fri &rarr; Tue, Sun &rarr; Thu). A player is in it when they attended <b>and</b> their payment was marked paid before that time &mdash; so <b>End of the day</b> and the Payments tab decide who is eligible. Set how many winners are picked. Results are permanent and never re-run; if the scheduled draw did not happen, <b>Run draw now</b> applies the same rules. Everyone can see the lists and winners on the public Lucky Draw page.</div></details>
       <details class="help-sec"><summary>Lucky Draw &mdash; Monthly</summary><div>Players are auto-enrolled when they attended <b>and</b> paid every required session of their regular day this month. Click a player to see the exact record, or override it. You can still import a CSV ballot and run the prize draw as before.</div></details>
       <details class="help-sec"><summary>Sign-ups</summary><div>People who asked to join through the public form, newest first. Mark each one contacted once you&rsquo;ve reached out.</div></details>
       <details class="help-sec"><summary>Accounts</summary><div>Players request an account with their <b>phone number</b> + password. Approve a request and link it to an existing player, or reject with a reason. To help someone who forgot their password, open <b>Manage</b> &rarr; <b>Reveal</b> (re-enter your admin password) or set a temporary password. Deleting an account keeps the player &mdash; it only unlinks the login.</div></details>
@@ -2604,8 +2929,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 <script src="monthly-draw.js"></script>
 <script src="phone.js"></script>
 <script src="weekly-draw.js"></script>
+<script src="payments.js"></script>
 <script src="monthly-eligibility.js"></script>
 <script src="matchmaking.js"></script>
+<script src="/session-draw.js"></script>
 <script>
 // ── STATE ────────────────────────────────────
 let state = null;
@@ -2757,9 +3084,9 @@ async function poll() {
   state = s;
   updateJoinCtaVisibility();
   renderViewer();
+  sdAfterPoll();
   checkForNewSpin(state.luckyDraw);
   checkForNewMonthlyDraw(state.monthlyDraw);
-  checkForNewWeeklyDraw(state.weeklyDraws);
   if (adminOpen) {
     // First poll after the panel opens (e.g. a reload that ran showAdmin() before
     // state had loaded): do one full renderAdmin() so the Settings-tab cards —
@@ -3966,6 +4293,8 @@ function renderAdmin() {
   renderDrawPool();
   renderMonthlyTab();
   renderSignupsBadge();
+  renderEodStatus();
+  if (currentAdminTab === 'payments') renderPaymentsTab();
   // First-run nudge: gently pulse the "?" help button until it's been opened once.
   const _hb = document.getElementById('adminHelpBtn');
   if (_hb) { try { if (!localStorage.getItem('adminHelpSeen')) _hb.classList.add('pulse'); } catch (e) {} }
@@ -5997,6 +6326,7 @@ function renderSessionDateSection() {
   if (display) display.textContent = formatDisplayDate(date);
   if (inp) { inp.value = date; inp.max = maxSessionDateISO(); }
   if (headerDate) headerDate.textContent = formatDisplayDate(date);
+  renderFeeTierSegs(); // class toggle only — safe on the 2s repaint
 }
 
 async function setSessionDate() {
@@ -6020,6 +6350,8 @@ async function setSessionDate() {
   renderCourtControls();
   renderRoundList();
   renderViewer();
+  pmDate = null; // Payments tab follows the new live day
+  renderEodStatus();
   // Neutral phrasing: the line-up may be auto-added regulars OR a restored day.
   const inLineup = (state.players || []).length;
   notify(inLineup ? `Date set — ${inLineup} in the line-up` : 'Date set — previous session saved to history.');
@@ -6801,9 +7133,9 @@ function renderMdBoard() {
   el.innerHTML = html;
 }
 
-const ADMIN_TAB_TITLES = { session: 'Session', courts: 'Courts', friendly: 'Friendly', engagement: 'Lucky Draw', signups: 'Sign-ups', accounts: 'Accounts', settings: 'Settings' };
+const ADMIN_TAB_TITLES = { session: 'Session', courts: 'Courts', payments: 'Payments', friendly: 'Friendly', engagement: 'Lucky Draw', signups: 'Sign-ups', accounts: 'Accounts', settings: 'Settings' };
 // Overflow tabs — reachable via the mobile "More" sheet (keeps "More" lit when one is active).
-const ADMIN_MORE_TABS = ['friendly', 'signups', 'accounts', 'settings'];
+const ADMIN_MORE_TABS = ['payments', 'friendly', 'signups', 'accounts', 'settings'];
 
 function setAdminTab(name) {
   currentAdminTab = name;
@@ -6821,10 +7153,13 @@ function setAdminTab(name) {
   if (titleEl) titleEl.textContent = ADMIN_TAB_TITLES[name] || '';
   updateAdminNavBadges();
   if (name === 'monthly') renderMonthlyTab();
-  if (name === 'engagement') { renderMonthlyTab(); loadAdminOps().then(() => { renderWeeklyTab(); renderMonthlyElig(); }); }
+  if (name === 'engagement') { renderMonthlyTab(); loadAdminOps().then(() => { if (currentLuckyTab === 'weekly') renderSessionDrawsAdmin(); renderMonthlyElig(); }); }
   if (name === 'signups') renderSignupsTab();
   if (name === 'accounts') loadAccountsTab();
   if (name === 'friendly') renderFriendlyAdmin();
+  // Payments live in the admin-only ops cache (not the public poll): paint from cache, then refresh.
+  if (name === 'payments') { renderPaymentsTab(); loadAdminOps().then(() => { renderPaymentsTab(); renderEodStatus(); updateAdminNavBadges(); }); }
+  if (name === 'courts') loadAdminOps().then(() => { renderEodStatus(); updateAdminNavBadges(); });
   placeCourtsBench();
 }
 
@@ -6885,7 +7220,12 @@ function updateAdminNavBadges() {
   const lib = window.MonthlyDraw;
   const su = lib ? lib.unhandledCount(state.signups || []) : (state.signups || []).filter(s => s && !s.handled).length;
   setNavBadge('navBadgeSignups', su);
-  setNavBadge('moreBadge', su);
+  // Tonight's unpaid count (from the admin-only payments cache; 0 until it has loaded).
+  const unpaid = (window.Payments && typeof adminOps !== 'undefined')
+    ? Payments.summarize(paymentEntriesFor(adminOps, state.sessionDate || '')).unpaid : 0;
+  setNavBadge('navBadgePayments', unpaid);
+  setNavBadge('moreBadgePayments', unpaid);
+  setNavBadge('moreBadge', su + unpaid);
   setNavBadge('moreBadgeSignups', su);
 }
 
@@ -6900,30 +7240,28 @@ function sidebarSearchInput(v) {
   renderPlayersSection();
 }
 
-// Which Lucky Draw sub-tab (weekly|monthly) is showing.
+// Which Lucky Draw sub-tab (weekly = session draws | monthly) is showing.
 let currentLuckyTab = 'weekly';
 function setLuckyTab(sub) {
   currentLuckyTab = sub;
   document.querySelectorAll('.ld-subtabs .ld-subtab').forEach(b => b.classList.toggle('active', b.dataset.sub === sub));
   document.querySelectorAll('.admin-tab-panel[data-tab="engagement"] .ld-sub').forEach(p => { p.style.display = (p.dataset.sub === sub) ? '' : 'none'; });
-  if (sub === 'weekly') { renderWeeklyTab(); }
+  if (sub === 'weekly') { renderSessionDrawsAdmin(); }
   if (sub === 'monthly') { renderMonthlyTab(); renderMonthlyElig(); }
 }
 
-// ── ADMIN: WEEKLY LUCKY DRAW + attendance/payment ─────────────────────
-// Private ops data (attendance/weeklyDraws/settings/eligibility/audit) never
-// rides the public GET — the admin fetches it here with the admin password.
-let adminOps = { attendance: {}, weeklyDraws: {}, weeklySettings: null, monthlyEligibility: null, audit: [] };
-let weekAnchorISO = null;
-const WD_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+// ── ADMIN: private ops cache (attendance / draw settings / eligibility / audit) ──
+// This data never rides the public GET — the admin fetches it here with the
+// admin password. Payments, Session draws and Monthly eligibility all read it.
+let adminOps = { attendance: {}, drawSettings: null, monthlyEligibility: null, audit: [] };
 const WD_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 async function loadAdminOps() {
   const res = await apiPost({ action: 'adminGetOps' });
   if (res === null || !res.ok) return adminOps;
   adminOps = {
-    attendance: res.attendance || {}, weeklyDraws: res.weeklyDraws || {},
-    weeklySettings: res.weeklySettings || null, monthlyEligibility: res.monthlyEligibility || null,
+    attendance: res.attendance || {}, drawSettings: res.drawSettings || null,
+    monthlyEligibility: res.monthlyEligibility || null,
     audit: res.audit || [],
   };
   return adminOps;
@@ -6931,20 +7269,8 @@ async function loadAdminOps() {
 
 function serverNowMs() { return Date.now() + (clockOffset || 0); }
 function serverTodayISO() { return (state && state.today) || new Date(serverNowMs()).toISOString().slice(0, 10); }
-function wkSettings() { return adminOps.weeklySettings || (state && state.weeklySettings) || (window.WeeklyDraw && WeeklyDraw.DEFAULT_SETTINGS) || { cutoff: { weekday: 3, time: '17:00' }, draw: { weekday: 3, time: '20:00' } }; }
 function fmtISO(iso) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ''); if (!m) return iso || ''; const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])); return d.getUTCDate() + ' ' + d.toLocaleString('en', { month: 'long', timeZone: 'UTC' }); }
 function fmtISOYear(iso) { const m = /^(\d{4})/.exec(iso || ''); return fmtISO(iso) + (m ? ' ' + m[1] : ''); }
-function fmtTime12(hhmm) { const p = String(hhmm || '').split(':'); let h = +p[0] || 0; const mm = p[1] || '00'; const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12 || 12; return h + ':' + mm + ' ' + ap; }
-
-function mondayOf(iso) { const w = WeeklyDraw.isoWeekday(iso); const off = (w + 6) % 7; return WeeklyDraw.addDaysISO(iso, -off); }
-function weekSessionDates(anchorISO) {
-  const mon = mondayOf(anchorISO);
-  const games = (state && state.socialGames) || [];
-  let wds = games.filter(g => g && g.enabled).map(g => Number.isFinite(g.weekday) ? g.weekday : -1).filter(w => w >= 0);
-  if (!wds.length) wds = [1, 5, 0];
-  wds = Array.from(new Set(wds)).sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7));
-  return wds.map(w => ({ weekday: w, date: WeeklyDraw.addDaysISO(mon, (w + 6) % 7) }));
-}
 
 function phoneForPlayer(playerId) {
   const a = (adminAccountsCache || []).find(x => x.playerId === playerId);
@@ -6952,169 +7278,759 @@ function phoneForPlayer(playerId) {
   return '';
 }
 
-function renderWeeklyTab() {
-  if (!window.WeeklyDraw) return;
-  if (!weekAnchorISO) weekAnchorISO = serverTodayISO();
-  const mon = mondayOf(weekAnchorISO), sun = WeeklyDraw.addDaysISO(mon, 6);
-  const lbl = document.getElementById('weekLabel');
-  if (lbl) lbl.textContent = fmtISO(mon) + ' – ' + fmtISOYear(sun);
-  renderWeeklySchedule();
-  renderWeeklySettingsForm();
-  renderWeeklyGroups();
-  renderWeeklyHistory();
-}
+// ── SESSION LUCKY DRAW (automatic per-session draw) ─────────────────────
+// The public page (#drawPage) and the admin "Session draws" list share one
+// renderer. Data comes from GET /api/draws (site-code gated) for the page and
+// from the admin `getDraws` action for the list; both run the idempotent sweep
+// on the server first, so a due draw is created the moment anyone looks. It is
+// fetched on open (+ every 30 s while the page is open), never on the 2 s poll.
+const SD_LIST_LIMIT = 30;
+const SD_LIST_KEYS = [['attended', 'Attended'], ['paid', 'Paid'], ['eligible', 'Eligible'], ['winners', 'Winners']];
+const SD_ADMIN_NOTE = ' Results are permanent and never re-run; use "Run draw now" only if the automatic draw did not happen.';
+let sdPublic = { sessions: [], hasMore: false, nextBefore: null, winnersPerDraw: null, locked: false };
+let sdAdmin = { sessions: [], hasMore: false, nextBefore: null, winnersPerDraw: null };
+let sdPublicTimer = null, sdDeepLinkDone = false;
+const sdBusy = new Set();
 
-function renderWeeklySchedule() {
-  const el = document.getElementById('weeklyScheduleBody'); if (!el) return;
-  const s = wkSettings();
-  const now = serverNowMs();
-  // Live status for the soonest not-drawn session in the selected week.
-  const dates = weekSessionDates(weekAnchorISO);
-  let statusLine = 'No sessions scheduled this week.';
-  for (const d of dates) {
-    const drawn = !!(adminOps.weeklyDraws[d.date] && adminOps.weeklyDraws[d.date].status === 'drawn');
-    const ls = WeeklyDraw.liveStatus(d.date, s, now, drawn, 8);
-    if (!drawn) { statusLine = WD_NAMES[d.weekday] + ': ' + weeklyStatusText(ls, now); break; }
-    statusLine = WD_NAMES[d.weekday] + ': Draw completed';
+function isDrawPageOpen() { const el = document.getElementById('drawPage'); return !!(el && el.classList.contains('open')); }
+function openDrawPage() {
+  const el = document.getElementById('drawPage'); if (!el) return;
+  const wrap = document.getElementById('accountWidget'); if (wrap) wrap.classList.remove('open');
+  el.classList.add('open');
+  el.scrollTop = 0;
+  if (window.location.hash !== '#draw') { try { history.replaceState(null, '', window.location.pathname + window.location.search + '#draw'); } catch (e) { /* ignore */ } }
+  loadDrawPage(false);
+  clearInterval(sdPublicTimer);
+  sdPublicTimer = setInterval(() => { if (isDrawPageOpen()) loadDrawPage(false, true); }, 30000);
+}
+function closeDrawPage() {
+  const el = document.getElementById('drawPage'); if (!el) return;
+  el.classList.remove('open');
+  clearInterval(sdPublicTimer); sdPublicTimer = null;
+  if (window.location.hash === '#draw') { try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) { /* ignore */ } }
+}
+// Called from poll() once the site is unlocked: honours a shared "#draw" link and
+// recovers a page that was opened while the site code was still missing.
+function sdAfterPoll() {
+  if (!sdDeepLinkDone) { sdDeepLinkDone = true; if (window.location.hash === '#draw' && !isDrawPageOpen()) openDrawPage(); return; }
+  if (isDrawPageOpen() && sdPublic.locked) loadDrawPage(false, true);
+}
+async function fetchPublicDraws(before) {
+  const code = localStorage.getItem('siteCode') || '';
+  const qs = new URLSearchParams({ limit: String(SD_LIST_LIMIT) });
+  if (code) qs.set('code', code);
+  if (before) qs.set('before', before);
+  try { const r = await fetch('/api/draws?' + qs.toString()); return await r.json(); } catch (e) { return null; }
+}
+async function loadDrawPage(more, quiet) {
+  const list = document.getElementById('drawPageList'); if (!list) return;
+  if (!quiet && !more) list.innerHTML = '<div class="acct-empty">Loading…</div>';
+  const res = await fetchPublicDraws(more ? sdPublic.nextBefore : null);
+  if (!res) { if (!quiet) list.innerHTML = '<div class="acct-empty">Could not load the draws — check your connection and try again.</div>'; return; }
+  if (res.locked) { sdPublic.locked = true; list.innerHTML = '<div class="acct-empty">Enter today’s site code to see the draw.</div>'; return; }
+  if (!res.ok) { if (!quiet) list.innerHTML = '<div class="acct-empty">' + escHtml(res.error || 'Could not load the draws.') + '</div>'; return; }
+  if (res.serverTime) clockOffset = res.serverTime - Date.now();
+  sdPublic = Object.assign({}, res, { locked: false, sessions: more ? sdPublic.sessions.concat(res.sessions || []) : (res.sessions || []) });
+  renderDrawPage();
+}
+function renderDrawPage() {
+  const how = document.getElementById('drawPageHow');
+  if (how) how.innerHTML = sdHowHtml(sdPublic.winnersPerDraw);
+  const sub = document.getElementById('drawPageSub');
+  if (sub) sub.textContent = sdWinnersLabel(sdPublic.winnersPerDraw) + ' per session · drawn at ' + SessionDraw.drawTimeLabel();
+  renderDrawList(document.getElementById('drawPageList'), sdPublic.sessions, { admin: false });
+  const more = document.getElementById('drawPageMore'); if (more) more.style.display = sdPublic.hasMore ? '' : 'none';
+}
+function sdWinnersLabel(n) { const k = SessionDraw.isWinnersCount(Number(n)) ? Number(n) : SessionDraw.DEFAULT_WINNERS; return k + ' winner' + (k === 1 ? '' : 's'); }
+function sdHowHtml(n) { return '<b>How it works</b>' + escHtml(SessionDraw.howItWorksText(n)); }
+
+// Shared renderer: one card per session, newest first (the server orders them).
+function renderDrawList(container, sessions, opts) {
+  if (!container) return;
+  const admin = !!(opts && opts.admin);
+  if (!sessions || !sessions.length) {
+    container.innerHTML = '<div class="acct-empty">No sessions yet — the first draw appears after the next Monday, Friday or Sunday night.</div>';
+    return;
   }
-  el.innerHTML =
-    '<div class="ws-line"><span>Entry cutoff</span><b>' + WD_NAMES[s.cutoff.weekday] + ' at ' + fmtTime12(s.cutoff.time) + '</b></div>'
-    + '<div class="ws-line"><span>Automatic draw</span><b>' + WD_NAMES[s.draw.weekday] + ' at ' + fmtTime12(s.draw.time) + '</b></div>'
-    + '<div class="ws-status">' + escHtml(statusLine) + '</div>';
+  container.innerHTML = sessions.map(v => sdCardHtml(v, admin)).join('');
 }
-
-function weeklyStatusText(ls, now) {
-  if (ls.code === 'open') {
-    const hrs = Math.max(0, Math.round((ls.closesAt - now) / 3600000));
-    return hrs > 0 ? ('Entries open — close in ~' + hrs + 'h') : 'Entries open — closing soon';
+function sdCardHtml(v, admin) {
+  const done = v.status === 'done';
+  const c = v.counts || {};
+  const lists = v.lists || {};
+  const statusCls = done ? 'done' : (v.due ? 'due' : 'pending');
+  let html = '<div class="sd-card ' + escHtml(v.status) + '" data-date="' + escHtml(v.date) + '">';
+  html += '<div class="sd-card-head"><div><div class="sd-date">' + escHtml(SessionDraw.fmtSessionDate(v.date)) + '</div>'
+    + '<div class="sd-when">' + (done ? 'Drawn ' + escHtml(SessionDraw.fmtDrawTime(v.drawnAt)) : 'Draw ' + escHtml(SessionDraw.fmtDrawTime(v.drawAt))) + '</div></div>'
+    + '<span class="sd-status ' + statusCls + '">' + escHtml(SessionDraw.statusLabel(v)) + '</span></div>';
+  if (done) {
+    const w = lists.winners || [];
+    html += w.length
+      ? '<div class="sd-winners">' + w.map(x => '<span class="sd-win-chip"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg>' + escHtml(x.name) + '</span>').join('') + '</div>'
+      : '<div class="sd-nowin">No winners — nobody was eligible for this session.</div>';
   }
-  if (ls.code === 'closed') return 'Entries closed — drawing tonight';
-  if (ls.code === 'due') return 'Automatic draw pending';
-  return ls.label;
+  html += '<div class="sd-stats">' + SD_LIST_KEYS.map(([k, l]) => '<div class="sd-stat' + (k === 'winners' && done && c.winners ? ' win' : '') + '"><b>' + (c[k] || 0) + '</b><span>' + l + '</span></div>').join('') + '</div>';
+  html += SD_LIST_KEYS.map(([k, l]) => sdListHtml(v, k, l, done)).join('');
+  if (admin && !done && v.due) {
+    html += '<div class="sd-admin-row"><button class="btn btn-primary btn-sm" onclick="runDrawNow(\'' + escHtml(v.date) + '\')"' + (sdBusy.has(v.date) ? ' disabled' : '') + '>Run draw now</button>'
+      + '<span class="admin-helper-text" style="margin:0">The scheduled time has passed but no result exists yet — the automatic draw may still be on its way.</span></div>';
+  }
+  if (done) {
+    html += '<div class="sd-foot"><span>' + escHtml((v.method === 'manual' ? 'Manual draw by admin' : 'Automatic draw') + (v.shortfall && c.eligible ? ' · only ' + c.eligible + ' eligible for ' + v.winnersWanted + ' prizes' : '')) + '</span>'
+      + '<span class="sd-seed" title="Random seed — the full order can be replayed from it">Seed ' + escHtml(String(v.seed || '').slice(0, 8)) + '… '
+      + (v.verified ? '<span class="sd-verified">verified ✓</span>' : '<span class="sd-unverified">not verified</span>') + '</span></div>';
+  } else {
+    html += '<div class="sd-foot"><span>' + escHtml(v.due ? 'Waiting for the automatic draw…' : 'Pay before ' + SessionDraw.fmtDrawTime(v.drawAt) + ' to be in the draw · ' + sdWinnersLabel(v.winnersWanted) + ' will be picked') + '</span></div>';
+  }
+  return html + '</div>';
+}
+function sdListHtml(v, key, label, done) {
+  const rows = (v.lists && v.lists[key]) || [];
+  const winnerIds = new Set(((v.lists && v.lists.winners) || []).map(w => w.id));
+  const open = done ? key === 'winners' : key === 'eligible';
+  const title = key === 'eligible' && !done ? 'Eligible so far' : label;
+  const empty = {
+    attended: 'No attendance recorded.', paid: 'Nobody has paid yet.',
+    eligible: done ? 'Nobody was eligible.' : 'Nobody is eligible yet — pay before the draw time.',
+    winners: done ? 'No winners.' : 'Winners appear here after the draw.',
+  }[key];
+  let body;
+  if (rows.length) {
+    body = '<ul class="sd-names">' + rows.map(r => {
+      const win = winnerIds.has(r.id);
+      let meta = '';
+      if (key === 'paid') meta = r.late ? '<span class="sd-late">after cutoff</span>' : (r.paidAt ? '<span class="sd-meta">' + escHtml(SessionDraw.fmtDrawTime(r.paidAt)) + '</span>' : '');
+      else if (key === 'eligible' && r.paidAt) meta = '<span class="sd-meta">paid ' + escHtml(SessionDraw.fmtDrawTime(r.paidAt)) + '</span>';
+      return '<li class="sd-row' + (win ? ' win' : '') + '"><span class="sd-name">' + escHtml(r.name) + '</span>' + (win ? '<span class="sd-win-tag">Winner</span>' : '') + meta + '</li>';
+    }).join('') + '</ul>';
+  } else {
+    body = '<div class="sd-none">' + escHtml(empty) + '</div>';
+  }
+  return '<details class="sd-names-wrap"' + (open ? ' open' : '') + '><summary><span>' + escHtml(title) + '</span><b>' + rows.length + '<span class="sd-tog" aria-hidden="true"></span></b></summary>' + body + '</details>';
 }
 
-function renderWeeklySettingsForm() {
-  const el = document.getElementById('weeklySettingsForm'); if (!el) return;
-  const s = wkSettings();
-  const daySel = (id, val) => '<select class="admin-form-input acct-sel" id="' + id + '">' + WD_NAMES.map((n, i) => '<option value="' + i + '"' + (i === val ? ' selected' : '') + '>' + n + '</option>').join('') + '</select>';
-  el.innerHTML =
-    '<div class="acct-mng-row"><span class="acct-mng-lbl">Cutoff</span>' + daySel('wsCutoffDay', s.cutoff.weekday) + '<input type="time" class="admin-form-input" id="wsCutoffTime" value="' + escHtml(s.cutoff.time) + '"></div>'
-    + '<div class="acct-mng-row"><span class="acct-mng-lbl">Draw</span>' + daySel('wsDrawDay', s.draw.weekday) + '<input type="time" class="admin-form-input" id="wsDrawTime" value="' + escHtml(s.draw.time) + '"></div>'
-    + '<div class="admin-btn-row admin-mt"><button class="btn btn-primary btn-sm" onclick="saveWeeklySettings()">Save schedule</button></div>';
+// ── admin: "Session draws" sub-tab (settings + list + Run draw now) ──
+function sdAdminWinners() {
+  const a = adminOps.drawSettings && adminOps.drawSettings.winners;
+  const s = state && state.drawSettings && state.drawSettings.winners;
+  return SessionDraw.isWinnersCount(Number(a)) ? Number(a) : (SessionDraw.isWinnersCount(Number(s)) ? Number(s) : SessionDraw.DEFAULT_WINNERS);
 }
-
-async function saveWeeklySettings() {
-  const body = { action: 'weeklyDrawSettings', enabled: true,
-    cutoff: { weekday: +document.getElementById('wsCutoffDay').value, time: document.getElementById('wsCutoffTime').value },
-    draw: { weekday: +document.getElementById('wsDrawDay').value, time: document.getElementById('wsDrawTime').value } };
+function renderSessionDrawsAdmin() {
+  if (!window.SessionDraw) return;
+  const n = sdAdminWinners();
+  const inp = document.getElementById('sdWinnersInput');
+  if (inp && document.activeElement !== inp) inp.value = n;
+  const how = document.getElementById('sdAdminHow');
+  if (how) how.textContent = SessionDraw.howItWorksText(n) + SD_ADMIN_NOTE;
+  loadAdminDraws(false);
+}
+async function loadAdminDraws(more) {
+  const list = document.getElementById('sdAdminList'); if (!list) return;
+  const body = { action: 'getDraws', limit: SD_LIST_LIMIT };
+  if (more && sdAdmin.nextBefore) body.before = sdAdmin.nextBefore;
   const res = await apiPost(body);
   if (res === null) return;
-  if (!res.ok) { notify(res.error || 'Could not save.', 'warn'); return; }
-  await loadAdminOps(); renderWeeklyTab(); notify('Schedule saved.');
+  if (!res.ok) { list.innerHTML = '<div class="acct-empty">' + escHtml(res.error || 'Could not load the draws.') + '</div>'; return; }
+  sdAdmin = Object.assign({}, res, { sessions: more ? sdAdmin.sessions.concat(res.sessions || []) : (res.sessions || []) });
+  renderDrawList(list, sdAdmin.sessions, { admin: true });
+  const moreEl = document.getElementById('sdAdminMore'); if (moreEl) moreEl.style.display = sdAdmin.hasMore ? '' : 'none';
+}
+function stepDrawWinners(delta) {
+  const inp = document.getElementById('sdWinnersInput');
+  const cur = inp && SessionDraw.isWinnersCount(Number(inp.value)) ? Number(inp.value) : sdAdminWinners();
+  setDrawWinners(cur + delta);
+}
+async function setDrawWinners(value) {
+  const n = Math.round(Number(value));
+  const inp = document.getElementById('sdWinnersInput');
+  if (!SessionDraw.isWinnersCount(n)) {
+    notify('Winners per draw must be a whole number from 1 to ' + SessionDraw.MAX_WINNERS + '.', 'warn');
+    if (inp) inp.value = sdAdminWinners();
+    return;
+  }
+  if (inp) inp.value = n;
+  if (n === sdAdminWinners()) return;
+  const res = await apiPost({ action: 'setDrawSettings', winners: n });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not save.', 'warn'); sdFlashSave('err'); if (inp) inp.value = sdAdminWinners(); return; }
+  adminOps.drawSettings = res.drawSettings || { winners: n };
+  if (state) state.drawSettings = Object.assign({}, state.drawSettings || {}, { winners: n });
+  const how = document.getElementById('sdAdminHow');
+  if (how) how.textContent = SessionDraw.howItWorksText(n) + SD_ADMIN_NOTE;
+  sdFlashSave('ok');
+  notify('Winners per draw: ' + n);
+  loadAdminDraws(false);
+}
+function sdFlashSave(kind) {
+  const el = document.getElementById('sdSaveState'); if (!el) return;
+  el.textContent = kind === 'ok' ? 'Saved' : 'Not saved';
+  el.className = 'pm-save-state show ' + (kind === 'ok' ? 'ok' : 'err');
+  setTimeout(() => el.classList.remove('show'), 1800);
+}
+async function runDrawNow(date) {
+  if (sdBusy.has(date)) return;
+  sdBusy.add(date);
+  const btn = document.querySelector('.sd-card[data-date="' + date + '"] .sd-admin-row .btn');
+  if (btn) btn.disabled = true;
+  const res = await apiPost({ action: 'runDraw', date });
+  sdBusy.delete(date);
+  if (res === null) return;
+  if (!res.ok) {
+    notify(res.error || 'Could not run the draw.', 'warn', 5000);
+    if (res.result) loadAdminDraws(false); // already drawn elsewhere — show that result
+    else if (btn) btn.disabled = false;
+    return;
+  }
+  const rec = res.result || {};
+  const names = (rec.winners || []).map(id => (rec.names && rec.names[id]) || id);
+  notify(names.length ? 'Drawn — winner' + (names.length === 1 ? '' : 's') + ': ' + names.join(', ') : 'Drawn — nobody was eligible.', 'ok', 6000);
+  await loadAdminOps();
+  loadAdminDraws(false);
 }
 
-function renderWeeklyGroups() {
-  const wrap = document.getElementById('weeklyGroups'); if (!wrap) return;
-  const dates = weekSessionDates(weekAnchorISO);
-  const today = serverTodayISO();
-  wrap.innerHTML = dates.map(d => {
-    const day = adminOps.attendance[d.date];
-    const entries = day && day.entries ? Object.values(day.entries) : null;
-    const future = d.date > today;
-    const draw = adminOps.weeklyDraws[d.date];
-    const drawn = draw && draw.status === 'drawn';
-    let rows;
-    if (!entries) {
-      rows = '<div class="wk-empty">' + (future ? 'This session hasn’t happened yet.' : 'No attendance list yet.')
-        + ' <button class="btn btn-secondary btn-sm" onclick="seedWeeklyDay(\'' + d.date + '\')">Load players</button></div>';
-    } else if (!entries.length) {
-      rows = '<div class="wk-empty">No players registered for this session.</div>';
-    } else {
-      rows = '<div class="wk-rows">' + entries.map(e => weeklyRowHtml(d.date, e)).join('') + '</div>';
-    }
-    return '<div class="admin-card wk-group">'
-      + '<div class="wk-group-head"><div><b>' + WD_NAMES[d.weekday] + '</b>, ' + escHtml(fmtISOYear(d.date)) + '</div>'
-      + weeklyDrawBadge(draw, d.date) + '</div>'
-      + rows
-      + weeklyDrawActions(d.date, entries, drawn, draw)
-      + '</div>';
+// ── ADMIN: PAYMENTS (per-player session fees) ─────────────────────────
+// Records live inside the attendance entries (adminOps.attendance[date].entries[pid]
+// .payment) — admin-only data fetched by loadAdminOps(), never the public poll. All
+// business rules are in public/payments.js (window.Payments); this section is DOM glue.
+let pmDate = null, pmFilter = 'all', pmEditFee = null;
+// By night (default) / By member. Remembered per device so the treasurer lands on the view they use.
+let pmView = 'night';
+try { if (localStorage.getItem('pmView') === 'member') pmView = 'member'; } catch (e) {}
+let pmMemQuery = '', pmMemFilter = 'all', pmMemPid = null, pmMemHistOpen = false;
+const pmBusy = new Set(); // "date|playerId" of writes in flight — one night's row must not block another's
+const PM_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function paymentEntriesFor(ops, date) {
+  const day = ops && ops.attendance && ops.attendance[date];
+  return Object.values((day && day.entries) || {}).filter(e => e && e.payment);
+}
+function pmEntry(pid) {
+  const day = adminOps.attendance[pmDate];
+  return day && day.entries ? day.entries[pid] : null;
+}
+function pmDateLabel(iso, withYear) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  if (!m) return iso || '';
+  return WD_SHORT[WeeklyDraw.isoWeekday(iso)] + ' ' + (+m[3]) + ' ' + PM_MONTHS[+m[2] - 1] + (withYear ? ' ' + m[1] : '');
+}
+// onclick="fn('a','b')" builder — ids are simple (p12 / g1725…), but escape anyway.
+function pmCall(fn, ...args) {
+  return escHtml(fn + '(' + args.map(a => "'" + String(a).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'").join(',') + ')');
+}
+
+// Session fee tier (root state.feeTier; rides the generic merge like numCourts).
+function renderFeeTierSegs() {
+  if (!state) return;
+  const tier = window.Payments ? Payments.tierOf(state.feeTier) : (state.feeTier || '3h');
+  document.querySelectorAll('.fee-seg .rl-seg-btn[data-tier]').forEach(b => {
+    const on = b.dataset.tier === tier;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  const note = document.getElementById('pmTierNote');
+  if (note && window.Payments) note.textContent = 'Default: ' + Payments.fmtRM(Payments.feeForTier(tier)) + ' · ' + tier;
+}
+async function setSessionFeeTier(tier) {
+  if (!state || !window.Payments || !Payments.isTier(tier) || state.feeTier === tier) return;
+  const prev = state.feeTier;
+  state.feeTier = tier;
+  renderFeeTierSegs();
+  const modal = document.getElementById('eodModal');
+  if (modal && modal.classList.contains('open')) renderEodConfirm();
+  pendingTicks.add('feeTier'); // hold the 2s poll so it can't snap the tier back mid-flight
+  let res;
+  try { res = await apiPost({ feeTier: tier }); }
+  catch (e) { res = { error: 'Network error — check your connection.' }; }
+  finally { pendingTicks.delete('feeTier'); }
+  if (res === null) return;
+  if (!res.ok) { state.feeTier = prev; renderFeeTierSegs(); notify(res.error || 'Could not save the fee tier.', 'warn'); return; }
+  notify('Default fee: ' + tier + ' · ' + Payments.fmtRM(Payments.feeForTier(tier)));
+}
+
+// ── End of the day (Courts tab footer) ──
+function openEodModal() {
+  const m = document.getElementById('eodModal');
+  if (!m || !state) return;
+  document.getElementById('eodConfirm').style.display = '';
+  document.getElementById('eodResult').style.display = 'none';
+  renderEodConfirm();
+  m.classList.add('open');
+  // Fresh records may exist from another phone — refresh the cache behind the modal.
+  loadAdminOps().then(() => { if (m.classList.contains('open')) renderEodConfirm(); renderEodStatus(); updateAdminNavBadges(); });
+}
+function closeEodModal() { const m = document.getElementById('eodModal'); if (m) m.classList.remove('open'); }
+function renderEodConfirm() {
+  if (!state || !window.Payments) return;
+  const date = state.sessionDate || todayISO();
+  const n = (state.players || []).length;
+  const tier = Payments.tierOf(state.feeTier);
+  const put = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  put('eodDate', formatDisplayDate(date));
+  put('eodCount', n ? (n + ' in the line-up') : 'none');
+  put('eodFee', Payments.fmtRM(Payments.feeForTier(tier)) + ' · ' + tier + ' to start');
+  renderFeeTierSegs();
+  const existing = paymentEntriesFor(adminOps, date).length;
+  const warn = document.getElementById('eodWarn');
+  if (warn) {
+    if (!n) warn.textContent = 'No players in tonight’s line-up — add them on the Session tab first.';
+    else if (existing) warn.textContent = existing + ' record' + (existing === 1 ? '' : 's') + ' already exist for this date — only new players will be added.';
+    warn.style.display = (!n || existing) ? '' : 'none';
+  }
+  const btn = document.getElementById('eodGenerateBtn');
+  if (btn) btn.disabled = !n;
+}
+async function confirmEndOfDay() {
+  const btn = document.getElementById('eodGenerateBtn');
+  if (!btn || btn.disabled || !state) return;
+  const date = state.sessionDate || todayISO();
+  btn.disabled = true; btn.textContent = 'Generating…';
+  let res;
+  try { res = await apiPost({ action: 'generatePayments', date }); }
+  catch (e) { res = { error: 'Network error — try again.' }; }
+  btn.disabled = false; btn.textContent = 'Generate';
+  if (res === null) { closeEodModal(); return; } // 401: apiPost already bounced to the viewer
+  if (!res.ok) { notify(res.error || 'Could not generate payment records.', 'warn'); renderEodConfirm(); return; }
+  mergePaymentEntries(date, res.entries);
+  const put = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  put('eodResultText', Payments.eodSummaryText(res.created, res.existed));
+  put('eodResultSub', 'Default ' + Payments.fmtRM(Payments.feeForTier(res.tier || state.feeTier)) + ' · ' + (res.tier || Payments.tierOf(state.feeTier)) + '. Switch early leavers to 2h on their row.');
+  document.getElementById('eodConfirm').style.display = 'none';
+  document.getElementById('eodResult').style.display = '';
+  pmDate = date;
+  renderEodStatus();
+  updateAdminNavBadges();
+  if (currentAdminTab === 'payments') renderPaymentsTab();
+}
+function mergePaymentEntries(date, entries) {
+  const map = Array.isArray(entries) ? Object.fromEntries(entries.map(e => [e.playerId, e])) : (entries || {});
+  const day = adminOps.attendance[date] || (adminOps.attendance[date] = { date, entries: {} });
+  day.entries = { ...(day.entries || {}), ...map };
+}
+function renderEodStatus() {
+  const el = document.getElementById('eodStatus');
+  if (!el || !state || !window.Payments) return;
+  const sum = Payments.summarize(paymentEntriesFor(adminOps, state.sessionDate || todayISO()));
+  const txt = Payments.eodStatusText(sum);
+  el.textContent = txt ? (txt + ' →') : '';
+  el.style.display = txt ? '' : 'none';
+  el.classList.toggle('done', !!(sum.players && !sum.unpaid));
+}
+
+// ── Payments tab ──
+function renderPaymentsTab() {
+  if (!state || !window.Payments || !document.getElementById('pmList')) return;
+  const live = state.sessionDate || todayISO();
+  if (!pmDate) pmDate = live;
+  renderPmViewSeg();
+  renderFeeTierSegs();
+  if (pmView === 'night') {
+    const lbl = document.getElementById('pmDateLabel');
+    if (lbl) lbl.textContent = pmDateLabel(pmDate) + (pmDate === live ? ' · tonight' : '');
+    renderPmCalendar();
+  }
+  renderPmBody();
+}
+
+// ── Calendar strip (reuses the Session History .cal-strip system) ──
+let pmCalYear = 0, pmCalMonth = -1, pmCalFor = null;
+const PM_MONTHS_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function pmCalSync() {
+  const m = /^(\d{4})-(\d{2})/.exec(pmDate || '');
+  if (m) { pmCalYear = +m[1]; pmCalMonth = +m[2] - 1; }
+  pmCalFor = pmDate;
+}
+function renderPmCalendar() {
+  const strip = document.getElementById('pmCalGrid');
+  if (!strip || !state || !window.Payments) return;
+  if (pmCalMonth < 0 || pmCalFor !== pmDate) pmCalSync(); // follow the selected night; free browsing otherwise
+  const monthEl = document.getElementById('pmCalMonth');
+  if (monthEl) monthEl.textContent = PM_MONTHS_LONG[pmCalMonth] + ' ' + pmCalYear;
+  const live = state.sessionDate || todayISO();
+  const has = new Set(Payments.datesWithPayments(adminOps.attendance));
+  const sessions = state.sessions || {};
+  const days = new Date(pmCalYear, pmCalMonth + 1, 0).getDate();
+  const letters = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  let html = '';
+  for (let d = 1; d <= days; d++) {
+    const iso = pmCalYear + '-' + String(pmCalMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    const cls = ['cal-strip-btn'];
+    if (iso === live) cls.push('s-today');
+    if (has.has(iso)) cls.push('s-has');
+    else if (sessions[iso]) cls.push('s-sess');
+    if (iso === pmDate) cls.push('s-sel');
+    const dot = (iso === live || has.has(iso) || sessions[iso] || iso === pmDate) ? '<span class="cal-strip-dot"></span>' : '';
+    html += '<div class="cal-strip-col"><span class="cal-strip-name">' + letters[WeeklyDraw.isoWeekday(iso)] + '</span>'
+      + '<button type="button" class="' + cls.join(' ') + '" onclick="pmSelectDate(\'' + iso + '\')" aria-label="' + iso + '"' + (iso === pmDate ? ' aria-current="date"' : '') + '>' + d + dot + '</button></div>';
+  }
+  strip.innerHTML = html;
+  const wrap = strip.parentElement;
+  const sel = strip.querySelector('.s-sel') || strip.querySelector('.s-today');
+  if (wrap && sel) {
+    const w = wrap.getBoundingClientRect(), b = sel.getBoundingClientRect();
+    wrap.scrollLeft = Math.max(0, wrap.scrollLeft + (b.left - w.left) - w.width / 2 + b.width / 2);
+  }
+}
+function pmCalStep(dir) {
+  pmCalMonth += dir;
+  if (pmCalMonth > 11) { pmCalMonth = 0; pmCalYear++; }
+  if (pmCalMonth < 0) { pmCalMonth = 11; pmCalYear--; }
+  renderPmCalendar();
+}
+function pmSelectDate(iso) {
+  if (!iso || iso === pmDate) return;
+  pmDate = iso; pmEditFee = null;
+  renderPaymentsTab();
+}
+// Past night with a saved session but no records yet: generate for that date (same idempotent action).
+async function pmGenerateFor() {
+  const date = pmDate;
+  let res;
+  try { res = await apiPost({ action: 'generatePayments', date }); }
+  catch (e) { res = { error: 'Network error — try again.' }; }
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not generate payment records.', 'warn'); return; }
+  mergePaymentEntries(date, res.entries);
+  notify(Payments.eodSummaryText(res.created, res.existed));
+  renderPaymentsTab(); renderEodStatus(); updateAdminNavBadges();
+}
+// Autosave indicator: every tap posts immediately; this just makes that visible.
+function pmShowSave(kind) {
+  const els = document.querySelectorAll('.pm-save-state');
+  if (!els.length) return;
+  clearTimeout(pmShowSave._t);
+  els.forEach(el => {
+    el.classList.remove('ok', 'err');
+    el.classList.add('show');
+    if (kind === 'saved') el.classList.add('ok'); else if (kind === 'error') el.classList.add('err');
+    el.textContent = kind === 'saving' ? 'Saving…' : (kind === 'saved' ? 'Saved ✓' : 'Not saved');
+  });
+  if (kind === 'saved') pmShowSave._t = setTimeout(() => els.forEach(el => el.classList.remove('show')), 1800);
+}
+function renderPmStats() {
+  const el = document.getElementById('pmStats');
+  if (!el || !window.Payments) return;
+  const s = Payments.summarize(paymentEntriesFor(adminOps, pmDate));
+  // Paid / Unpaid / Collected tiles open the popup (openPmModal); Players is plain.
+  const tile = (v, lbl, cls, kind, extra) => {
+    const tag = kind ? 'button' : 'div';
+    return '<' + tag + (kind ? ' type="button" aria-haspopup="dialog" onclick="openPmModal(\'' + kind + '\')"' : '') + ' class="acct-count pm-stat' + (cls ? ' ' + cls : '') + '"><b>' + v + '</b><span>' + lbl + '</span>' + (extra || '') + '</' + tag + '>';
+  };
+  const pct = s.expected ? Math.round(100 * s.collected / s.expected) : 0;
+  el.innerHTML = tile(s.players, 'Players', '', null)
+    + tile(s.paid, 'Paid', s.paid ? 'ok' : '', 'paid')
+    + tile(s.unpaid, 'Unpaid', s.unpaid ? 'bad' : '', 'unpaid')
+    + tile(Payments.fmtRM(s.collected) + '<span class="pm-of">of ' + Payments.fmtRM(s.expected) + '</span>', 'Collected', '', 'collected',
+        '<span class="pm-progress" aria-hidden="true"><i style="width:' + pct + '%"></i></span>');
+}
+// ── Popup for the Paid / Unpaid / Collected tiles (same shell as the Membership Tier modal) ──
+let pmModalKind = null;
+function openPmModal(kind) {
+  pmModalKind = kind;
+  renderPmModal();
+  const m = document.getElementById('pmModal');
+  if (!m) return;
+  m.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closePmModal() {
+  const m = document.getElementById('pmModal');
+  if (m) m.classList.remove('open');
+  document.body.style.overflow = '';
+  pmModalKind = null;
+}
+function pmBarsHtml(rows, key, fmtVal) {
+  const max = Math.max(1, ...rows.map(r => r[key]));
+  return rows.map(r => '<div class="pm-bar-row" title="' + escHtml(r.label + ': ' + fmtVal(r)) + '">'
+    + '<span class="pm-bar-lbl">' + escHtml(r.label) + '</span>'
+    + '<span class="pm-bar-track"><i class="pm-bar-fill' + (r[key] ? '' : ' zero') + '" style="width:' + Math.round(100 * r[key] / max) + '%"></i></span>'
+    + '<span class="pm-bar-val">' + escHtml(fmtVal(r)) + '</span></div>').join('');
+}
+function renderPmModal() {
+  const body = document.getElementById('pmModalBody');
+  if (!body || !window.Payments || !state) return;
+  const put = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  if (pmModalKind === 'member') { renderPmMemberModal(body, put); return; }
+  const entries = paymentEntriesFor(adminOps, pmDate);
+  const s = Payments.summarize(entries);
+  const live = state.sessionDate || todayISO();
+  put('pmModalEyebrow', pmDateLabel(pmDate) + (pmDate === live ? ' · tonight' : ''));
+  const rows = Payments.breakdownByMethod(entries);
+  if (pmModalKind === 'unpaid') {
+    put('pmModalTitle', 'Still owing');
+    const owe = Payments.rowsOf(entries, { filter: 'unpaid' });
+    body.innerHTML = '<div class="pm-hero"><div class="pm-hero-big owe">' + Payments.fmtRM(s.outstanding) + '</div><div class="pm-hero-sub">' + owe.length + ' of ' + s.players + ' still to pay</div></div>'
+      + (owe.length
+        ? '<div class="pm-owe-list">' + owe.map(e => '<div class="pm-owe-row"><span class="nm">' + escHtml(e.name || e.playerId) + '</span><span class="amt">' + escHtml(Payments.fmtRM(e.payment.fee) + ' · ' + (e.payment.tier || '')) + '</span></div>').join('') + '</div>'
+        : '<div class="pm-modal-empty">Everyone has paid ✓</div>');
+    return;
+  }
+  if (pmModalKind === 'collected') {
+    put('pmModalTitle', 'Collected');
+    const pct = s.expected ? Math.round(100 * s.collected / s.expected) : 0;
+    body.innerHTML = '<div class="pm-hero"><div class="pm-hero-big">' + Payments.fmtRM(s.collected) + '</div><div class="pm-hero-sub">of ' + Payments.fmtRM(s.expected) + ' expected · ' + Payments.fmtRM(s.outstanding) + ' still to collect</div><span class="pm-progress" aria-hidden="true"><i style="width:' + pct + '%"></i></span></div>'
+      + '<div class="pm-sec"><div class="pm-sec-hd"><span>By method</span><b>' + s.paid + ' paid</b></div>' + pmBarsHtml(rows, 'amount', r => Payments.fmtRM(r.amount) + ' · ' + r.count) + '</div>';
+    return;
+  }
+  put('pmModalTitle', 'Paid by method');
+  body.innerHTML = '<div class="pm-hero"><div class="pm-hero-big">' + s.paid + ' of ' + s.players + '</div><div class="pm-hero-sub">paid · ' + Payments.fmtRM(s.collected) + ' collected</div></div>'
+    + '<div class="pm-sec"><div class="pm-sec-hd"><span>How they paid</span><b>' + s.paid + ' paid</b></div>' + pmBarsHtml(rows, 'count', r => r.count + ' · ' + Payments.fmtRM(r.amount)) + '</div>'
+    + (s.paid
+      ? rows.filter(r => r.count).map(r => '<div class="pm-mgroup"><div class="pm-mgroup-hd">' + escHtml(r.label) + '<span>' + r.count + ' · ' + Payments.fmtRM(r.amount) + '</span></div><div class="pm-mgroup-names">' + r.names.map(escHtml).join(', ') + '</div></div>').join('')
+      : '<div class="pm-modal-empty">No one has paid yet.</div>');
+}
+// List filter dropdown (All / Unpaid / Paid / each method), with live counts in the labels.
+function renderPmFilters() {
+  const sel = document.getElementById('pmFilterSel');
+  if (!sel || !window.Payments) return;
+  const entries = paymentEntriesFor(adminOps, pmDate);
+  sel.innerHTML = Payments.FILTERS.map(f => {
+    const n = Payments.rowsOf(entries, { filter: f }).length;
+    return '<option value="' + f + '"' + (pmFilter === f ? ' selected' : '') + '>' + escHtml(Payments.filterLabel(f)) + ' (' + n + ')</option>';
   }).join('');
+  sel.value = pmFilter;
 }
-
-function weeklyRowHtml(date, e) {
-  const reason = WeeklyDraw.ineligibleReason(e);
-  const elig = !reason;
-  const phone = phoneForPlayer(e.playerId);
-  return '<div class="wk-row">'
-    + '<div class="wk-row-main"><span class="wk-name">' + escHtml(e.name || e.playerId) + '</span>'
-    + (phone ? '<span class="wk-phone">' + escHtml(phone) + '</span>' : '') + '</div>'
-    + '<label class="wk-chk"><input type="checkbox" ' + (e.present ? 'checked' : '') + ' onchange="toggleAtt(\'' + date + '\',\'' + e.playerId + '\',\'present\',this.checked)"> Present</label>'
-    + '<label class="wk-chk"><input type="checkbox" ' + (e.paid ? 'checked' : '') + ' onchange="toggleAtt(\'' + date + '\',\'' + e.playerId + '\',\'paid\',this.checked)"> Paid</label>'
-    + '<span class="wk-elig ' + (elig ? 'ok' : 'no') + '">' + (elig ? 'Eligible' : escHtml(reason)) + '</span>'
+function renderPmBody() {
+  if (pmView === 'member') renderPmMembers();
+  else { renderPmStats(); renderPmFilters(); renderPmList(); }
+  if (pmModalKind) renderPmModal();
+}
+function pmRowHtml(e) {
+  const p = e.payment || {};
+  const pid = e.playerId;
+  const name = e.name || pid;
+  const busy = pmBusy.has(pmDate + '|' + pid) ? ' disabled' : '';
+  const phone = phoneForPlayer(pid);
+  const seg = (tap, label, on, extra) => '<button type="button" class="rl-seg-btn' + (on ? ' on' : '') + (extra ? ' ' + extra : '') + '"' + busy + ' onclick="' + pmCall('pmTap', pid, tap) + '">' + escHtml(label) + '</button>';
+  let ctrl = seg('unpaid', 'Unpaid', !e.paid, 'unpaid');
+  Payments.METHODS.forEach(m => { ctrl += seg(m, Payments.methodLabel(m), !!e.paid && p.method === m); });
+  // Hours played is per person (early leavers pay the 2h rate) — one tap on every row.
+  const tierSeg = Payments.TIERS.map(t => '<button type="button" class="rl-seg-btn' + (p.tier === t ? ' on' : '') + '"' + busy + ' onclick="' + pmCall('pmSetTier', pid, t) + '">' + escHtml(t) + '</button>').join('');
+  const editing = pmEditFee === pid;
+  let editor = '';
+  if (editing) {
+    editor = '<div class="pm-fee-editor">'
+      + '<span class="pm-fee-custom-lbl">Custom amount</span>'
+      + '<label class="pm-fee-custom"><span>RM</span><input type="number" inputmode="decimal" min="0" max="999" step="any" class="admin-form-input pm-fee-input" id="pmFeeInp-' + escHtml(pid) + '" value="' + escHtml(p.fee) + '" onkeydown="if(event.key===\'Enter\')' + pmCall('pmSaveFee', pid) + '"></label>'
+      + '<button class="btn btn-secondary btn-sm" onclick="' + pmCall('pmSaveFee', pid) + '">Save</button>'
+      + (p.feeOverridden ? '<button class="btn btn-ghost btn-sm" onclick="' + pmCall('pmResetFee', pid) + '">Reset to tier</button>' : '')
+      + '<button class="btn btn-ghost btn-sm" onclick="pmToggleFeeEditor(null)">Close</button>'
+      + '</div>';
+  }
+  return '<div class="pm-row' + (e.paid ? ' paid' : '') + '" data-pid="' + escHtml(pid) + '">'
+    + '<div class="pm-main"><div class="pm-name' + (!e.paid && pmFilter === 'unpaid' ? ' owing' : '') + '">' + escHtml(name) + '</div>' + (phone ? '<div class="pm-phone">' + escHtml(phone) + '</div>' : '') + '</div>'
+    + '<div class="pm-tier"><div class="rl-seg pm-tier-seg" role="group" aria-label="Hours played by ' + escHtml(name) + '">' + tierSeg + '</div></div>'
+    + '<div class="pm-ctrl"><div class="rl-seg pm-seg" role="group" aria-label="Payment status for ' + escHtml(name) + '">' + ctrl + '</div></div>'
+    + '<div class="pm-meta"><button type="button" class="pm-fee' + (p.feeOverridden ? ' custom' : '') + '" aria-expanded="' + (editing ? 'true' : 'false') + '" onclick="' + pmCall('pmToggleFeeEditor', pid) + '">' + escHtml(Payments.feeLabel(p)) + '</button>'
+    + (e.paid ? '<span class="pm-paidline">' + escHtml(Payments.paidLine(e)) + '</span>' : '') + '</div>'
+    + editor
     + '</div>';
 }
-
-function weeklyDrawBadge(draw, date) {
-  if (draw && draw.status === 'drawn' && draw.winner) return '<span class="st-badge ok">Winner: ' + escHtml(draw.winner.name) + '</span>';
-  return '<span class="st-badge wait">Not drawn</span>';
-}
-
-function weeklyDrawActions(date, entries, drawn, draw) {
-  const s = wkSettings();
-  const eligibleCount = entries ? entries.filter(e => e.present && e.paid).length : 0;
-  let html = '<div class="wk-draw-actions">';
-  html += '<span class="wk-elig-count">' + eligibleCount + ' eligible</span>';
-  if (drawn) {
-    html += '<span class="wk-winner">Winner: ' + escHtml(draw.winner ? draw.winner.name : '—') + '</span>';
-    html += '<button class="btn btn-ghost btn-sm" onclick="rerunWeekly(\'' + date + '\')">Rerun draw</button>';
+function renderPmList() {
+  const host = document.getElementById('pmList');
+  if (!host || !window.Payments) return;
+  const entries = paymentEntriesFor(adminOps, pmDate);
+  const rows = Payments.rowsOf(entries, { filter: pmFilter });
+  if (!entries.length) {
+    const live = state.sessionDate || todayISO();
+    if (pmDate === live) host.innerHTML = '<div class="pm-empty">No payment records for tonight yet.<button class="btn btn-eod btn-sm" onclick="pmGoToCourts()">Go to Courts → End of the day</button></div>';
+    else if ((state.sessions || {})[pmDate]) host.innerHTML = '<div class="pm-empty">No payment records for this night yet.<button class="btn btn-eod btn-sm" onclick="pmGenerateFor()">Create payment records for this night</button></div>';
+    else host.innerHTML = '<div class="pm-empty">No session was recorded on this date.</div>';
+  } else if (!rows.length) {
+    host.innerHTML = '<div class="pm-empty">' + (pmFilter === 'unpaid' ? 'Everyone has paid ✓' : (pmFilter === 'paid' ? 'No one has paid yet.' : 'No one has paid by ' + escHtml(Payments.filterLabel(pmFilter)) + ' yet.')) + '</div>';
   } else {
-    html += '<button class="btn btn-primary btn-sm" ' + (eligibleCount ? '' : 'disabled') + ' onclick="drawWeekly(\'' + date + '\')">Draw winner now</button>';
+    host.innerHTML = rows.map(pmRowHtml).join('');
   }
-  html += '</div>';
-  return html;
+  if (pmEditFee) { const inp = document.getElementById('pmFeeInp-' + pmEditFee); if (inp) { inp.focus(); inp.select(); } }
+}
+function pmGoToCourts() {
+  setAdminTab('courts');
+  setTimeout(() => { const b = document.getElementById('eodBtn'); if (b) b.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 80);
+}
+function setPmFilter(f) {
+  if (!window.Payments || !Payments.isFilter(f)) f = 'all';
+  pmFilter = f;
+  renderPmFilters();
+  renderPmList();
+}
+function pmToggleFeeEditor(pid) {
+  pmEditFee = (pid && pmEditFee !== pid) ? pid : null;
+  renderPmList();
 }
 
-async function toggleAtt(date, playerId, field, value) {
-  // Optimistic local update so the eligibility badge flips instantly.
-  const day = adminOps.attendance[date] || (adminOps.attendance[date] = { date, entries: {} });
-  const e = day.entries[playerId] || (day.entries[playerId] = { playerId, name: playerId, present: false, paid: false });
-  e[field] = value;
-  renderWeeklyGroups();
-  const res = await apiPost({ action: 'setAttendance', date, playerId, name: e.name, [field]: value });
+// One writer for every row edit: optimistic local apply → POST → authoritative entry back
+// (or snapshot restore + reload on failure). pmBusy stops a double-tap racing two POSTs.
+// `atDate` defaults to the selected night; the member popup passes the night of the row tapped.
+async function pmWrite(pid, patch, apply, atDate) {
+  const date = atDate || pmDate;
+  const key = date + '|' + pid;
+  const day = adminOps.attendance[date];
+  const e = day && day.entries && day.entries[pid];
+  if (!e || !e.payment || pmBusy.has(key)) return;
+  const snapshot = JSON.stringify(e);
+  apply(e);
+  pmBusy.add(key);
+  pmShowSave('saving');
+  renderPmBody();
+  let res;
+  try { res = await apiPost({ action: 'setPayment', date, playerId: pid, ...patch }); }
+  catch (err) { res = { error: 'Network error — check your connection.' }; }
+  pmBusy.delete(key);
   if (res === null) return;
-  if (!res.ok) { notify(res.error || 'Could not save.', 'warn'); await loadAdminOps(); renderWeeklyTab(); }
+  if (!res.ok) {
+    pmShowSave('error');
+    day.entries[pid] = JSON.parse(snapshot);
+    notify(res.error || 'Could not save.', 'warn');
+    await loadAdminOps();
+    renderPaymentsTab();
+    return;
+  }
+  if (res.entry) day.entries[pid] = res.entry; // authoritative paidAt / markedBy / updatedAt
+  pmShowSave('saved');
+  renderPmBody(); renderEodStatus(); updateAdminNavBadges();
+}
+function pmTap(pid, tap) {
+  const e = pmEntry(pid);
+  const patch = Payments.nextPaymentPatch(e, tap);
+  if (!e || !patch || Payments.isNoopPatch(e, patch)) return;
+  const now = serverNowMs();
+  pmWrite(pid, patch, x => Object.assign(x, Payments.applyPaid(Payments.applyMethod(x, patch.method, now), patch.paid, now, 'admin')));
+}
+function pmSetTier(pid, tier) {
+  const e = pmEntry(pid);
+  if (!e || Payments.isNoopPatch(e, { tier })) return;
+  pmWrite(pid, { tier }, x => Object.assign(x, Payments.applyTier(x, tier, serverNowMs())));
+}
+function pmSaveFee(pid) {
+  const inp = document.getElementById('pmFeeInp-' + pid);
+  const v = Payments.parseFeeInput(inp ? inp.value : '');
+  if (v === null) { notify('Enter a valid amount (0–999).', 'warn'); return; }
+  pmEditFee = null;
+  const e = pmEntry(pid);
+  if (!e || Payments.isNoopPatch(e, { fee: v })) { renderPmList(); return; }
+  pmWrite(pid, { fee: v }, x => Object.assign(x, Payments.applyFeeOverride(x, v, serverNowMs())));
+}
+function pmResetFee(pid) {
+  pmEditFee = null;
+  const e = pmEntry(pid);
+  if (!e || Payments.isNoopPatch(e, { resetFee: true })) { renderPmList(); return; }
+  pmWrite(pid, { resetFee: true }, x => Object.assign(x, Payments.resetFee(x, serverNowMs())));
 }
 
-async function seedWeeklyDay(date) {
-  const res = await apiPost({ action: 'seedAttendance', date });
-  if (res === null) return;
-  if (!res.ok) { notify(res.error || 'Could not load players.', 'warn'); return; }
-  await loadAdminOps(); renderWeeklyTab();
-  notify(res.added ? (res.added + ' players added.') : 'List up to date.');
+// ── "By member" view ──────────────────────────────────────────────────
+// One row per player with their running balance across every night on record (owing first).
+// Tap → popup: name, points (+ tier), total outstanding, then the breakdown — owing nights
+// newest first, each with the same one-tap Unpaid/Cash/TnG/DuitNow control as the nightly
+// list — and the paid history collapsed underneath. Business rules: Payments.memberLedger().
+function pmSetView(v) {
+  v = v === 'member' ? 'member' : 'night';
+  if (v === pmView) return;
+  pmView = v;
+  try { localStorage.setItem('pmView', v); } catch (e) {}
+  renderPaymentsTab();
 }
-
-async function drawWeekly(date, confirm) {
-  const res = await apiPost({ action: 'weeklyDraw', date, confirm: !!confirm });
-  if (res === null) return;
-  if (res.needsConfirm || (res.error && /already complete/i.test(res.error))) { notify('Already drawn — use Rerun to draw again.', 'warn'); return; }
-  if (res.ok === false) { notify(res.error || 'No eligible entries.', 'warn'); return; }
-  if (!res.ok) { notify(res.error || 'Could not draw.', 'warn'); return; }
-  await loadAdminOps(); renderWeeklyTab(); await refreshState();
-  notify('Winner: ' + (res.result && res.result.winner ? res.result.winner.name : '—'), 'ok', 5000);
+function renderPmViewSeg() {
+  const seg = document.getElementById('pmViewSeg');
+  if (seg) seg.querySelectorAll('.rl-seg-btn').forEach(b => {
+    const on = b.dataset.view === pmView;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  const night = document.getElementById('pmNightView'), mem = document.getElementById('pmMemberView'), note = document.getElementById('pmTierNote');
+  if (night) night.style.display = pmView === 'night' ? '' : 'none';
+  if (mem) mem.style.display = pmView === 'member' ? '' : 'none';
+  if (note) note.style.display = pmView === 'night' ? '' : 'none'; // the default-fee note belongs to the nightly view
 }
-function rerunWeekly(date) {
-  weeklyConfirm('Rerun this draw and pick a new winner?', () => drawWeekly(date, true));
+function pmRosterPlayer(pid) { return (state.roster || []).find(r => r.id === pid) || null; }
+function pmLedger() { return Payments.memberLedger(adminOps.attendance, state.roster || []); }
+function pmNights(n) { return n + ' night' + (n === 1 ? '' : 's'); }
+function setPmMemQuery(q) { pmMemQuery = q || ''; renderPmMembers(); }
+function setPmMemFilter(f) { pmMemFilter = Payments.isMemberFilter(f) ? f : 'all'; renderPmMembers(); }
+function renderPmMembers() {
+  const host = document.getElementById('pmMemList');
+  if (!host || !window.Payments || !state) return;
+  const all = pmLedger();
+  const t = Payments.ledgerTotals(all);
+  const stats = document.getElementById('pmMemStats');
+  if (stats) {
+    // Plain tiles (no popup, no filter change) — the list below is the only thing that filters.
+    const tile = (v, lbl, cls) => '<div class="acct-count pm-stat' + (cls ? ' ' + cls : '') + '"><b>' + v + '</b><span>' + lbl + '</span></div>';
+    stats.innerHTML = tile(t.members, 'Members', '') + tile(t.owing, 'Owing', t.owing ? 'bad' : '') + tile(escHtml(Payments.fmtRM(t.outstanding)), 'Outstanding', t.outstanding ? 'bad' : '');
+  }
+  const sel = document.getElementById('pmMemFilterSel');
+  if (sel) {
+    sel.innerHTML = Payments.MEMBER_FILTERS.map(f => '<option value="' + f + '"' + (pmMemFilter === f ? ' selected' : '') + '>' + escHtml(Payments.memberFilterLabel(f)) + ' (' + Payments.filterMembers(all, { filter: f }).length + ')</option>').join('');
+    sel.value = pmMemFilter;
+  }
+  const search = document.getElementById('pmMemSearch');
+  if (search && document.activeElement !== search && search.value !== pmMemQuery) search.value = pmMemQuery;
+  const rows = Payments.filterMembers(all, { filter: pmMemFilter, query: pmMemQuery });
+  if (!t.withRecords) host.innerHTML = '<div class="pm-empty">No payment records yet. Press <b>End of the day</b> after a session and every player&rsquo;s balance starts here.</div>';
+  else if (!rows.length) host.innerHTML = '<div class="pm-empty">' + (pmMemQuery ? 'No members match &ldquo;' + escHtml(pmMemQuery) + '&rdquo;.' : (pmMemFilter === 'owing' ? 'Nobody owes anything ✓' : 'No settled members yet.')) + '</div>';
+  else host.innerHTML = rows.map(pmMemRowHtml).join('');
 }
-
-function renderWeeklyHistory() {
-  const el = document.getElementById('weeklyHistory'); if (!el) return;
-  const draws = Object.values(adminOps.weeklyDraws || {}).filter(d => d && d.status === 'drawn')
-    .sort((a, b) => (b.drawnAt || 0) - (a.drawnAt || 0));
-  if (!draws.length) { el.innerHTML = '<div class="acct-empty">No completed weekly draws yet.</div>'; return; }
-  el.innerHTML = draws.map(d =>
-    '<div class="wk-hist-row"><div><b>' + WD_NAMES[d.weekday] + '</b>, ' + escHtml(fmtISOYear(d.date)) + '</div>'
-    + '<div class="wk-hist-win">Winner: <b>' + escHtml(d.winner ? d.winner.name : '—') + '</b> · ' + (d.eligibleCount || 0) + ' eligible entries</div></div>'
-  ).join('');
+function pmMemRowHtml(m) {
+  const rp = pmRosterPlayer(m.playerId);
+  const pts = rp ? (rp.points || 0) : null;
+  const tier = pts === null ? null : tierForPoints(pts);
+  const owing = m.outstanding > 0;
+  const phone = phoneForPlayer(m.playerId);
+  const sub = (pts === null ? 'Not on the roster' : pts.toLocaleString() + ' pts · ' + tier.name) + (phone ? ' · ' + phone : '');
+  return '<button type="button" class="pm-mem-row' + (owing ? ' owing' : '') + '" aria-haspopup="dialog" onclick="' + pmCall('openPmMember', m.playerId) + '">'
+    + '<span class="pm-mem-main"><span class="pm-name' + (owing ? ' owing' : '') + '">' + escHtml(m.name) + '</span><span class="pm-mem-sub">' + escHtml(sub) + '</span></span>'
+    + '<span class="pm-mem-amt' + (owing ? ' owe' : '') + '">' + escHtml(Payments.memberOweLabel(m)) + '</span>'
+    + '<span class="pm-mem-chev" aria-hidden="true"><svg class="ic" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>'
+    + '</button>';
+}
+function openPmMember(pid) {
+  pmMemPid = pid;
+  pmMemHistOpen = false;
+  openPmModal('member');
+}
+function renderPmMemberModal(body, put) {
+  const rp = pmRosterPlayer(pmMemPid);
+  const m = Payments.memberSummary(adminOps.attendance, pmMemPid, rp ? rp.name : '');
+  const pts = rp ? (rp.points || 0) : null;
+  const tier = pts === null ? null : tierForPoints(pts);
+  const owe = m.outstanding > 0;
+  put('pmModalEyebrow', 'Member · ' + (m.sessions ? pmNights(m.sessions) + ' on record' : 'no records yet')); // tier sits next to the points, not repeated here
+  put('pmModalTitle', m.name);
+  let html = '<div class="pm-mem-hero">'
+    + '<div class="pm-mem-stat"><b>' + (pts === null ? '&mdash;' : escHtml(pts.toLocaleString())) + '</b><span>Points' + (tier ? ' · ' + escHtml(tier.name) : '') + '</span></div>'
+    + '<div class="pm-mem-stat' + (owe ? ' owe' : '') + '"><b>' + escHtml(Payments.fmtRM(m.outstanding)) + '</b><span>' + (owe ? 'Outstanding · ' + pmNights(m.unpaidCount) : 'Outstanding') + '</span></div>'
+    + '</div>';
+  html += '<div class="pm-sec"><div class="pm-sec-hd"><span>Breakdown</span><b>' + (owe ? escHtml(Payments.fmtRM(m.outstanding) + ' still owing') : 'Nothing owing') + '</b></div>'
+    + (owe ? '<div class="pm-mem-sess-list">' + m.owing.map(x => pmMemSessHtml(x, m.playerId)).join('') + '</div>'
+           : '<div class="pm-modal-empty">' + (m.sessions ? 'Every night is settled ✓' : 'No payment records for this member yet.') + '</div>')
+    + '</div>';
+  if (m.settled.length) {
+    // <details> is rebuilt on every repaint, so its open state is kept in pmMemHistOpen.
+    html += '<details class="pm-mem-hist"' + (pmMemHistOpen ? ' open' : '') + ' ontoggle="pmMemHistOpen=this.open">'
+      + '<summary><span>Paid history</span><b>' + pmNights(m.paidCount) + ' · ' + escHtml(Payments.fmtRM(m.paidTotal)) + '</b></summary>'
+      + '<div class="pm-mem-sess-list">' + m.settled.map(x => pmMemSessHtml(x, m.playerId)).join('') + '</div></details>';
+  }
+  body.innerHTML = html;
+}
+function pmMemSessHtml(x, pid) {
+  const live = state.sessionDate || todayISO();
+  const label = pmDateLabel(x.date, x.date.slice(0, 4) !== live.slice(0, 4));
+  const busy = pmBusy.has(x.date + '|' + pid) ? ' disabled' : '';
+  const seg = (tap, text, on, extra) => '<button type="button" class="rl-seg-btn' + (on ? ' on' : '') + (extra ? ' ' + extra : '') + '"' + busy + ' onclick="' + pmCall('pmMemTap', pid, x.date, tap) + '">' + escHtml(text) + '</button>';
+  let ctrl = seg('unpaid', 'Unpaid', !x.paid, 'unpaid');
+  Payments.METHODS.forEach(mm => { ctrl += seg(mm, Payments.methodLabel(mm), x.paid && x.method === mm); });
+  const sub = x.paid ? Payments.paidLine({ paid: true, payment: x }, Payments.fmtMYTDateTime) : ((x.tier || '') + (x.feeOverridden ? ' · custom amount' : ' session'));
+  return '<div class="pm-mem-sess' + (x.paid ? ' paid' : '') + '">'
+    + '<div class="pm-mem-sess-main"><div class="pm-mem-sess-date">' + escHtml(label) + '</div><div class="pm-mem-sess-sub">' + escHtml(sub) + '</div></div>'
+    + '<div class="pm-mem-sess-amt' + (x.paid ? '' : ' owe') + '">' + escHtml(Payments.fmtRM(x.fee)) + '</div>'
+    + '<div class="pm-ctrl"><div class="rl-seg pm-seg" role="group" aria-label="Payment for ' + escHtml(label) + '">' + ctrl + '</div></div>'
+    + '</div>';
+}
+function pmMemTap(pid, date, tap) {
+  const day = adminOps.attendance[date];
+  const e = day && day.entries ? day.entries[pid] : null;
+  const patch = Payments.nextPaymentPatch(e, tap);
+  if (!e || !patch || Payments.isNoopPatch(e, patch)) return;
+  const now = serverNowMs();
+  pmWrite(pid, patch, x => Object.assign(x, Payments.applyPaid(Payments.applyMethod(x, patch.method, now), patch.paid, now, 'admin')), date);
 }
 
 // ── ADMIN: MONTHLY eligibility (auto enrolment) ──
@@ -7167,18 +8083,6 @@ async function setEligOverride(playerId, eligible) {
   notify('Override updated.');
 }
 
-// Lightweight confirm (avoids blocking window.confirm): uses the notif area + a callback.
-let __weeklyConfirmCb = null;
-function weeklyConfirm(msg, cb) {
-  __weeklyConfirmCb = cb;
-  const el = document.getElementById('notif');
-  el.innerHTML = escHtml(msg) + ' <button class="btn btn-primary btn-sm" style="margin-left:8px" onclick="runWeeklyConfirm()">Yes</button>';
-  el.classList.remove('notif-warn'); el.classList.add('show');
-  if (__notifTimer) clearTimeout(__notifTimer);
-  __notifTimer = setTimeout(() => { el.classList.remove('show'); __weeklyConfirmCb = null; }, 6000);
-}
-function runWeeklyConfirm() { const cb = __weeklyConfirmCb; __weeklyConfirmCb = null; document.getElementById('notif').classList.remove('show'); if (cb) cb(); }
-
 // ── NAVIGATION ───────────────────────────────
 function showAdmin() {
   window.__gatePreview = false;
@@ -7194,6 +8098,11 @@ function showAdmin() {
   try { if (sb) sb.classList.toggle('collapsed', localStorage.getItem('adminSidebarCollapsed') === '1'); } catch (e) {}
   if (state) { renderAdmin(); adminInitDone = true; }
   setAdminTab(currentAdminTab);
+  // Payments data never rides the public poll — fetch it once so the Courts footer
+  // status and the Payments badge are right on the first tab, whichever it is.
+  if (currentAdminTab !== 'payments' && currentAdminTab !== 'courts') {
+    loadAdminOps().then(() => { renderEodStatus(); updateAdminNavBadges(); });
+  }
 }
 
 function showViewer() {
@@ -7736,7 +8645,8 @@ async function loadAccountsTab() {
 
 const AUDIT_LABELS = {
   'attendance.present': 'Attendance changed', 'attendance.paid': 'Payment changed', 'attendance.seed': 'Attendance seeded',
-  'weekly.draw': 'Weekly draw', 'weekly.settings': 'Weekly schedule', 'monthly.recompute': 'Monthly recalculated', 'monthly.override': 'Monthly override',
+  'draw.run': 'Session draw run (manual)', 'draw.settings': 'Winners per draw changed',
+  'weekly.draw': 'Weekly draw (retired)', 'weekly.settings': 'Weekly schedule (retired)', 'monthly.recompute': 'Monthly recalculated', 'monthly.override': 'Monthly override',
   'account.register': 'Account requested', 'account.approve': 'Account approved', 'account.reject': 'Account rejected',
   'account.more_info': 'More info requested', 'account.password_reveal': 'Password revealed', 'account.temp_password': 'Temp password set',
   'account.password_change': 'Password changed', 'account.force_change': 'Force-change toggled', 'account.lock': 'Account locked',
@@ -8755,9 +9665,10 @@ function closeHelp() {
 
 // Each step: which admin tab to show first, the element to spotlight, and copy.
 const TOUR_STEPS = [
-  { tab: null,         sel: '#adminSidebar',     title: 'Grouped nav runs everything', text: 'The sidebar groups every job — Today (Session, Courts, Lucky Draw) and Manage (Friendly, Sign-ups, Accounts, Settings). We’ll walk through the main ones.' },
+  { tab: null,         sel: '#adminSidebar',     title: 'Grouped nav runs everything', text: 'The sidebar groups every job — Today (Session, Courts, Payments, Lucky Draw) and Manage (Friendly, Sign-ups, Accounts, Settings). We’ll walk through the main ones.' },
   { tab: 'session',    sel: '#sessionDateInput', title: 'Set tonight’s date', text: 'Pick today’s play date. Changing it saves the previous day to history and awards every player who played their points.' },
   { tab: 'session',    sel: '#rosterGrid',       title: 'Add players & set levels', text: 'Tap a player to add them to tonight’s session. In the List view the Level picker (1.0–7.0) and the Girl & Mixed toggles set their rating and who plays mixed doubles — these balance the generated matches.' },
+  { tab: 'courts',     sel: '#eodBtn',           title: 'Wrap up the night', text: 'End of the day creates one payment record per player at the default fee. On the Payments tab tap 2h or 3h for how long each person stayed, then Cash, TnG or DuitNow as they pay.' },
   { tab: 'engagement', sel: '#paidPicker',       title: 'Tick who has paid', text: 'Tick the players who’ve paid — they drop into the draw pool and stay there for 2 days, then leave automatically.' },
   { tab: 'engagement', sel: '#spinBtn',          title: 'Spin for a winner', text: 'Once the pool has players, Spin picks a winner at random — revealed live on everyone’s viewer screen.' },
   { tab: 'settings',   sel: '#siteCodeInput',    title: 'Set the daily access code', text: 'Give players today’s short code to unlock the site. Generate a fresh one whenever you like.' },
@@ -8850,6 +9761,9 @@ function closeOpenOverlays() {
   if (isOpen('historyModal')) { closeHistoryModal(); closed = true; }
   if (isOpen('moreSheet'))    { closeMoreSheet();    closed = true; }
   if (isOpen('joinModal'))    { closeJoinModal();    closed = true; }
+  if (isOpen('eodModal'))     { closeEodModal();     closed = true; }
+  if (isOpen('pmModal'))      { closePmModal();      closed = true; }
+  if (isOpen('drawPage'))     { closeDrawPage();     closed = true; }
   return closed;
 }
 
@@ -8888,33 +9802,6 @@ function checkForNewMonthlyDraw(md) {
   // winner reveal + auto-hide fire on wall-clock time even if the shuffle stalls.
   clearTimeout(pickerSafetyTimer);
   pickerSafetyTimer = setTimeout(() => displayPickerWinner(spin), Math.max(0, finishedAt - now) + 120);
-}
-
-// Weekly Lucky Draw live reveal — the public weeklyDraws projection carries a
-// `spin` descriptor when a session is drawn (manual or by the cron). Reuse the
-// shared overlay, serialized against the other two draw sources (F2).
-let lastWeeklySpinId = null;
-function checkForNewWeeklyDraw(weeklyDraws) {
-  if (!weeklyDraws || typeof weeklyDraws !== 'object') return;
-  let spin = null;
-  for (const d of Object.keys(weeklyDraws)) {
-    const s = weeklyDraws[d] && weeklyDraws[d].spin;
-    if (s && s.id && (!spin || s.startAt > spin.startAt)) spin = s;
-  }
-  if (!spin || !spin.id || spin.id === lastWeeklySpinId) return;
-  const now = clockNow();
-  const finishedAt = spin.startAt + spin.durationMs;
-  if (now > finishedAt + SPIN_GRACE_MS) { lastWeeklySpinId = spin.id; return; } // stale — consume
-  if (activeRevealKind && activeRevealKind !== 'weekly') return;
-  lastWeeklySpinId = spin.id;
-  activeRevealKind = 'weekly';
-  const aug = Object.assign({}, spin, { title: 'Weekly Lucky Draw', noPrize: true, rank: 1 });
-  if (pickerRaf) { cancelAnimationFrame(pickerRaf); pickerRaf = null; }
-  showPickerOverlay(aug);
-  if (prefersReducedMotion() || now >= finishedAt) { displayPickerWinner(aug); return; }
-  animatePicker(aug);
-  clearTimeout(pickerSafetyTimer);
-  pickerSafetyTimer = setTimeout(() => displayPickerWinner(aug), Math.max(0, finishedAt - now) + 120);
 }
 
 function showPickerOverlay(spin) {
@@ -9362,18 +10249,17 @@ function renderMyDraw(data) {
   if (data.weekly && data.weekly.length) {
     html += '<div class="st-details">' + data.weekly.map(w => '<div><span>' + escHtml(fmtISOYear(w.date)) + '</span><b>'
       + (w.present ? 'Present' : 'Absent') + ' · ' + (w.paid ? 'Paid' : 'Unpaid')
-      + (w.won ? ' · <span class="st-badge ok">Won!</span>' : (w.eligible ? ' · Eligible' : '')) + '</b></div>').join('') + '</div>';
+      + (w.eligible ? ' · Eligible' : '') + '</b></div>').join('') + '</div>';
   } else {
     html += '<div class="acct-empty">No recent session records yet.</div>';
   }
-  html += '<div class="md-sec-title">Recent winners</div>' + publicWinnersHtml();
+  html += '<div class="md-sec-title">Monthly winners</div>' + publicWinnersHtml();
+  html += '<div class="admin-btn-row admin-mt" style="justify-content:center"><button class="btn btn-secondary btn-sm" type="button" onclick="closeMyDraw();openDrawPage()">Open the Lucky Draw page</button></div>';
   body.innerHTML = html;
 }
 
 function publicWinnersHtml() {
   const items = [];
-  const wd = (state && state.weeklyDraws) || {};
-  Object.keys(wd).forEach(d => { const r = wd[d]; if (r && r.status === 'drawn' && r.winner) items.push({ at: r.drawnAt || 0, label: (WD_NAMES[r.weekday] || '') + ' ' + fmtISOYear(d), name: r.winner.name }); });
   const md = (state && state.monthlyDraw) || {};
   (md.results || []).forEach(r => items.push({ at: r.at || 0, label: 'Monthly — ' + (r.prize || ''), name: r.name }));
   items.sort((a, b) => b.at - a.at);

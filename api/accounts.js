@@ -424,20 +424,15 @@ function doAccountDrawInfo(state, body) {
     }
   }
 
-  // Weekly: this player's own recent session attendance/payment + any wins.
+  // Recent sessions: this player's own attendance/payment records. Draw results
+  // are public on the Lucky Draw page (GET /api/draws), so none are repeated here.
   const att = state.attendance && typeof state.attendance === 'object' ? state.attendance : {};
-  const draws = state.weeklyDraws && typeof state.weeklyDraws === 'object' ? state.weeklyDraws : {};
   const dates = Object.keys(att).sort().reverse().slice(0, 8);
   const weekly = [];
   for (const d of dates) {
     const e = att[d] && att[d].entries && att[d].entries[pid];
     if (!e) continue;
-    const draw = draws[d];
-    weekly.push({
-      date: d, present: !!e.present, paid: !!e.paid, eligible: !!(e.present && e.paid),
-      drawn: !!(draw && draw.status === 'drawn'),
-      won: !!(draw && draw.winner && draw.winner.playerId === pid),
-    });
+    weekly.push({ date: d, present: !!e.present, paid: !!e.paid, eligible: !!(e.present && e.paid) });
   }
   return { status: 200, body: { ok: true, monthly, weekly }, changed: false };
 }

@@ -4,7 +4,11 @@ const os = require('os');
 // Reuse the serverless submit validator + clock so local dev matches production.
 const { buildSignups, todayISO, applySessionDateChange, publicProjection } = require('./api/state.js');
 const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction } = require('./api/accounts.js');
-const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction, DEFAULT_WEEKLY_SETTINGS } = require('./api/weekly.js');
+const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction } = require('./api/weekly.js');
+const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('./api/payments.js');
+const { SESSION_DRAW_ADMIN_ACTIONS, handleSessionDrawAdminAction, sweepSessionDraws, buildDrawsView, memoryDrawStore } = require('./api/session-draw.js');
+const Payments = require('./public/payments.js');
+const SD = require('./public/session-draw.js');
 
 const app = express();
 app.use(express.json({ limit: '50mb' })); // large limit for base64 photos
@@ -37,6 +41,7 @@ const DEFAULT_STATE = {
   currentRound: 0,
   sessionDate: todayISO(),
   sessions: {},
+  feeTier: Payments.DEFAULT_TIER,
   luckyDraw: { entries: [], paid: [], drawDate: null, spin: null, results: [], history: [] },
   monthlyDraw: { month: '', rollSuppressedMonth: '', prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'], participants: [], results: [], spin: null, history: [] },
   socialGames: [
@@ -47,13 +52,15 @@ const DEFAULT_STATE = {
   signups: [],
   regulars: {}, // weekday (0=Sun..6=Sat) -> roster ids who always come that day
   attendance: {},
-  weeklyDraws: {},
-  weeklySettings: DEFAULT_WEEKLY_SETTINGS,
+  drawSettings: { winners: SD.DEFAULT_WINNERS },
+  sessionDrawAt: SD.scheduledDrawAt(todayISO()),
   monthlyEligibility: null,
   audit: [],
 };
 
 let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+// Session draw results (permanent; in-memory for local dev — see api/session-draw.js).
+const drawStore = memoryDrawStore();
 
 // GET state — public (with siteCode gate)
 app.get('/api/state', (req, res) => {
@@ -68,13 +75,23 @@ app.get('/api/state', (req, res) => {
       return res.json({ locked: true, socialGames: openGames, today: todayISO() });
     }
   }
-  // publicProjection strips accounts + private attendance/audit/eligibility and
-  // reduces weeklyDraws to public winners, matching production.
+  // publicProjection strips accounts + private attendance/audit/eligibility,
+  // matching production.
   res.json({ ...publicProjection(state), serverTime: Date.now(), today: todayISO() });
 });
 
+// GET draws — the public Lucky Draw page (site-code gated), same as api/draws.js.
+app.get('/api/draws', async (req, res) => {
+  if (state.siteCode && (req.query.code || '') !== state.siteCode) return res.json({ locked: true, today: todayISO() });
+  let results = null;
+  try { results = (await sweepSessionDraws(state, drawStore, {})).results; } catch (e) { /* view still loads */ }
+  const limit = Number(req.query.limit);
+  const view = await buildDrawsView(state, drawStore, { results, limit: Number.isInteger(limit) && limit > 0 ? limit : undefined, before: req.query.before });
+  res.json({ ok: true, ...view, today: todayISO(), serverTime: Date.now() });
+});
+
 // POST state — admin only, merges updates
-app.post('/api/state', (req, res) => {
+app.post('/api/state', async (req, res) => {
   const b = req.body || {};
 
   // Public, UNAUTHENTICATED sign-up submission. This is the ONLY POST path that
@@ -123,9 +140,19 @@ app.post('/api/state', (req, res) => {
     const result = handleAdminAccountAction(state, updates, { adminPassword: ADMIN_PASSWORD });
     return res.status(result.status).json(result.body);
   }
-  // Admin weekly-draw / attendance / monthly-eligibility actions.
+  // Admin attendance / monthly-eligibility actions.
   if (updates.action && WEEKLY_ADMIN_ACTIONS.has(updates.action)) {
     const result = handleWeeklyAdminAction(state, updates);
+    return res.status(result.status).json(result.body);
+  }
+  // Admin per-player session payment actions (End of the day / paid toggles).
+  if (updates.action && PAYMENT_ADMIN_ACTIONS.has(updates.action)) {
+    const result = handlePaymentAdminAction(state, updates);
+    return res.status(result.status).json(result.body);
+  }
+  // Admin session-draw actions (Run draw now / winners setting / admin draw list).
+  if (updates.action && SESSION_DRAW_ADMIN_ACTIONS.has(updates.action)) {
+    const result = await handleSessionDrawAdminAction(state, updates, { store: drawStore });
     return res.status(result.status).json(result.body);
   }
   // Admin fetch of the full private ops data (kept out of public GET).
@@ -133,11 +160,21 @@ app.post('/api/state', (req, res) => {
     return res.json({
       ok: true,
       attendance: state.attendance || {},
-      weeklyDraws: state.weeklyDraws || {},
-      weeklySettings: state.weeklySettings || DEFAULT_WEEKLY_SETTINGS,
+      drawSettings: { winners: SD.winnersOf(state.drawSettings) },
       monthlyEligibility: state.monthlyEligibility || null,
       audit: Array.isArray(state.audit) ? state.audit.slice(0, 300) : [],
+      feeTier: Payments.tierOf(state.feeTier),
+      sessionDate: state.sessionDate || null,
     });
+  }
+  if (updates.action !== undefined) {
+    return res.status(400).json({ error: 'Unknown action.' });
+  }
+  if (updates.feeTier !== undefined && !Payments.isTier(updates.feeTier)) {
+    return res.status(400).json({ error: 'Invalid fee tier.' });
+  }
+  if (updates.drawSettings !== undefined || updates.sessionDrawAt !== undefined) {
+    return res.status(400).json({ error: 'Use the setDrawSettings action.' });
   }
   // Session-date change uses the SAME shared logic as production (api/state.js)
   // so local dev reproduces the snapshot/restore/one-month-ahead behaviour.

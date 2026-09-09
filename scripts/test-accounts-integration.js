@@ -40,7 +40,7 @@ const post = (b) => call('POST', {}, b);
     roster: [{ id: 'p6', name: 'Kokyan', photo: null, points: 0 }, { id: 'p0', name: 'Thomas', photo: null, points: 0 }],
     players: [], sessions: {}, signups: [], regulars: { 1: ['p6'] }, sessionDate: '2026-07-20',
     monthlyDraw: { month: '2026-07', participants: [], prizes: [], results: [], history: [], spin: null },
-    accounts: [], attendance: {}, weeklyDraws: {}, audit: [],
+    accounts: [], attendance: {}, audit: [],
   };
 
   // register (public, phone+password)
@@ -82,17 +82,12 @@ const post = (b) => call('POST', {}, b);
   r = await post({ password: P, action: 'adminGetOps' });
   check('adminGetOps returns attendance/audit', r.status === 200 && r.body.ok && typeof r.body.attendance === 'object' && Array.isArray(r.body.audit));
 
-  // weekly draw through the dispatcher
+  // attendance through the dispatcher; the public GET must not expose it (nor the retired weeklyDraws)
   await post({ password: P, action: 'seedAttendance', date: '2026-07-20' });
   await post({ password: P, action: 'setAttendance', date: '2026-07-20', playerId: 'p6', present: true, paid: true });
-  r = await post({ password: P, action: 'weeklyDraw', date: '2026-07-20' });
-  check('weeklyDraw via dispatcher -> winner', r.status === 200 && r.body.ok && r.body.result.winner.playerId === 'p6');
-
-  // public GET now exposes the winner but NOT the eligible name list
   const g2 = await call('GET', {});
-  const wd = g2.body.weeklyDraws['2026-07-20'];
-  check('public GET shows winner', wd && wd.winner && wd.winner.name === 'Kokyan');
-  check('public GET hides eligible list', wd && wd.eligible === undefined && wd.eligibleCount === 1);
+  check('public GET hides attendance and has no weeklyDraws', g2.body.attendance === undefined && g2.body.weeklyDraws === undefined && g2.body.weeklySettings === undefined);
+  check('retired weeklyDraw action is rejected by the dispatcher', (await post({ password: P, action: 'weeklyDraw', date: '2026-07-20' })).status === 400);
 
   console.log(`\naccounts integration: ${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);

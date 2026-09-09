@@ -1,6 +1,10 @@
 const { Redis } = require('@upstash/redis');
 const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction } = require('./accounts.js');
-const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction, sweepWeeklyDraws, DEFAULT_WEEKLY_SETTINGS, pruneWeeklyState } = require('./weekly.js');
+const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction, pruneWeeklyState } = require('./weekly.js');
+const { SESSION_DRAW_ADMIN_ACTIONS, handleSessionDrawAdminAction, sweepSessionDraws, redisDrawStore } = require('./session-draw.js');
+const SD = require('../public/session-draw.js');
+const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('./payments.js');
+const Payments = require('../public/payments.js');
 
 // Accepts env vars from Vercel Marketplace (KV_REST_API_URL) or direct Upstash (UPSTASH_REDIS_REST_URL)
 let redis = null;
@@ -18,10 +22,21 @@ const kv = {
     if (!redis) throw new Error('No Redis configured');
     return redis.set(key, val);
   },
+  // Hash ops for the permanent draw-result store (api/session-draw.js). HSETNX
+  // is what makes a draw impossible to write twice, even across racing callers.
+  hget: async (key, field) => redis ? redis.hget(key, field) : null,
+  hgetall: async (key) => redis ? redis.hgetall(key) : null,
+  hsetnx: async (key, field, val) => {
+    if (!redis) throw new Error('No Redis configured');
+    return redis.hsetnx(key, field, val);
+  },
 };
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'TZH123';
 const STATE_KEY = 'court-state';
+// Session draw results: a separate Redis hash (`court-draws`, field = ISO date),
+// never pruned, never rewritten — see api/session-draw.js.
+const drawStore = redisDrawStore(kv);
 
 // Local "today" for the club. Vercel runs in UTC, so without an offset the
 // date flips at the wrong moment for non-UTC users (B8). Defaults to UTC+8.
@@ -63,6 +78,9 @@ const DEFAULT_STATE = {
   endingSoon: [],
   sessionDate: todayISO(),
   sessions: {},
+  // Session fee tier for the live day ('2h' = RM20, '3h' = RM25). Snapshotted with the
+  // session; "End of the day" (api/payments.js) generates payment records at this tier.
+  feeTier: Payments.DEFAULT_TIER,
   luckyDraw: { entries: [], paid: [], drawDate: todayISO(), spin: null, results: [], history: [] },
   monthlyDraw: { month: '', rollSuppressedMonth: '', prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'], participants: [], results: [], spin: null, history: [] },
   shopCustomers: [],
@@ -80,15 +98,18 @@ const DEFAULT_STATE = {
   // come that day. Admins set this in Settings; the admin Session tab surfaces a
   // one-tap "Add regulars" prompt when the session date lands on a matching day.
   regulars: {},
-  // ── WEEKLY LUCKY DRAW + attendance/payment (2026-07 overhaul) ──
+  // ── attendance/payment (2026-07 overhaul) ──
   // Durable per-session attendance/payment records, keyed by ISO date. Separate
   // from `sessions` (which prunes at 31 days) so Monthly aggregation can look
-  // back across a whole month. entries: { playerId: {playerId,name,present,paid,source} }.
+  // back across a whole month. entries: { playerId: {playerId,name,present,paid,source,payment} }.
   attendance: {},
-  // Per session-day weekly draw results + history, keyed by ISO date.
-  weeklyDraws: {},
-  // Configurable cutoff + auto-draw schedule (Malaysia time).
-  weeklySettings: DEFAULT_WEEKLY_SETTINGS,
+  // ── automatic per-session Lucky Draw (2026-09) ──
+  // Winners per draw (admin-configurable). The schedule itself is a fixed table in
+  // public/session-draw.js; results live in the separate `court-draws` Redis hash.
+  drawSettings: { winners: SD.DEFAULT_WINNERS },
+  // Scheduled draw instant (epoch ms) for the LIVE session day, stamped when the
+  // day is created (applySessionDateChange); null on days that never draw.
+  sessionDrawAt: SD.scheduledDrawAt(todayISO()),
   // Auto-computed Monthly Lucky Draw eligibility cache (feeds monthlyDraw.participants).
   monthlyEligibility: null,
   // Durable admin audit log (bounded).
@@ -97,38 +118,14 @@ const DEFAULT_STATE = {
 
 const DEFAULT_MD_PRIZES = ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'];
 
-// Public-safe projection of the weekly draws: keeps the PUBLIC winner + counts +
-// live-reveal spin, but DROPS the per-player `eligible` name list (which would
-// reveal who attended/paid — private per spec §16). Admins get the full object via
-// their authenticated poll.
-function projectWeeklyDrawsPublic(weeklyDraws) {
-  const out = {};
-  const wd = (weeklyDraws && typeof weeklyDraws === 'object') ? weeklyDraws : {};
-  for (const date of Object.keys(wd)) {
-    const r = wd[date] || {};
-    out[date] = {
-      date: r.date || date, weekday: r.weekday,
-      status: r.status || 'open',
-      winner: r.winner || null,
-      eligibleCount: r.eligibleCount || (Array.isArray(r.eligible) ? r.eligible.length : 0),
-      drawnAt: r.drawnAt || null, drawnBy: r.drawnBy || null,
-      closesAt: r.closesAt || null, drawsAt: r.drawsAt || null,
-      rerunCount: r.rerunCount || 0,
-      spin: r.spin || null,
-      history: Array.isArray(r.history) ? r.history.map((h) => ({ winner: h.winner, at: h.at, by: h.by })) : [],
-    };
-  }
-  return out;
-}
-
 // Full public GET projection: redactState() already strips the accounts array;
 // on top of that we strip attendance, audit, and the full monthlyEligibility
-// breakdown (all contain other players' private attendance/payment data), and
-// reduce weeklyDraws to the public winner projection. Admins receive the full
-// data through their authenticated poll (which uses redactState only).
+// breakdown (all contain other players' private attendance/payment data).
+// `weeklyDraws` / `weeklySettings` are legacy keys from the retired Weekly draw;
+// they are dropped here too so an old blob's per-player name lists never leak.
+// Session draw results are served by GET /api/draws (site-code gated), not here.
 function publicProjection(current) {
-  const { attendance, audit, monthlyEligibility, weeklyDraws, ...safe } = redactState(current);
-  safe.weeklyDraws = projectWeeklyDrawsPublic(weeklyDraws);
+  const { attendance, audit, monthlyEligibility, weeklyDraws, weeklySettings, ...safe } = redactState(current);
   return safe;
 }
 
@@ -311,6 +308,8 @@ function pruneExpiredPaid(paid, today) {
  *  - RESTORES the target day's saved session if one exists (so revisiting a day
  *    brings its players/rounds/courts back instead of showing an empty day);
  *    otherwise starts the day fresh while keeping numCourts + courtNumbers.
+ *  - Stamps the scheduled Lucky Draw time: `drawAt` on the outgoing snapshot and
+ *    `sessionDrawAt` for the new live day (null when that weekday never draws).
  */
 function applySessionDateChange(state, newDate, today) {
   state = state || {};
@@ -330,6 +329,8 @@ function applySessionDateChange(state, newDate, today) {
       numCourts: state.numCourts || 1,
       courtNumbers: state.courtNumbers || [],
       courtRounds: state.courtRounds || [],
+      feeTier: Payments.tierOf(state.feeTier),
+      drawAt: SD.scheduledDrawAt(state.sessionDate),
     };
     const sessions = Object.assign({}, state.sessions, { [state.sessionDate]: snapshot });
     const cutoffStr = addDaysISO(today, -31);
@@ -344,6 +345,7 @@ function applySessionDateChange(state, newDate, today) {
       next.numCourts = saved.numCourts || state.numCourts || 1;
       next.courtNumbers = Array.isArray(saved.courtNumbers) ? saved.courtNumbers : [];
       next.courtRounds = Array.isArray(saved.courtRounds) ? saved.courtRounds : [];
+      next.feeTier = Payments.tierOf(saved.feeTier);
       delete sessions[newDate]; // it's the live day now, not a saved past day
     } else {
       // Fresh day — start empty but auto-add the weekly regulars for this
@@ -351,12 +353,14 @@ function applySessionDateChange(state, newDate, today) {
       next.players = seedRegularPlayers(state, newDate);
       next.rounds = [];
       next.courtRounds = [];
+      next.feeTier = Payments.DEFAULT_TIER; // a fresh night starts on the default fee
     }
     next.currentRound = 0;
     next.endingSoon = [];
     next.sessions = sessions;
   }
   next.sessionDate = newDate;
+  next.sessionDrawAt = SD.scheduledDrawAt(newDate);
   return { ok: true, state: next };
 }
 
@@ -399,33 +403,32 @@ async function rolloverSessionDate() {
   return { ok: true, changed: true, from: state.sessionDate || null, to: target, today };
 }
 
+/** Load the live state blob (or the defaults). Shared by the draws endpoint + cron. */
+async function loadState() {
+  return (await kv.get(STATE_KEY)) || { ...DEFAULT_STATE };
+}
+
 /**
- * Cron entry point for the Weekly Lucky Draw (hit by /api/cron-weekly-draw).
- * Loads state, runs the idempotent auto-draw sweep (draws every past session
- * whose draw time has passed and isn't drawn yet), and persists only if anything
- * changed. Safe to run daily — already-drawn sessions are skipped.
+ * Cron entry point for the per-session Lucky Draw (hit by /api/cron-session-draw
+ * daily at 09:00 MYT; also run by GET /api/draws and the admin list). Loads the
+ * state and runs the idempotent sweep: every candidate session whose scheduled
+ * draw time has passed and that has no result yet is drawn once (HSETNX). The
+ * state blob itself is never written here.
  */
-async function runWeeklyDrawSweep() {
+async function runSessionDrawSweep() {
   let state;
   try {
-    state = (await kv.get(STATE_KEY)) || { ...DEFAULT_STATE };
+    state = await loadState();
   } catch (e) {
     return { ok: false, error: 'read', changed: false };
   }
-  let result;
   try {
-    result = sweepWeeklyDraws(state, {});
+    const r = await sweepSessionDraws(state, drawStore, {});
+    return { ok: true, changed: r.drawn.length > 0, drawn: r.drawn, pending: r.pending, today: todayISO() };
   } catch (e) {
+    console.error('session draw sweep error:', e && e.message);
     return { ok: false, error: 'sweep', changed: false };
   }
-  if (result.changed) {
-    try {
-      await kv.set(STATE_KEY, state);
-    } catch (e) {
-      return { ok: false, error: 'write', changed: false };
-    }
-  }
-  return { ok: true, changed: result.changed, drawn: result.drawn, today: todayISO() };
 }
 
 /**
@@ -545,13 +548,19 @@ const handler = async function handler(req, res) {
       if (!current.regulars || typeof current.regulars !== 'object' || Array.isArray(current.regulars)) current.regulars = {};
       if (!Array.isArray(current.endingSoon)) current.endingSoon = [];
       if (!Array.isArray(current.accounts)) current.accounts = [];
-      // Weekly Lucky Draw + attendance/payment (additive; coerce old blobs safely).
+      // Attendance/payment (additive; coerce old blobs safely).
       if (!current.attendance || typeof current.attendance !== 'object' || Array.isArray(current.attendance)) current.attendance = {};
-      if (!current.weeklyDraws || typeof current.weeklyDraws !== 'object' || Array.isArray(current.weeklyDraws)) current.weeklyDraws = {};
-      if (!current.weeklySettings || typeof current.weeklySettings !== 'object') current.weeklySettings = { ...DEFAULT_WEEKLY_SETTINGS };
+      // Retired Weekly draw keys: scrub them from old blobs so nothing downstream sees them.
+      delete current.weeklyDraws;
+      delete current.weeklySettings;
+      // Session draw settings + the live day's scheduled draw instant.
+      current.drawSettings = { winners: SD.winnersOf(current.drawSettings) };
+      if (current.sessionDrawAt === undefined) current.sessionDrawAt = SD.scheduledDrawAt(current.sessionDate);
       if (current.monthlyEligibility === undefined) current.monthlyEligibility = null;
       if (!Array.isArray(current.audit)) current.audit = [];
-      // Prune attendance/weeklyDraws past the retention window on every read.
+      // Session fee tier: coerce anything but '2h'/'3h' (old blobs, junk) to the default.
+      current.feeTier = Payments.tierOf(current.feeTier);
+      // Prune attendance past the retention window on every read.
       pruneWeeklyState(current, todayISO());
       if (current.siteCode) {
         const provided = (req.query && req.query.code) ? req.query.code : '';
@@ -567,10 +576,9 @@ const handler = async function handler(req, res) {
         }
       }
       // publicProjection strips the accounts array (credentials) AND the private
-      // attendance/audit/monthly-eligibility data, and reduces weeklyDraws to
-      // public winners — so a GET payload can never leak one player's private
-      // data (attendance/payment/password) to another. Admins get full data via
-      // their authenticated poll (redactState only).
+      // attendance/audit/monthly-eligibility data — so a GET payload can never
+      // leak one player's private data (attendance/payment/password) to another.
+      // Admins get full data via their authenticated poll (redactState only).
       return res.json({ ...publicProjection(current), serverTime: Date.now(), today: todayISO() });
     } catch (e) {
       console.error('KV read error:', e.message);
@@ -682,7 +690,7 @@ const handler = async function handler(req, res) {
       return res.status(result.status).json(result.body);
     }
 
-    // Handle admin weekly-draw / attendance / monthly-eligibility actions.
+    // Handle admin attendance / monthly-eligibility actions.
     if (updates.action && WEEKLY_ADMIN_ACTIONS.has(updates.action)) {
       const result = handleWeeklyAdminAction(state, updates);
       if (result.changed) {
@@ -691,16 +699,37 @@ const handler = async function handler(req, res) {
       return res.status(result.status).json(result.body);
     }
 
-    // Admin fetch of the full private ops data (attendance / weeklyDraws /
-    // weeklySettings / monthlyEligibility / audit) — kept out of public GET.
+    // Handle admin per-player session payment actions ("End of the day" + paid/method/fee edits).
+    if (updates.action && PAYMENT_ADMIN_ACTIONS.has(updates.action)) {
+      const result = handlePaymentAdminAction(state, updates);
+      if (result.changed) {
+        try { await kv.set(STATE_KEY, state); } catch (e) { return res.status(500).json({ error: 'Storage error.' }); }
+      }
+      return res.status(result.status).json(result.body);
+    }
+
+    // Handle admin session-draw actions (manual "Run draw now", winners setting,
+    // admin copy of the draw list). The handler is async: it talks to the
+    // separate draw store; the state blob is saved only when it changed.
+    if (updates.action && SESSION_DRAW_ADMIN_ACTIONS.has(updates.action)) {
+      const result = await handleSessionDrawAdminAction(state, updates, { store: drawStore });
+      if (result.changed) {
+        try { await kv.set(STATE_KEY, state); } catch (e) { return res.status(500).json({ error: 'Storage error.' }); }
+      }
+      return res.status(result.status).json(result.body);
+    }
+
+    // Admin fetch of the full private ops data (attendance / drawSettings /
+    // monthlyEligibility / audit) — kept out of public GET.
     if (updates.action === 'adminGetOps') {
       return res.json({
         ok: true,
         attendance: state.attendance || {},
-        weeklyDraws: state.weeklyDraws || {},
-        weeklySettings: state.weeklySettings || DEFAULT_WEEKLY_SETTINGS,
+        drawSettings: { winners: SD.winnersOf(state.drawSettings) },
         monthlyEligibility: state.monthlyEligibility || null,
         audit: Array.isArray(state.audit) ? state.audit.slice(0, 300) : [],
+        feeTier: Payments.tierOf(state.feeTier),
+        sessionDate: state.sessionDate || null,
       });
     }
 
@@ -719,6 +748,21 @@ const handler = async function handler(req, res) {
       state.sessions = { ...(state.sessions || {}), [date]: session };
       try { await kv.set(STATE_KEY, state); } catch (e) { return res.status(500).json({ error: 'Storage error' }); }
       return res.json({ ok: true });
+    }
+
+    // Every named action is handled above; an unknown one must never fall through
+    // to the generic merge (it would write `action`/`date` junk into the blob).
+    if (updates.action !== undefined) {
+      return res.status(400).json({ error: 'Unknown action.' });
+    }
+
+    // Session fee tier rides the generic merge like numCourts, but it's an enum — reject junk.
+    if (updates.feeTier !== undefined && !Payments.isTier(updates.feeTier)) {
+      return res.status(400).json({ error: 'Invalid fee tier.' });
+    }
+    // Draw settings have their own validated action; never accept them via the merge.
+    if (updates.drawSettings !== undefined || updates.sessionDrawAt !== undefined) {
+      return res.status(400).json({ error: 'Use the setDrawSettings action.' });
     }
 
     // Session date change: allow scheduling up to a month ahead (matches the
@@ -759,7 +803,8 @@ module.exports.regularsToAdd = regularsToAdd;
 module.exports.seedRegularPlayers = seedRegularPlayers;
 module.exports.nextRolloverDate = nextRolloverDate;
 module.exports.rolloverSessionDate = rolloverSessionDate;
-module.exports.runWeeklyDrawSweep = runWeeklyDrawSweep;
-module.exports.projectWeeklyDrawsPublic = projectWeeklyDrawsPublic;
+module.exports.loadState = loadState;
+module.exports.drawStore = drawStore;
+module.exports.runSessionDrawSweep = runSessionDrawSweep;
 module.exports.publicProjection = publicProjection;
 module.exports.todayISO = todayISO;
