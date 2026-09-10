@@ -107,6 +107,14 @@ STORE = {
     STORE.attendance[date] = { date, weekday: SD.isoWeekday(date), updatedAt: paidSameNight, entries, payments: { tier: '3h', generatedAt: paidSameNight, generatedBy: 'admin' } };
   });
   STORE.__seededDrawNights = nights;
+  // One manual quick draw (with the reel pool each winner was drawn from) so the
+  // calendar shows a second mark and its replay video can be tried locally.
+  const qdDate = nights[0] || todayIso;
+  const qdPool = STORE.roster.slice(0, 9).map((r) => r.name);
+  STORE.luckyDraw.history = [{ date: qdDate, at: SD.mytInstant(qdDate, '23:05'), winners: [
+    { rank: 1, name: qdPool[3], pool: qdPool.slice() },
+    { rank: 2, name: qdPool[6], pool: qdPool.filter((n) => n !== qdPool[3]) },
+  ] }];
 })();
 
 // ── Adapt Node's req/res to the Vercel-style handler contract ────────────────

@@ -1226,6 +1226,46 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .sd-win-chip{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:100px;background:var(--a-blue);color:#fff;font-weight:700;font-size:var(--fs-base);letter-spacing:-.01em}
 .sd-win-chip .ic{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .sd-nowin{padding:0 14px 12px;font-size:var(--fs-sm);color:var(--muted)}
+/* ── Lucky Draw month calendar (public page + admin list) ── */
+.sd-cal{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 12px 10px;margin-bottom:12px}
+.sdc-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.sdc-label{font-weight:700;color:var(--text);font-size:var(--fs-md)}
+.sdc-nav{width:40px;height:40px;border-radius:50%;border:1px solid var(--border2);background:var(--card2);color:var(--text);font-size:22px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-family:inherit}
+.sdc-nav:hover{border-color:var(--a-blue-2);color:var(--a-blue)}
+.sdc-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.sdc-wd{text-align:center;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:4px 0}
+.sdc-day{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:46px;border-radius:var(--radius-sm);border:1px solid transparent;background:transparent;color:var(--text);font-size:var(--fs-sm);font-weight:600;cursor:default;padding:4px 0;font-family:inherit}
+.sdc-day.out{color:var(--muted);opacity:.45}
+.sdc-day.has{cursor:pointer;background:var(--card2);border-color:var(--border)}
+.sdc-day.has:hover{border-color:var(--a-blue-2)}
+.sdc-day.today span{text-decoration:underline;text-underline-offset:3px}
+.sdc-day.sel{background:var(--a-blue);border-color:var(--a-blue);color:#fff}
+.sdc-day.sel .sdc-dot{background:#fff;border-color:#fff}
+.sdc-marks{display:flex;gap:3px;height:6px}
+.sdc-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--a-blue);box-sizing:border-box}
+.sdc-dot.wait{background:transparent;border:1.5px solid var(--warn)}
+.sdc-dot.man{background:var(--accent)}
+.sdc-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-size:11px;color:var(--muted)}
+.sdc-legend span{display:inline-flex;align-items:center;gap:5px}
+.sdc-sel{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:var(--fs-sm);color:var(--text)}
+.sd-video-row{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 12px}
+.sd-win-chip small{font-size:11px;font-weight:600;opacity:.85}
+/* ── Lucky Draw replay video modal (canvas render + MediaRecorder) ── */
+#drawVideoModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:460;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+#drawVideoModal.open{display:flex}
+.dv-card{position:relative;width:min(100%,460px);background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 32px)}
+.dv-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.dv-eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--a-blue)}
+.dv-title{margin:2px 0 0;font-size:var(--fs-md);font-weight:700;color:var(--text)}
+.dv-sub{font-size:var(--fs-xs);color:var(--muted);margin-top:2px}
+.dv-close{position:static;flex:none}
+.dv-stage{display:flex;justify-content:center;background:var(--dark);border-radius:var(--radius-sm);overflow:hidden;min-height:0}
+#dvCanvas{display:block;width:auto;height:min(58vh,560px);max-width:100%;aspect-ratio:9/16}
+.dv-progress{height:4px;border-radius:2px;background:var(--card2);overflow:hidden}
+.dv-bar{height:100%;width:0;background:var(--a-blue);transition:width .2s linear}
+.dv-meta{display:flex;justify-content:space-between;gap:10px;font-size:var(--fs-xs);color:var(--muted)}
+.dv-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dv-spacer{flex:1}
 .sd-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:0 14px 12px}
 .sd-stat{display:flex;flex-direction:column;align-items:center;min-width:0;padding:8px 4px;border-radius:var(--radius-sm);background:var(--card2);border:1px solid var(--border)}
 .sd-stat b{font-size:20px;font-weight:700;color:var(--text);line-height:1.1}
@@ -2293,8 +2333,27 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <button class="lb-close sd-close" onclick="closeDrawPage()" aria-label="Close Lucky Draw">&#x2715;</button>
     </div>
     <div class="sd-how" id="drawPageHow"></div>
+    <div class="sd-cal" id="drawPageCal"></div>
     <div class="sd-list" id="drawPageList"><div class="acct-empty">Loading&hellip;</div></div>
     <div class="sd-more" id="drawPageMore" style="display:none"><button class="btn btn-secondary btn-sm" onclick="loadDrawPage(true)">Show older sessions</button></div>
+  </div>
+</div>
+
+<!-- Lucky Draw replay video: the draw is re-rendered on a canvas from its stored
+     record and captured with MediaRecorder in this browser (see draw-video.js). -->
+<div id="drawVideoModal" role="dialog" aria-modal="true" aria-labelledby="dvTitle" aria-hidden="true" onclick="if(event.target===this)closeDrawVideo()">
+  <div class="dv-card">
+    <div class="dv-head"><div><div class="dv-eyebrow">Lucky Draw replay</div><h3 id="dvTitle" class="dv-title"></h3><div id="dvSub" class="dv-sub"></div></div>
+      <button class="lb-close dv-close" onclick="closeDrawVideo()" aria-label="Close replay">&#x2715;</button></div>
+    <div class="dv-stage"><canvas id="dvCanvas" width="1080" height="1920" aria-label="Lucky Draw replay video"></canvas></div>
+    <div class="dv-progress"><div class="dv-bar" id="dvBar"></div></div>
+    <div class="dv-meta"><span id="dvStatus"></span><span id="dvTime" class="dv-time"></span></div>
+    <div class="dv-actions">
+      <button type="button" class="btn btn-ghost btn-sm" id="dvReplay" onclick="dvReplay()" disabled>Play again</button>
+      <span class="dv-spacer"></span>
+      <button type="button" class="btn btn-secondary btn-sm" id="dvShare" onclick="dvShare()" style="display:none"><svg class="ic" viewBox="0 0 24 24"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 15V3M7 8l5-5 5 5"/></svg> Share</button>
+      <button type="button" class="btn btn-primary btn-sm" id="dvDownload" onclick="dvSave()" disabled><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v12M6 10l6 6 6-6M4 20h16"/></svg> Download video</button>
+    </div>
   </div>
 </div>
 
@@ -2660,7 +2719,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div class="admin-card">
       <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> Sessions</span>
         <button class="btn btn-ghost btn-sm" onclick="loadAdminDraws(false)"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 4v4h-4"/></svg> Refresh</button></div>
-      <div id="sdAdminList"><div class="acct-empty">Loading&hellip;</div></div>
+      <div class="sd-cal" id="sdAdminCal"></div>
+      <div id="sdAdminList" class="sd-list"><div class="acct-empty">Loading&hellip;</div></div>
       <div class="sd-more" id="sdAdminMore" style="display:none"><button class="btn btn-secondary btn-sm" onclick="loadAdminDraws(true)">Show older sessions</button></div>
     </div>
 
@@ -2940,6 +3000,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 <script src="monthly-eligibility.js"></script>
 <script src="matchmaking.js"></script>
 <script src="/session-draw.js"></script>
+<script src="/draw-video.js"></script>
 <script>
 // ── STATE ────────────────────────────────────
 let state = null;
@@ -7345,8 +7406,9 @@ function renderDrawPage() {
   if (how) how.innerHTML = sdHowHtml(sdPublic.winnersPerDraw);
   const sub = document.getElementById('drawPageSub');
   if (sub) sub.textContent = sdWinnersLabel(sdPublic.winnersPerDraw) + ' per session · drawn at ' + SessionDraw.drawTimeLabel();
-  renderDrawList(document.getElementById('drawPageList'), sdPublic.sessions, { admin: false });
-  const more = document.getElementById('drawPageMore'); if (more) more.style.display = sdPublic.hasMore ? '' : 'none';
+  renderDrawCalendar(document.getElementById('drawPageCal'), sdPublic, false);
+  renderDrawList(document.getElementById('drawPageList'), sdPublic.sessions, { admin: false, items: sdListItems(sdPublic, false), filtered: !!sdCal.pub.sel });
+  const more = document.getElementById('drawPageMore'); if (more) more.style.display = sdPublic.hasMore && !sdCal.pub.sel ? '' : 'none';
 }
 function sdWinnersLabel(n) { const k = SessionDraw.isWinnersCount(Number(n)) ? Number(n) : SessionDraw.DEFAULT_WINNERS; return k + ' winner' + (k === 1 ? '' : 's'); }
 function sdHowHtml(n) { return '<b>How it works</b>' + escHtml(SessionDraw.howItWorksText(n)); }
@@ -7355,11 +7417,12 @@ function sdHowHtml(n) { return '<b>How it works</b>' + escHtml(SessionDraw.howIt
 function renderDrawList(container, sessions, opts) {
   if (!container) return;
   const admin = !!(opts && opts.admin);
-  if (!sessions || !sessions.length) {
-    container.innerHTML = '<div class="acct-empty">No sessions yet — the first draw appears after the next Monday, Friday or Sunday night.</div>';
+  const items = (opts && opts.items) || (sessions || []).map(v => ({ kind: 'session', date: v.date, v }));
+  if (!items.length) {
+    container.innerHTML = '<div class="acct-empty">' + (opts && opts.filtered ? 'No draw on this day.' : 'No sessions yet — the first draw appears after the next Monday, Friday or Sunday night.') + '</div>';
     return;
   }
-  container.innerHTML = sessions.map(v => sdCardHtml(v, admin)).join('');
+  container.innerHTML = items.map(i => (i.kind === 'manual' ? qdCardHtml(i.e) : sdCardHtml(i.v, admin))).join('');
 }
 function sdCardHtml(v, admin) {
   const done = v.status === 'done';
@@ -7375,6 +7438,7 @@ function sdCardHtml(v, admin) {
     html += w.length
       ? '<div class="sd-winners">' + w.map(x => '<span class="sd-win-chip"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg>' + escHtml(x.name) + '</span>').join('') + '</div>'
       : '<div class="sd-nowin">No winners — nobody was eligible for this session.</div>';
+    if (w.length) html += sdVideoRowHtml('session', v.date);
   }
   html += '<div class="sd-stats">' + SD_LIST_KEYS.map(([k, l]) => '<div class="sd-stat' + (k === 'winners' && done && c.winners ? ' win' : '') + '"><b>' + (c[k] || 0) + '</b><span>' + l + '</span></div>').join('') + '</div>';
   html += SD_LIST_KEYS.map(([k, l]) => sdListHtml(v, k, l, done)).join('');
@@ -7416,6 +7480,172 @@ function sdListHtml(v, key, label, done) {
   return '<details class="sd-names-wrap"' + (open ? ' open' : '') + '><summary><span>' + escHtml(title) + '</span><b>' + rows.length + '<span class="sd-tog" aria-hidden="true"></span></b></summary>' + body + '</details>';
 }
 
+// ── Draw calendar + replay video (public page + admin list) ──────────────
+// A month grid sits above each list; tapping a marked day filters the list to
+// that date. Every drawn session card and every replayable manual quick draw
+// gets Play / Download: the replay is rendered on a canvas by draw-video.js and
+// captured with MediaRecorder in the viewer's browser — nothing is stored.
+const sdCal = { pub: { y: 0, m: 0, sel: null, init: false }, adm: { y: 0, m: 0, sel: null, init: false } };
+function sdCalState(admin) { return admin ? sdCal.adm : sdCal.pub; }
+function manualDrawEntries() { return window.DrawVideo ? DrawVideo.manualEntriesOf(state && state.luckyDraw, clockNow()) : []; }
+// Cards to list: session views + manual quick draws interleaved newest first.
+// While older sessions are still unloaded, manual draws older than the loaded
+// range wait too, so the order never jumps when "Show older sessions" appends.
+function sdListItems(data, admin) {
+  const cs = sdCalState(admin);
+  const sessions = (data && data.sessions) || [];
+  const oldest = sessions.length ? sessions[sessions.length - 1].date : null;
+  let manual = manualDrawEntries();
+  if (!cs.sel && data && data.hasMore && oldest) manual = manual.filter(e => e.date >= oldest);
+  const items = sessions.map(v => ({ kind: 'session', date: v.date, at: Number(v.drawnAt || v.drawAt) || 0, v }))
+    .concat(manual.map(e => ({ kind: 'manual', date: e.date, at: e.at || 0, e })));
+  items.sort((a, b) => a.date === b.date ? (a.kind === b.kind ? b.at - a.at : (a.kind === 'session' ? -1 : 1)) : (a.date < b.date ? 1 : -1));
+  return cs.sel ? items.filter(i => i.date === cs.sel) : items;
+}
+function renderDrawCalendar(container, data, admin) {
+  if (!container || !window.DrawVideo) return;
+  const cs = sdCalState(admin);
+  const sessions = (data && data.sessions) || [];
+  if (!cs.init) {
+    const mo = DrawVideo.monthOf((sessions[0] && sessions[0].date) || (manualDrawEntries()[0] || {}).date) || DrawVideo.monthOf(serverToday());
+    cs.y = mo.year; cs.m = mo.month0; cs.init = true;
+  }
+  const idx = DrawVideo.indexDraws(sessions, manualDrawEntries());
+  const grid = DrawVideo.monthGrid(cs.y, cs.m, 1);
+  const today = serverToday();
+  const a = admin ? 'true' : 'false';
+  let html = '<div class="sdc-head"><button type="button" class="sdc-nav" onclick="sdCalShift(' + a + ',-1)" aria-label="Previous month">&lsaquo;</button><div class="sdc-label">' + escHtml(grid.label) + '</div><button type="button" class="sdc-nav" onclick="sdCalShift(' + a + ',1)" aria-label="Next month">&rsaquo;</button></div>';
+  html += '<div class="sdc-grid" role="grid">' + grid.weekdays.map(w => '<div class="sdc-wd">' + w + '</div>').join('');
+  html += grid.cells.map(c => {
+    const d = idx[c.iso];
+    const has = !!d;
+    const done = !!(d && d.session && d.session.status === 'done');
+    const cls = ['sdc-day', c.inMonth ? '' : 'out', has ? 'has' : '', c.iso === today ? 'today' : '', c.iso === cs.sel ? 'sel' : ''].filter(Boolean).join(' ');
+    const marks = has ? '<span class="sdc-marks">' + (d.session ? '<i class="sdc-dot ' + (done ? 'auto' : 'wait') + '"></i>' : '') + (d.manual.length ? '<i class="sdc-dot man"></i>' : '') + '</span>' : '';
+    const label = SessionDraw.fmtSessionDate(c.iso) + (has ? (done ? ', drawn' : (d.session ? ', draw pending' : '')) + (d.manual.length ? ', manual quick draw' : '') : ', no draw');
+    return '<button type="button" class="' + cls + '"' + (has ? ' onclick="sdCalPick(' + a + ',\'' + c.iso + '\')"' : ' disabled') + ' aria-label="' + escHtml(label) + '"' + (c.iso === cs.sel ? ' aria-pressed="true"' : '') + '><span>' + c.day + '</span>' + marks + '</button>';
+  }).join('') + '</div>';
+  html += '<div class="sdc-legend"><span><i class="sdc-dot auto"></i>Session draw</span><span><i class="sdc-dot wait"></i>Draw pending</span><span><i class="sdc-dot man"></i>Manual quick draw</span></div>';
+  if (cs.sel) html += '<div class="sdc-sel"><span>Showing ' + escHtml(SessionDraw.fmtSessionDate(cs.sel)) + '</span><button type="button" class="btn btn-ghost btn-sm" onclick="sdCalPick(' + a + ',null)">Show all</button></div>';
+  container.innerHTML = html;
+}
+function sdCalShift(admin, delta) {
+  const cs = sdCalState(admin);
+  const n = DrawVideo.shiftMonth(cs.y, cs.m, delta);
+  cs.y = n.year; cs.m = n.month0;
+  sdRerender(admin);
+  sdEnsureMonthLoaded(admin);
+}
+function sdCalPick(admin, iso) {
+  const cs = sdCalState(admin);
+  cs.sel = (iso && cs.sel !== iso) ? iso : null;
+  if (cs.sel) { const mo = DrawVideo.monthOf(cs.sel); if (mo) { cs.y = mo.year; cs.m = mo.month0; } }
+  sdRerender(admin);
+}
+function sdRerender(admin) { if (admin) renderSessionDrawsAdminView(); else renderDrawPage(); }
+// Older months: page in more sessions until the visible month is covered.
+async function sdEnsureMonthLoaded(admin) {
+  const cs = sdCalState(admin);
+  const first = DrawVideo.monthStartISO(cs.y, cs.m);
+  const cur = () => (admin ? sdAdmin : sdPublic);
+  for (let i = 0; i < 12; i++) {
+    const d = cur();
+    if (!d.hasMore || !d.nextBefore || d.nextBefore <= first) break;
+    if (admin) await loadAdminDraws(true); else await loadDrawPage(true);
+  }
+}
+function sdVideoRowHtml(kind, key) {
+  const args = '\'' + kind + '\',\'' + escHtml(key) + '\'';
+  return '<div class="sd-video-row">'
+    + '<button type="button" class="btn btn-secondary btn-sm" onclick="openDrawVideo(' + args + ')"><svg class="ic" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play replay</button>'
+    + '<button type="button" class="btn btn-primary btn-sm" onclick="openDrawVideo(' + args + ',true)"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v12M6 10l6 6 6-6M4 20h16"/></svg> Download video</button>'
+    + '</div>';
+}
+// Manual quick draw card (same shell as a session card).
+function qdCardHtml(e) {
+  const winners = (e.winners || []).slice().sort((a, b) => (a.rank || 0) - (b.rank || 0));
+  const replayable = !!(window.DrawVideo && DrawVideo.sourceFromManual(e));
+  let html = '<div class="sd-card done qd" data-kind="manual" data-date="' + escHtml(e.date) + '">';
+  html += '<div class="sd-card-head"><div><div class="sd-date">' + escHtml(SessionDraw.fmtSessionDate(e.date)) + '</div>'
+    + '<div class="sd-when">Manual quick draw' + (e.at ? ' · ' + escHtml(SessionDraw.fmtDrawTime(e.at)) : '') + (e.live ? ' · current draw' : '') + '</div></div>'
+    + '<span class="sd-status done">Quick draw</span></div>';
+  html += winners.length
+    ? '<div class="sd-winners">' + winners.map(w => '<span class="sd-win-chip"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg>' + escHtml(w.name) + '<small>' + escHtml(ordinalLbl(w.rank)) + '</small></span>').join('') + '</div>'
+    : '<div class="sd-nowin">No winners.</div>';
+  html += replayable ? sdVideoRowHtml('manual', e.key) : '<div class="sd-foot"><span>No replay — this draw was made before replays were recorded.</span></div>';
+  return html + '</div>';
+}
+
+// ── replay video modal ──
+let dvCtl = null, dvResult = null, dvSource = null, dvKey = null, dvAutoSave = false;
+function sdFindSource(kind, key) {
+  if (!window.DrawVideo) return null;
+  if (kind === 'session') {
+    const v = (sdPublic.sessions || []).concat(sdAdmin.sessions || []).find(x => x.date === key && x.status === 'done');
+    return v ? DrawVideo.sourceFromSession(v) : null;
+  }
+  const e = manualDrawEntries().find(x => x.key === key);
+  return e ? DrawVideo.sourceFromManual(e) : null;
+}
+function openDrawVideo(kind, key, download) {
+  const src = sdFindSource(kind, key);
+  const modal = document.getElementById('drawVideoModal');
+  if (!src || !modal) { notify('This draw cannot be replayed.', 'warn'); return; }
+  if (dvCtl) { dvCtl.stop(); dvCtl = null; }
+  dvSource = src; dvKey = key; dvResult = null; dvAutoSave = !!download;
+  const script = DrawVideo.buildScript(src);
+  document.getElementById('dvTitle').textContent = src.subtitle;
+  document.getElementById('dvSub').textContent = [src.method, src.when].filter(Boolean).join(' · ');
+  const canRec = DrawVideo.canRecord();
+  dvSetProgress(0, script.durationMs);
+  dvSetButtons(false, canRec);
+  dvSetStatus(canRec ? (download ? 'Preparing your video…' : 'Playing and preparing your video…') : 'Playing replay — this browser cannot save video');
+  modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false');
+  const ctl = DrawVideo.play(document.getElementById('dvCanvas'), script, { record: canRec, onProgress: dvSetProgress });
+  dvCtl = ctl;
+  ctl.done.then(res => {
+    if (dvCtl !== ctl) return; // superseded by a newer replay
+    dvResult = res;
+    if (res && res.blob && res.blob.size) {
+      dvSetStatus('Video ready · ' + DrawVideo.fmtBytes(res.blob.size) + ' ' + DrawVideo.extFor(res.mimeType).toUpperCase());
+      dvSetButtons(true, canRec);
+      if (dvAutoSave) dvSave();
+    } else {
+      dvSetStatus(canRec ? 'Could not record the video in this browser.' : 'Replay finished.');
+      dvSetButtons(false, canRec);
+    }
+  }).catch(() => { /* cancelled */ });
+}
+function dvSetProgress(t, total) {
+  const bar = document.getElementById('dvBar'); if (bar) bar.style.width = (total ? Math.round(100 * t / total) : 0) + '%';
+  const el = document.getElementById('dvTime'); if (el) el.textContent = dvClock(t) + ' / ' + dvClock(total);
+}
+function dvClock(ms) { const s = Math.max(0, Math.round((Number(ms) || 0) / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+function dvSetStatus(msg) { const el = document.getElementById('dvStatus'); if (el) el.textContent = msg; }
+function dvSetButtons(ready, canRec) {
+  const dl = document.getElementById('dvDownload'), sh = document.getElementById('dvShare'), rp = document.getElementById('dvReplay');
+  if (dl) { dl.disabled = !ready; dl.style.display = canRec ? '' : 'none'; }
+  const share = !!(ready && dvResult && dvResult.blob && DrawVideo.canShareFile(dvResult.blob, DrawVideo.filenameFor(dvSource, dvResult.mimeType)));
+  if (sh) sh.style.display = share ? '' : 'none';
+  if (rp) rp.disabled = !(ready || !canRec);
+}
+function dvSave() {
+  if (!dvResult || !dvResult.blob) return;
+  DrawVideo.saveBlob(dvResult.blob, DrawVideo.filenameFor(dvSource, dvResult.mimeType));
+  notify('Video saved — check your downloads.', 'ok', 4000);
+}
+async function dvShare() {
+  if (!dvResult || !dvResult.blob) return;
+  try { await DrawVideo.shareBlob(dvResult.blob, DrawVideo.filenameFor(dvSource, dvResult.mimeType), 'TZH Lucky Draw'); } catch (e) { /* user cancelled */ }
+}
+function dvReplay() { if (dvSource) openDrawVideo(dvSource.kind, dvKey, false); }
+function closeDrawVideo() {
+  const modal = document.getElementById('drawVideoModal');
+  if (dvCtl) { dvCtl.stop(); dvCtl = null; }
+  dvResult = null; dvSource = null; dvKey = null; dvAutoSave = false;
+  if (modal) { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); }
+}
+
 // ── admin: "Session draws" sub-tab (settings + list + Run draw now) ──
 function sdAdminWinners() {
   const a = adminOps.drawSettings && adminOps.drawSettings.winners;
@@ -7439,8 +7669,12 @@ async function loadAdminDraws(more) {
   if (res === null) return;
   if (!res.ok) { list.innerHTML = '<div class="acct-empty">' + escHtml(res.error || 'Could not load the draws.') + '</div>'; return; }
   sdAdmin = Object.assign({}, res, { sessions: more ? sdAdmin.sessions.concat(res.sessions || []) : (res.sessions || []) });
-  renderDrawList(list, sdAdmin.sessions, { admin: true });
-  const moreEl = document.getElementById('sdAdminMore'); if (moreEl) moreEl.style.display = sdAdmin.hasMore ? '' : 'none';
+  renderSessionDrawsAdminView();
+}
+function renderSessionDrawsAdminView() {
+  renderDrawCalendar(document.getElementById('sdAdminCal'), sdAdmin, true);
+  renderDrawList(document.getElementById('sdAdminList'), sdAdmin.sessions, { admin: true, items: sdListItems(sdAdmin, true), filtered: !!sdCal.adm.sel });
+  const moreEl = document.getElementById('sdAdminMore'); if (moreEl) moreEl.style.display = sdAdmin.hasMore && !sdCal.adm.sel ? '' : 'none';
 }
 function stepDrawWinners(delta) {
   const inp = document.getElementById('sdWinnersInput');
@@ -9463,7 +9697,7 @@ async function startNewDraw() {
   const results = (ld.results || []);
   let history = (ld.history || []);
   if (results.length) {
-    const winners = results.slice().sort((a, b) => a.rank - b.rank).map(r => ({ rank: r.rank, name: r.name }));
+    const winners = results.slice().sort((a, b) => a.rank - b.rank).map(r => (Array.isArray(r.pool) ? { rank: r.rank, name: r.name, pool: r.pool } : { rank: r.rank, name: r.name }));
     history = [{ date: getDrawDate(), at: clockNow(), winners }, ...history].slice(0, 24);
   }
   const luckyDraw = { ...ld, results: [], history, drawDate: todayISO() };
@@ -9589,7 +9823,8 @@ async function spinDraw() {
     id: Date.now(), kind: 'engagement', title: 'Lucky Draw', noPrize: true, rank,
     entries: [...names], winnerIndex, winnerName, startAt, durationMs,
   };
-  const newResults = [...results, { rank, name: winnerName, at: startAt + durationMs, spinId: spin.id }];
+  // `pool` (the names on the reel) is kept so the draw can be replayed as a video.
+  const newResults = [...results, { rank, name: winnerName, at: startAt + durationMs, spinId: spin.id, pool: [...names] }];
   // Remove the winner from the pool: one occurrence in manual entries AND any
   // matching paid record, so a drawn player can't be picked twice.
   const ei = (ld.entries || []).indexOf(winnerName);
@@ -9774,6 +10009,7 @@ function closeOpenOverlays() {
   if (isOpen('joinModal'))    { closeJoinModal();    closed = true; }
   if (isOpen('eodModal'))     { closeEodModal();     closed = true; }
   if (isOpen('pmModal'))      { closePmModal();      closed = true; }
+  if (isOpen('drawVideoModal')) { closeDrawVideo();  closed = true; }
   if (isOpen('drawPage'))     { closeDrawPage();     closed = true; }
   return closed;
 }

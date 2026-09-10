@@ -75,7 +75,7 @@ check('page overlay is opaque full-screen without backdrop-filter', /#drawPage\{
 const esc = 'function escHtml(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/\'/g, "&#39;"); }';
 const src = esc + ';' + 'const SessionDraw = arguments[0]; const sdBusy = new Set();'
   + "const SD_LIST_KEYS = [['attended', 'Attended'], ['paid', 'Paid'], ['eligible', 'Eligible'], ['winners', 'Winners']];"
-  + fn('sdWinnersLabel') + ';' + fn('sdListHtml') + ';' + fn('sdCardHtml') + '; return sdCardHtml;';
+  + fn('sdWinnersLabel') + ';' + fn('sdListHtml') + ';' + fn('sdVideoRowHtml') + ';' + fn('sdCardHtml') + '; return sdCardHtml;';
 const sdCardHtml = new Function(src)(SD);
 const MON_AT = SD.scheduledDrawAt('2026-09-07', 8);
 const rec = SD.buildDrawResult({ date: '2026-09-07', drawAt: MON_AT, winnersWanted: 2, seed: '00112233445566778899aabbccddeeff', nowMs: MON_AT + 60000, method: 'auto',
