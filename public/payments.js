@@ -175,12 +175,16 @@
     return true; // 'all' / unknown
   }
 
-  /** Rows for the list: payment entries, name order (rows never jump when tapped), filtered. */
+  function compareNames(a, b) {
+    return String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' });
+  }
+
+  /** Rows for the list: unpaid first (so who still owes is at the top), paid sink to the bottom; name order within each group. */
   function rowsOf(entries, opts) {
     const f = opts && opts.unpaidOnly ? 'unpaid' : ((opts && opts.filter) || 'all');
     return withPayment(entries)
       .filter((e) => matchesFilter(e, f))
-      .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' }));
+      .sort((a, b) => (!!a.paid - !!b.paid) || compareNames(a, b));
   }
 
   /** Paid players grouped by method, in METHODS order (+ 'other' when a paid row has no method). */

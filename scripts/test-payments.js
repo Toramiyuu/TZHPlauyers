@@ -173,7 +173,9 @@ const set = (s, body, now) => H.handlePaymentAdminAction(s, Object.assign({ acti
   set(s, { playerId: 'p2', paid: true, method: 'cash' });
   const entries = s.attendance[DATE].entries;
   const rows = P.rowsOf(entries);
-  check('rowsOf: name order (Celine, Desmond, Thomas)', rows.map(r => r.name).join() === 'Celine,Desmond,Thomas');
+  check('rowsOf: unpaid first, then name order (Desmond, Thomas, then paid Celine)', rows.map(r => r.name).join() === 'Desmond,Thomas,Celine');
+  check('rowsOf: all paid → plain name order', (() => { const c = JSON.parse(JSON.stringify(entries)); c.p0.paid = c.p1.paid = true; return P.rowsOf(c).map(r => r.name).join() === 'Celine,Desmond,Thomas'; })());
+  check('rowsOf: paid filter keeps name order', (() => { const c = JSON.parse(JSON.stringify(entries)); c.p0.paid = true; return P.rowsOf(c, { filter: 'paid' }).map(r => r.name).join() === 'Celine,Thomas'; })());
   check('rowsOf unpaidOnly', P.rowsOf(entries, { unpaidOnly: true }).map(r => r.name).join() === 'Desmond,Thomas');
   check('rowsOf ignores entries without payment', P.rowsOf({ x: { playerId: 'x', name: 'X', paid: true } }).length === 0);
   check('nextPaymentPatch cash', JSON.stringify(P.nextPaymentPatch(entries.p0, 'cash')) === '{"paid":true,"method":"cash"}');
