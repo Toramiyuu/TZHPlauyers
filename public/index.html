@@ -1250,6 +1250,12 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .sdc-sel{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:var(--fs-sm);color:var(--text)}
 .sd-video-row{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 12px}
 .sd-win-chip small{font-size:11px;font-weight:600;opacity:.85}
+.sd-test{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.sd-test-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sd-test-help{margin:0}
+.sd-test-note{font-size:var(--fs-sm);color:var(--text-2);line-height:1.5;margin:10px 0}
+.sd-card.test{border-color:var(--accent)}
+.sd-status.test{background:rgba(240,180,41,.18);border-color:transparent;color:var(--a-amber)}
 /* ── Lucky Draw replay video modal (canvas render + MediaRecorder) ── */
 #drawVideoModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:460;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
 #drawVideoModal.open{display:flex}
@@ -2712,6 +2718,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
           <button class="btn btn-ghost btn-sm" type="button" onclick="stepDrawWinners(1)" aria-label="More winners">+</button>
         </div>
         <span class="pm-save-state" id="sdSaveState"></span>
+      </div>
+      <!-- Dry run: same rules/shuffle/card/video as the real draw, never saved -->
+      <div class="sd-test">
+        <div class="sd-test-row">
+          <button class="btn btn-secondary btn-sm" type="button" onclick="runTestDraw()"><svg class="ic" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Test draw</button>
+          <span class="admin-helper-text sd-test-help">Dry run with tonight&#x2019;s line-up: the same rules, shuffle, card and video as the real draw. Nothing is saved.</span>
+        </div>
+        <div id="sdTestPanel"></div>
       </div>
     </div>
 
@@ -7357,7 +7371,7 @@ const SD_LIST_KEYS = [['attended', 'Attended'], ['paid', 'Paid'], ['eligible', '
 const SD_ADMIN_NOTE = ' Results are permanent and never re-run; use "Run draw now" only if the automatic draw did not happen.';
 let sdPublic = { sessions: [], hasMore: false, nextBefore: null, winnersPerDraw: null, locked: false };
 let sdAdmin = { sessions: [], hasMore: false, nextBefore: null, winnersPerDraw: null };
-let sdPublicTimer = null, sdDeepLinkDone = false;
+let sdPublicTimer = null, sdDeepLinkDone = false, sdRetried = false, sdLastError = '';
 const sdBusy = new Set();
 
 function isDrawPageOpen() { const el = document.getElementById('drawPage'); return !!(el && el.classList.contains('open')); }
@@ -7388,13 +7402,20 @@ async function fetchPublicDraws(before) {
   const qs = new URLSearchParams({ limit: String(SD_LIST_LIMIT) });
   if (code) qs.set('code', code);
   if (before) qs.set('before', before);
-  try { const r = await fetch('/api/draws?' + qs.toString()); return await r.json(); } catch (e) { return null; }
+  try { const r = await fetch('/api/draws?' + qs.toString()); return await r.json(); } catch (e) { sdLastError = (e && e.message) || ''; return null; }
 }
 async function loadDrawPage(more, quiet) {
   const list = document.getElementById('drawPageList'); if (!list) return;
   if (!quiet && !more) list.innerHTML = '<div class="acct-empty">Loading…</div>';
   const res = await fetchPublicDraws(more ? sdPublic.nextBefore : null);
-  if (!res) { if (!quiet) list.innerHTML = '<div class="acct-empty">Could not load the draws — check your connection and try again.</div>'; return; }
+  if (!res) {
+    if (quiet) return;
+    if (!sdRetried) { sdRetried = true; setTimeout(() => loadDrawPage(more), 1500); return; } // one silent retry (cold start / flaky link)
+    list.innerHTML = '<div class="acct-empty">Could not load the draws — check your connection and try again.' + (sdLastError ? ' <span class="sd-err">(' + escHtml(sdLastError) + ')</span>' : '')
+      + '<div class="admin-btn-row admin-mt"><button type="button" class="btn btn-secondary btn-sm" onclick="loadDrawPage(false)">Try again</button></div></div>';
+    return;
+  }
+  sdRetried = false;
   if (res.locked) { sdPublic.locked = true; list.innerHTML = '<div class="acct-empty">Enter today’s site code to see the draw.</div>'; return; }
   if (!res.ok) { if (!quiet) list.innerHTML = '<div class="acct-empty">' + escHtml(res.error || 'Could not load the draws.') + '</div>'; return; }
   if (res.serverTime) clockOffset = res.serverTime - Date.now();
@@ -7428,8 +7449,8 @@ function sdCardHtml(v, admin) {
   const done = v.status === 'done';
   const c = v.counts || {};
   const lists = v.lists || {};
-  const statusCls = done ? 'done' : (v.due ? 'due' : 'pending');
-  let html = '<div class="sd-card ' + escHtml(v.status) + '" data-date="' + escHtml(v.date) + '">';
+  const statusCls = v.test ? 'test' : (done ? 'done' : (v.due ? 'due' : 'pending'));
+  let html = '<div class="sd-card ' + escHtml(v.status) + (v.test ? ' test' : '') + '" data-date="' + escHtml(v.date) + '">';
   html += '<div class="sd-card-head"><div><div class="sd-date">' + escHtml(SessionDraw.fmtSessionDate(v.date)) + '</div>'
     + '<div class="sd-when">' + (done ? 'Drawn ' + escHtml(SessionDraw.fmtDrawTime(v.drawnAt)) : 'Draw ' + escHtml(SessionDraw.fmtDrawTime(v.drawAt))) + '</div></div>'
     + '<span class="sd-status ' + statusCls + '">' + escHtml(SessionDraw.statusLabel(v)) + '</span></div>';
@@ -7438,7 +7459,7 @@ function sdCardHtml(v, admin) {
     html += w.length
       ? '<div class="sd-winners">' + w.map(x => '<span class="sd-win-chip"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg>' + escHtml(x.name) + '</span>').join('') + '</div>'
       : '<div class="sd-nowin">No winners — nobody was eligible for this session.</div>';
-    if (w.length) html += sdVideoRowHtml('session', v.date);
+    if (w.length) html += sdVideoRowHtml(v.test ? 'test' : 'session', v.date);
   }
   html += '<div class="sd-stats">' + SD_LIST_KEYS.map(([k, l]) => '<div class="sd-stat' + (k === 'winners' && done && c.winners ? ' win' : '') + '"><b>' + (c[k] || 0) + '</b><span>' + l + '</span></div>').join('') + '</div>';
   html += SD_LIST_KEYS.map(([k, l]) => sdListHtml(v, k, l, done)).join('');
@@ -7447,7 +7468,7 @@ function sdCardHtml(v, admin) {
       + '<span class="admin-helper-text" style="margin:0">The scheduled time has passed but no result exists yet — the automatic draw may still be on its way.</span></div>';
   }
   if (done) {
-    html += '<div class="sd-foot"><span>' + escHtml((v.method === 'manual' ? 'Manual draw by admin' : 'Automatic draw') + (v.shortfall && c.eligible ? ' · only ' + c.eligible + ' eligible for ' + v.winnersWanted + ' prizes' : '')) + '</span>'
+    html += '<div class="sd-foot"><span>' + escHtml((v.test ? 'Test draw · not saved' : v.method === 'manual' ? 'Manual draw by admin' : 'Automatic draw') + (v.shortfall && c.eligible ? ' · only ' + c.eligible + ' eligible for ' + v.winnersWanted + ' prizes' : '')) + '</span>'
       + '<span class="sd-seed" title="Random seed — the full order can be replayed from it">Seed ' + escHtml(String(v.seed || '').slice(0, 8)) + '… '
       + (v.verified ? '<span class="sd-verified">verified ✓</span>' : '<span class="sd-unverified">not verified</span>') + '</span></div>';
   } else {
@@ -7580,6 +7601,7 @@ function qdCardHtml(e) {
 let dvCtl = null, dvResult = null, dvSource = null, dvKey = null, dvAutoSave = false;
 function sdFindSource(kind, key) {
   if (!window.DrawVideo) return null;
+  if (kind === 'test') return sdTest && sdTest.view && sdTest.view.date === key ? DrawVideo.sourceFromSession(sdTest.view) : null;
   if (kind === 'session') {
     const v = (sdPublic.sessions || []).concat(sdAdmin.sessions || []).find(x => x.date === key && x.status === 'done');
     return v ? DrawVideo.sourceFromSession(v) : null;
@@ -7644,6 +7666,44 @@ function closeDrawVideo() {
   if (dvCtl) { dvCtl.stop(); dvCtl = null; }
   dvResult = null; dvSource = null; dvKey = null; dvAutoSave = false;
   if (modal) { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); }
+}
+
+// ── admin "Test draw": dry run of the automatic draw, never saved ──
+let sdTest = null;
+function randomSeedHex() {
+  const a = new Uint8Array(16);
+  if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(a); else for (let i = 0; i < 16; i++) a[i] = Math.floor(Math.random() * 256);
+  return Array.from(a, b => b.toString(16).padStart(2, '0')).join('');
+}
+function runTestDraw() {
+  if (!window.SessionDraw || !state) return;
+  const date = state.sessionDate || serverToday();
+  let day = adminOps.attendance && adminOps.attendance[date] ? adminOps.attendance[date] : null;
+  let lineup = (state.players || []).map(p => ({ id: p.id, name: p.name }));
+  let note = 'tonight’s line-up';
+  if (!SessionDraw.attendedFrom(day, lineup).length) {
+    lineup = (state.roster || []).map(r => ({ id: r.id, name: r.name }));
+    day = null;
+    note = 'the full roster (nobody is in tonight’s session yet)';
+  }
+  if (!lineup.length) { notify('Add players to the session first.', 'warn'); return; }
+  const now = clockNow();
+  const n = sdAdminWinners();
+  const t = SessionDraw.testDrawResult({ date, day, lineup, winnersWanted: n, seed: randomSeedHex(), nowMs: now });
+  sdTest = { view: SessionDraw.viewOf({ date }, t.rec, now, { winners: n }), note, assumedPaid: t.assumedPaid };
+  renderTestDraw();
+  const el = document.getElementById('sdTestPanel'); if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+function clearTestDraw() { sdTest = null; renderTestDraw(); }
+function renderTestDraw() {
+  const el = document.getElementById('sdTestPanel'); if (!el) return;
+  if (!sdTest) { el.innerHTML = ''; return; }
+  const v = sdTest.view;
+  el.innerHTML = '<div class="sd-test-note">' + escHtml('Test draw for ' + SessionDraw.fmtSessionDate(v.date) + ' using ' + sdTest.note + '.'
+      + (sdTest.assumedPaid ? ' Nobody had paid before now, so everyone attending was treated as paid for this test.' : ' Eligible = paid before now, exactly like the real draw.')
+      + ' Not saved — Clear or refresh to remove it.') + '</div>'
+    + '<div class="sd-list">' + sdCardHtml(v, true) + '</div>'
+    + '<div class="admin-btn-row admin-mt"><button class="btn btn-secondary btn-sm" type="button" onclick="runTestDraw()">Run again</button><button class="btn btn-ghost btn-sm" type="button" onclick="clearTestDraw()">Clear</button></div>';
 }
 
 // ── admin: "Session draws" sub-tab (settings + list + Run draw now) ──

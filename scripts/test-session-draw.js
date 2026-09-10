@@ -164,5 +164,18 @@ check('drawDayLabel Monday-first', S.drawDayLabel() === 'Mon → Fri, Fri → Tu
 check('howItWorksText mentions 3 days, 9:00 AM and the winner count', /within 3 days/.test(S.howItWorksText(2)) && /9:00 AM/.test(S.howItWorksText(2)) && /2 winners are/.test(S.howItWorksText(2)) && /1 winner is/.test(S.howItWorksText(1)));
 check('countsLine', S.countsLine({ attended: 20, paid: 18, eligible: 18, winners: 2 }) === '20 attended · 18 paid · 18 eligible · 2 winners');
 
+// ── admin test draw (dry run) ──
+{
+  const now = DRAW_AT + 5 * 3600 * 1000;
+  const day = { entries: { a: { playerId: 'a', name: 'Alice', present: true, paid: true, payment: { paidAt: now - 1000 } }, b: { playerId: 'b', name: 'Bob', present: true, paid: false } } };
+  const t = S.testDrawResult({ date: '2026-09-10', day, lineup: [], winnersWanted: 2, seed: SEED, nowMs: now });
+  check('testDrawResult: real eligibility when someone has paid (drawAt = now)', t.assumedPaid === false && t.rec.test === true && t.rec.eligible.join() === 'a' && t.rec.winners.join() === 'a' && t.rec.drawAt === now && t.rec.counts.attended === 2 && t.rec.shortfall === true);
+  const t2 = S.testDrawResult({ date: '2026-09-10', day: null, lineup: [{ id: 'x', name: 'Xu' }, { id: 'y', name: 'Yi' }, { id: 'z', name: 'Zed' }], winnersWanted: 2, seed: SEED, nowMs: now });
+  check('testDrawResult: nobody paid → every attendee treated as paid, flagged, verifiable', t2.assumedPaid === true && t2.rec.counts.eligible === 3 && t2.rec.winners.length === 2 && t2.rec.test === true && S.verifyDrawResult(t2.rec));
+  const tv = S.viewOf({ date: '2026-09-10' }, t2.rec, now, { winners: 2 });
+  check('viewOf carries test:true and statusLabel says Test draw', tv.test === true && tv.status === 'done' && S.statusLabel(tv) === 'Test draw' && S.statusLabel({ status: 'done' }) === 'Drawn' && S.viewOf({ date: '2026-09-07' }, S.buildDrawResult({ date: '2026-09-07', drawAt: now, seed: SEED, nowMs: now, day: null, lineup: [] }), now, {}).test === false);
+  check('testDrawResult: empty input → no winners, no crash', S.testDrawResult({ date: '2026-09-10', day: null, lineup: [], winnersWanted: 2, seed: SEED, nowMs: now }).rec.counts.attended === 0);
+}
+
 console.log(`\nsession draw (pure): ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

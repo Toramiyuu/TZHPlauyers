@@ -99,4 +99,11 @@ const dueView = SD.viewOf({ date: '2026-09-07', drawAt: MON_AT, day: null, lineu
 check('due + pending card in admin mode shows Run draw now; public does not', sdCardHtml(dueView, true).includes("runDrawNow('2026-09-07')") && !sdCardHtml(dueView, false).includes('runDrawNow') && sdCardHtml(dueView, true).includes('Draw pending'));
 
 console.log(`\nsession draw ui: ${pass} passed, ${fail} failed`);
+// ── admin Test draw (dry run) + public page retry ──
+check('admin Test draw button + panel', html.includes('onclick="runTestDraw()"') && html.includes('id="sdTestPanel"'));
+check('runTestDraw is a pure dry run: SessionDraw.testDrawResult, never apiPost', fn('runTestDraw').includes('SessionDraw.testDrawResult(') && !fn('runTestDraw').includes('apiPost') && fn('runTestDraw').includes('sdAdminWinners()'));
+check('test draw falls back to the roster when tonight has nobody', fn('runTestDraw').includes('state.roster'));
+check('test cards: badge, "not saved" footer, test video source', fn('sdCardHtml').includes("v.test ? 'test'") && fn('sdCardHtml').includes('Test draw · not saved') && fn('sdFindSource').includes("kind === 'test'"));
+check('public page retries a failed load once, then offers Try again', fn('loadDrawPage').includes('sdRetried') && fn('loadDrawPage').includes('onclick="loadDrawPage(false)"'));
+
 process.exit(fail ? 1 : 0);

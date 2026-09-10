@@ -242,6 +242,29 @@
     return winners.length === w.length && winners.every((id, i) => id === w[i]);
   }
 
+  /**
+   * Admin dry run ("Test draw"): the real rules and shuffle applied RIGHT NOW to a
+   * session, never stored. drawAt = nowMs, so everyone marked paid so far is
+   * eligible; when nobody has paid yet, every attendee is treated as paid so the
+   * draw still shows winners (reported via `assumedPaid`). The record carries
+   * test:true, which viewOf/statusLabel surface as "Test draw".
+   */
+  function testDrawResult(opts) {
+    const o = opts || {};
+    const now = Number(o.nowMs) || 0;
+    const base = { date: o.date, drawAt: now, winnersWanted: o.winnersWanted, seed: o.seed, nowMs: now, method: 'auto' };
+    let rec = buildDrawResult(Object.assign({}, base, { day: o.day, lineup: o.lineup }));
+    let assumedPaid = false;
+    if (!rec.counts.eligible && rec.counts.attended) {
+      const entries = {};
+      rec.attended.forEach((id) => { entries[id] = { playerId: id, name: rec.names[id] || id, present: true, paid: true, payment: { paidAt: now - 1 } }; });
+      rec = buildDrawResult(Object.assign({}, base, { day: { entries }, lineup: [] }));
+      assumedPaid = true;
+    }
+    rec.test = true;
+    return { rec, assumedPaid };
+  }
+
   // ── which sessions get a draw ────────────────────────────────────────
   function lineupOf(state, date) {
     const s = state || {};
@@ -308,7 +331,7 @@
         return { id: r.id, name: r.name, paidAt: at, late: !(at != null && at < rec.drawAt) };
       });
       return Object.assign(base, {
-        status: 'done', method: rec.method || 'auto', drawnAt: rec.drawnAt || null, seed: rec.seed || '',
+        status: 'done', test: !!rec.test, method: rec.method || 'auto', drawnAt: rec.drawnAt || null, seed: rec.seed || '',
         winnersWanted: rec.winnersWanted, shortfall: !!rec.shortfall, verified: verifyDrawResult(rec),
         counts: rec.counts || { attended: (rec.attended || []).length, paid: (rec.paid || []).length, eligible: (rec.eligible || []).length, winners: (rec.winners || []).length },
         lists: {
@@ -384,6 +407,7 @@
   }
   function statusLabel(view) {
     if (!view) return '';
+    if (view.test) return 'Test draw';
     if (view.status === 'done') return 'Drawn';
     return view.due ? 'Draw pending' : 'Pending';
   }
@@ -413,7 +437,7 @@
     isValidISO, isoWeekday, addDaysISO, mytInstant,
     drawWeekdayFor, isDrawDay, drawDateFor, scheduledDrawAt, isWinnersCount, winnersOf,
     attendedFrom, paidFrom, eligibleFrom,
-    prngFromSeed, shuffleWithSeed, buildDrawResult, verifyDrawResult,
+    prngFromSeed, shuffleWithSeed, buildDrawResult, verifyDrawResult, testDrawResult,
     lineupOf, dayOf, drawAtFor, sessionCandidates, viewOf, buildView,
     fmtDrawTime, fmtMYT, fmtSessionDate, statusLabel, drawDayLabel, drawTimeLabel, howItWorksText, countsLine,
   };

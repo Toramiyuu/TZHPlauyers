@@ -117,9 +117,9 @@
       when: view.drawnAt ? 'Drawn ' + fmtDrawTime(view.drawnAt) : '',
       pool, winners,
       seed: String(view.seed || ''),
-      method: view.method === 'manual' ? 'Draw run by admin' : 'Automatic draw',
-      note: eligible + ' eligible' + (view.verified ? ' · verified' : ''),
-      verified: !!view.verified,
+      method: view.test ? 'Test draw' : (view.method === 'manual' ? 'Draw run by admin' : 'Automatic draw'),
+      note: eligible + ' eligible' + (view.test ? ' · not a real result' : (view.verified ? ' · verified' : '')),
+      verified: !!view.verified, test: !!view.test,
     };
   }
   /**
@@ -346,6 +346,12 @@
     text(ctx, src.title || 'Lucky Draw', W / 2, 272, { weight: 800, px: 106, color: THEME.ink });
     text(ctx, src.subtitle || '', W / 2, 364, { weight: 500, px: 42, color: THEME.ink2 });
     if (src.when) text(ctx, src.when, W / 2, 422, { weight: 400, px: 34, color: THEME.ink3 });
+    if (src.test) { // amber "TEST DRAW" pill, top right
+      ctx.font = fontStr(800, 30);
+      const label = 'TEST DRAW', tw = ctx.measureText(label).width + 60;
+      ctx.fillStyle = 'rgba(240,180,41,.28)'; rr(ctx, W - 80 - tw, 50, tw, 66, 33); ctx.fill();
+      text(ctx, label, W - 80 - tw / 2, 84, { weight: 800, px: 30, color: '#9a4d00', spacing: '3px' });
+    }
   }
   function paintFooter(ctx, W, H, src) {
     text(ctx, [src.method, src.note].filter(Boolean).join(' · '), W / 2, H - 150, { weight: 500, px: 30, color: THEME.ink3 });

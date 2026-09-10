@@ -38,6 +38,7 @@ check('session source: pool = eligible names, winners ranked in stored order', s
 check('session source: subtitle/when/method/note', s.subtitle === 'Monday 7 September 2026 session' && s.when === 'Drawn Fri 11 Sep · 9:00 AM' && s.method === 'Automatic draw' && s.note === '4 eligible · verified');
 check('session source: pending or no-winner views are not replayable', DV.sourceFromSession(pendingView) === null && DV.sourceFromSession(Object.assign({}, doneView, { lists: Object.assign({}, doneView.lists, { winners: [] }) })) === null);
 check('session source: "Run draw now" records are labelled', DV.sourceFromSession(Object.assign({}, doneView, { method: 'manual' })).method === 'Draw run by admin');
+check('session source: test draws are labelled and flagged', (() => { const t = DV.sourceFromSession(Object.assign({}, doneView, { test: true })); return t.test === true && t.method === 'Test draw' && /not a real result/.test(t.note) && DV.sourceFromSession(doneView).test === false; })());
 
 const manualEntry = { date: '2026-09-06', at: Date.UTC(2026, 8, 6, 15, 5), key: 'manual:x', winners: [{ rank: 2, name: 'Kenn', pool: ['Yau', 'Kenn'] }, { rank: 1, name: 'Seng', pool: ['Yau', 'Kenn', 'Seng'] }] };
 const m = DV.sourceFromManual(manualEntry);
@@ -107,7 +108,7 @@ check('canRecord is false in Node', DV.canRecord() === false);
 check('draw-video.js is loaded after session-draw.js', html.indexOf('<script src="/draw-video.js"></script>') > html.indexOf('<script src="/session-draw.js"></script>'));
 check('calendar containers on the public page and the admin list', html.includes('id="drawPageCal"') && html.includes('id="sdAdminCal"'));
 check('video modal markup', html.includes('id="drawVideoModal"') && html.includes('id="dvCanvas"') && html.includes('id="dvDownload"') && html.includes('id="dvShare"') && html.includes('id="dvReplay"'));
-check('drawn session cards get Play / Download', fn('sdCardHtml').includes("if (w.length) html += sdVideoRowHtml('session', v.date);") && fn('sdVideoRowHtml').includes('Download video') && fn('sdVideoRowHtml').includes('Play replay'));
+check('drawn session cards get Play / Download', fn('sdCardHtml').includes("if (w.length) html += sdVideoRowHtml(v.test ? 'test' : 'session', v.date);") && fn('sdVideoRowHtml').includes('Download video') && fn('sdVideoRowHtml').includes('Play replay'));
 check('manual quick draw cards rendered by the shared list', fn('renderDrawList').includes("i.kind === 'manual' ? qdCardHtml(i.e)") && fn('qdCardHtml').includes('DrawVideo.sourceFromManual(e)') && fn('qdCardHtml').includes('No replay'));
 check('public page renders the calendar + interleaved items', fn('renderDrawPage').includes("renderDrawCalendar(document.getElementById('drawPageCal'), sdPublic, false)") && fn('renderDrawPage').includes('sdListItems(sdPublic, false)'));
 check('admin list renders through renderSessionDrawsAdminView', fn('loadAdminDraws').includes('renderSessionDrawsAdminView();') && fn('renderSessionDrawsAdminView').includes("renderDrawCalendar(document.getElementById('sdAdminCal'), sdAdmin, true)"));
