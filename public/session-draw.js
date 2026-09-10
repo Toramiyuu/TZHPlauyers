@@ -379,6 +379,25 @@
     };
   }
 
+  /**
+   * What the PUBLIC Lucky Draw page may see: no attendance or payment detail.
+   * Winners always; the eligible NAMES only once drawn (the replay video spins
+   * over them); never who attended, who paid, or when anyone paid.
+   */
+  function publicSessionView(v) {
+    if (!v || typeof v !== 'object') return v;
+    const done = v.status === 'done';
+    const lists = v.lists || {};
+    const c = v.counts || {};
+    const names = (rows) => (Array.isArray(rows) ? rows : []).map((r) => ({ id: r.id, name: r.name }));
+    return {
+      date: v.date, weekday: v.weekday, weekdayName: v.weekdayName, drawAt: v.drawAt, drawDate: v.drawDate, due: v.due,
+      status: v.status, test: !!v.test, method: v.method, drawnAt: v.drawnAt, seed: v.seed, winnersWanted: v.winnersWanted, shortfall: v.shortfall, verified: v.verified,
+      counts: { eligible: c.eligible || 0, winners: c.winners || 0 },
+      lists: { eligible: done ? names(lists.eligible) : [], winners: names(lists.winners) },
+    };
+  }
+
   // ── presentation strings ─────────────────────────────────────────────
   function mytParts(msValue) {
     const d = new Date((Number(msValue) || 0) + DEFAULT_OFFSET_HOURS * 3600 * 1000);
@@ -438,7 +457,7 @@
     drawWeekdayFor, isDrawDay, drawDateFor, scheduledDrawAt, isWinnersCount, winnersOf,
     attendedFrom, paidFrom, eligibleFrom,
     prngFromSeed, shuffleWithSeed, buildDrawResult, verifyDrawResult, testDrawResult,
-    lineupOf, dayOf, drawAtFor, sessionCandidates, viewOf, buildView,
+    lineupOf, dayOf, drawAtFor, sessionCandidates, viewOf, buildView, publicSessionView,
     fmtDrawTime, fmtMYT, fmtSessionDate, statusLabel, drawDayLabel, drawTimeLabel, howItWorksText, countsLine,
   };
 });

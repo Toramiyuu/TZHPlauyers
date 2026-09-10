@@ -8,6 +8,7 @@
 // writes a missing result with HSETNX; it never touches court-state.
 const S = require('./state.js');
 const { sweepSessionDraws, buildDrawsView } = require('./session-draw.js');
+const SD = require('../public/session-draw.js');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -38,7 +39,9 @@ module.exports = async function handler(req, res) {
     const view = await buildDrawsView(state, S.drawStore, {
       results, limit: Number.isInteger(limit) && limit > 0 ? Math.min(limit, 200) : undefined, before: q.before,
     });
-    return res.json(Object.assign({ ok: true }, view, { today: S.todayISO(), serverTime: Date.now() }));
+    // Public projection: winners (+ eligible names once drawn, for the replay) —
+    // never who attended, who paid, or when. The admin list keeps the full view.
+    return res.json(Object.assign({ ok: true }, view, { sessions: (view.sessions || []).map(SD.publicSessionView), today: S.todayISO(), serverTime: Date.now() }));
   } catch (e) {
     console.error('draws view error:', e && e.message);
     return res.status(500).json({ error: 'Could not load the draws.' });

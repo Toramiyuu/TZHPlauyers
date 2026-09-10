@@ -164,6 +164,18 @@ check('drawDayLabel Monday-first', S.drawDayLabel() === 'Mon → Fri, Fri → Tu
 check('howItWorksText mentions 3 days, 9:00 AM and the winner count', /within 3 days/.test(S.howItWorksText(2)) && /9:00 AM/.test(S.howItWorksText(2)) && /2 winners are/.test(S.howItWorksText(2)) && /1 winner is/.test(S.howItWorksText(1)));
 check('countsLine', S.countsLine({ attended: 20, paid: 18, eligible: 18, winners: 2 }) === '20 attended · 18 paid · 18 eligible · 2 winners');
 
+// ── public projection (no attendance / payment detail on the public page) ──
+{
+  const day = { entries: { a: { playerId: 'a', name: 'Al', present: true, paid: true, payment: { paidAt: DRAW_AT - 5 } }, b: { playerId: 'b', name: 'Bo', present: true, paid: true, payment: { paidAt: DRAW_AT - 4 } }, c: { playerId: 'c', name: 'Cy', present: true, paid: false } } };
+  const r = S.buildDrawResult({ date: '2026-09-07', drawAt: DRAW_AT, day, lineup: [], winnersWanted: 2, seed: SEED, nowMs: DRAW_AT + 1, method: 'auto' });
+  const dv = S.viewOf({ date: '2026-09-07' }, r, DRAW_AT + 1000, { winners: 2 });
+  const pv = S.publicSessionView(dv);
+  check('publicSessionView (done): winners + eligible names only, no attended/paid/paidAt', !pv.lists.attended && !pv.lists.paid && pv.lists.winners.length === 2 && pv.lists.eligible.length === 2 && pv.lists.eligible.concat(pv.lists.winners).every(x => Object.keys(x).join() === 'id,name') && pv.counts.attended === undefined && pv.counts.paid === undefined && pv.counts.eligible === 2 && pv.seed === dv.seed && pv.verified === true && pv.status === 'done');
+  const pp = S.publicSessionView(S.viewOf({ date: '2026-09-07', drawAt: DRAW_AT, day, lineup: [] }, null, DRAW_AT - 3600000, { winners: 2 }));
+  check('publicSessionView (pending): counts only, no names at all', pp.status === 'pending' && pp.lists.eligible.length === 0 && pp.lists.winners.length === 0 && pp.counts.eligible === 2 && !pp.lists.paid && !pp.lists.attended && pp.winnersWanted === 2);
+  check('publicSessionView tolerates junk', S.publicSessionView(null) === null);
+}
+
 // ── admin test draw (dry run) ──
 {
   const now = DRAW_AT + 5 * 3600 * 1000;

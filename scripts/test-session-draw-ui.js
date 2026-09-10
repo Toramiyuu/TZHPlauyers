@@ -86,14 +86,18 @@ const rec = SD.buildDrawResult({ date: '2026-09-07', drawAt: MON_AT, winnersWant
     d: { playerId: 'd', name: 'Dan', present: true, paid: false },
   } }, lineup: [] });
 const doneView = SD.viewOf({ date: '2026-09-07' }, rec, MON_AT + 120000, { winners: 2 });
-const doneHtml = sdCardHtml(doneView, false);
+const doneHtml = sdCardHtml(doneView, true);
+const pubDoneHtml = sdCardHtml(doneView, false);
 check('done card: winner chips + Winner tags + tinted rows', (doneHtml.match(/sd-win-chip/g) || []).length === 2 && (doneHtml.match(/class="sd-row win"/g) || []).length >= 2 && doneHtml.includes('sd-win-tag'));
 check('done card: four lists with counts 4/3/2/2', /<summary><span>Attended<\/span><b>4/.test(doneHtml) && /<summary><span>Paid<\/span><b>3/.test(doneHtml) && /<summary><span>Eligible<\/span><b>2/.test(doneHtml) && /<summary><span>Winners<\/span><b>2/.test(doneHtml));
 check('done card: winners list open by default, others collapsed', /<details class="sd-names-wrap" open><summary><span>Winners/.test(doneHtml) && /<details class="sd-names-wrap"><summary><span>Eligible/.test(doneHtml));
 check('done card: late payer flagged, names escaped, seed + verified shown', doneHtml.includes('after cutoff') && doneHtml.includes('Alice &lt;b&gt;') && !doneHtml.includes('Alice <b>') && doneHtml.includes('Seed 00112233') && doneHtml.includes('verified ✓'));
-check('done card: no Run draw now for the public', !doneHtml.includes('runDrawNow'));
+check('done card: no Run draw now for the public', !pubDoneHtml.includes('runDrawNow'));
+check('public done card: winners + video only — no stats, lists, pay times or non-winners', (pubDoneHtml.match(/sd-win-chip/g) || []).length === 2 && pubDoneHtml.includes('sd-video-row') && !pubDoneHtml.includes('sd-stats') && !pubDoneHtml.includes('sd-names-wrap') && !pubDoneHtml.includes('after cutoff') && !pubDoneHtml.includes('Cara') && !pubDoneHtml.includes('Dan') && pubDoneHtml.includes('Automatic draw · 2 in the draw'));
 const pendView = SD.viewOf({ date: '2026-09-07', drawAt: MON_AT, day: rec ? { entries: { a: { playerId: 'a', name: 'Alice', present: true, paid: true, payment: { paidAt: MON_AT - 60000 } } } } : null, lineup: [] }, null, MON_AT - 3600000, { winners: 2 });
-const pendHtml = sdCardHtml(pendView, false);
+const pendHtml = sdCardHtml(pendView, true);
+const pubPendHtml = sdCardHtml(pendView, false);
+check('public pending card: count + pay-before only, no names', !pubPendHtml.includes('sd-names-wrap') && !pubPendHtml.includes('sd-stats') && !pubPendHtml.includes('Alice') && pubPendHtml.includes('1 in the draw so far · Pay before Fri 11 Sep · 9:00 AM'));
 check('pending card: "Eligible so far" open, status Pending, pay-before hint', /<details class="sd-names-wrap" open><summary><span>Eligible so far/.test(pendHtml) && pendHtml.includes('>Pending<') && pendHtml.includes('Pay before Fri 11 Sep · 9:00 AM'));
 const dueView = SD.viewOf({ date: '2026-09-07', drawAt: MON_AT, day: null, lineup: [{ id: 'a', name: 'Alice' }] }, null, MON_AT + 1000, { winners: 2 });
 check('due + pending card in admin mode shows Run draw now; public does not', sdCardHtml(dueView, true).includes("runDrawNow('2026-09-07')") && !sdCardHtml(dueView, false).includes('runDrawNow') && sdCardHtml(dueView, true).includes('Draw pending'));

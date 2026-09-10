@@ -166,7 +166,8 @@ function freshState() {
   check('page view is newest first and includes the future pending day', r.body.sessions[0].date === future && r.body.sessions[0].status === 'pending' && r.body.sessions.map((v) => v.date).join() === [future, MON, FRI].join());
   check('on-view sweep drew the due sessions', r.body.sessions.find((v) => v.date === FRI).status === 'done' && HASHES.get(D.DRAWS_KEY).has(FRI));
   check('record is stored as JSON text and verifies', SD.verifyDrawResult(JSON.parse(HASHES.get(D.DRAWS_KEY).get(FRI))));
-  check('pending view carries the live eligible list + how-many-winners', r.body.sessions[0].lists && Array.isArray(r.body.sessions[0].lists.eligible) && r.body.sessions[0].winnersWanted === 2);
+  check('public view: counts + winnersWanted, no names for a pending session', (() => { const s0 = r.body.sessions[0]; return s0.lists && Array.isArray(s0.lists.eligible) && (s0.status !== 'pending' || s0.lists.eligible.length === 0) && typeof s0.counts.eligible === 'number' && s0.winnersWanted === 2; })());
+  check('public payload never carries attendance lists or pay times', r.body.sessions.every(s => !s.lists.attended && !s.lists.paid && s.counts.attended === undefined && (s.lists.eligible || []).concat(s.lists.winners || []).every(e => e.paidAt === undefined && e.late === undefined)));
   check('paging: limit=1 -> hasMore + nextBefore', (await call(drawsHandler, 'GET', { code: 'ABC-123', limit: '1' })).body.hasMore === true && (await call(drawsHandler, 'GET', { code: 'ABC-123', limit: '1' })).body.nextBefore === future);
   check('paging: before= excludes newer', (await call(drawsHandler, 'GET', { code: 'ABC-123', before: MON })).body.sessions.map((v) => v.date).join() === FRI);
   check('GET /api/draws POST -> 405', (await call(drawsHandler, 'POST', {}, {})).status === 405);

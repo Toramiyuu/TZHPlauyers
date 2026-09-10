@@ -87,7 +87,7 @@ app.get('/api/draws', async (req, res) => {
   try { results = (await sweepSessionDraws(state, drawStore, {})).results; } catch (e) { /* view still loads */ }
   const limit = Number(req.query.limit);
   const view = await buildDrawsView(state, drawStore, { results, limit: Number.isInteger(limit) && limit > 0 ? limit : undefined, before: req.query.before });
-  res.json({ ok: true, ...view, today: todayISO(), serverTime: Date.now() });
+  res.json({ ok: true, ...view, sessions: (view.sessions || []).map(SD.publicSessionView), today: todayISO(), serverTime: Date.now() });
 });
 
 // POST state — admin only, merges updates
