@@ -1431,7 +1431,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .ld-subtab:hover{color:var(--text)}
 .ld-subtab.active{color:var(--a-blue);border-bottom-color:var(--a-blue)}
 .ld-quick-card{margin-top:4px}
-.ld-quick-card summary{color:var(--text-2);font-size:var(--fs-sm);cursor:pointer}
+.ld-quick-card summary{color:var(--text-2);font-size:var(--fs-sm);cursor:pointer;list-style:none;min-height:24px}
+.ld-quick-card summary::-webkit-details-marker{display:none}
+.ld-quick-card summary::after{content:"+";color:var(--muted);font-size:17px;font-weight:400;line-height:1;margin-left:auto;flex-shrink:0}
+.ld-quick-card[open] summary::after{content:"\2013"}
+.ld-quick-card:not([open]) summary{margin-bottom:0}
+.ld-quick-card summary:hover{color:var(--text)}
+.ld-quick-hint{text-transform:none;letter-spacing:0;font-weight:500;color:var(--muted);margin-left:6px}
+@media (max-width:640px){.ld-quick-hint{display:none}}
 /* ── Monthly eligibility ── */
 .me-recalc{font-size:var(--fs-xs);color:var(--muted);margin-bottom:8px}
 .me-list{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
@@ -2634,7 +2641,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <div class="ld-sub" data-sub="weekly">
 
     <!-- Fixed schedule + winners setting -->
-    <div class="admin-card">
+    <div class="admin-card" id="sdAutoCard">
       <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span> Automatic draw</span>
         <button class="btn btn-secondary btn-sm" onclick="openDrawPage()"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Open public page</button></div>
       <div class="admin-helper-text" id="sdAdminHow"></div>
@@ -2659,7 +2666,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
     <!-- Manual quick draw (legacy paid-pool spin, preserved) -->
     <details class="admin-card ld-quick-card">
-      <summary class="admin-card-title" style="cursor:pointer"><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> Manual quick draw</summary>
+      <summary class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> Manual quick draw<span class="ld-quick-hint">tick paid players &amp; spin on the spot</span></summary>
       <div class="admin-helper-text" id="paidHint">Tick each player who has paid, build a pool, then spin to pick winners — revealed live on the viewer.</div>
       <div class="paid-picker" id="paidPicker"></div>
       <div class="draw-pool-header admin-mt"><span class="admin-form-label">Pool</span><span class="draw-pool-count" id="drawPoolCount" style="display:none"></span></div>
@@ -9669,8 +9676,8 @@ const TOUR_STEPS = [
   { tab: 'session',    sel: '#sessionDateInput', title: 'Set tonight’s date', text: 'Pick today’s play date. Changing it saves the previous day to history and awards every player who played their points.' },
   { tab: 'session',    sel: '#rosterGrid',       title: 'Add players & set levels', text: 'Tap a player to add them to tonight’s session. In the List view the Level picker (1.0–7.0) and the Girl & Mixed toggles set their rating and who plays mixed doubles — these balance the generated matches.' },
   { tab: 'courts',     sel: '#eodBtn',           title: 'Wrap up the night', text: 'End of the day creates one payment record per player at the default fee. On the Payments tab tap 2h or 3h for how long each person stayed, then Cash, TnG or DuitNow as they pay.' },
-  { tab: 'engagement', sel: '#paidPicker',       title: 'Tick who has paid', text: 'Tick the players who’ve paid — they drop into the draw pool and stay there for 2 days, then leave automatically.' },
-  { tab: 'engagement', sel: '#spinBtn',          title: 'Spin for a winner', text: 'Once the pool has players, Spin picks a winner at random — revealed live on everyone’s viewer screen.' },
+  { tab: 'engagement', sub: 'weekly', sel: '#sdAutoCard', title: 'The Lucky Draw runs itself', text: 'Every Monday, Friday and Sunday session is drawn automatically at 9:00 AM a few mornings later. Everyone who attended and was marked paid before then is in it — set how many winners here. Results are permanent and show on the public Lucky Draw page.' },
+  { tab: 'engagement', sub: 'weekly', sel: '#spinBtn',    title: 'Need a draw on the spot?', text: 'Manual quick draw is the hands-on spin: open it, tick who has paid to build a pool, then Spin — the winner is revealed live on everyone’s viewer screen.' },
   { tab: 'settings',   sel: '#siteCodeInput',    title: 'Set the daily access code', text: 'Give players today’s short code to unlock the site. Generate a fresh one whenever you like.' },
 ];
 let tourIdx = -1;
@@ -9699,6 +9706,7 @@ function showTourStep(i, dir) {
   if (i < 0 || i >= TOUR_STEPS.length) { endTour(); return; }
   const step = TOUR_STEPS[i];
   if (step.tab) setAdminTab(step.tab);
+  if (step.sub && typeof setLuckyTab === 'function') setLuckyTab(step.sub);
   // Let the (possibly just-revealed) tab lay out before measuring — a hidden
   // panel's getBoundingClientRect is all zeros.
   setTimeout(() => positionTourStep(i, dir || 1), step.tab ? 90 : 20);
@@ -9711,6 +9719,9 @@ function positionTourStep(i, dir) {
     if (ni < 0 || ni >= TOUR_STEPS.length) { endTour(); return; }
     tourIdx = ni; showTourStep(ni, dir); return;
   }
+  // A target inside a collapsed <details> (Manual quick draw) still reports a layout
+  // box, so the spotlight would frame blank space — open every ancestor first.
+  for (let d = el.closest('details'); d; d = d.parentElement && d.parentElement.closest('details')) { if (!d.open) d.open = true; }
   el.scrollIntoView({ block: 'center', inline: 'nearest' });
   const pad = 8;
   const r = el.getBoundingClientRect();

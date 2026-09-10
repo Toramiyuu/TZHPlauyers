@@ -49,6 +49,10 @@ check('admin list uses the getDraws action with paging', fn('loadAdminDraws').in
 check('Run draw now posts runDraw and guards double taps', fn('runDrawNow').includes("action: 'runDraw'") && fn('runDrawNow').includes('sdBusy.has(date)'));
 check('Run draw now only renders for due + pending sessions in admin mode', fn('sdCardHtml').includes('if (admin && !done && v.due)'));
 check('Manual quick draw block is preserved', html.includes('id="paidPicker"') && html.includes('onclick="spinDraw()"'));
+check('Manual quick draw summary shows a +/\u2013 disclosure indicator and hint', /\.ld-quick-card summary::after\{content:"\+"/.test(html) && /\.ld-quick-card\[open\] summary::after\{content:"\\2013"\}/.test(html) && html.includes('class="ld-quick-hint"') && /\.ld-quick-card:not\(\[open\]\) summary\{margin-bottom:0\}/.test(html));
+check('guided tour spotlights the automatic draw card, then the manual spin', html.includes('id="sdAutoCard"') && /sub: 'weekly', sel: '#sdAutoCard'/.test(html) && /sub: 'weekly', sel: '#spinBtn'/.test(html) && !/title: 'Tick who has paid'/.test(html));
+check('guided tour switches to the Session draws sub-tab', fn('showTourStep').includes('setLuckyTab(step.sub)'));
+check('guided tour opens collapsed <details> ancestors before measuring', fn('positionTourStep').includes("el.closest('details')") && fn('positionTourStep').includes('d.open = true'));
 check('help drawer describes the session draw', /Lucky Draw &mdash; Session draws/.test(html) && /Run draw now/.test(html));
 check('audit labels cover the new actions', /'draw\.run':/.test(html) && /'draw\.settings':/.test(html));
 check('adminOps carries drawSettings, not the retired weekly keys', fn('loadAdminOps').includes('drawSettings: res.drawSettings') && !fn('loadAdminOps').includes('weeklyDraws'));
