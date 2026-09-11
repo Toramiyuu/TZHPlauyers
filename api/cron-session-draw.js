@@ -11,7 +11,10 @@
 // Optional hardening: set CRON_SECRET and Vercel sends `Authorization: Bearer
 // <secret>`; when set we require it. Without it the endpoint is still safe (it
 // can only ever draw an already-due session exactly once).
-const { runSessionDrawSweep } = require('./state.js');
+// The Monthly (points) Lucky Draw shares this cron: its sweep is just as
+// idempotent (a closed month is drawn once, at 09:00 MYT on the 1st) and the
+// Hobby plan allows only two cron jobs.
+const { runSessionDrawSweep, runMonthlyDrawSweep } = require('./state.js');
 
 module.exports = async function handler(req, res) {
   const secret = process.env.CRON_SECRET;
@@ -23,7 +26,9 @@ module.exports = async function handler(req, res) {
   }
   try {
     const result = await runSessionDrawSweep();
-    return res.status(result.ok ? 200 : 500).json(result);
+    let monthly = null;
+    try { monthly = await runMonthlyDrawSweep(); } catch (e) { monthly = { ok: false, error: 'sweep' }; }
+    return res.status(result.ok ? 200 : 500).json(Object.assign({}, result, { monthly }));
   } catch (e) {
     console.error('cron-session-draw error:', e && e.message);
     return res.status(500).json({ error: 'Session draw failed' });

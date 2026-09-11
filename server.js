@@ -7,6 +7,8 @@ const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS
 const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction } = require('./api/weekly.js');
 const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('./api/payments.js');
 const { SESSION_DRAW_ADMIN_ACTIONS, handleSessionDrawAdminAction, sweepSessionDraws, buildDrawsView, memoryDrawStore } = require('./api/session-draw.js');
+const { MONTHLY_LUCKY_ADMIN_ACTIONS, handleMonthlyLuckyAdminAction, sweepMonthlyDraws, buildMonthlyView, memoryMonthlyStore } = require('./api/monthly-lucky.js');
+const ML = require('./public/monthly-lucky.js');
 const Payments = require('./public/payments.js');
 const SD = require('./public/session-draw.js');
 
@@ -61,6 +63,7 @@ const DEFAULT_STATE = {
 let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
 // Session draw results (permanent; in-memory for local dev — see api/session-draw.js).
 const drawStore = memoryDrawStore();
+const monthlyStore = memoryMonthlyStore();
 
 // GET state — public (with siteCode gate)
 app.get('/api/state', (req, res) => {
@@ -87,7 +90,13 @@ app.get('/api/draws', async (req, res) => {
   try { results = (await sweepSessionDraws(state, drawStore, {})).results; } catch (e) { /* view still loads */ }
   const limit = Number(req.query.limit);
   const view = await buildDrawsView(state, drawStore, { results, limit: Number.isInteger(limit) && limit > 0 ? limit : undefined, before: req.query.before });
-  res.json({ ok: true, ...view, sessions: (view.sessions || []).map(SD.publicSessionView), today: todayISO(), serverTime: Date.now() });
+  let monthly = null;
+  try {
+    const mres = (await sweepMonthlyDraws(state, monthlyStore, {})).results;
+    const mv = await buildMonthlyView(state, monthlyStore, { results: mres });
+    monthly = { auto: mv.settings.auto, winners: mv.settings.winners, threshold: mv.settings.threshold, pointsMonth: mv.pointsMonth, prizes: mv.settings.prizes, months: (mv.months || []).map(ML.publicMonthView) };
+  } catch (e) { /* view still loads */ }
+  res.json({ ok: true, ...view, sessions: (view.sessions || []).map(SD.publicSessionView), monthly, today: todayISO(), serverTime: Date.now() });
 });
 
 // POST state — admin only, merges updates
@@ -155,6 +164,11 @@ app.post('/api/state', async (req, res) => {
     const result = await handleSessionDrawAdminAction(state, updates, { store: drawStore });
     return res.status(result.status).json(result.body);
   }
+  // Admin Monthly (points) draw actions (settings / prizes / pool / Run draw now / list).
+  if (updates.action && MONTHLY_LUCKY_ADMIN_ACTIONS.has(updates.action)) {
+    const result = await handleMonthlyLuckyAdminAction(state, updates, { store: monthlyStore });
+    return res.status(result.status).json(result.body);
+  }
   // Admin fetch of the full private ops data (kept out of public GET).
   if (updates.action === 'adminGetOps') {
     return res.json({
@@ -175,6 +189,9 @@ app.post('/api/state', async (req, res) => {
   }
   if (updates.drawSettings !== undefined || updates.sessionDrawAt !== undefined) {
     return res.status(400).json({ error: 'Use the setDrawSettings action.' });
+  }
+  if (updates.monthlyLucky !== undefined) {
+    return res.status(400).json({ error: 'Use the monthly draw actions.' });
   }
   // Session-date change uses the SAME shared logic as production (api/state.js)
   // so local dev reproduces the snapshot/restore/one-month-ahead behaviour.

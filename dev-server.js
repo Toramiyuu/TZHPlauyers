@@ -34,6 +34,7 @@ const apiHandler = require('./api/state.js');
 const drawsHandler = require('./api/draws.js');
 const cronDrawHandler = require('./api/cron-session-draw.js');
 const SD = require('./public/session-draw.js');
+const ML = require('./public/monthly-lucky.js');
 
 // ── Seed demo state (incl. weekly regulars) so the feature is visible ────────
 function iso(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
@@ -98,6 +99,28 @@ STORE = {
   drawSettings: { winners: 2 },
   sessionDrawAt: SD.scheduledDrawAt(todayIso),
 };
+
+// ── Monthly (points) Lucky Draw seed ────────────────────────────────────────
+// A handful of members are already past 80 points this month, three prizes are
+// set, and LAST month is closed with its own 80+ players so the automatic draw
+// fires on the first view of the tab / public page.
+(function seedMonthlyLucky() {
+  STORE.roster.forEach((r, i) => { if (i % 5 === 0) r.points = 80 + (i * 3) % 40; });
+  const thisMonth = ML.monthKeyOf(todayIso), lastMonth = ML.prevMonthKey(thisMonth);
+  const points = {}, names = {};
+  STORE.roster.forEach((r, i) => { points[r.id] = i % 4 === 0 ? 80 + i : (i * 7) % 60; names[r.id] = r.name; });
+  STORE.monthlyLucky = {
+    auto: true, winners: 3, threshold: 80,
+    prizes: [{ id: 'pz1', name: 'Racket bag', photo: null }, { id: 'pz2', name: 'Tube of shuttlecocks', photo: null }, { id: 'pz3', name: 'Grip + socks bundle', photo: null }],
+    pointsMonth: thisMonth, pool: null,
+    closed: { [lastMonth]: { month: lastMonth, closedAt: Date.now() - 864e5, points, names } },
+  };
+  // One Shuttlecock ballot result (with its pool) so that draw can be replayed too.
+  const parts = STORE.roster.slice(0, 6).map((r, i) => ({ id: 'mp' + i, name: r.name, phone: '', tubes: 4 * (i + 1), tokens: i + 1 }));
+  STORE.monthlyDraw = { month: thisMonth, rollSuppressedMonth: '', prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'],
+    participants: parts, spin: null, history: [],
+    results: [{ rank: 1, id: 'mp2', name: parts[2].name, phone: '', prize: '1 Tube of new G2 Shuttlecock', at: Date.now() - 3600e3, pool: parts.map((p) => p.name) }] };
+})();
 
 // ── Seed the last three draw-day nights so the Lucky Draw page has content ──
 // Most recent (still pending) and older ones (due -> auto-drawn on first view).

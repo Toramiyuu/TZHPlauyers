@@ -3,6 +3,8 @@ const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS
 const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction, pruneWeeklyState } = require('./weekly.js');
 const { SESSION_DRAW_ADMIN_ACTIONS, handleSessionDrawAdminAction, sweepSessionDraws, redisDrawStore } = require('./session-draw.js');
 const SD = require('../public/session-draw.js');
+const { MONTHLY_LUCKY_ADMIN_ACTIONS, handleMonthlyLuckyAdminAction, sweepMonthlyDraws, buildMonthlyView, redisMonthlyStore, applyMonthClose } = require('./monthly-lucky.js');
+const ML = require('../public/monthly-lucky.js');
 const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('./payments.js');
 const Payments = require('../public/payments.js');
 const AdminNav = require('../public/admin-nav.js');
@@ -38,6 +40,9 @@ const STATE_KEY = 'court-state';
 // Session draw results: a separate Redis hash (`court-draws`, field = ISO date),
 // never pruned, never rewritten — see api/session-draw.js.
 const drawStore = redisDrawStore(kv);
+// Monthly (points-based) draw results: a second permanent hash (`court-monthly-draws`,
+// field = YYYY-MM) — see api/monthly-lucky.js.
+const monthlyStore = redisMonthlyStore(kv);
 
 // Local "today" for the club. Vercel runs in UTC, so without an offset the
 // date flips at the wrong moment for non-UTC users (B8). Defaults to UTC+8.
@@ -116,6 +121,11 @@ const DEFAULT_STATE = {
   sessionDrawAt: SD.scheduledDrawAt(todayISO()),
   // Auto-computed Monthly Lucky Draw eligibility cache (feeds monthlyDraw.participants).
   monthlyEligibility: null,
+  // ── points-based Monthly Lucky Draw (2026-09) ──
+  // Settings + the month the roster points belong to + the pulled pool + closed-month
+  // snapshots. Written ONLY through the monthly draw actions (api/monthly-lucky.js);
+  // results live in the separate `court-monthly-draws` Redis hash.
+  monthlyLucky: { auto: true, winners: ML.DEFAULT_WINNERS, threshold: ML.DEFAULT_THRESHOLD, prizes: [], pointsMonth: ML.monthKeyOf(todayISO()), pool: null, closed: {} },
   // Durable admin audit log (bounded).
   audit: [],
 };
@@ -130,7 +140,13 @@ const DEFAULT_MD_PRIZES = ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Se
 // Session draw results are served by GET /api/draws (site-code gated), not here.
 function publicProjection(current) {
   const { attendance, audit, monthlyEligibility, weeklyDraws, weeklySettings, ...safe } = redactState(current);
-  return safe;
+  return liteMonthlyLucky(safe);
+}
+// Both polls (public GET + admin auth ping) carry only the LIGHT monthly-draw
+// settings: prize photos and the closed-month point snapshots are bulky and are
+// served by GET /api/draws (players) and the getMonthlyDraws action (admin).
+function liteMonthlyLucky(s) {
+  return Object.assign({}, s, { monthlyLucky: ML.liteOf(s && s.monthlyLucky, todayISO()) });
 }
 
 // Tokens per tubes (1 per 4). Inlined here (not require('../public/monthly-draw.js'))
@@ -396,15 +412,24 @@ async function rolloverSessionDate() {
   }
   const today = todayISO();
   const target = nextRolloverDate(state.sessionDate, today);
-  if (!target) return { ok: true, changed: false, sessionDate: state.sessionDate || null, today };
-  const transition = applySessionDateChange(state, target, today);
-  if (!transition.ok) return { ok: false, error: transition.error, changed: false, today };
+  let next = state, dateChanged = false;
+  if (target) {
+    const transition = applySessionDateChange(state, target, today);
+    if (!transition.ok) return { ok: false, error: transition.error, changed: false, today };
+    next = transition.state;
+    dateChanged = true;
+  }
+  // A new calendar month closes the old one for the Monthly (points) draw: the
+  // final points are snapshotted and everyone starts again from zero. This runs
+  // AFTER the date change so the last night's +2 is inside the closed month.
+  const closedMonths = applyMonthClose(next, today, Date.now());
+  if (!dateChanged && !closedMonths.length) return { ok: true, changed: false, sessionDate: state.sessionDate || null, today };
   try {
-    await kv.set(STATE_KEY, transition.state);
+    await kv.set(STATE_KEY, next);
   } catch (e) {
     return { ok: false, error: 'write', changed: false, today };
   }
-  return { ok: true, changed: true, from: state.sessionDate || null, to: target, today };
+  return { ok: true, changed: true, from: state.sessionDate || null, to: target || state.sessionDate || null, closedMonths, today };
 }
 
 /** Load the live state blob (or the defaults). Shared by the draws endpoint + cron. */
@@ -432,6 +457,32 @@ async function runSessionDrawSweep() {
   } catch (e) {
     console.error('session draw sweep error:', e && e.message);
     return { ok: false, error: 'sweep', changed: false };
+  }
+}
+
+/**
+ * Cron entry point for the Monthly (points) Lucky Draw — run by the same 09:00
+ * MYT cron as the session draw (Hobby plans allow two crons, so they share one).
+ * Closes a due month first (that DOES write the state blob: points reset), then
+ * runs the idempotent sweep over the separate `court-monthly-draws` hash.
+ */
+async function runMonthlyDrawSweep() {
+  let state;
+  try {
+    state = await loadState();
+  } catch (e) {
+    return { ok: false, error: 'read', changed: false };
+  }
+  const closedMonths = applyMonthClose(state, todayISO(), Date.now());
+  if (closedMonths.length) {
+    try { await kv.set(STATE_KEY, state); } catch (e) { return { ok: false, error: 'write', changed: false, closedMonths }; }
+  }
+  try {
+    const r = await sweepMonthlyDraws(state, monthlyStore, {});
+    return { ok: true, changed: r.drawn.length > 0 || closedMonths.length > 0, drawn: r.drawn, pending: r.pending, closedMonths, today: todayISO() };
+  } catch (e) {
+    console.error('monthly draw sweep error:', e && e.message);
+    return { ok: false, error: 'sweep', changed: false, closedMonths };
   }
 }
 
@@ -563,6 +614,8 @@ const handler = async function handler(req, res) {
       current.drawSettings = { winners: SD.winnersOf(current.drawSettings) };
       if (current.sessionDrawAt === undefined) current.sessionDrawAt = SD.scheduledDrawAt(current.sessionDate);
       if (current.monthlyEligibility === undefined) current.monthlyEligibility = null;
+      // Monthly (points) draw: repair old/odd blobs; a missing pointsMonth means "this month".
+      current.monthlyLucky = ML.normalize(current.monthlyLucky, todayISO());
       if (!Array.isArray(current.audit)) current.audit = [];
       // Session fee tier: coerce anything but '2h'/'3h' (old blobs, junk) to the default.
       current.feeTier = Payments.tierOf(current.feeTier);
@@ -684,7 +737,7 @@ const handler = async function handler(req, res) {
     // Auth-only ping (no updates): return state so an authenticated admin can
     // bypass the site lock and reach the admin panel even without the site code.
     if (Object.keys(updates).length === 0) {
-      return res.json({ ok: true, state: { ...redactState(state), serverTime: Date.now() } });
+      return res.json({ ok: true, state: { ...liteMonthlyLucky(redactState(state)), serverTime: Date.now() } });
     }
 
     // Handle admin account-management actions (list / approve / reject / reveal / ...)
@@ -719,6 +772,17 @@ const handler = async function handler(req, res) {
     // separate draw store; the state blob is saved only when it changed.
     if (updates.action && SESSION_DRAW_ADMIN_ACTIONS.has(updates.action)) {
       const result = await handleSessionDrawAdminAction(state, updates, { store: drawStore });
+      if (result.changed) {
+        try { await kv.set(STATE_KEY, state); } catch (e) { return res.status(500).json({ error: 'Storage error.' }); }
+      }
+      return res.status(result.status).json(result.body);
+    }
+
+    // Handle admin Monthly (points) draw actions: settings, prizes, pool, manual
+    // draw, admin list. getMonthlyDraws also closes a due month (points reset),
+    // so the state blob is saved whenever the handler reports a change.
+    if (updates.action && MONTHLY_LUCKY_ADMIN_ACTIONS.has(updates.action)) {
+      const result = await handleMonthlyLuckyAdminAction(state, updates, { store: monthlyStore });
       if (result.changed) {
         try { await kv.set(STATE_KEY, state); } catch (e) { return res.status(500).json({ error: 'Storage error.' }); }
       }
@@ -770,6 +834,10 @@ const handler = async function handler(req, res) {
     if (updates.drawSettings !== undefined || updates.sessionDrawAt !== undefined) {
       return res.status(400).json({ error: 'Use the setDrawSettings action.' });
     }
+    // The monthly (points) draw blob holds point snapshots — never accept it via the merge.
+    if (updates.monthlyLucky !== undefined) {
+      return res.status(400).json({ error: 'Use the monthly draw actions.' });
+    }
     // Phone bottom-bar shortcuts ride the generic merge, but only as a clean list of
     // 1–4 known, unique tab ids (canonical order is enforced server-side).
     if (updates.adminShortcuts !== undefined) {
@@ -819,6 +887,9 @@ module.exports.nextRolloverDate = nextRolloverDate;
 module.exports.rolloverSessionDate = rolloverSessionDate;
 module.exports.loadState = loadState;
 module.exports.drawStore = drawStore;
+module.exports.monthlyStore = monthlyStore;
 module.exports.runSessionDrawSweep = runSessionDrawSweep;
+module.exports.runMonthlyDrawSweep = runMonthlyDrawSweep;
+module.exports.buildMonthlyView = buildMonthlyView;
 module.exports.publicProjection = publicProjection;
 module.exports.todayISO = todayISO;

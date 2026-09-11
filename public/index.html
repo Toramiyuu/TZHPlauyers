@@ -1330,6 +1330,45 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .sd-stepper{display:inline-flex;align-items:center;gap:6px}
 .sd-stepper .btn{width:40px;height:40px;padding:0;font-size:20px;display:inline-flex;align-items:center;justify-content:center}
 .sd-winners-input{width:64px;text-align:center;font-size:16px;min-height:40px}
+/* ── Monthly (points) Lucky Draw: admin sub-tab + public section ── */
+.ld-subtabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.ld-subtabs::-webkit-scrollbar{display:none}
+.ld-subtab{white-space:nowrap;flex:none}
+.ml-auto-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 10px}
+.ml-auto-row .rl-toggle{margin:0;flex:none}
+.ml-auto-row label{font-size:var(--fs-sm);font-weight:600;color:var(--text);cursor:pointer}
+.ml-prizes{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.ml-prize{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:8px 10px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md)}
+.ml-prize-photo{width:56px;height:56px;border-radius:var(--radius-sm);background:var(--card);border:1px dashed var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;cursor:pointer;color:var(--muted);padding:0;font-family:inherit}
+.ml-prize-photo:hover{border-color:var(--a-blue-2);color:var(--a-blue)}
+.ml-prize-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.ml-prize-photo .ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ml-prize-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.ml-prize-tools{display:flex;gap:4px;align-items:center;flex:none}
+.ml-prize-tools .btn{min-width:36px;padding:6px 8px}
+.ml-pool-list{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+.ml-pool-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);background:var(--card2);font-size:var(--fs-sm);color:var(--text);min-height:40px}
+.ml-pool-row.removed .ml-pool-name{opacity:.5;text-decoration:line-through}
+.ml-pool-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.ml-pts{font-weight:700;color:var(--a-blue);white-space:nowrap}
+.ml-pool-hint{font-size:var(--fs-xs);color:var(--warn);font-weight:600;margin-top:8px}
+.ml-confirm{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;border-radius:var(--radius-md);background:var(--a-blue-tint);font-size:var(--fs-sm);color:var(--text)}
+.ml-wins{padding:0 14px 12px;display:flex;flex-direction:column;gap:6px}
+.ml-win{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:var(--radius-md);background:var(--a-blue-tint)}
+.ml-win-rank{width:30px;height:30px;border-radius:50%;background:var(--a-blue);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none}
+.ml-win-main{flex:1;min-width:0}
+.ml-win-name{font-weight:700;color:var(--text);font-size:var(--fs-md);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ml-win-prize{font-size:var(--fs-sm);color:var(--text-2)}
+.ml-win-photo{width:48px;height:48px;border-radius:var(--radius-sm);object-fit:cover;flex:none;border:1px solid var(--border);background:var(--card)}
+.ml-prize-strip{display:flex;gap:10px;overflow-x:auto;padding:2px 0 8px;-webkit-overflow-scrolling:touch}
+.ml-prize-tile{flex:none;width:112px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center}
+.ml-tile-img{width:112px;height:112px;border-radius:var(--radius-md);background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--a-blue);font-weight:800;font-size:26px}
+.ml-tile-img img{width:100%;height:100%;object-fit:cover;display:block}
+.ml-prize-tile span{font-size:var(--fs-xs);font-weight:600;color:var(--text);line-height:1.3}
+.ml-sec{margin-bottom:16px}
+.ml-line{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:var(--fs-sm);color:var(--text-2);padding:8px 0}
+.sdc-dot.sh{background:transparent;border:1.5px solid var(--a-blue)}
+@media(max-width:520px){.ml-prize-main{flex:1 1 100%;order:4}.ml-prize-tools{margin-left:auto}}
 
 /* Mobile bottom tab bar */
 @media(max-width:640px){
@@ -1502,6 +1541,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .ld-subtab{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:9px 16px;cursor:pointer;font-size:var(--fs-base);font-weight:600;font-family:inherit;margin-bottom:-1px;transition:color .15s,border-color .15s}
 .ld-subtab:hover{color:var(--text)}
 .ld-subtab.active{color:var(--a-blue);border-bottom-color:var(--a-blue)}
+@media(max-width:430px){.ld-subtabs{gap:2px}.ld-subtab{padding:9px 8px;font-size:13px}}
 .ld-quick-card{margin-top:4px}
 .ld-quick-card summary{color:var(--text-2);font-size:var(--fs-sm);cursor:pointer;list-style:none;min-height:24px}
 .ld-quick-card summary::-webkit-details-marker{display:none}
@@ -2366,6 +2406,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <button class="lb-close sd-close" onclick="closeDrawPage()" aria-label="Close Lucky Draw">&#x2715;</button>
     </div>
     <div class="sd-how" id="drawPageHow"></div>
+    <!-- Monthly (points) draw: prizes, this month's progress, past months + replay -->
+    <div class="ml-sec" id="drawPageMonthly"></div>
     <div class="md-sec-title sd-record-title">Record</div>
     <div class="sd-cal" id="drawPageCal"></div>
     <div class="sd-list" id="drawPageList"><div class="acct-empty">Loading&hellip;</div></div>
@@ -2727,6 +2769,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <!-- Session draws / Shuttlecock (monthly) sub-tabs -->
   <div class="ld-subtabs">
     <button class="ld-subtab active" data-sub="weekly" onclick="setLuckyTab('weekly')">Session draws</button>
+    <button class="ld-subtab" data-sub="monthlylucky" onclick="setLuckyTab('monthlylucky')">Monthly draws</button>
     <button class="ld-subtab" data-sub="monthly" onclick="setLuckyTab('monthly')">Shuttlecock</button>
   </div>
 
@@ -2793,6 +2836,71 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     </details>
 
   </div><!-- /session draws sub -->
+
+  <!-- ══ MONTHLY DRAWS (points-based; automatic on the 1st or run by admin) ══ -->
+  <div class="ld-sub" data-sub="monthlylucky" style="display:none">
+
+    <!-- Automatic toggle + winners + points needed -->
+    <div class="admin-card" id="mlAutoCard">
+      <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span> Automatic draw</span>
+        <button class="btn btn-secondary btn-sm" onclick="openDrawPage('monthly')"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Open public page</button></div>
+      <div class="admin-helper-text" id="mlAdminHow"></div>
+      <div class="ml-auto-row">
+        <button class="rl-toggle on" id="mlAutoToggle" type="button" role="switch" aria-checked="true" onclick="toggleMonthlyAuto()" aria-label="Run the monthly draw automatically"><span class="rl-knob"></span></button>
+        <label for="mlAutoToggle" id="mlAutoLabel">Run this month&#x2019;s draw automatically</label>
+        <span class="pm-save-state" id="mlSaveState"></span>
+      </div>
+      <div class="sd-setting">
+        <label class="admin-form-label" for="mlWinnersInput">Winners</label>
+        <div class="sd-stepper">
+          <button class="btn btn-ghost btn-sm" type="button" onclick="stepMonthlyWinners(-1)" aria-label="Fewer winners">&minus;</button>
+          <input id="mlWinnersInput" type="number" min="1" max="20" step="1" inputmode="numeric" class="admin-form-input sd-winners-input" onchange="setMonthlyWinners(this.value)" aria-label="Winners per monthly draw">
+          <button class="btn btn-ghost btn-sm" type="button" onclick="stepMonthlyWinners(1)" aria-label="More winners">+</button>
+        </div>
+      </div>
+      <div class="sd-setting">
+        <label class="admin-form-label" for="mlThresholdInput">Points needed</label>
+        <div class="sd-stepper">
+          <button class="btn btn-ghost btn-sm" type="button" onclick="stepMonthlyThreshold(-5)" aria-label="Fewer points needed">&minus;</button>
+          <input id="mlThresholdInput" type="number" min="1" max="10000" step="1" inputmode="numeric" class="admin-form-input sd-winners-input" onchange="setMonthlyThreshold(this.value)" aria-label="Points needed to enter the monthly draw">
+          <button class="btn btn-ghost btn-sm" type="button" onclick="stepMonthlyThreshold(5)" aria-label="More points needed">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prizes: ordered list, each with a name + photo -->
+    <div class="admin-card" id="mlPrizesCard">
+      <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span> Prizes</span><span class="pm-save-state" id="mlPrizeSaveState"></span></div>
+      <div class="admin-helper-text">In order: the 1st winner gets prize 1, the 2nd gets prize 2, and so on. Tap the square to add a photo.</div>
+      <div class="ml-prizes" id="mlPrizes"></div>
+      <div class="admin-btn-row admin-mt">
+        <button class="btn btn-ghost btn-sm" type="button" onclick="addMonthlyPrize()"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add prize</button>
+        <button class="btn btn-secondary btn-sm" type="button" id="mlPrizeSaveBtn" onclick="saveMonthlyPrizes()">Save prizes</button>
+      </div>
+      <input id="mlPrizePhotoInput" type="file" accept="image/*" style="display:none" onchange="monthlyPrizePhotoPicked(this)">
+    </div>
+
+    <!-- Who is in this month + manual draw -->
+    <div class="admin-card" id="mlPoolCard">
+      <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M16 19a4 4 0 0 0-8 0M12 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M5 20a3 3 0 0 1 3-3M19 20a3 3 0 0 0-3-3"/></svg></span> <span id="mlPoolTitle">Eligible this month</span></span><span class="md-summary" id="mlPoolSummary"></span></div>
+      <div class="admin-helper-text" id="mlPoolHelp"></div>
+      <div class="admin-btn-row">
+        <button class="btn btn-secondary btn-sm" type="button" id="mlPullBtn" onclick="pullMonthlyPool()"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg> <span id="mlPullLabel">Pull players with 80+ points</span></button>
+        <button class="btn btn-primary btn-sm" type="button" id="mlRunBtn" onclick="askRunMonthlyDraw()"><svg class="ic" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Run draw now</button>
+      </div>
+      <div id="mlConfirm"></div>
+      <div class="ml-pool-list" id="mlPoolList"></div>
+    </div>
+
+    <!-- Every month, newest first (same cards as the public page, plus Run draw now for a waiting month) -->
+    <div class="admin-card">
+      <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> Record</span>
+        <button class="btn btn-ghost btn-sm" onclick="loadMonthlyAdmin()"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 4v4h-4"/></svg> Refresh</button></div>
+      <div class="admin-helper-text">One draw per month. Results are permanent; replay or download the video from any drawn month.</div>
+      <div id="mlAdminList" class="sd-list"><div class="acct-empty">Loading&hellip;</div></div>
+    </div>
+
+  </div><!-- /monthly draws sub -->
 
   <!-- ══ SHUTTLECOCK (MONTHLY) LUCKY DRAW ══ -->
   <div class="ld-sub" data-sub="monthly" style="display:none">
@@ -3002,6 +3110,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <details class="help-sec"><summary>Courts</summary><div>Build rounds, choose which courts are active, and manage who&rsquo;s resting. Each court&rsquo;s current match shows live on the viewer screen. When play ends, press <b>End of the day</b> (bottom of the tab) to create tonight&rsquo;s payment records.</div></details>
       <details class="help-sec"><summary>Payments</summary><div>The fee depends on how long each person stayed: <b>2h &middot; RM20</b> or <b>3h &middot; RM25</b>. The Session tab sets the default for the night; after <b>End of the day</b> every player in the line-up gets a row here at that default. Tap <b>2h</b> or <b>3h</b> on a row for early leavers, tap <b>Cash</b>, <b>TnG</b> or <b>DuitNow</b> as each person pays (one tap), or <b>Unpaid</b> to undo &mdash; paid rows drop to the bottom so whoever still owes stays at the top. Tap the amount for a one-off custom fee. Pressing End of the day again only adds players who joined later. Switch to <b>By member</b> to see everyone&rsquo;s running balance across every night on record; tap a member for their points, total outstanding and a night-by-night breakdown, and settle any night right there. A night is never removed from history while someone on it still owes.</div></details>
       <details class="help-sec"><summary>Lucky Draw &mdash; Session draws</summary><div>Every Monday, Friday and Sunday session gets one automatic draw at <b>9:00 AM</b> four mornings later (Mon &rarr; Fri, Fri &rarr; Tue, Sun &rarr; Thu). A player is in it when they attended <b>and</b> their payment was marked paid before that time &mdash; so <b>End of the day</b> and the Payments tab decide who is eligible. Set how many winners are picked. Results are permanent and never re-run; if the scheduled draw did not happen, <b>Run draw now</b> applies the same rules. Players see the winners and the replay video on the public Lucky Draw page; who attended and who paid stays admin-only.</div></details>
+      <details class="help-sec"><summary>Lucky Draw &mdash; Monthly draws</summary><div>A points draw once a month. Everyone who reaches the <b>points needed</b> (default 80) during the month is in it; points go back to zero when the month ends. With the <b>automatic</b> switch on, the draw runs itself at <b>9:00 AM on the 1st</b> of the next month; switch it off to run it yourself. <b>Pull players</b> lists everyone at the threshold right now (untick anyone who should sit out), then <b>Run draw now</b> draws this month on the spot. Set how many winners are picked and the ordered prize list &mdash; the 1st winner gets prize 1, the 2nd gets prize 2. Each prize can carry a photo, which shows on the public Lucky Draw page and in the replay video. One draw per month; results are permanent.</div></details>
       <details class="help-sec"><summary>Lucky Draw &mdash; Shuttlecock</summary><div>The Shuttlecock Draw runs once a month. Players are auto-enrolled when they attended <b>and</b> paid every required session of their regular day this month. Click a player to see the exact record, or override it. You can still import a CSV ballot and run the prize draw as before.</div></details>
       <details class="help-sec"><summary>Sign-ups</summary><div>People who asked to join through the public form, newest first. Mark each one contacted once you&rsquo;ve reached out.</div></details>
       <details class="help-sec"><summary>Accounts</summary><div>Players request an account with their <b>phone number</b> + password. Approve a request and link it to an existing player, or reject with a reason. To help someone who forgot their password, open <b>Manage</b> &rarr; <b>Reveal</b> (re-enter your admin password) or set a temporary password. Deleting an account keeps the player &mdash; it only unlinks the login.</div></details>
@@ -3050,6 +3159,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 <script src="monthly-eligibility.js"></script>
 <script src="matchmaking.js"></script>
 <script src="/session-draw.js"></script>
+<script src="/monthly-lucky.js"></script>
 <script src="/draw-video.js"></script>
 <script>
 // ── STATE ────────────────────────────────────
@@ -3219,6 +3329,8 @@ async function poll() {
     renderDrawPool();
     renderDrawResult();
     renderMonthlyTab();
+    // Monthly (points) draw: only the live "who is at the threshold" list follows the poll.
+    if (currentAdminTab === 'engagement' && currentLuckyTab === 'monthlylucky') renderMonthlyPool();
     // Keep the unread badge live every tick, but NOT the full list — re-rendering
     // up to 500 rows (each running timeAgo) every 2s would be a hot-path regression.
     renderSignupsBadge();
@@ -6904,6 +7016,9 @@ function renderMonthlyResults() {
       </div>
       ${r.phone ? `<span class="md-cust-phone">${escHtml(r.phone)}</span>` : ''}
     </div>`).join('');
+  // Replay / download this month's draw as a video (once at least one prize is revealed).
+  const live = shuttleDrawEntries().find(e => e.live);
+  if (live && window.DrawVideo && DrawVideo.sourceFromShuttlecock(live)) el.innerHTML += sdVideoRowHtml('shuttle', live.key, true);
 }
 
 function renderMonthlyHistory() {
@@ -6953,8 +7068,11 @@ function openMdHist(idx) {
   const meta = pc
     ? `<div class="md-hist-meta">${pc} participant${pc === 1 ? '' : 's'} &middot; ${sum.carriedTubes} tube${sum.carriedTubes === 1 ? '' : 's'} carried forward</div>`
     : '';
+  // Archived months replay from their participant list (the ballot) + winners.
+  const ent = shuttleDrawEntries().find(e => !e.live && Number(e.at) === Number(d.at));
+  const replay = ent && window.DrawVideo && DrawVideo.sourceFromShuttlecock(ent) ? sdVideoRowHtml('shuttle', ent.key, true) : '';
   document.getElementById('mdHistBody').innerHTML =
-    '<div class="admin-subsection-label">Winners</div>' + winHtml + meta;
+    '<div class="admin-subsection-label">Winners</div>' + winHtml + meta + replay;
   document.getElementById('mdHistModal').classList.add('open');
 }
 
@@ -7105,7 +7223,8 @@ async function drawPrize(rank) {
     winnerId: winner.id, winnerName: winner.name,
     startAt, durationMs,
   };
-  const result = { rank, id: winner.id, name: winner.name, phone: winner.phone || '', prize, at: startAt + durationMs };
+  // `pool` (the ballot's unique names) is kept so the draw can be replayed as a video.
+  const result = { rank, id: winner.id, name: winner.name, phone: winner.phone || '', prize, at: startAt + durationMs, pool: [...new Set(ballot.map(p => p.name))] };
   const monthlyDraw = { ...md, spin, results: [...results, result] };
   await apiPost({ monthlyDraw });
   state.monthlyDraw = monthlyDraw;
@@ -7382,7 +7501,7 @@ function setAdminTab(name) {
   if (titleEl) titleEl.textContent = ADMIN_TAB_TITLES[name] || '';
   updateAdminNavBadges();
   if (name === 'monthly') renderMonthlyTab();
-  if (name === 'engagement') { renderMonthlyTab(); loadAdminOps().then(() => { if (currentLuckyTab === 'weekly') renderSessionDrawsAdmin(); renderMonthlyElig(); }); }
+  if (name === 'engagement') { renderMonthlyTab(); loadAdminOps().then(() => { if (currentLuckyTab === 'weekly') renderSessionDrawsAdmin(); if (currentLuckyTab === 'monthlylucky') renderMonthlyLuckyAdmin(); renderMonthlyElig(); }); }
   if (name === 'signups') renderSignupsTab();
   if (name === 'accounts') loadAccountsTab();
   if (name === 'friendly') renderFriendlyAdmin();
@@ -7484,6 +7603,7 @@ function setLuckyTab(sub) {
   document.querySelectorAll('.ld-subtabs .ld-subtab').forEach(b => b.classList.toggle('active', b.dataset.sub === sub));
   document.querySelectorAll('.admin-tab-panel[data-tab="engagement"] .ld-sub').forEach(p => { p.style.display = (p.dataset.sub === sub) ? '' : 'none'; });
   if (sub === 'weekly') { renderSessionDrawsAdmin(); }
+  if (sub === 'monthlylucky') { renderMonthlyLuckyAdmin(); }
   if (sub === 'monthly') { renderMonthlyTab(); renderMonthlyElig(); }
 }
 
@@ -7530,13 +7650,15 @@ let sdPublicTimer = null, sdDeepLinkDone = false, sdRetried = false, sdLastError
 const sdBusy = new Set();
 
 function isDrawPageOpen() { const el = document.getElementById('drawPage'); return !!(el && el.classList.contains('open')); }
-function openDrawPage() {
+function openDrawPage(section) {
   const el = document.getElementById('drawPage'); if (!el) return;
   const wrap = document.getElementById('accountWidget'); if (wrap) wrap.classList.remove('open');
   el.classList.add('open');
   el.scrollTop = 0;
   if (window.location.hash !== '#draw') { try { history.replaceState(null, '', window.location.pathname + window.location.search + '#draw'); } catch (e) { /* ignore */ } }
-  loadDrawPage(false);
+  loadDrawPage(false).then(() => {
+    if (section === 'monthly') { const t = document.getElementById('drawPageMonthly'); if (t) t.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+  });
   clearInterval(sdPublicTimer);
   sdPublicTimer = setInterval(() => { if (isDrawPageOpen()) loadDrawPage(false, true); }, 30000);
 }
@@ -7582,6 +7704,7 @@ function renderDrawPage() {
   if (how) how.innerHTML = sdHowHtml(sdPublic.winnersPerDraw);
   const sub = document.getElementById('drawPageSub');
   if (sub) sub.textContent = sdWinnersLabel(sdPublic.winnersPerDraw) + ' per session · drawn at ' + SessionDraw.drawTimeLabel();
+  renderPublicMonthly();
   renderDrawCalendar(document.getElementById('drawPageCal'), sdPublic, false);
   renderDrawList(document.getElementById('drawPageList'), sdPublic.sessions, { admin: false, items: sdListItems(sdPublic, false), filtered: !!sdCal.pub.sel });
   const more = document.getElementById('drawPageMore'); if (more) more.style.display = sdPublic.hasMore && !sdCal.pub.sel ? '' : 'none';
@@ -7598,7 +7721,7 @@ function renderDrawList(container, sessions, opts) {
     container.innerHTML = '<div class="acct-empty">' + (opts && opts.filtered ? 'No draw on this day.' : 'No sessions yet — the first draw appears after the next Monday, Friday or Sunday night.') + '</div>';
     return;
   }
-  container.innerHTML = items.map(i => (i.kind === 'manual' ? qdCardHtml(i.e) : sdCardHtml(i.v, admin))).join('');
+  container.innerHTML = items.map(i => (i.kind === 'manual' ? qdCardHtml(i.e) : i.kind === 'shuttle' ? shCardHtml(i.e) : sdCardHtml(i.v, admin))).join('');
 }
 function sdCardHtml(v, admin) {
   const done = v.status === 'done';
@@ -7674,12 +7797,19 @@ function sdListItems(data, admin) {
   const sessions = (data && data.sessions) || [];
   const oldest = sessions.length ? sessions[sessions.length - 1].date : null;
   let manual = manualDrawEntries();
-  if (!cs.sel && data && data.hasMore && oldest) manual = manual.filter(e => e.date >= oldest);
+  let shuttle = shuttleDrawEntries();
+  if (!cs.sel && data && data.hasMore && oldest) { manual = manual.filter(e => e.date >= oldest); shuttle = shuttle.filter(e => e.date >= oldest); }
+  const KIND_ORDER = { session: 0, manual: 1, shuttle: 2 };
   const items = sessions.map(v => ({ kind: 'session', date: v.date, at: Number(v.drawnAt || v.drawAt) || 0, v }))
-    .concat(manual.map(e => ({ kind: 'manual', date: e.date, at: e.at || 0, e })));
-  items.sort((a, b) => a.date === b.date ? (a.kind === b.kind ? b.at - a.at : (a.kind === 'session' ? -1 : 1)) : (a.date < b.date ? 1 : -1));
+    .concat(manual.map(e => ({ kind: 'manual', date: e.date, at: e.at || 0, e })))
+    .concat(shuttle.map(e => ({ kind: 'shuttle', date: e.date, at: e.at || 0, e })));
+  items.sort((a, b) => a.date === b.date ? (a.kind === b.kind ? b.at - a.at : KIND_ORDER[a.kind] - KIND_ORDER[b.kind]) : (a.date < b.date ? 1 : -1));
   return cs.sel ? items.filter(i => i.date === cs.sel) : items;
 }
+// Shuttlecock (ballot) draws: this month's revealed results + archived months, as
+// replayable entries (see DrawVideo.shuttlecockEntriesOf). Rendered as cards on
+// both Record lists and marked on the calendar with a hollow blue dot.
+function shuttleDrawEntries() { return window.DrawVideo ? DrawVideo.shuttlecockEntriesOf(state && state.monthlyDraw, clockNow()) : []; }
 function renderDrawCalendar(container, data, admin) {
   if (!container || !window.DrawVideo) return;
   const cs = sdCalState(admin);
@@ -7688,7 +7818,7 @@ function renderDrawCalendar(container, data, admin) {
     const mo = DrawVideo.monthOf((sessions[0] && sessions[0].date) || (manualDrawEntries()[0] || {}).date) || DrawVideo.monthOf(serverToday());
     cs.y = mo.year; cs.m = mo.month0; cs.init = true;
   }
-  const idx = DrawVideo.indexDraws(sessions, manualDrawEntries());
+  const idx = DrawVideo.indexDraws(sessions, manualDrawEntries(), shuttleDrawEntries());
   const grid = DrawVideo.monthGrid(cs.y, cs.m, 1);
   const today = serverToday();
   const a = admin ? 'true' : 'false';
@@ -7699,11 +7829,11 @@ function renderDrawCalendar(container, data, admin) {
     const has = !!d;
     const done = !!(d && d.session && d.session.status === 'done');
     const cls = ['sdc-day', c.inMonth ? '' : 'out', has ? 'has' : '', c.iso === today ? 'today' : '', c.iso === cs.sel ? 'sel' : ''].filter(Boolean).join(' ');
-    const marks = has ? '<span class="sdc-marks">' + (d.session ? '<i class="sdc-dot ' + (done ? 'auto' : 'wait') + '"></i>' : '') + (d.manual.length ? '<i class="sdc-dot man"></i>' : '') + '</span>' : '';
-    const label = SessionDraw.fmtSessionDate(c.iso) + (has ? (done ? ', drawn' : (d.session ? ', draw pending' : '')) + (d.manual.length ? ', manual quick draw' : '') : ', no draw');
+    const marks = has ? '<span class="sdc-marks">' + (d.session ? '<i class="sdc-dot ' + (done ? 'auto' : 'wait') + '"></i>' : '') + (d.manual.length ? '<i class="sdc-dot man"></i>' : '') + (d.shuttle && d.shuttle.length ? '<i class="sdc-dot sh"></i>' : '') + '</span>' : '';
+    const label = SessionDraw.fmtSessionDate(c.iso) + (has ? (done ? ', drawn' : (d.session ? ', draw pending' : '')) + (d.manual.length ? ', manual quick draw' : '') + (d.shuttle && d.shuttle.length ? ', shuttlecock draw' : '') : ', no draw');
     return '<button type="button" class="' + cls + '"' + (has ? ' onclick="sdCalPick(' + a + ',\'' + c.iso + '\')"' : ' disabled') + ' aria-label="' + escHtml(label) + '"' + (c.iso === cs.sel ? ' aria-pressed="true"' : '') + '><span>' + c.day + '</span>' + marks + '</button>';
   }).join('') + '</div>';
-  html += '<div class="sdc-legend"><span><i class="sdc-dot auto"></i>Session draw</span><span><i class="sdc-dot wait"></i>Draw pending</span><span><i class="sdc-dot man"></i>Manual quick draw</span></div>';
+  html += '<div class="sdc-legend"><span><i class="sdc-dot auto"></i>Session draw</span><span><i class="sdc-dot wait"></i>Draw pending</span><span><i class="sdc-dot man"></i>Manual quick draw</span><span><i class="sdc-dot sh"></i>Shuttlecock draw</span></div>';
   if (cs.sel) html += '<div class="sdc-sel"><span>Showing ' + escHtml(SessionDraw.fmtSessionDate(cs.sel)) + '</span><button type="button" class="btn btn-ghost btn-sm" onclick="sdCalPick(' + a + ',null)">Show all</button></div>';
   container.innerHTML = html;
 }
@@ -7732,9 +7862,9 @@ async function sdEnsureMonthLoaded(admin) {
     if (admin) await loadAdminDraws(true); else await loadDrawPage(true);
   }
 }
-function sdVideoRowHtml(kind, key) {
+function sdVideoRowHtml(kind, key, bare) {
   const args = '\'' + kind + '\',\'' + escHtml(key) + '\'';
-  return '<div class="sd-video-row">'
+  return '<div class="sd-video-row"' + (bare ? ' style="padding:10px 0 0"' : '') + '>'
     + '<button type="button" class="btn btn-secondary btn-sm" onclick="openDrawVideo(' + args + ')"><svg class="ic" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play replay</button>'
     + '<button type="button" class="btn btn-primary btn-sm" onclick="openDrawVideo(' + args + ',true)"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v12M6 10l6 6 6-6M4 20h16"/></svg> Download video</button>'
     + '</div>';
@@ -7753,6 +7883,20 @@ function qdCardHtml(e) {
   html += replayable ? sdVideoRowHtml('manual', e.key) : '<div class="sd-foot"><span>No replay — this draw was made before replays were recorded.</span></div>';
   return html + '</div>';
 }
+// Shuttlecock draw card: the month's prize winners (chip = name + prize) and the replay.
+function shCardHtml(e) {
+  const winners = (e.winners || []).slice().sort((a, b) => (a.rank || 0) - (b.rank || 0));
+  const replayable = !!(window.DrawVideo && DrawVideo.sourceFromShuttlecock(e));
+  let html = '<div class="sd-card done sh" data-kind="shuttle" data-date="' + escHtml(e.date) + '">';
+  html += '<div class="sd-card-head"><div><div class="sd-date">Shuttlecock Draw' + (e.label ? ' · ' + escHtml(e.label) : '') + '</div>'
+    + '<div class="sd-when">' + (e.at ? 'Drawn ' + escHtml(SessionDraw.fmtDrawTime(e.at)) : escHtml(SessionDraw.fmtSessionDate(e.date))) + (e.live ? ' · this month' : '') + '</div></div>'
+    + '<span class="sd-status done">Shuttlecock</span></div>';
+  html += winners.length
+    ? '<div class="sd-winners">' + winners.map(w => '<span class="sd-win-chip"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg>' + escHtml(w.name) + '<small>' + escHtml(w.prize ? w.prize : ordinalLbl(w.rank)) + '</small></span>').join('') + '</div>'
+    : '<div class="sd-nowin">No winners.</div>';
+  html += replayable ? sdVideoRowHtml('shuttle', e.key) : '<div class="sd-foot"><span>No replay — this draw has no recorded ballot.</span></div>';
+  return html + '</div>';
+}
 
 // ── replay video modal ──
 let dvCtl = null, dvResult = null, dvSource = null, dvKey = null, dvAutoSave = false;
@@ -7762,6 +7906,14 @@ function sdFindSource(kind, key) {
   if (kind === 'session') {
     const v = (sdPublic.sessions || []).concat(sdAdmin.sessions || []).find(x => x.date === key && x.status === 'done');
     return v ? DrawVideo.sourceFromSession(v) : null;
+  }
+  if (kind === 'monthly') {
+    const v = ((sdPublic.monthly && sdPublic.monthly.months) || []).concat(mlAdmin.months || []).find(x => x.month === key && x.status === 'done');
+    return v ? DrawVideo.sourceFromMonthly(v) : null;
+  }
+  if (kind === 'shuttle') {
+    const e = shuttleDrawEntries().find(x => x.key === key);
+    return e ? DrawVideo.sourceFromShuttlecock(e) : null;
   }
   const e = manualDrawEntries().find(x => x.key === key);
   return e ? DrawVideo.sourceFromManual(e) : null;
@@ -7944,6 +8096,393 @@ async function runDrawNow(date) {
   notify(names.length ? 'Drawn — winner' + (names.length === 1 ? '' : 's') + ': ' + names.join(', ') : 'Drawn — nobody was eligible.', 'ok', 6000);
   await loadAdminOps();
   loadAdminDraws(false);
+}
+
+// ── MONTHLY (points) LUCKY DRAW ──────────────────────────────────────────
+// Rules + record shape live in public/monthly-lucky.js (window.MonthlyLucky);
+// results in the server's permanent `court-monthly-draws` hash. The admin
+// "Monthly draws" sub-tab and the public page share mlCardHtml. Admin data comes
+// from the getMonthlyDraws action (full: points, pool, prize photos; it also
+// closes a due month), the public page from GET /api/draws (winners, prizes,
+// eligible names once drawn — never points). The 2s poll only carries the light
+// settings (state.monthlyLucky without photos/snapshots).
+let mlAdmin = { settings: null, pointsMonth: '', months: [], pool: null, loaded: false };
+let mlPrizeDraft = null;      // local prize edits until "Save prizes"
+let mlPrizeDirty = false;
+let mlPhotoTarget = null;     // prize id waiting for a photo pick
+let mlConfirmMonth = null;    // month awaiting the inline "Yes, draw now"
+const mlBusy = new Set();
+
+function mlSettings() {
+  if (mlAdmin.settings) return mlAdmin.settings;
+  const lite = (state && state.monthlyLucky) || {};
+  return {
+    auto: lite.auto !== false,
+    winners: MonthlyLucky.isWinnersCount(Number(lite.winners)) ? Number(lite.winners) : MonthlyLucky.DEFAULT_WINNERS,
+    threshold: MonthlyLucky.isThreshold(Number(lite.threshold)) ? Number(lite.threshold) : MonthlyLucky.DEFAULT_THRESHOLD,
+    prizes: [],
+  };
+}
+function mlMonth() { return mlAdmin.pointsMonth || (state && state.monthlyLucky && state.monthlyLucky.pointsMonth) || MonthlyLucky.monthKeyOf(serverToday()); }
+function renderMonthlyLuckyAdmin() {
+  if (!window.MonthlyLucky) return;
+  renderMonthlySettings();
+  renderMonthlyPool();
+  loadMonthlyAdmin();
+}
+async function loadMonthlyAdmin() {
+  const list = document.getElementById('mlAdminList'); if (!list) return;
+  let res;
+  try { res = await apiPost({ action: 'getMonthlyDraws' }); } catch (e) { res = { error: 'Network error — check your connection.' }; }
+  if (res === null) return;
+  if (!res.ok) { list.innerHTML = '<div class="acct-empty">' + escHtml(res.error || 'Could not load the monthly draws.') + '</div>'; return; }
+  if (res.serverTime) clockOffset = res.serverTime - Date.now();
+  mlAdmin = { settings: res.settings || null, pointsMonth: res.pointsMonth || '', months: res.months || [], pool: res.pool || null, loaded: true };
+  if (!mlPrizeDirty) mlPrizeDraft = ((mlAdmin.settings && mlAdmin.settings.prizes) || []).map(p => ({ id: p.id, name: p.name, photo: p.photo || null }));
+  if (res.closedMonths && res.closedMonths.length) {
+    notify(res.closedMonths.map(m => MonthlyLucky.monthLabel(m)).join(', ') + ' closed — everyone starts again from 0 points.', 'ok', 7000);
+    refreshState().catch(() => {});
+  }
+  renderMonthlySettings();
+  renderMonthlyPrizes();
+  renderMonthlyPool();
+  renderMonthlyAdminList();
+}
+
+// ── settings: automatic switch, winners, points needed ──
+function renderMonthlySettings() {
+  if (!window.MonthlyLucky) return;
+  const s = mlSettings();
+  const tg = document.getElementById('mlAutoToggle');
+  if (tg) { tg.classList.toggle('on', !!s.auto); tg.setAttribute('aria-checked', s.auto ? 'true' : 'false'); }
+  const lbl = document.getElementById('mlAutoLabel');
+  if (lbl) lbl.textContent = s.auto ? 'Runs itself at ' + MonthlyLucky.drawTimeLabel() + ' on the 1st of next month' : 'Automatic draw is off — use “Run draw now” when you are ready';
+  const w = document.getElementById('mlWinnersInput'); if (w && document.activeElement !== w) w.value = s.winners;
+  const t = document.getElementById('mlThresholdInput'); if (t && document.activeElement !== t) t.value = s.threshold;
+  const how = document.getElementById('mlAdminHow'); if (how) how.textContent = MonthlyLucky.howItWorksText(s) + ' One draw per month; results are permanent and show on the public Lucky Draw page.';
+  const pl = document.getElementById('mlPullLabel'); if (pl) pl.textContent = 'Pull players with ' + s.threshold + '+ points';
+}
+async function saveMonthlySettings(patch, okMsg) {
+  let res;
+  try { res = await apiPost(Object.assign({ action: 'setMonthlySettings' }, patch)); } catch (e) { res = { error: 'Network error — check your connection.' }; }
+  if (res === null) return false;
+  if (!res.ok) { notify(res.error || 'Could not save.', 'warn'); mlFlash('mlSaveState', 'err'); renderMonthlySettings(); return false; }
+  if (res.settings) {
+    mlAdmin.settings = Object.assign({}, mlAdmin.settings || {}, res.settings, { prizes: (mlAdmin.settings && mlAdmin.settings.prizes) || res.settings.prizes || [] });
+    if (state && state.monthlyLucky) Object.assign(state.monthlyLucky, { auto: res.settings.auto, winners: res.settings.winners, threshold: res.settings.threshold });
+  }
+  mlFlash('mlSaveState', 'ok');
+  if (okMsg) notify(okMsg);
+  renderMonthlySettings();
+  renderMonthlyPool();
+  return true;
+}
+function toggleMonthlyAuto() {
+  const s = mlSettings();
+  return saveMonthlySettings({ auto: !s.auto }, !s.auto ? 'Automatic monthly draw is on.' : 'Automatic monthly draw is off — run it yourself.');
+}
+function stepMonthlyWinners(delta) {
+  const inp = document.getElementById('mlWinnersInput');
+  const cur = inp && MonthlyLucky.isWinnersCount(Number(inp.value)) ? Number(inp.value) : mlSettings().winners;
+  setMonthlyWinners(cur + delta);
+}
+function setMonthlyWinners(value) {
+  const n = Math.round(Number(value));
+  const inp = document.getElementById('mlWinnersInput');
+  if (!MonthlyLucky.isWinnersCount(n)) { notify('Winners must be a whole number from 1 to ' + MonthlyLucky.MAX_WINNERS + '.', 'warn'); if (inp) inp.value = mlSettings().winners; return; }
+  if (inp) inp.value = n;
+  if (n === mlSettings().winners) return;
+  return saveMonthlySettings({ winners: n }, 'Winners: ' + n);
+}
+function stepMonthlyThreshold(delta) {
+  const inp = document.getElementById('mlThresholdInput');
+  const cur = inp && MonthlyLucky.isThreshold(Number(inp.value)) ? Number(inp.value) : mlSettings().threshold;
+  setMonthlyThreshold(cur + delta);
+}
+function setMonthlyThreshold(value) {
+  const n = Math.round(Number(value));
+  const inp = document.getElementById('mlThresholdInput');
+  if (!MonthlyLucky.isThreshold(n)) { notify('Points needed must be a whole number from 1 to ' + MonthlyLucky.MAX_THRESHOLD + '.', 'warn'); if (inp) inp.value = mlSettings().threshold; return; }
+  if (inp) inp.value = n;
+  if (n === mlSettings().threshold) return;
+  return saveMonthlySettings({ threshold: n }, 'Points needed: ' + n);
+}
+function mlFlash(id, kind) {
+  const el = document.getElementById(id); if (!el) return;
+  el.textContent = kind === 'ok' ? 'Saved' : 'Not saved';
+  el.className = 'pm-save-state show ' + (kind === 'ok' ? 'ok' : 'err');
+  setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+// ── prizes: ordered list with name + photo, saved as one list ──
+function mlPrizeList() { return mlPrizeDraft || []; }
+function renderMonthlyPrizes() {
+  const el = document.getElementById('mlPrizes'); if (!el) return;
+  const list = mlPrizeList();
+  if (!list.length) {
+    el.innerHTML = '<div class="acct-empty">No prizes yet — add the first one.</div>';
+  } else {
+    el.innerHTML = list.map((p, i) => {
+      const id = escHtml(p.id);
+      return '<div class="ml-prize" data-id="' + id + '">'
+        + '<span class="ml-win-rank">' + (i + 1) + '</span>'
+        + '<button type="button" class="ml-prize-photo" onclick="pickMonthlyPrizePhoto(\'' + id + '\')" aria-label="' + (p.photo ? 'Change' : 'Add') + ' photo for prize ' + (i + 1) + '">'
+        + (p.photo ? '<img src="' + p.photo + '" alt="">' : '<svg class="ic" viewBox="0 0 24 24"><path d="M4 7h3l2-2h6l2 2h3v12H4z"/><circle cx="12" cy="13" r="3.5"/></svg>') + '</button>'
+        + '<div class="ml-prize-main"><input class="admin-form-input" type="text" maxlength="' + MonthlyLucky.MAX_PRIZE_NAME + '" placeholder="Prize ' + (i + 1) + ' name" value="' + escHtml(p.name) + '" oninput="setMonthlyPrizeName(\'' + id + '\', this.value)" aria-label="Prize ' + (i + 1) + ' name">'
+        + (p.photo ? '<button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="clearMonthlyPrizePhoto(\'' + id + '\')">Remove photo</button>' : '') + '</div>'
+        + '<div class="ml-prize-tools">'
+        + '<button type="button" class="btn btn-ghost btn-sm" onclick="moveMonthlyPrize(\'' + id + '\',-1)"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move prize ' + (i + 1) + ' up">&uarr;</button>'
+        + '<button type="button" class="btn btn-ghost btn-sm" onclick="moveMonthlyPrize(\'' + id + '\',1)"' + (i === list.length - 1 ? ' disabled' : '') + ' aria-label="Move prize ' + (i + 1) + ' down">&darr;</button>'
+        + '<button type="button" class="btn btn-ghost btn-sm" onclick="removeMonthlyPrize(\'' + id + '\')" aria-label="Remove prize ' + (i + 1) + '">&#x2715;</button>'
+        + '</div></div>';
+    }).join('');
+  }
+  const btn = document.getElementById('mlPrizeSaveBtn');
+  if (btn) { btn.disabled = !mlPrizeDirty; btn.textContent = mlPrizeDirty ? 'Save prizes' : 'Saved'; }
+}
+function markPrizesDirty() { mlPrizeDirty = true; renderMonthlyPrizes(); }
+function addMonthlyPrize() {
+  if (mlPrizeList().length >= MonthlyLucky.MAX_PRIZES) { notify('At most ' + MonthlyLucky.MAX_PRIZES + ' prizes.', 'warn'); return; }
+  mlPrizeDraft = mlPrizeList().concat([{ id: MonthlyLucky.newPrizeId(Date.now().toString(36)), name: '', photo: null }]);
+  markPrizesDirty();
+  const inputs = document.querySelectorAll('#mlPrizes .ml-prize input[type="text"]');
+  const last = inputs[inputs.length - 1]; if (last) last.focus();
+}
+function setMonthlyPrizeName(id, value) {
+  const p = mlPrizeList().find(x => x.id === id); if (!p) return;
+  p.name = value;
+  if (!mlPrizeDirty) { mlPrizeDirty = true; const btn = document.getElementById('mlPrizeSaveBtn'); if (btn) { btn.disabled = false; btn.textContent = 'Save prizes'; } }
+}
+function moveMonthlyPrize(id, delta) {
+  const l = mlPrizeList(); const i = l.findIndex(x => x.id === id); const j = i + delta;
+  if (i < 0 || j < 0 || j >= l.length) return;
+  const t = l[i]; l[i] = l[j]; l[j] = t;
+  markPrizesDirty();
+}
+function removeMonthlyPrize(id) { mlPrizeDraft = mlPrizeList().filter(x => x.id !== id); markPrizesDirty(); }
+function clearMonthlyPrizePhoto(id) { const p = mlPrizeList().find(x => x.id === id); if (p) { p.photo = null; markPrizesDirty(); } }
+function pickMonthlyPrizePhoto(id) {
+  mlPhotoTarget = id;
+  const inp = document.getElementById('mlPrizePhotoInput'); if (inp) { inp.value = ''; inp.click(); }
+}
+async function monthlyPrizePhotoPicked(input) {
+  const file = input && input.files && input.files[0];
+  if (!file || !mlPhotoTarget) return;
+  const p = mlPrizeList().find(x => x.id === mlPhotoTarget); mlPhotoTarget = null;
+  if (!p) return;
+  let photo;
+  try { photo = await compressPrizePhoto(file); } catch (e) { notify('Could not read that image.', 'warn'); return; }
+  if (!MonthlyLucky.isPhoto(photo)) { notify('That photo is too large — try a smaller image.', 'warn'); return; }
+  p.photo = photo;
+  markPrizesDirty();
+}
+// Fit inside 480x480 (keeps the aspect ratio — product shots are rarely square),
+// JPEG, stepping the quality down until it fits the server's size cap.
+function compressPrizePhoto(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('read'));
+    reader.onload = e => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('decode'));
+      img.onload = () => {
+        const max = 480, scale = Math.min(1, max / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale)), h = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        let q = 0.82, out = canvas.toDataURL('image/jpeg', q);
+        while (out.length > MonthlyLucky.MAX_PHOTO_BYTES && q > 0.4) { q -= 0.1; out = canvas.toDataURL('image/jpeg', q); }
+        resolve(out);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+async function saveMonthlyPrizes() {
+  const list = mlPrizeList().map(p => ({ id: p.id, name: String(p.name || '').trim(), photo: p.photo || null }));
+  if (list.some(p => !p.name)) { notify('Every prize needs a name — or remove the empty row.', 'warn'); return; }
+  const btn = document.getElementById('mlPrizeSaveBtn'); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  let res;
+  try { res = await apiPost({ action: 'setMonthlyPrizes', prizes: list }); } catch (e) { res = { error: 'Network error — check your connection.' }; }
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not save the prizes.', 'warn'); mlFlash('mlPrizeSaveState', 'err'); if (btn) { btn.disabled = false; btn.textContent = 'Save prizes'; } return; }
+  mlPrizeDirty = false;
+  mlPrizeDraft = (res.prizes || []).map(p => ({ id: p.id, name: p.name, photo: p.photo || null }));
+  if (mlAdmin.settings) mlAdmin.settings.prizes = mlPrizeDraft.map(p => Object.assign({}, p));
+  mlFlash('mlPrizeSaveState', 'ok');
+  notify('Prizes saved.');
+  renderMonthlyPrizes();
+  loadMonthlyAdmin(); // the pending month's card shows the new prize list
+}
+
+// ── pool: who is at the threshold, "Pull", curation, "Run draw now" ──
+function mlPool() { const p = mlAdmin.pool; return p && p.month === mlMonth() && p.pulledAt ? p : null; }
+function mlLiveEligible() { return MonthlyLucky.eligibleFromRoster((state && state.roster) || [], mlSettings().threshold); }
+function mlPoolRows() {
+  const pool = mlPool();
+  const removed = new Set(pool ? pool.removed : []);
+  const rows = pool ? pool.players : mlLiveEligible();
+  return { pool, rows, removed, inDraw: rows.filter(p => !removed.has(p.id)).length };
+}
+function renderMonthlyPool() {
+  const list = document.getElementById('mlPoolList'); if (!list || !window.MonthlyLucky) return;
+  const s = mlSettings();
+  const month = mlMonth();
+  const title = document.getElementById('mlPoolTitle'); if (title) title.textContent = 'Eligible · ' + MonthlyLucky.monthLabel(month);
+  const cur = (mlAdmin.months || []).find(v => v.month === month);
+  const drawn = !!(cur && cur.status === 'done');
+  const { pool, rows, removed, inDraw } = mlPoolRows();
+  const sum = document.getElementById('mlPoolSummary'); if (sum) sum.textContent = rows.length && !drawn ? inDraw + ' in the draw' : '';
+  const help = document.getElementById('mlPoolHelp');
+  if (help) help.textContent = drawn ? MonthlyLucky.monthLabel(month) + ' has already been drawn — see the record below. Points keep counting until the month closes.'
+    : pool ? 'Pulled ' + SessionDraw.fmtDrawTime(pool.pulledAt) + '. Remove anyone who should sit this one out, then run the draw. The automatic draw pulls everyone again on the 1st.'
+    : 'Everyone with ' + s.threshold + '+ points this month. Pull the list to build the pool and run the draw yourself, or leave it to the automatic draw on the 1st.';
+  const pull = document.getElementById('mlPullBtn'); if (pull) pull.disabled = drawn || mlBusy.has('pool');
+  const run = document.getElementById('mlRunBtn'); if (run) { run.disabled = drawn || mlBusy.has(month) || !inDraw; run.style.display = drawn ? 'none' : ''; }
+  const stale = pool ? MonthlyLucky.poolStaleIds({ roster: (state && state.roster) || [], monthlyLucky: { threshold: s.threshold } }, pool) : [];
+  let html = '';
+  if (!rows.length) html = '<div class="acct-empty">' + (drawn ? 'Drawn.' : 'Nobody has reached ' + s.threshold + ' points yet this month.') + '</div>';
+  else html = rows.map(p => {
+    const off = removed.has(p.id);
+    return '<div class="ml-pool-row' + (off ? ' removed' : '') + '"><span class="ml-pool-name">' + escHtml(p.name) + '</span><span class="ml-pts">' + (p.points || 0) + ' pts</span>'
+      + (pool && !drawn ? '<button type="button" class="btn btn-ghost btn-sm" onclick="setMonthlyPoolRemoved(\'' + escHtml(p.id) + '\',' + (off ? 'false' : 'true') + ')">' + (off ? 'Put back' : 'Remove') + '</button>' : '') + '</div>';
+  }).join('');
+  if (stale.length && !drawn) html += '<div class="ml-pool-hint">' + stale.length + ' more player' + (stale.length === 1 ? ' has' : 's have') + ' reached ' + s.threshold + ' points since you pulled — pull again to include them.</div>';
+  list.innerHTML = html;
+  renderMonthlyConfirm();
+}
+async function pullMonthlyPool() {
+  if (mlBusy.has('pool')) return;
+  mlBusy.add('pool'); renderMonthlyPool();
+  let res;
+  try { res = await apiPost({ action: 'pullMonthlyPool' }); } catch (e) { res = { error: 'Network error — try again.' }; }
+  mlBusy.delete('pool');
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not pull the players.', 'warn'); renderMonthlyPool(); return; }
+  mlAdmin.pool = res.pool || null;
+  if (res.pool && res.pool.month) mlAdmin.pointsMonth = res.pool.month;
+  const n = ((res.pool && res.pool.players) || []).length;
+  notify(n ? n + ' player' + (n === 1 ? '' : 's') + ' at ' + mlSettings().threshold + '+ points pulled into the draw.' : 'Nobody has reached ' + mlSettings().threshold + ' points yet.', n ? 'ok' : 'warn');
+  renderMonthlyPool();
+}
+async function setMonthlyPoolRemoved(id, removed) {
+  let res;
+  try { res = await apiPost({ action: 'setMonthlyPoolRemoved', playerId: id, removed: !!removed }); } catch (e) { res = { error: 'Network error — try again.' }; }
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not update the pool.', 'warn'); return; }
+  mlAdmin.pool = res.pool || mlAdmin.pool;
+  renderMonthlyPool();
+}
+function askRunMonthlyDraw(month) {
+  mlConfirmMonth = month || mlMonth();
+  renderMonthlyConfirm();
+  const el = document.getElementById('mlConfirm'); if (el && el.firstChild) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+function cancelRunMonthlyDraw() { mlConfirmMonth = null; renderMonthlyConfirm(); }
+function renderMonthlyConfirm() {
+  const el = document.getElementById('mlConfirm'); if (!el) return;
+  if (!mlConfirmMonth) { el.innerHTML = ''; return; }
+  const s = mlSettings();
+  const isLive = mlConfirmMonth === mlMonth();
+  const v = (mlAdmin.months || []).find(x => x.month === mlConfirmMonth);
+  const n = isLive ? mlPoolRows().inDraw : (v && v.counts ? (v.counts.eligible || 0) : 0);
+  el.innerHTML = '<div class="ml-confirm"><span>Draw <b>' + escHtml(MonthlyLucky.monthLabel(mlConfirmMonth)) + '</b> now with ' + n + ' player' + (n === 1 ? '' : 's') + ' and pick ' + s.winners + ' winner' + (s.winners === 1 ? '' : 's') + '?'
+    + (isLive && s.auto ? ' The automatic draw will then skip this month.' : '') + '</span>'
+    + '<button type="button" class="btn btn-primary btn-sm" onclick="runMonthlyDrawNow(\'' + escHtml(mlConfirmMonth) + '\')"' + (mlBusy.has(mlConfirmMonth) || !n ? ' disabled' : '') + '>Yes, draw now</button>'
+    + '<button type="button" class="btn btn-ghost btn-sm" onclick="cancelRunMonthlyDraw()">Cancel</button></div>';
+}
+async function runMonthlyDrawNow(month) {
+  if (!month || mlBusy.has(month)) return;
+  mlBusy.add(month); renderMonthlyConfirm(); renderMonthlyPool();
+  let res;
+  try { res = await apiPost({ action: 'runMonthlyDraw', month }); } catch (e) { res = { error: 'Network error — try again.' }; }
+  mlBusy.delete(month);
+  if (res === null) return;
+  mlConfirmMonth = null;
+  if (!res.ok) {
+    notify(res.error || 'Could not run the draw.', 'warn', 5000);
+    renderMonthlyConfirm(); renderMonthlyPool();
+    if (res.result) loadMonthlyAdmin(); // already drawn elsewhere — show that result
+    return;
+  }
+  const rec = res.result || {};
+  const names = MonthlyLucky.awardsOf(rec).map(a => a.name + (a.prize ? ' (' + a.prize + ')' : ''));
+  notify(names.length ? 'Drawn — winner' + (names.length === 1 ? '' : 's') + ': ' + names.join(', ') : 'Drawn — nobody was eligible.', 'ok', 8000);
+  await loadMonthlyAdmin();
+}
+
+// ── record list + the shared month card ──
+function renderMonthlyAdminList() {
+  const el = document.getElementById('mlAdminList'); if (!el) return;
+  const months = mlAdmin.months || [];
+  if (!months.length) { el.innerHTML = '<div class="acct-empty">No months on record yet.</div>'; return; }
+  el.innerHTML = months.map(v => mlCardHtml(v, true)).join('');
+}
+function mlWinnersHtml(v) {
+  const w = (v.lists && v.lists.winners) || [];
+  if (!w.length) return '<div class="sd-nowin">No winners — nobody reached ' + (v.threshold || '') + ' points.</div>';
+  const photoOf = pid => { const p = (v.prizes || []).find(x => x.id === pid); return p && p.photo ? p.photo : null; };
+  return '<div class="ml-wins">' + w.map(x => {
+    const ph = photoOf(x.prizeId);
+    return '<div class="ml-win"><span class="ml-win-rank">' + x.rank + '</span><div class="ml-win-main"><div class="ml-win-name">' + escHtml(x.name) + '</div><div class="ml-win-prize">' + (x.prize ? escHtml(x.prize) : 'Winner') + '</div></div>' + (ph ? '<img class="ml-win-photo" src="' + ph + '" alt="">' : '') + '</div>';
+  }).join('') + '</div>';
+}
+function mlCardHtml(v, admin) {
+  const done = v.status === 'done';
+  const c = v.counts || {};
+  const lists = v.lists || {};
+  const statusCls = done ? 'done' : (!v.live && v.due && v.auto ? 'due' : 'pending');
+  let html = '<div class="sd-card ' + (done ? 'done' : 'pending') + '" data-month="' + escHtml(v.month) + '">';
+  html += '<div class="sd-card-head"><div><div class="sd-date">' + escHtml(v.label) + '</div>'
+    + '<div class="sd-when">' + (done ? 'Drawn ' + escHtml(SessionDraw.fmtDrawTime(v.drawnAt)) : (v.auto ? 'Draw ' + escHtml(SessionDraw.fmtDrawTime(v.drawAt)) : 'Drawn by admin when ready')) + '</div></div>'
+    + '<span class="sd-status ' + statusCls + '">' + escHtml(done || admin || v.live ? MonthlyLucky.statusLabel(v) : 'Draw pending') + '</span></div>';
+  if (done) {
+    html += mlWinnersHtml(v);
+    if ((lists.winners || []).length) html += sdVideoRowHtml('monthly', v.month);
+  }
+  if (admin) {
+    html += '<div class="sd-stats" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="sd-stat"><b>' + (c.eligible || 0) + '</b><span>' + (done ? 'Eligible' : 'Eligible so far') + '</span></div>'
+      + '<div class="sd-stat' + (done && c.winners ? ' win' : '') + '"><b>' + (c.winners || 0) + '</b><span>Winners</span></div></div>';
+    if (!v.live) { // the live month's list is the pool card above
+      const rows = lists.eligible || [];
+      const winIds = new Set((lists.winners || []).map(w => w.id));
+      html += '<details class="sd-names-wrap"' + (done ? '' : ' open') + '><summary><span>Eligible</span><b>' + rows.length + '<span class="sd-tog" aria-hidden="true"></span></b></summary>'
+        + (rows.length ? '<ul class="sd-names">' + rows.map(r => '<li class="sd-row' + (winIds.has(r.id) ? ' win' : '') + '"><span class="sd-name">' + escHtml(r.name) + '</span>' + (winIds.has(r.id) ? '<span class="sd-win-tag">Winner</span>' : '') + '<span class="sd-meta">' + (r.points || 0) + ' pts</span></li>').join('') + '</ul>'
+          : '<div class="sd-none">Nobody reached ' + (v.threshold || '') + ' points.</div>') + '</details>';
+      if (!done) html += '<div class="sd-admin-row"><button class="btn btn-primary btn-sm" onclick="askRunMonthlyDraw(\'' + escHtml(v.month) + '\')"' + (mlBusy.has(v.month) || !c.eligible ? ' disabled' : '') + '>Run draw now</button>'
+        + '<span class="admin-helper-text" style="margin:0">' + (v.auto ? 'The month has closed; the automatic draw is on its way — or run it now.' : 'The month has closed. Automatic draw is off, so run it when you are ready.') + '</span></div>';
+    }
+  }
+  if (done) {
+    html += '<div class="sd-foot"><span>' + escHtml((v.method === 'manual' ? 'Draw run by admin' : 'Automatic draw') + ' · ' + (c.eligible || 0) + ' in the draw' + (v.shortfall && c.eligible ? ' · only ' + c.eligible + ' eligible for ' + v.winnersWanted : '')) + '</span>'
+      + '<span class="sd-seed" title="Random seed — the full order can be replayed from it">Seed ' + escHtml(String(v.seed || '').slice(0, 8)) + '… '
+      + (v.verified ? '<span class="sd-verified">verified ✓</span>' : '<span class="sd-unverified">not verified</span>') + '</span></div>';
+  } else {
+    html += '<div class="sd-foot"><span>' + escHtml((c.eligible || 0) + ' at ' + (v.threshold || '') + '+ points' + (v.live ? ' so far' : '') + ' · ' + (v.winnersWanted || 0) + ' winner' + (v.winnersWanted === 1 ? '' : 's') + ' will be picked') + '</span></div>';
+  }
+  return html + '</div>';
+}
+
+// ── public page section (from GET /api/draws → monthly) ──
+function renderPublicMonthly() {
+  const el = document.getElementById('drawPageMonthly'); if (!el || !window.MonthlyLucky) return;
+  const m = sdPublic.monthly;
+  if (!m) { el.innerHTML = ''; return; }
+  const s = { auto: m.auto, winners: m.winners, threshold: m.threshold };
+  let html = '<div class="md-sec-title">Monthly draw</div>';
+  html += '<div class="sd-how"><b>How it works</b>' + escHtml(MonthlyLucky.howItWorksText(s)) + '</div>';
+  const prizes = m.prizes || [];
+  if (prizes.length) html += '<div class="ml-prize-strip">' + prizes.map((p, i) => '<div class="ml-prize-tile"><div class="ml-tile-img">' + (p.photo ? '<img src="' + p.photo + '" alt="">' : (i + 1)) + '</div><span>' + escHtml(p.name) + '</span></div>').join('') + '</div>';
+  const months = m.months || [];
+  const live = months.find(v => v.month === m.pointsMonth && v.status !== 'done');
+  if (live) {
+    const n = (live.counts && live.counts.eligible) || 0;
+    html += '<div class="ml-line"><span>' + escHtml(live.label + ' · ' + n + ' player' + (n === 1 ? '' : 's') + ' at ' + m.threshold + '+ points so far') + '</span><span>' + escHtml(m.auto ? 'Draw ' + SessionDraw.fmtDrawTime(live.drawAt) : 'Drawn by admin') + '</span></div>';
+  }
+  const rest = months.filter(v => v !== live);
+  if (rest.length) html += '<div class="sd-list">' + rest.map(v => mlCardHtml(Object.assign({ live: false }, v), false)).join('') + '</div>';
+  el.innerHTML = html;
 }
 
 // ── ADMIN: PAYMENTS (per-player session fees) ─────────────────────────
@@ -9109,6 +9648,8 @@ async function loadAccountsTab() {
 const AUDIT_LABELS = {
   'attendance.present': 'Attendance changed', 'attendance.paid': 'Payment changed', 'attendance.seed': 'Attendance seeded',
   'draw.run': 'Session draw run (manual)', 'draw.settings': 'Winners per draw changed',
+  'monthlyLucky.draw': 'Monthly draw run (manual)', 'monthlyLucky.settings': 'Monthly draw setting changed', 'monthlyLucky.prizes': 'Monthly draw prizes changed',
+  'monthlyLucky.pool': 'Monthly draw pool changed', 'monthlyLucky.close': 'Month closed — points reset',
   'weekly.draw': 'Weekly draw (retired)', 'weekly.settings': 'Weekly schedule (retired)', 'monthly.recompute': 'Shuttlecock draw recalculated', 'monthly.override': 'Shuttlecock draw override',
   'account.register': 'Account requested', 'account.approve': 'Account approved', 'account.reject': 'Account rejected',
   'account.more_info': 'More info requested', 'account.password_reveal': 'Password revealed', 'account.temp_password': 'Temp password set',
@@ -10729,6 +11270,15 @@ function renderMyDraw(data) {
   let html = '';
   const m = data.monthly;
   html += '<div class="md-sec-title">This month</div>';
+  // Points-based Monthly draw: how close this member is to the threshold.
+  const mlLite = (state && state.monthlyLucky) || null;
+  const me = acctSession && acctSession.playerId ? ((state && state.roster) || []).find(r => r.id === acctSession.playerId) : null;
+  if (mlLite && me && window.MonthlyLucky) {
+    const t = MonthlyLucky.isThreshold(Number(mlLite.threshold)) ? Number(mlLite.threshold) : MonthlyLucky.DEFAULT_THRESHOLD;
+    const pts = me.points || 0;
+    html += '<div class="st-details"><div><span>Monthly draw</span><b>' + (pts >= t ? '<span class="st-badge ok">In the draw</span>' : escHtml((t - pts) + ' more point' + (t - pts === 1 ? '' : 's') + ' to enter')) + '</b></div>'
+      + '<div><span>Points this month</span><b>' + pts + ' / ' + t + '</b></div></div>';
+  }
   if (m) {
     html += '<div class="st-details"><div><span>Shuttlecock draw</span><b>'
       + (m.eligible ? '<span class="st-badge ok">Enrolled</span>' : '<span class="st-badge bad">Not enrolled</span>') + '</b></div>'

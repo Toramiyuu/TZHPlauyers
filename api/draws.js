@@ -8,7 +8,9 @@
 // writes a missing result with HSETNX; it never touches court-state.
 const S = require('./state.js');
 const { sweepSessionDraws, buildDrawsView } = require('./session-draw.js');
+const { sweepMonthlyDraws, buildMonthlyView } = require('./monthly-lucky.js');
 const SD = require('../public/session-draw.js');
+const ML = require('../public/monthly-lucky.js');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -39,9 +41,21 @@ module.exports = async function handler(req, res) {
     const view = await buildDrawsView(state, S.drawStore, {
       results, limit: Number.isInteger(limit) && limit > 0 ? Math.min(limit, 200) : undefined, before: q.before,
     });
+    // Monthly (points) draw: same idempotent sweep (never writes the state blob —
+    // a due month is closed by the 00:00 rollover cron / the admin tab), then the
+    // public projection: prizes + winners, eligible NAMES once drawn, never points.
+    let monthly = null;
+    try {
+      const mres = (await sweepMonthlyDraws(state, S.monthlyStore, {})).results;
+      const mv = await buildMonthlyView(state, S.monthlyStore, { results: mres });
+      monthly = { auto: mv.settings.auto, winners: mv.settings.winners, threshold: mv.settings.threshold, pointsMonth: mv.pointsMonth,
+        prizes: mv.settings.prizes, months: (mv.months || []).map(ML.publicMonthView) };
+    } catch (e) {
+      console.error('monthly draws view error:', e && e.message);
+    }
     // Public projection: winners (+ eligible names once drawn, for the replay) —
     // never who attended, who paid, or when. The admin list keeps the full view.
-    return res.json(Object.assign({ ok: true }, view, { sessions: (view.sessions || []).map(SD.publicSessionView), today: S.todayISO(), serverTime: Date.now() }));
+    return res.json(Object.assign({ ok: true }, view, { sessions: (view.sessions || []).map(SD.publicSessionView), monthly, today: S.todayISO(), serverTime: Date.now() }));
   } catch (e) {
     console.error('draws view error:', e && e.message);
     return res.status(500).json({ error: 'Could not load the draws.' });
