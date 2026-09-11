@@ -35,11 +35,23 @@ const NAME_MAX = 40;
 const PW_MIN = 6, PW_MAX = 100;
 const LOCK_THRESHOLD = 5;        // failed logins before auto-lock
 
+// ── login codes (2026-09) ──
+// The organiser pre-assigns every roster player a code like "HarveyNg#123" and
+// hands it out in person; typing it signs the member in (no registration, no
+// approval). The code is both identity and secret, so a wrong guess counts
+// against every account sharing the name part and CODE_FAIL_LIMIT wrong guesses
+// put that name on a CODE_COOLDOWN_MS cooldown (auto-clears — never a hard lock,
+// so a stranger can't lock a member out for good by guessing their name).
+const CODE_DIGITS = 3;
+const CODE_NAME_MAX = 24;
+const CODE_FAIL_LIMIT = 5;
+const CODE_COOLDOWN_MS = 10 * 60 * 1000;
+
 const LOGIN_OK_STATUSES = new Set(['active']);
 const ALL_STATUSES = new Set(['pending', 'active', 'rejected', 'more_info', 'locked', 'suspended']);
 
 const ACCOUNT_ACTIONS = new Set([
-  'registerAccount', 'loginAccount', 'accountSession', 'updateAccount',
+  'registerAccount', 'loginAccount', 'loginCode', 'accountSession', 'updateAccount',
   'changePassword', 'accountStatus', 'logoutAccount', 'accountDrawInfo',
 ]);
 
@@ -48,6 +60,7 @@ const ADMIN_ACCOUNT_ACTIONS = new Set([
   'adminRevealPassword', 'adminSetTempPassword', 'adminChangePassword', 'adminForceChange',
   'adminLockAccount', 'adminUnlockAccount', 'adminSuspendAccount', 'adminReactivateAccount',
   'adminLinkPlayer', 'adminCreateAccount', 'adminDeleteAccount', 'adminSetPhone',
+  'adminAssignCodes', 'adminSetCode', 'adminClearCode',
 ]);
 
 // ── validators (pure) ────────────────────────────────────────────────
@@ -76,6 +89,58 @@ function validatePassword(pw) {
   if (v.length < PW_MIN) return { ok: false, error: `Password must be at least ${PW_MIN} characters.` };
   if (v.length > PW_MAX) return { ok: false, error: 'Password is too long.' };
   return { ok: true, value: v };
+}
+
+// ── login codes (pure) ───────────────────────────────────────────────
+/** The name part of a code: letters only (any script), spaces dropped. "Harvey Ng" -> "HarveyNg". */
+function codeNameOf(name) {
+  const letters = String(name == null ? '' : name).replace(/[^\p{L}]/gu, '').slice(0, CODE_NAME_MAX);
+  return letters || 'Member';
+}
+/** Canonical lookup key: lowercase, no spaces/#, so "harvey ng 123" and "HarveyNg#123" are one code. */
+function codeKeyOf(raw) {
+  return String(raw == null ? '' : raw).toLowerCase().replace(/[\s#\-_.]/gu, '');
+}
+const CODE_KEY_RE = /^\p{L}{1,24}\d{3,6}$/u;
+/** Split a key into its name part (for the shared fail counter). */
+function codePrefixOf(key) { return String(key || '').replace(/\d+$/, ''); }
+/** Validate an admin-typed code. Returns the display form "Name#123". */
+function validateCode(raw) {
+  const v = String(raw == null ? '' : raw).replace(/\s+/g, '');
+  if (!v) return { ok: false, error: 'Enter a login code.' };
+  const m = /^(\p{L}{1,24})#?(\d{3,6})$/u.exec(v);
+  if (!m) return { ok: false, error: 'Login codes look like Name#123 — letters, then # and 3 to 6 digits.' };
+  const value = m[1] + '#' + m[2];
+  return { ok: true, value, key: codeKeyOf(value) };
+}
+function randomDigits(n) {
+  const max = Math.pow(10, n);
+  return String(crypto.randomInt(0, max)).padStart(n, '0');
+}
+/** A fresh unique code for `name`; falls back to more digits if the name is crowded. */
+function makeCode(name, takenKeys) {
+  const base = codeNameOf(name);
+  const taken = takenKeys || new Set();
+  for (let digits = CODE_DIGITS; digits <= 6; digits++) {
+    for (let i = 0; i < 40; i++) {
+      const code = base + '#' + randomDigits(digits);
+      if (!taken.has(codeKeyOf(code))) return code;
+    }
+  }
+  return base + '#' + Date.now().toString().slice(-6);
+}
+function takenCodeKeys(accounts) {
+  const s = new Set();
+  for (const a of (Array.isArray(accounts) ? accounts : [])) if (a && a.codeKey) s.add(a.codeKey);
+  return s;
+}
+function findByCodeKey(accounts, key) {
+  if (!key || !Array.isArray(accounts)) return null;
+  return accounts.find((a) => a && a.codeKey && a.codeKey === key) || null;
+}
+function findByPlayerId(accounts, playerId) {
+  if (!playerId || !Array.isArray(accounts)) return null;
+  return accounts.find((a) => a && a.playerId === playerId) || null;
 }
 
 // ── lookups (pure) ───────────────────────────────────────────────────
@@ -144,6 +209,8 @@ function publicAccount(account, roster) {
     status: account.status || 'pending',
     forceChange: !!account.forceChange,
     tempPassword: !!account.tempPassword,
+    code: account.code || '',
+    hasPassword: !!account.pwHash,
   };
 }
 
@@ -212,6 +279,10 @@ function adminAccount(account, roster) {
     moreInfoAt: account.moreInfoAt || null,
     source: account.source || 'self',
     legacyPin: !!account.legacyPin,
+    code: account.code || '',
+    codeUpdatedAt: account.codeUpdatedAt || null,
+    codeLastLoginAt: account.codeLastLoginAt || null,
+    codeFails: account.codeFails || 0,
   };
 }
 
@@ -340,6 +411,43 @@ function doLogin(state, body) {
   return { status: 200, body: { ok: true, token: account.token, account: publicAccount(account, state.roster), forceChange: !!account.forceChange }, changed: true };
 }
 
+// Sign in with a login code ("HarveyNg#123"). Lenient on case/spaces/#. A wrong
+// code counts against every account whose code shares the name part; after
+// CODE_FAIL_LIMIT misses that name waits CODE_COOLDOWN_MS (even for the right code,
+// otherwise the limit would only slow a guesser down by one attempt).
+function doLoginCode(state, body, nowMs) {
+  const now = nowMs != null ? Number(nowMs) : Date.now();
+  const key = codeKeyOf(body && body.code);
+  if (!CODE_KEY_RE.test(key)) {
+    return { status: 400, body: { error: 'Enter your login code, e.g. Harvey#123.' }, changed: false };
+  }
+  const prefix = codePrefixOf(key);
+  const group = state.accounts.filter((a) => a && a.codeKey && codePrefixOf(a.codeKey) === prefix);
+  // Expired cooldowns reset first so an old burst of typos never lingers.
+  let changed = false;
+  for (const a of group) {
+    if (a.codeFails && a.codeFailAt && now - a.codeFailAt >= CODE_COOLDOWN_MS) { a.codeFails = 0; a.codeFailAt = null; changed = true; }
+  }
+  const cooling = group.find((a) => (a.codeFails || 0) >= CODE_FAIL_LIMIT && a.codeFailAt);
+  if (cooling) {
+    const retryInMs = Math.max(1000, CODE_COOLDOWN_MS - (now - cooling.codeFailAt));
+    const mins = Math.max(1, Math.ceil(retryInMs / 60000));
+    return { status: 429, body: { error: 'Too many attempts. Try again in ' + mins + ' minute' + (mins === 1 ? '' : 's') + '.', retryInMs }, changed };
+  }
+  const account = findByCodeKey(state.accounts, key);
+  if (!account) {
+    for (const a of group) { a.codeFails = (a.codeFails || 0) + 1; a.codeFailAt = now; changed = true; }
+    return { status: 401, body: { error: 'That login code isn’t right. Check it with the organiser.' }, changed };
+  }
+  account.codeFails = 0; account.codeFailAt = null;
+  if (!LOGIN_OK_STATUSES.has(account.status)) {
+    return Object.assign(loginResultForStatus(account), { changed: true });
+  }
+  if (!account.token) account.token = makeToken();
+  account.lastLoginAt = now; account.codeLastLoginAt = now;
+  return { status: 200, body: { ok: true, token: account.token, account: publicAccount(account, state.roster), viaCode: true, forceChange: false }, changed: true };
+}
+
 function doAccountStatus(state, body) {
   const account = findByPhone(state.accounts, body.phone);
   if (!account || !account.pwHash || !verifyPassword(body.password, account)) {
@@ -437,13 +545,14 @@ function doAccountDrawInfo(state, body) {
   return { status: 200, body: { ok: true, monthly, weekly }, changed: false };
 }
 
-function handleAccountAction(state, body) {
+function handleAccountAction(state, body, opts) {
   try {
     if (!state || typeof state !== 'object') return { status: 400, body: { error: 'Invalid request.' }, changed: false };
     ensureAccountsV2(state);
     switch (body && body.action) {
       case 'registerAccount': return doRegister(state, body);
       case 'loginAccount':    return doLogin(state, body);
+      case 'loginCode':       return doLoginCode(state, body, opts && opts.nowMs);
       case 'accountStatus':   return doAccountStatus(state, body);
       case 'accountSession':  return doSession(state, body);
       case 'updateAccount':   return doUpdate(state, body);
@@ -668,11 +777,120 @@ function doAdminDelete(state, body) {
   return { status: 200, body: { ok: true }, changed: true };
 }
 
+// ── login codes (admin) ──────────────────────────────────────────────
+// A code-only account: active, linked to the roster player, no phone/password.
+// Phone + password can be added later (adminSetPhone / adminChangePassword) and
+// both sign-in routes then share the one account, session and ledger.
+function newCodeAccount(player, now, admin) {
+  return {
+    id: makeId('acc_'), v: 2, phone: '', phoneDisplay: '', status: 'active',
+    pwHash: null, pwSalt: null, pwEnc: null, tempPassword: false, forceChange: false, failedAttempts: 0,
+    lockedAt: null, lockedReason: null, suspendedAt: null, suspendedReason: null,
+    lastLoginAt: null, pwChangedAt: now, requestedAt: now, createdAt: now, updatedAt: now,
+    approvedBy: admin || 'admin', approvedAt: now, rejectedBy: null, rejectedAt: null, rejectedReason: null,
+    moreInfoMsg: null, moreInfoAt: null, playerId: player.id, playerHint: player.name || '',
+    name: player.name || '', token: null, source: 'code',
+    code: null, codeKey: null, codeUpdatedAt: null, codeFails: 0, codeFailAt: null, codeLastLoginAt: null,
+  };
+}
+/** The account for a roster player, creating a code-only one if none is linked yet. */
+function accountForPlayer(state, player, now, admin, created) {
+  let account = findByPlayerId(state.accounts, player.id);
+  if (account) return account;
+  if (state.accounts.length >= MAX_ACCOUNTS) return null;
+  account = newCodeAccount(player, now, admin);
+  state.accounts = [...state.accounts, account];
+  player.accountId = account.id;
+  if (created) created.push(account);
+  return account;
+}
+function assignCode(account, code, now) {
+  account.code = code; account.codeKey = codeKeyOf(code);
+  account.codeUpdatedAt = now; account.codeFails = 0; account.codeFailAt = null; account.updatedAt = now;
+}
+
+// Give every roster player a code (or only `playerIds`). Idempotent: players who
+// already have one keep it unless `regenerate` is set. Creates the missing accounts.
+function doAdminAssignCodes(state, body) {
+  const now = Date.now();
+  const only = Array.isArray(body.playerIds) && body.playerIds.length ? new Set(body.playerIds.map(String)) : null;
+  const regenerate = !!body.regenerate;
+  const taken = takenCodeKeys(state.accounts);
+  const created = [];
+  let assigned = 0, kept = 0, skipped = 0;
+  for (const player of state.roster) {
+    if (!player || !player.id) continue;
+    if (only && !only.has(String(player.id))) continue;
+    const account = accountForPlayer(state, player, now, body.admin, created);
+    if (!account) { skipped++; continue; }
+    if (account.code && !regenerate) { kept++; continue; }
+    if (account.codeKey) taken.delete(account.codeKey);
+    const code = makeCode(player.name || account.name, taken);
+    taken.add(codeKeyOf(code));
+    assignCode(account, code, now);
+    assigned++;
+  }
+  if (assigned || created.length) {
+    pushAudit(state, { action: 'account.codes_assign', admin: body.admin || 'admin', at: now,
+      target: { type: 'account', id: null, label: only ? only.size + ' selected' : 'everyone' },
+      newValue: { assigned, created: created.length, kept, regenerate }, note: '' });
+  }
+  return { status: 200, body: { ok: true, assigned, created: created.length, kept, skipped, accounts: state.accounts.map((a) => adminAccount(a, state.roster)) }, changed: assigned > 0 || created.length > 0 };
+}
+
+// Set (typed) or regenerate (blank) one member's code. Targets an account `id`,
+// or a roster `playerId` (creating the code-only account if needed).
+function doAdminSetCode(state, body) {
+  const now = Date.now();
+  let account = findById(state.accounts, body.id);
+  if (!account && body.playerId) {
+    const player = rosterPlayer(state.roster, body.playerId);
+    if (!player) return { status: 400, body: { error: 'That player no longer exists.' }, changed: false };
+    account = accountForPlayer(state, player, now, body.admin, null);
+    if (!account) return { status: 409, body: { error: 'Account limit reached.' }, changed: false };
+  }
+  if (!account) return { status: 404, body: { error: 'Account not found.' }, changed: false };
+  const typed = body.code != null && String(body.code).trim() !== '';
+  let code;
+  if (typed) {
+    const v = validateCode(body.code);
+    if (!v.ok) return { status: 400, body: { error: v.error }, changed: false };
+    const dup = findByCodeKey(state.accounts, v.key);
+    if (dup && dup.id !== account.id) return { status: 409, body: { error: 'Another member already has that code.' }, changed: false };
+    if (dup && dup.id === account.id && account.code === v.value) {
+      return { status: 200, body: { ok: true, unchanged: true, account: adminAccount(account, state.roster) }, changed: false };
+    }
+    code = v.value;
+  } else {
+    const taken = takenCodeKeys(state.accounts);
+    if (account.codeKey) taken.delete(account.codeKey);
+    const player = rosterPlayer(state.roster, account.playerId);
+    code = makeCode((player && player.name) || account.name, taken);
+  }
+  const had = !!account.code;
+  assignCode(account, code, now);
+  audit(state, 'account.code_set', account, { admin: body.admin, note: typed ? (had ? 'changed by admin' : 'set by admin') : (had ? 'regenerated' : 'generated') });
+  return { status: 200, body: { ok: true, account: adminAccount(account, state.roster) }, changed: true };
+}
+
+function doAdminClearCode(state, body) {
+  const account = findById(state.accounts, body.id);
+  if (!account) return { status: 404, body: { error: 'Account not found.' }, changed: false };
+  if (!account.code) return { status: 200, body: { ok: true, unchanged: true, account: adminAccount(account, state.roster) }, changed: false };
+  account.code = null; account.codeKey = null; account.codeUpdatedAt = Date.now();
+  account.codeFails = 0; account.codeFailAt = null; account.updatedAt = Date.now();
+  audit(state, 'account.code_clear', account, { admin: body.admin, note: 'login code removed' });
+  return { status: 200, body: { ok: true, account: adminAccount(account, state.roster) }, changed: true };
+}
+
 function handleAdminAccountAction(state, body, opts) {
   try {
     if (!state || typeof state !== 'object') return { status: 400, body: { error: 'Invalid request.' }, changed: false };
     ensureAccountsV2(state);
     switch (body && body.action) {
+      case 'adminAssignCodes':     return doAdminAssignCodes(state, body);
+      case 'adminSetCode':         return doAdminSetCode(state, body);
+      case 'adminClearCode':       return doAdminClearCode(state, body);
       case 'adminListAccounts':    return doAdminList(state);
       case 'adminApproveAccount':  return doAdminApprove(state, body);
       case 'adminRejectAccount':   return doAdminReject(state, body);
@@ -698,7 +916,9 @@ function handleAdminAccountAction(state, body, opts) {
 
 module.exports = {
   validateName, validatePhoto, validatePhone, validatePassword,
-  findById, findByToken, findByPhone,
+  findById, findByToken, findByPhone, findByPlayerId, findByCodeKey,
+  codeNameOf, codeKeyOf, validateCode, makeCode, takenCodeKeys,
+  CODE_DIGITS, CODE_FAIL_LIMIT, CODE_COOLDOWN_MS,
   scryptHash, hashPin, verifyHash, verifyPin, verifyPassword,
   publicAccount, statusView, adminAccount, redactState, ensureAccountsV2,
   ACCOUNT_ACTIONS, handleAccountAction, MAX_ACCOUNTS, LOCK_THRESHOLD,

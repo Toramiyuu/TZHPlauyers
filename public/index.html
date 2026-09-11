@@ -1343,7 +1343,13 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .ml-prize-photo:hover{border-color:var(--a-blue-2);color:var(--a-blue)}
 .ml-prize-photo img{width:100%;height:100%;object-fit:cover;display:block}
 .ml-prize-photo .ic{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.ml-prize-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.ml-prize-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.ml-prize-line{display:flex;align-items:center;gap:8px;min-width:0}
+.ml-prize-line>input{flex:1;min-width:0}
+.ml-prize-qty{display:flex;align-items:center;gap:6px;flex:none;font-size:var(--fs-xs);font-weight:600;color:var(--muted)}
+.ml-prize-qty input{width:64px;text-align:center;-moz-appearance:textfield}
+.ml-prize-qty input::-webkit-outer-spin-button,.ml-prize-qty input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.ml-prize-desc{width:100%;box-sizing:border-box;font-size:var(--fs-sm)}
 .ml-prize-tools{display:flex;gap:4px;align-items:center;flex:none}
 .ml-prize-tools .btn{min-width:36px;padding:6px 8px}
 .ml-pool-list{display:flex;flex-direction:column;gap:4px;margin-top:10px}
@@ -1359,12 +1365,15 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .ml-win-main{flex:1;min-width:0}
 .ml-win-name{font-weight:700;color:var(--text);font-size:var(--fs-md);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ml-win-prize{font-size:var(--fs-sm);color:var(--text-2)}
+.ml-win-desc{font-size:var(--fs-xs);color:var(--muted);line-height:1.35;margin-top:2px}
 .ml-win-photo{width:48px;height:48px;border-radius:var(--radius-sm);object-fit:cover;flex:none;border:1px solid var(--border);background:var(--card)}
 .ml-prize-strip{display:flex;gap:10px;overflow-x:auto;padding:2px 0 8px;-webkit-overflow-scrolling:touch}
 .ml-prize-tile{flex:none;width:112px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center}
-.ml-tile-img{width:112px;height:112px;border-radius:var(--radius-md);background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--a-blue);font-weight:800;font-size:26px}
+.ml-tile-img{position:relative;width:112px;height:112px;border-radius:var(--radius-md);background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--a-blue);font-weight:800;font-size:26px}
 .ml-tile-img img{width:100%;height:100%;object-fit:cover;display:block}
+.ml-tile-qty{position:absolute;top:6px;right:6px;padding:2px 7px;border-radius:100px;background:var(--a-blue);color:#fff;font-size:11px;font-weight:800;line-height:1.4}
 .ml-prize-tile span{font-size:var(--fs-xs);font-weight:600;color:var(--text);line-height:1.3}
+.ml-prize-tile small{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:var(--fs-xs);font-weight:500;color:var(--muted);line-height:1.3}
 .ml-sec{margin-bottom:16px}
 .ml-line{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:var(--fs-sm);color:var(--text-2);padding:8px 0}
 .sdc-dot.sh{background:transparent;border:1.5px solid var(--a-blue)}
@@ -1509,6 +1518,37 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .acctpg-name{font-size:var(--fs-md);font-weight:600;color:var(--text)}
 .acctpg-phone{font-size:var(--fs-sm);color:var(--muted)}
 .acctpg-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+/* ── member page (My TZH) + login codes ── */
+.mb-code{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:600;color:var(--text);background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:1px 7px;margin-left:4px;letter-spacing:.02em}
+.mb-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.mb-stat{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;padding:12px 6px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0}
+.mb-stat b{font-family:var(--font-apple);font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.1;color:var(--text)}
+.mb-stat span{font-size:var(--fs-xs);font-weight:600;color:var(--muted);white-space:nowrap}
+.mb-stat.owe b,.mb-stat.owe span{color:var(--red)}
+.mb-progress-wrap{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;text-align:left}
+.mb-progress-lbl{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:var(--fs-sm);color:var(--muted);font-weight:600}
+.mb-progress-lbl b{color:var(--text);font-weight:600;text-align:right}
+.mb-bar{margin-top:8px;height:6px}
+.mb-progress-sub{font-size:var(--fs-xs);color:var(--muted);margin-top:6px}
+.mb-list{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--card);text-align:left}
+.mb-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px}
+.mb-row+.mb-row{border-top:1px solid var(--border)}
+.mb-row-main{font-weight:600;color:var(--text);font-size:var(--fs-base)}
+.mb-row-sub{font-size:var(--fs-xs);color:var(--muted);margin-top:1px}
+.mb-row>b{font-weight:700;color:var(--text-2);white-space:nowrap}
+.mb-row>b.owe{color:var(--red)}
+.mb-note{font-size:var(--fs-xs);color:var(--muted);margin-top:8px;text-align:left;line-height:1.5}
+.mb-hist{margin-top:14px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--card);text-align:left}
+.mb-hist summary{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:42px;padding:8px 12px;cursor:pointer;list-style:none;font-size:var(--fs-sm);font-weight:700;color:var(--text)}
+.mb-hist summary::-webkit-details-marker{display:none}
+.mb-hist summary b{font-weight:600;color:var(--muted)}
+.mb-hist .mb-list{border:none;border-radius:0;border-top:1px solid var(--border)}
+.auth-code-input{text-align:center;font-size:20px;font-weight:600;letter-spacing:.04em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.acct-code{appearance:none;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--fs-sm);font-weight:600;color:var(--text);background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:3px 9px;min-height:30px;transition:var(--transition)}
+.acct-code:hover{border-color:var(--a-blue);color:var(--a-blue)}
+.acct-code .ic{width:13px;height:13px}
+.acct-nocode-head{font-size:var(--fs-xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
+.acct-row-lite{background:var(--card2)}
 /* ── Admin accounts v2 ── */
 .pw-warning{display:flex;align-items:center;gap:8px;background:rgba(205,125,44,.12);border:1px solid rgba(205,125,44,.35);color:var(--warn);border-radius:var(--radius-sm);padding:9px 12px;font-size:var(--fs-sm);font-weight:500;margin-top:8px}
 .pw-warning .ic{width:18px;height:18px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.8}
@@ -2003,21 +2043,36 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   onclick="if(event.target===this)closeAuthModal()">
   <div class="modal-box modal-center">
     <h2 id="authTitle" style="margin-bottom:6px">Welcome back</h2>
-    <!-- Sign in -->
+    <!-- Sign in: login code first (the organiser hands these out), phone + password behind a link -->
     <div id="authSignin">
-      <p class="modal-desc">Sign in with your phone number.</p>
-      <input id="siPhone" class="modal-input" type="tel" placeholder="Phone number (e.g. 012-345 6789)" autocomplete="tel"
-        maxlength="20" onkeydown="if(event.key==='Enter')document.getElementById('siPassword').focus()">
-      <input id="siPassword" class="modal-input" type="password" maxlength="100"
-        placeholder="Password" autocomplete="current-password"
-        onkeydown="if(event.key==='Enter')submitSignin()">
-      <div class="auth-error" id="siError" role="alert"></div>
-      <div class="modal-actions">
-        <button class="btn btn-primary" style="width:100%" onclick="submitSignin()">Sign in</button>
+      <div id="authCodePane">
+        <p class="modal-desc">Type the login code the organiser gave you to see your points, payments and draw wins.</p>
+        <input id="siCode" class="modal-input auth-code-input" type="text" placeholder="e.g. Harvey#123" autocomplete="off"
+          autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="32" inputmode="text"
+          onkeydown="if(event.key==='Enter')submitCodeSignin()">
+        <div class="auth-error" id="siCodeError" role="alert"></div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" style="width:100%" onclick="submitCodeSignin()">Sign in</button>
+        </div>
+        <button type="button" class="auth-switch" onclick="openNoCode()">Don&rsquo;t have a code?</button>
+        <button type="button" class="auth-switch" onclick="setSigninWay('phone')">Use phone number &amp; password instead</button>
       </div>
-      <button type="button" class="auth-switch" onclick="openForgotPassword()">Forgot password?</button>
-      <button type="button" class="auth-switch" onclick="setAuthMode('register')">New here? Request an account</button>
-      <button type="button" class="auth-switch" onclick="setAuthMode('status')">Check my request status</button>
+      <div id="authPhonePane" style="display:none">
+        <p class="modal-desc">Sign in with your phone number.</p>
+        <input id="siPhone" class="modal-input" type="tel" placeholder="Phone number (e.g. 012-345 6789)" autocomplete="tel"
+          maxlength="20" onkeydown="if(event.key==='Enter')document.getElementById('siPassword').focus()">
+        <input id="siPassword" class="modal-input" type="password" maxlength="100"
+          placeholder="Password" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')submitSignin()">
+        <div class="auth-error" id="siError" role="alert"></div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" style="width:100%" onclick="submitSignin()">Sign in</button>
+        </div>
+        <button type="button" class="auth-switch" onclick="setSigninWay('code')">Sign in with a login code instead</button>
+        <button type="button" class="auth-switch" onclick="openForgotPassword()">Forgot password?</button>
+        <button type="button" class="auth-switch" onclick="setAuthMode('register')">New here? Request an account</button>
+        <button type="button" class="auth-switch" onclick="setAuthMode('status')">Check my request status</button>
+      </div>
     </div>
     <!-- Request an account -->
     <div id="authRegister" style="display:none">
@@ -2062,11 +2117,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   </div>
 </div>
 
-<!-- Player Account page (status + change password + contact admin) -->
+<!-- Player Account page: points toward the Monthly draw, what they owe, draw wins -->
 <div id="accountModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="accountTitle"
   onclick="if(event.target===this)closeAccountModal()">
   <div class="modal-box modal-center">
-    <h2 id="accountTitle">Your account</h2>
+    <h2 id="accountTitle">My TZH</h2>
     <div id="accountBody"></div>
     <div class="modal-actions" style="justify-content:center">
       <button class="btn btn-secondary" onclick="closeAccountModal()">Close</button>
@@ -2871,7 +2926,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <!-- Prizes: ordered list, each with a name + photo -->
     <div class="admin-card" id="mlPrizesCard">
       <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span> Prizes</span><span class="pm-save-state" id="mlPrizeSaveState"></span></div>
-      <div class="admin-helper-text">In order: the 1st winner gets prize 1, the 2nd gets prize 2, and so on. Tap the square to add a photo.</div>
+      <div class="admin-helper-text">In order: the 1st winner gets prize 1, the 2nd gets prize 2, and so on. Set a quantity to give one winner several of the same item, and add a short description if you like. Tap the square to add a photo.</div>
       <div class="ml-prizes" id="mlPrizes"></div>
       <div class="admin-btn-row admin-mt">
         <button class="btn btn-ghost btn-sm" type="button" onclick="addMonthlyPrize()"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add prize</button>
@@ -2976,10 +3031,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <div class="admin-card">
     <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16.2c.6-1.9 2-2.9 3.5-2.9s2.9 1 3.5 2.9"/></svg></span> Accounts</span>
       <button class="btn btn-secondary btn-sm" onclick="loadAccountsTab()"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 4v4h-4"/></svg> Refresh</button></div>
-    <div class="pw-warning"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M12 8v4M12 16h.01"/></svg> Passwords are private. Only reveal a password when helping the account owner.</div>
+    <div class="admin-helper-text">Members sign in with a <b>login code</b> like <b>HarveyNg#123</b> to see their points, what they owe and their draw wins. Assign codes once, then tap a code to copy it and send it to that member in person.</div>
+    <div class="pw-warning"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M12 8v4M12 16h.01"/></svg> Codes and passwords are private. Only share a code with the member it belongs to.</div>
     <div class="acct-counters" id="acctCounters"></div>
     <div class="admin-btn-row admin-mt">
-      <input id="acctSearch" type="text" class="admin-form-input admin-flex" placeholder="Search by name or phone…" autocomplete="off" oninput="renderAccountsTab()" onkeydown="if(event.key==='Escape'){this.value='';renderAccountsTab();}">
+      <input id="acctSearch" type="text" class="admin-form-input admin-flex" placeholder="Search by name, code or phone…" autocomplete="off" oninput="renderAccountsTab()" onkeydown="if(event.key==='Escape'){this.value='';renderAccountsTab();}">
+      <button class="btn btn-primary btn-sm" id="assignCodesBtn" onclick="assignAllCodes()"><svg class="ic" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3M12 15v2"/></svg> Assign codes to everyone</button>
       <button class="btn btn-ghost btn-sm" onclick="openCreateAccount()"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Create account</button>
     </div>
     <div id="createAccountForm" class="acct-create" style="display:none"></div>
@@ -3110,10 +3167,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <details class="help-sec"><summary>Courts</summary><div>Build rounds, choose which courts are active, and manage who&rsquo;s resting. Each court&rsquo;s current match shows live on the viewer screen. When play ends, press <b>End of the day</b> (bottom of the tab) to create tonight&rsquo;s payment records.</div></details>
       <details class="help-sec"><summary>Payments</summary><div>The fee depends on how long each person stayed: <b>2h &middot; RM20</b> or <b>3h &middot; RM25</b>. The Session tab sets the default for the night; after <b>End of the day</b> every player in the line-up gets a row here at that default. Tap <b>2h</b> or <b>3h</b> on a row for early leavers, tap <b>Cash</b>, <b>TnG</b> or <b>DuitNow</b> as each person pays (one tap), or <b>Unpaid</b> to undo &mdash; paid rows drop to the bottom so whoever still owes stays at the top. Tap the amount for a one-off custom fee. Pressing End of the day again adds players who joined later and drops anyone you unticked in the meantime (unless they already paid), so the ticked line-up is always what counts. Switch to <b>By member</b> to see everyone&rsquo;s running balance across every night on record; tap a member for their points, total outstanding and a night-by-night breakdown, and settle any night right there. A night is never removed from history while someone on it still owes.</div></details>
       <details class="help-sec"><summary>Lucky Draw &mdash; Session draws</summary><div>Every Monday, Friday and Sunday session gets one automatic draw at <b>9:00 AM</b> four mornings later (Mon &rarr; Fri, Fri &rarr; Tue, Sun &rarr; Thu). A player is in it when they attended <b>and</b> their payment was marked paid before that time &mdash; so <b>End of the day</b> and the Payments tab decide who is eligible. Set how many winners are picked. Results are permanent and never re-run; if the scheduled draw did not happen, <b>Run draw now</b> applies the same rules. Players see the winners and the replay video on the public Lucky Draw page; who attended and who paid stays admin-only.</div></details>
-      <details class="help-sec"><summary>Lucky Draw &mdash; Monthly draws</summary><div>A points draw once a month. Everyone who reaches the <b>points needed</b> (default 80) during the month is in it; points go back to zero when the month ends. With the <b>automatic</b> switch on, the draw runs itself at <b>9:00 AM on the 1st</b> of the next month; switch it off to run it yourself. <b>Pull players</b> lists everyone at the threshold right now (untick anyone who should sit out), then <b>Run draw now</b> draws this month on the spot. Set how many winners are picked and the ordered prize list &mdash; the 1st winner gets prize 1, the 2nd gets prize 2. Each prize can carry a photo, which shows on the public Lucky Draw page and in the replay video. One draw per month; results are permanent.</div></details>
+      <details class="help-sec"><summary>Lucky Draw &mdash; Monthly draws</summary><div>A points draw once a month. Everyone who reaches the <b>points needed</b> (default 80) during the month is in it; points go back to zero when the month ends. With the <b>automatic</b> switch on, the draw runs itself at <b>9:00 AM on the 1st</b> of the next month; switch it off to run it yourself. <b>Pull players</b> lists everyone at the threshold right now (untick anyone who should sit out), then <b>Run draw now</b> draws this month on the spot. Set how many winners are picked and the ordered prize list &mdash; the 1st winner gets prize 1, the 2nd gets prize 2. Each prize has a <b>quantity</b> (so one winner can take, say, 2 tubes of shuttlecocks), an optional <b>description</b>, and a photo; these show on the public Lucky Draw page, and the winner&rsquo;s prize (with quantity) in the replay video. One draw per month; results are permanent.</div></details>
       <details class="help-sec"><summary>Lucky Draw &mdash; Shuttlecock</summary><div>The Shuttlecock Draw runs once a month. Players are auto-enrolled when they attended <b>and</b> paid every required session of their regular day this month. Click a player to see the exact record, or override it. You can still import a CSV ballot and run the prize draw as before.</div></details>
       <details class="help-sec"><summary>Sign-ups</summary><div>People who asked to join through the public form, newest first. Mark each one contacted once you&rsquo;ve reached out.</div></details>
-      <details class="help-sec"><summary>Accounts</summary><div>Players request an account with their <b>phone number</b> + password. Approve a request and link it to an existing player, or reject with a reason. To help someone who forgot their password, open <b>Manage</b> &rarr; <b>Reveal</b> (re-enter your admin password) or set a temporary password. Deleting an account keeps the player &mdash; it only unlinks the login.</div></details>
+      <details class="help-sec"><summary>Accounts</summary><div>Members sign in with a <b>login code</b> like <b>HarveyNg#123</b> and see their points, what they owe and their draw wins. Press <b>Assign codes to everyone</b> once, then tap a code to copy it and send it to that member; <b>Manage</b> &rarr; <b>Login code</b> lets you type your own, make a new one or remove it. Phone + password sign-in still works for anyone who has one: approve requests, or open <b>Manage</b> &rarr; <b>Reveal</b> / temporary password to help with a forgotten password. Deleting an account keeps the player &mdash; it only removes the login.</div></details>
       <details class="help-sec"><summary>Settings</summary><div>Share the viewer link, set the daily <b>site access code</b>, change the admin password, pick the <b>phone shortcuts</b> (which tabs sit in the bottom bar on phones &mdash; up to 4, the rest live under More), choose which social game days appear on the public sign-up, and set <b>weekly regulars</b> &mdash; players who always come on a given day, added to the line-up automatically when the session date lands on that day.</div></details>
     </div>
   </div>
@@ -8138,7 +8195,7 @@ async function loadMonthlyAdmin() {
   if (!res.ok) { list.innerHTML = '<div class="acct-empty">' + escHtml(res.error || 'Could not load the monthly draws.') + '</div>'; return; }
   if (res.serverTime) clockOffset = res.serverTime - Date.now();
   mlAdmin = { settings: res.settings || null, pointsMonth: res.pointsMonth || '', months: res.months || [], pool: res.pool || null, loaded: true };
-  if (!mlPrizeDirty) mlPrizeDraft = ((mlAdmin.settings && mlAdmin.settings.prizes) || []).map(p => ({ id: p.id, name: p.name, photo: p.photo || null }));
+  if (!mlPrizeDirty) mlPrizeDraft = ((mlAdmin.settings && mlAdmin.settings.prizes) || []).map(mlPrizeRow);
   if (res.closedMonths && res.closedMonths.length) {
     notify(res.closedMonths.map(m => MonthlyLucky.monthLabel(m)).join(', ') + ' closed — everyone starts again from 0 points.', 'ok', 7000);
     refreshState().catch(() => {});
@@ -8214,7 +8271,8 @@ function mlFlash(id, kind) {
   setTimeout(() => el.classList.remove('show'), 1800);
 }
 
-// ── prizes: ordered list with name + photo, saved as one list ──
+// ── prizes: ordered list with name + quantity + description + photo, saved as one list ──
+function mlPrizeRow(p) { return { id: p.id, name: p.name || '', qty: MonthlyLucky.isPrizeQty(Number(p.qty)) ? Number(p.qty) : MonthlyLucky.DEFAULT_PRIZE_QTY, desc: p.desc || '', photo: p.photo || null }; }
 function mlPrizeList() { return mlPrizeDraft || []; }
 function renderMonthlyPrizes() {
   const el = document.getElementById('mlPrizes'); if (!el) return;
@@ -8228,7 +8286,10 @@ function renderMonthlyPrizes() {
         + '<span class="ml-win-rank">' + (i + 1) + '</span>'
         + '<button type="button" class="ml-prize-photo" onclick="pickMonthlyPrizePhoto(\'' + id + '\')" aria-label="' + (p.photo ? 'Change' : 'Add') + ' photo for prize ' + (i + 1) + '">'
         + (p.photo ? '<img src="' + p.photo + '" alt="">' : '<svg class="ic" viewBox="0 0 24 24"><path d="M4 7h3l2-2h6l2 2h3v12H4z"/><circle cx="12" cy="13" r="3.5"/></svg>') + '</button>'
-        + '<div class="ml-prize-main"><input class="admin-form-input" type="text" maxlength="' + MonthlyLucky.MAX_PRIZE_NAME + '" placeholder="Prize ' + (i + 1) + ' name" value="' + escHtml(p.name) + '" oninput="setMonthlyPrizeName(\'' + id + '\', this.value)" aria-label="Prize ' + (i + 1) + ' name">'
+        + '<div class="ml-prize-main">'
+        + '<div class="ml-prize-line"><input class="admin-form-input" type="text" maxlength="' + MonthlyLucky.MAX_PRIZE_NAME + '" placeholder="Prize ' + (i + 1) + ' name" value="' + escHtml(p.name) + '" oninput="setMonthlyPrizeName(\'' + id + '\', this.value)" aria-label="Prize ' + (i + 1) + ' name">'
+        + '<label class="ml-prize-qty"><span>Qty</span><input class="admin-form-input" type="number" inputmode="numeric" min="' + MonthlyLucky.MIN_PRIZE_QTY + '" max="' + MonthlyLucky.MAX_PRIZE_QTY + '" step="1" value="' + escHtml(String(p.qty == null ? MonthlyLucky.DEFAULT_PRIZE_QTY : p.qty)) + '" oninput="setMonthlyPrizeQty(\'' + id + '\', this.value)" aria-label="Prize ' + (i + 1) + ' quantity"></label></div>'
+        + '<input class="admin-form-input ml-prize-desc" type="text" maxlength="' + MonthlyLucky.MAX_PRIZE_DESC + '" placeholder="Description (optional) — brand, model, what is included" value="' + escHtml(p.desc || '') + '" oninput="setMonthlyPrizeDesc(\'' + id + '\', this.value)" aria-label="Prize ' + (i + 1) + ' description">'
         + (p.photo ? '<button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="clearMonthlyPrizePhoto(\'' + id + '\')">Remove photo</button>' : '') + '</div>'
         + '<div class="ml-prize-tools">'
         + '<button type="button" class="btn btn-ghost btn-sm" onclick="moveMonthlyPrize(\'' + id + '\',-1)"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move prize ' + (i + 1) + ' up">&uarr;</button>'
@@ -8243,15 +8304,29 @@ function renderMonthlyPrizes() {
 function markPrizesDirty() { mlPrizeDirty = true; renderMonthlyPrizes(); }
 function addMonthlyPrize() {
   if (mlPrizeList().length >= MonthlyLucky.MAX_PRIZES) { notify('At most ' + MonthlyLucky.MAX_PRIZES + ' prizes.', 'warn'); return; }
-  mlPrizeDraft = mlPrizeList().concat([{ id: MonthlyLucky.newPrizeId(Date.now().toString(36)), name: '', photo: null }]);
+  mlPrizeDraft = mlPrizeList().concat([{ id: MonthlyLucky.newPrizeId(Date.now().toString(36)), name: '', qty: MonthlyLucky.DEFAULT_PRIZE_QTY, desc: '', photo: null }]);
   markPrizesDirty();
   const inputs = document.querySelectorAll('#mlPrizes .ml-prize input[type="text"]');
   const last = inputs[inputs.length - 1]; if (last) last.focus();
 }
+// Typing never re-renders the list (that would steal focus): flip the dirty flag + button only.
+function mlPrizeTouched() {
+  if (!mlPrizeDirty) { mlPrizeDirty = true; const btn = document.getElementById('mlPrizeSaveBtn'); if (btn) { btn.disabled = false; btn.textContent = 'Save prizes'; } }
+}
 function setMonthlyPrizeName(id, value) {
   const p = mlPrizeList().find(x => x.id === id); if (!p) return;
   p.name = value;
-  if (!mlPrizeDirty) { mlPrizeDirty = true; const btn = document.getElementById('mlPrizeSaveBtn'); if (btn) { btn.disabled = false; btn.textContent = 'Save prizes'; } }
+  mlPrizeTouched();
+}
+function setMonthlyPrizeQty(id, value) {
+  const p = mlPrizeList().find(x => x.id === id); if (!p) return;
+  p.qty = String(value).trim() === '' ? '' : Number(value); // '' while the admin is mid-edit; validated on save
+  mlPrizeTouched();
+}
+function setMonthlyPrizeDesc(id, value) {
+  const p = mlPrizeList().find(x => x.id === id); if (!p) return;
+  p.desc = value;
+  mlPrizeTouched();
 }
 function moveMonthlyPrize(id, delta) {
   const l = mlPrizeList(); const i = l.findIndex(x => x.id === id); const j = i + delta;
@@ -8300,15 +8375,16 @@ function compressPrizePhoto(file) {
   });
 }
 async function saveMonthlyPrizes() {
-  const list = mlPrizeList().map(p => ({ id: p.id, name: String(p.name || '').trim(), photo: p.photo || null }));
+  const list = mlPrizeList().map(p => ({ id: p.id, name: String(p.name || '').trim(), qty: p.qty === '' || p.qty == null ? MonthlyLucky.DEFAULT_PRIZE_QTY : Number(p.qty), desc: String(p.desc || '').trim(), photo: p.photo || null }));
   if (list.some(p => !p.name)) { notify('Every prize needs a name — or remove the empty row.', 'warn'); return; }
+  if (list.some(p => !MonthlyLucky.isPrizeQty(p.qty))) { notify('Quantity must be a whole number from ' + MonthlyLucky.MIN_PRIZE_QTY + ' to ' + MonthlyLucky.MAX_PRIZE_QTY + '.', 'warn'); return; }
   const btn = document.getElementById('mlPrizeSaveBtn'); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
   let res;
   try { res = await apiPost({ action: 'setMonthlyPrizes', prizes: list }); } catch (e) { res = { error: 'Network error — check your connection.' }; }
   if (res === null) return;
   if (!res.ok) { notify(res.error || 'Could not save the prizes.', 'warn'); mlFlash('mlPrizeSaveState', 'err'); if (btn) { btn.disabled = false; btn.textContent = 'Save prizes'; } return; }
   mlPrizeDirty = false;
-  mlPrizeDraft = (res.prizes || []).map(p => ({ id: p.id, name: p.name, photo: p.photo || null }));
+  mlPrizeDraft = (res.prizes || []).map(mlPrizeRow);
   if (mlAdmin.settings) mlAdmin.settings.prizes = mlPrizeDraft.map(p => Object.assign({}, p));
   mlFlash('mlPrizeSaveState', 'ok');
   notify('Prizes saved.');
@@ -8425,7 +8501,7 @@ function mlWinnersHtml(v) {
   const photoOf = pid => { const p = (v.prizes || []).find(x => x.id === pid); return p && p.photo ? p.photo : null; };
   return '<div class="ml-wins">' + w.map(x => {
     const ph = photoOf(x.prizeId);
-    return '<div class="ml-win"><span class="ml-win-rank">' + x.rank + '</span><div class="ml-win-main"><div class="ml-win-name">' + escHtml(x.name) + '</div><div class="ml-win-prize">' + (x.prize ? escHtml(x.prize) : 'Winner') + '</div></div>' + (ph ? '<img class="ml-win-photo" src="' + ph + '" alt="">' : '') + '</div>';
+    return '<div class="ml-win"><span class="ml-win-rank">' + x.rank + '</span><div class="ml-win-main"><div class="ml-win-name">' + escHtml(x.name) + '</div><div class="ml-win-prize">' + (x.prize ? escHtml(x.prize) : 'Winner') + '</div>' + (x.desc ? '<div class="ml-win-desc">' + escHtml(x.desc) + '</div>' : '') + '</div>' + (ph ? '<img class="ml-win-photo" src="' + ph + '" alt="">' : '') + '</div>';
   }).join('') + '</div>';
 }
 function mlCardHtml(v, admin) {
@@ -8473,7 +8549,7 @@ function renderPublicMonthly() {
   let html = '<div class="md-sec-title">Monthly draw</div>';
   html += '<div class="sd-how"><b>How it works</b>' + escHtml(MonthlyLucky.howItWorksText(s)) + '</div>';
   const prizes = m.prizes || [];
-  if (prizes.length) html += '<div class="ml-prize-strip">' + prizes.map((p, i) => '<div class="ml-prize-tile"><div class="ml-tile-img">' + (p.photo ? '<img src="' + p.photo + '" alt="">' : (i + 1)) + '</div><span>' + escHtml(p.name) + '</span></div>').join('') + '</div>';
+  if (prizes.length) html += '<div class="ml-prize-strip">' + prizes.map((p, i) => '<div class="ml-prize-tile"><div class="ml-tile-img">' + (p.photo ? '<img src="' + p.photo + '" alt="">' : (i + 1)) + (Number(p.qty) > 1 ? '<span class="ml-tile-qty">×' + Number(p.qty) + '</span>' : '') + '</div><span>' + escHtml(MonthlyLucky.prizeLabel(p)) + '</span>' + (p.desc ? '<small>' + escHtml(p.desc) + '</small>' : '') + '</div>').join('') + '</div>';
   const months = m.months || [];
   const live = months.find(v => v.month === m.pointsMonth && v.status !== 'done');
   if (live) {
@@ -9673,6 +9749,7 @@ const AUDIT_LABELS = {
   'account.unlock': 'Account unlocked', 'account.suspend': 'Account suspended', 'account.reactivate': 'Account reactivated',
   'account.link_player': 'Player linked', 'account.set_phone': 'Phone changed', 'account.admin_create': 'Account created',
   'account.delete': 'Account deleted', 'account.autolock': 'Auto-locked',
+  'account.codes_assign': 'Login codes assigned', 'account.code_set': 'Login code set', 'account.code_clear': 'Login code removed',
 };
 function renderAudit() {
   const el = document.getElementById('auditList'); if (!el) return;
@@ -9696,7 +9773,12 @@ function renderAcctCounters() {
   const el = document.getElementById('acctCounters');
   if (!el) return;
   const c = adminAcctCounts || {};
+  // Login codes first: how many roster players can sign in, how many still need a code.
+  const roster = (state && Array.isArray(state.roster)) ? state.roster : [];
+  const codedPlayers = new Set((adminAccountsCache || []).filter(a => a && a.code && a.playerId).map(a => a.playerId));
+  const noCode = roster.filter(r => r && r.id && !codedPlayers.has(r.id)).length;
   const chips = [
+    ['Login codes', codedPlayers.size, 'ok'], ['No code', noCode, noCode ? 'wait' : 'ok'],
     ['Pending', c.pending || 0, 'wait'], ['Active', c.active || 0, 'ok'],
     ['More info', c.more_info || 0, 'wait'], ['Rejected', c.rejected || 0, 'bad'],
     ['Locked', c.locked || 0, 'bad'], ['Suspended', c.suspended || 0, 'bad'],
@@ -9757,18 +9839,41 @@ function renderAcctList() {
   if (!list) return;
   const q = (document.getElementById('acctSearch') || {}).value || '';
   const needle = q.trim().toLowerCase();
-  let accounts = adminAccountsCache;
+  const codeNeedle = needle.replace(/[\s#\-_.]/g, '');
+  const digits = needle.replace(/\D/g, '');
+  let accounts = adminAccountsCache.slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' }));
   if (needle) {
     accounts = accounts.filter(a =>
       (a.name || '').toLowerCase().includes(needle) ||
+      (codeNeedle && (a.code || '').toLowerCase().replace(/[\s#\-_.]/g, '').includes(codeNeedle)) ||
       (a.phoneDisplay || '').toLowerCase().includes(needle) ||
-      (a.phone || '').includes(needle.replace(/\D/g, '')));
+      (digits && (a.phone || '').includes(digits)));
   }
-  if (!accounts.length) {
-    list.innerHTML = '<div class="acct-empty">' + (needle ? 'No accounts match your search.' : 'No accounts yet. Members request one from the top-right of the viewer.') + '</div>';
+  const unlinked = unlinkedRosterHtml(needle);
+  if (!accounts.length && !unlinked) {
+    list.innerHTML = '<div class="acct-empty">' + (needle ? 'No members match your search.' : 'No accounts yet. Press Assign codes to everyone to give each roster player a login code.') + '</div>';
     return;
   }
-  list.innerHTML = accounts.map(accountCardHtml).join('');
+  list.innerHTML = accounts.map(accountCardHtml).join('') + unlinked;
+}
+
+// Roster players with no account at all — one tap gives them a login code
+// (creates the code-only account and links it). Hidden when everyone has one.
+function unlinkedRosterHtml(needle) {
+  const roster = (state && Array.isArray(state.roster)) ? state.roster : [];
+  const linked = new Set((adminAccountsCache || []).filter(a => a && a.playerId).map(a => a.playerId));
+  const rows = roster.filter(r => r && r.id && !linked.has(r.id) && (!needle || String(r.name || '').toLowerCase().includes(needle)))
+    .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' }));
+  if (!rows.length) return '';
+  return '<div class="acct-nocode-head">No login code yet · ' + rows.length + '</div>' + rows.map(r =>
+    `<div class="acct-row acct-row-lite">${avatarHTML(r, 46)}<div class="acct-main"><div class="acct-name-row"><span class="acct-name">${escHtml(r.name || '')}</span><span class="acct-warn">No login code</span></div></div>`
+    + `<div class="acct-actions"><button class="btn btn-primary btn-sm" onclick="${pmCall('assignCodeFor', r.id)}">Assign code</button></div></div>`).join('');
+}
+
+// The tappable code chip: one tap copies it so the organiser can paste it to the member.
+function acctCodeChipHtml(a) {
+  if (!a || !a.code) return '<span class="acct-warn">No login code</span>';
+  return `<button type="button" class="acct-code" onclick="${pmCall('copyCode', a.code)}" title="Tap to copy" aria-label="Copy login code ${escHtml(a.code)}">${escHtml(a.code)}<svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button>`;
 }
 
 // Points + payment standing for an account that is linked to a roster player.
@@ -9801,7 +9906,8 @@ function accountCardHtml(a) {
     <div class="acct-main">
       <div class="acct-name-row">
         <span class="acct-name">${name}</span>
-        <span class="acct-uname">${escHtml(a.phoneDisplay || a.phone || 'no phone')}</span>
+        ${acctCodeChipHtml(a)}
+        <span class="acct-uname">${escHtml(a.phoneDisplay || a.phone || (a.code ? 'Code sign-in' : 'no phone'))}</span>
         ${adminStatusBadge(a.status)}
         ${a.forceChange ? '<span class="st-badge wait">Must change pw</span>' : ''}
         ${a.tempPassword ? '<span class="st-badge wait">Temp pw</span>' : ''}
@@ -9819,6 +9925,13 @@ function accountCardHtml(a) {
       <button class="acct-del" onclick="deleteAccountAdmin('${id}',this)" title="Delete account" aria-label="Delete account ${name}">×</button>
     </div>
     <div class="acct-inline acct-manage" id="mng_${id}">
+      <div class="acct-mng-row">
+        <span class="acct-mng-lbl">Login code</span>
+        <input class="admin-form-input acct-pw-input" id="codeVal_${id}" type="text" value="${escHtml(a.code || '')}" placeholder="e.g. ${escHtml(codeSuggestion(a.name))}" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="32" onkeydown="if(event.key==='Enter')saveCode('${id}')">
+        <button class="btn btn-primary btn-sm" onclick="saveCode('${id}')">Save</button>
+        <button class="btn btn-ghost btn-sm" onclick="regenCode('${id}')">New code</button>
+        ${a.code ? `<button class="btn btn-ghost btn-sm" onclick="clearCode('${id}')">Remove</button>` : ''}
+      </div>
       <div class="acct-mng-row">
         <span class="acct-mng-lbl">Password</span>
         <button class="btn btn-secondary btn-sm" onclick="toggleReveal('${id}')" ${canReveal ? '' : 'disabled title="No stored password or key"'}>Reveal</button>
@@ -9853,6 +9966,66 @@ function toggleInline(elId) {
   if (!el) return;
   const showing = el.classList.toggle('show');
   if (showing) { const inp = el.querySelector('input,select'); if (inp) setTimeout(() => inp.focus(), 30); }
+}
+
+// ── login codes (admin) ──
+// Same shape the server generates ("HarveyNg#123"), for the placeholder only.
+function codeSuggestion(name) {
+  const letters = String(name || '').replace(/[^\p{L}]/gu, '').slice(0, 24) || 'Member';
+  return letters + '#123';
+}
+function copyCode(code) {
+  if (!code) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(() => notify('Copied ' + code), () => notify(code, 'ok', 8000));
+  } else notify(code, 'ok', 8000);
+}
+// Idempotent: players who already have a code keep it, everyone else gets one
+// (creating the code-only account where needed). Safe to press again after
+// adding new members to the roster.
+async function assignAllCodes() {
+  const btn = document.getElementById('assignCodesBtn');
+  if (btn) btn.disabled = true;
+  const res = await apiPost({ action: 'adminAssignCodes' });
+  if (btn) btn.disabled = false;
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not assign codes.', 'warn'); return; }
+  if (res.assigned) notify('Assigned ' + res.assigned + ' login code' + (res.assigned === 1 ? '' : 's') + (res.created ? ' · ' + res.created + ' new account' + (res.created === 1 ? '' : 's') : '') + '.', 'ok', 6000);
+  else notify('Everyone already has a login code.');
+  await loadAccountsTab();
+  await refreshState();
+}
+async function assignCodeFor(playerId) {
+  const res = await apiPost({ action: 'adminSetCode', playerId });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not assign a code.', 'warn'); return; }
+  notify('Login code for ' + (res.account.name || 'member') + ': ' + res.account.code, 'ok', 8000);
+  await loadAccountsTab();
+  await refreshState();
+}
+async function regenCode(id) {
+  const res = await apiPost({ action: 'adminSetCode', id });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not make a new code.', 'warn'); return; }
+  patchAcct(res); renderAccountsTab();
+  notify('New login code: ' + res.account.code, 'ok', 8000);
+}
+async function saveCode(id) {
+  const el = document.getElementById('codeVal_' + id);
+  const code = el ? el.value.trim() : '';
+  if (!code) return regenCode(id);
+  const res = await apiPost({ action: 'adminSetCode', id, code });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not save that code.', 'warn'); return; }
+  patchAcct(res); renderAccountsTab();
+  notify(res.unchanged ? 'Code unchanged.' : 'Login code saved: ' + res.account.code, 'ok', 6000);
+}
+async function clearCode(id) {
+  const res = await apiPost({ action: 'adminClearCode', id });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not remove the code.', 'warn'); return; }
+  patchAcct(res); renderAccountsTab();
+  notify('Login code removed.');
 }
 
 function patchAcct(res) {
@@ -11044,10 +11217,10 @@ function renderAccountWidget() {
     + '<div class="acct-menu" id="acctMenu">'
       + '<div class="acct-menu-head">'
         + '<div class="acct-menu-name">' + escHtml(name) + '</div>'
-        + '<div class="acct-menu-uname">' + escHtml(acctSession.phone || '') + '</div>'
+        + '<div class="acct-menu-uname">' + escHtml(acctSession.phone || acctSession.code || '') + '</div>'
       + '</div>'
       + '<button class="acct-menu-item" type="button" onclick="openAccountModal()">'
-        + '<svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/></svg> My account</button>'
+        + '<svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/></svg> My points &amp; payments</button>'
       + '<button class="acct-menu-item" type="button" onclick="openProfileModal()">'
         + '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg> Edit profile</button>'
       + '<button class="acct-menu-item" type="button" onclick="openMyLuckyDraw()">'
@@ -11080,25 +11253,69 @@ function renderPhotoPreview(elId, photo) {
     : '<div class="acct-photo-ph">+</div>';
 }
 
+// Sign-in has two ways in: the login code (default — the organiser hands one to
+// every member) and phone + password (for accounts that have one). The last way
+// that worked on this device is remembered so password users aren't bounced.
+let signinWay = 'code';
+function preferredSigninWay() {
+  try { return localStorage.getItem('tzhSigninWay') === 'phone' ? 'phone' : 'code'; } catch { return 'code'; }
+}
+function setSigninWay(way) {
+  signinWay = way === 'phone' ? 'phone' : 'code';
+  const codePane = document.getElementById('authCodePane');
+  const phonePane = document.getElementById('authPhonePane');
+  if (codePane) codePane.style.display = signinWay === 'code' ? '' : 'none';
+  if (phonePane) phonePane.style.display = signinWay === 'phone' ? '' : 'none';
+  ['siError', 'siCodeError'].forEach(hideErr);
+  const focusId = signinWay === 'phone' ? 'siPhone' : 'siCode';
+  setTimeout(() => { const f = document.getElementById(focusId); if (f) f.focus(); }, 60);
+}
+
 function setAuthMode(mode) {
   const panes = { signin: 'authSignin', register: 'authRegister', status: 'authStatus' };
   Object.keys(panes).forEach(k => { const el = document.getElementById(panes[k]); if (el) el.style.display = (k === mode) ? '' : 'none'; });
   const titles = { signin: 'Welcome back', register: 'Request an account', status: 'Check request status' };
   document.getElementById('authTitle').textContent = titles[mode] || 'Welcome back';
-  ['siError', 'regError', 'stError'].forEach(hideErr);
-  const focusId = { signin: 'siPhone', register: 'regName', status: 'stPhone' }[mode];
+  ['siError', 'siCodeError', 'regError', 'stError'].forEach(hideErr);
+  const focusId = { signin: (signinWay === 'phone' ? 'siPhone' : 'siCode'), register: 'regName', status: 'stPhone' }[mode];
   setTimeout(() => { const f = document.getElementById(focusId); if (f) f.focus(); }, 60);
 }
 
 function openAuthModal() {
   const wrap = document.getElementById('accountWidget');
   if (wrap) wrap.classList.remove('open');
-  ['siPhone', 'siPassword', 'regName', 'regPhone', 'regPassword', 'regPassword2', 'stPhone', 'stPassword']
+  ['siCode', 'siPhone', 'siPassword', 'regName', 'regPhone', 'regPassword', 'regPassword2', 'stPhone', 'stPassword']
     .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.getElementById('authModal').classList.add('open');
+  setSigninWay(preferredSigninWay());
   setAuthMode('signin');
 }
 function closeAuthModal() { document.getElementById('authModal').classList.remove('open'); }
+
+// Login-code sign-in. Success opens the member page straight away — that page IS
+// the reason they signed in (points, what they owe, draw wins).
+async function submitCodeSignin() {
+  const code = (document.getElementById('siCode').value || '').trim();
+  hideErr('siCodeError');
+  if (!code) { showErr('siCodeError', 'Enter your login code.'); return; }
+  const res = await acctPost('loginCode', { code });
+  if (res.data && res.data.blocked) {
+    statusCreds = null;
+    closeAuthModal();
+    showStatusScreen(res.data.account);
+    return;
+  }
+  if (!res.ok || !res.data.ok) { showErr('siCodeError', (res.data && res.data.error) || 'Could not sign in.'); return; }
+  try { localStorage.setItem('tzhSigninWay', 'code'); } catch {}
+  onAuthSuccess(res.data);
+  notify('Signed in!');
+  openAccountModal();
+}
+function openNoCode() {
+  showInfoModal('Don’t have a login code?',
+    'Ask the TZH organiser at your next session — every member has a code like Harvey#123. '
+    + 'Codes are handed out in person, not by SMS, WhatsApp or email.');
+}
 
 async function submitSignin() {
   const phone = document.getElementById('siPhone').value.trim();
@@ -11114,6 +11331,7 @@ async function submitSignin() {
     return;
   }
   if (!res.ok || !res.data.ok) { showErr('siError', (res.data && res.data.error) || 'Could not sign in.'); return; }
+  try { localStorage.setItem('tzhSigninWay', 'phone'); } catch {}
   onAuthSuccess(res.data);
   if (res.data.forceChange) { openChangePw(true); notify('Please set a new password.'); }
   else notify('Signed in!');
@@ -11167,7 +11385,7 @@ function showStatusScreen(acc) {
   if ((acc.status === 'suspended' && acc.suspendedReason)) extra += '<div class="st-reason"><b>Reason:</b> ' + escHtml(acc.suspendedReason) + '</div>';
   const details =
     '<div class="st-details">'
-    + '<div><span>Phone</span><b>' + escHtml(acc.phone || '') + '</b></div>'
+    + (acc.phone ? '<div><span>Phone</span><b>' + escHtml(acc.phone) + '</b></div>' : '')
     + '<div><span>Request date</span><b>' + fmtDateTime(acc.requestedAt) + '</b></div>'
     + '<div><span>Status</span><b>' + statusBadgeHtml(acc.status) + '</b></div>'
     + '<div><span>Last update</span><b>' + fmtDateTime(acc.updatedAt) + '</b></div>'
@@ -11217,9 +11435,12 @@ function showInfoModal(title, msg) {
   document.getElementById('statusModal').classList.add('open');
 }
 
+function sessionFromAccount(token, acc) {
+  return { token, id: acc.id, playerId: acc.playerId, phone: acc.phone, name: acc.name, code: acc.code || '', hasPassword: !!acc.hasPassword };
+}
 function onAuthSuccess(data) {
   const acc = (data && data.account) || {};
-  saveAcctSession({ token: data.token, id: acc.id, playerId: acc.playerId, phone: acc.phone, name: acc.name });
+  saveAcctSession(sessionFromAccount(data.token, acc));
   closeAuthModal();
   renderAccountWidget();
   refreshState().then(() => { renderViewer(); renderAccountWidget(); });
@@ -11231,8 +11452,7 @@ async function refreshAccountSession() {
   const res = await acctPost('accountSession', { token: acctSession.token });
   if (res.status === 401) { saveAcctSession(null); renderAccountWidget(); return; }
   if (res.ok && res.data && res.data.account) {
-    const acc = res.data.account;
-    saveAcctSession({ token: acctSession.token, id: acc.id, playerId: acc.playerId, phone: acc.phone, name: acc.name });
+    saveAcctSession(sessionFromAccount(acctSession.token, res.data.account));
     renderAccountWidget();
   }
 }
@@ -11245,27 +11465,100 @@ function acctLogout() {
   if (token) acctPost('logoutAccount', { token }); // best-effort server-side invalidation
 }
 
-// ── player account page ───────────────────────
+// ── player account page ("My TZH") ────────────
+// Points toward this month's draw, what they still owe (the same Payments ledger
+// the admin sees, their rows only) and every draw prize they've won. Fetched per
+// open via the token-gated `memberInfo` action — none of it rides the public poll.
+let memberInfoCache = null;
 function openAccountModal() {
   const wrap = document.getElementById('accountWidget');
   if (wrap) wrap.classList.remove('open');
   if (!acctSession) return openAuthModal();
+  const body = document.getElementById('accountBody');
   const player = acctPlayer();
   const name = (player && player.name) || acctSession.name || 'Player';
-  document.getElementById('accountBody').innerHTML =
-    '<div class="acctpg-top">' + acctAvatarHtml(player, 'acctpg-av') + '<div><div class="acctpg-name">' + escHtml(name) + '</div>'
-      + '<div class="acctpg-phone">' + escHtml(acctSession.phone || '') + '</div></div></div>'
-    + '<div class="st-details">'
-      + '<div><span>Account status</span><b>' + statusBadgeHtml('active') + '</b></div>'
-      + '<div><span>Registration</span><b>Approved</b></div>'
-    + '</div>'
-    + '<div class="acctpg-actions">'
-      + '<button class="btn btn-secondary btn-sm" onclick="closeAccountModal();openChangePw(false)">Change password</button>'
-      + '<button class="btn btn-ghost btn-sm" onclick="openContactAdmin()">Contact administrator</button>'
-    + '</div>';
+  body.innerHTML = '<div class="acctpg-top">' + acctAvatarHtml(player, 'acctpg-av') + '<div><div class="acctpg-name">' + escHtml(name) + '</div>'
+    + '<div class="acctpg-phone">Loading your points and payments…</div></div></div>';
   document.getElementById('accountModal').classList.add('open');
+  const token = acctSession.token;
+  acctPost('memberInfo', { token }).then(res => {
+    if (!acctSession || acctSession.token !== token) return; // signed out meanwhile
+    if (res.status === 401) { saveAcctSession(null); renderAccountWidget(); closeAccountModal(); notify('Session expired — please sign in again.', 'warn'); return; }
+    if (!res.ok || !res.data || !res.data.ok) {
+      body.innerHTML += '<div class="acct-empty">Could not load your details — please try again.</div>'
+        + '<div class="acctpg-actions"><button class="btn btn-secondary btn-sm" onclick="openAccountModal()">Retry</button></div>';
+      return;
+    }
+    memberInfoCache = res.data;
+    body.innerHTML = memberPageHtml(res.data);
+  });
 }
 function closeAccountModal() { document.getElementById('accountModal').classList.remove('open'); }
+
+// "Tue 8 Sep 2026" — fixed English names, so every phone renders the same string.
+function mbDate(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  if (!m) return iso || '';
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getUTCDay()];
+  const mo = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getUTCMonth()];
+  return wd + ' ' + d.getUTCDate() + ' ' + mo + ' ' + d.getUTCFullYear();
+}
+function mbNights(n) { n = Number(n) || 0; return n + ' night' + (n === 1 ? '' : 's'); }
+function mbRM(n) { return window.Payments ? Payments.fmtRM(n) : 'RM' + (Number(n) || 0); }
+
+// The member page markup from a memberInfo payload. Pure apart from the avatar.
+function memberPageHtml(d) {
+  d = d || {};
+  const m = d.member || {}, p = d.points || {}, pay = d.payments || {};
+  const wins = Array.isArray(d.wins) ? d.wins : [];
+  const player = typeof acctPlayer === 'function' ? acctPlayer() : null;
+  const name = m.name || (player && player.name) || 'Member';
+  const owe = (Number(pay.outstanding) || 0) > 0;
+  const points = Number(p.points) || 0, threshold = Number(p.threshold) || 0;
+  const pct = threshold ? Math.min(100, Math.round(points / threshold * 100)) : 0;
+  const toGo = Number(p.toGo) || 0;
+  let html = '<div class="acctpg-top">' + acctAvatarHtml(player, 'acctpg-av') + '<div><div class="acctpg-name">' + escHtml(name) + '</div>'
+    + '<div class="acctpg-phone">' + (m.code ? 'Login code <span class="mb-code">' + escHtml(m.code) + '</span>' : escHtml(m.phone || '')) + '</div></div></div>';
+  html += '<div class="mb-stats">'
+    + '<div class="mb-stat"><b>' + escHtml(points.toLocaleString()) + '</b><span>Points</span></div>'
+    + '<div class="mb-stat' + (owe ? ' owe' : '') + '"><b>' + escHtml(mbRM(pay.outstanding || 0)) + '</b><span>' + (owe ? 'You owe' : 'Nothing owing') + '</span></div>'
+    + '<div class="mb-stat"><b>' + wins.length + '</b><span>Draw win' + (wins.length === 1 ? '' : 's') + '</span></div>'
+    + '</div>';
+  html += '<div class="mb-progress-wrap"><div class="mb-progress-lbl"><span>' + escHtml(p.monthLabel ? p.monthLabel + ' draw' : 'Monthly draw') + '</span>'
+    + '<b>' + (p.inDraw ? 'You’re in the draw' : escHtml(toGo + ' more point' + (toGo === 1 ? '' : 's') + ' to enter')) + '</b></div>'
+    + '<div class="pm-progress mb-bar"><i style="width:' + pct + '%"></i></div>'
+    + '<div class="mb-progress-sub">' + escHtml(points + ' / ' + threshold + ' points this month') + '</div></div>';
+  if (owe) {
+    html += '<div class="md-sec-title">To settle · ' + escHtml(mbNights(pay.unpaidCount)) + '</div><div class="mb-list">'
+      + (pay.owing || []).map(x => '<div class="mb-row"><div><div class="mb-row-main">' + escHtml(mbDate(x.date)) + '</div>'
+        + '<div class="mb-row-sub">' + escHtml(x.tier ? x.tier + ' session' : 'Session') + (x.feeOverridden ? ' · custom amount' : '') + '</div></div>'
+        + '<b class="owe">' + escHtml(mbRM(x.fee)) + '</b></div>').join('')
+      + '</div><div class="mb-note">Pay the organiser at your next session and it will be ticked off here.</div>';
+  }
+  html += '<div class="md-sec-title">My draw wins</div>';
+  if (!wins.length) {
+    html += '<div class="acct-empty">No prizes yet — every paid session is a ticket to the next draw.</div>';
+  } else {
+    html += '<div class="mb-list">' + wins.map(w => {
+      const when = w.date ? mbDate(w.date) : (w.label || w.month || '');
+      return '<div class="mb-row"><div><div class="mb-row-main">' + escHtml(w.title || 'Lucky draw') + (when ? ' · ' + escHtml(when) : '') + '</div>'
+        + '<div class="mb-row-sub">' + escHtml(w.prize || 'Winner') + '</div></div><span class="st-badge ok">Won</span></div>';
+    }).join('') + '</div>';
+  }
+  if (pay.settled && pay.settled.length) {
+    html += '<details class="mb-hist"><summary><span>Paid history</span><b>' + escHtml(mbNights(pay.paidCount) + ' · ' + mbRM(pay.paidTotal)) + '</b></summary><div class="mb-list">'
+      + pay.settled.map(x => '<div class="mb-row"><div><div class="mb-row-main">' + escHtml(mbDate(x.date)) + '</div>'
+        + '<div class="mb-row-sub">' + escHtml(x.method ? 'Paid · ' + (window.Payments ? Payments.methodLabel(x.method) : x.method) : 'Paid') + '</div></div>'
+        + '<b>' + escHtml(mbRM(x.fee)) + '</b></div>').join('')
+      + '</div></details>';
+  }
+  html += '<div class="acctpg-actions">'
+    + (m.hasPassword ? '<button class="btn btn-secondary btn-sm" onclick="closeAccountModal();openChangePw(false)">Change password</button>' : '')
+    + '<button class="btn btn-ghost btn-sm" onclick="openContactAdmin()">Contact administrator</button>'
+    + '</div>';
+  return html;
+}
 
 // ── player "My Lucky Draw" view (own eligibility + public winners) ──
 function openMyLuckyDraw() {

@@ -95,7 +95,21 @@ STORE = {
     { id: 'sg-mon', day: 'Monday', weekday: 1, time: '9–11pm', enabled: true },
   ],
   signups: [],
-  accounts: [],
+  // Two members already hold login codes (LOCAL ONLY): sign in on the viewer with
+  // Harvey#123 or Desmond#456 to see the member page. "Assign codes to everyone"
+  // on the admin Accounts tab fills in the rest.
+  accounts: [
+    { id: 'acc_local_harvey', v: 2, phone: '', phoneDisplay: '', status: 'active', pwHash: null, pwSalt: null, pwEnc: null,
+      tempPassword: false, forceChange: false, failedAttempts: 0, lockedAt: null, lockedReason: null, suspendedAt: null, suspendedReason: null,
+      lastLoginAt: null, pwChangedAt: 0, requestedAt: 0, createdAt: 0, updatedAt: 0, approvedBy: 'seed', approvedAt: 0,
+      rejectedBy: null, rejectedAt: null, rejectedReason: null, moreInfoMsg: null, moreInfoAt: null, playerId: 'p0', playerHint: 'Harvey',
+      name: 'Harvey', token: null, source: 'code', code: 'Harvey#123', codeKey: 'harvey123', codeUpdatedAt: 0, codeFails: 0, codeFailAt: null, codeLastLoginAt: null },
+    { id: 'acc_local_desmond', v: 2, phone: '', phoneDisplay: '', status: 'active', pwHash: null, pwSalt: null, pwEnc: null,
+      tempPassword: false, forceChange: false, failedAttempts: 0, lockedAt: null, lockedReason: null, suspendedAt: null, suspendedReason: null,
+      lastLoginAt: null, pwChangedAt: 0, requestedAt: 0, createdAt: 0, updatedAt: 0, approvedBy: 'seed', approvedAt: 0,
+      rejectedBy: null, rejectedAt: null, rejectedReason: null, moreInfoMsg: null, moreInfoAt: null, playerId: 'p1', playerHint: 'Desmond',
+      name: 'Desmond', token: null, source: 'code', code: 'Desmond#456', codeKey: 'desmond456', codeUpdatedAt: 0, codeFails: 0, codeFailAt: null, codeLastLoginAt: null },
+  ],
   drawSettings: { winners: 2 },
   sessionDrawAt: SD.scheduledDrawAt(todayIso),
 };

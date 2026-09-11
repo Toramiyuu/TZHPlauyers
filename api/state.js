@@ -1,5 +1,6 @@
 const { Redis } = require('@upstash/redis');
 const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction } = require('./accounts.js');
+const { handleMemberInfo } = require('./member.js');
 const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction, pruneWeeklyState } = require('./weekly.js');
 const { SESSION_DRAW_ADMIN_ACTIONS, handleSessionDrawAdminAction, sweepSessionDraws, redisDrawStore } = require('./session-draw.js');
 const SD = require('../public/session-draw.js');
@@ -702,6 +703,20 @@ const handler = async function handler(req, res) {
     // freshly-loaded state copy and tells us whether to persist; it self-builds
     // every record and never spreads req.body, so it can only ever touch the
     // accounts array and the roster player it owns.
+    // A signed-in member's OWN page (points, what they owe, draw wins). Token-
+    // gated inside handleMemberInfo, self-only, read-only: it reads the two draw
+    // hashes but never writes the state blob. Returns in every branch.
+    if (b.action === 'memberInfo') {
+      let s;
+      try {
+        s = (await kv.get(STATE_KEY)) || { ...DEFAULT_STATE };
+      } catch (e) {
+        s = { ...DEFAULT_STATE };
+      }
+      const result = await handleMemberInfo(s, b, { drawStore, monthlyStore });
+      return res.status(result.status).json(result.body);
+    }
+
     if (b.action && ACCOUNT_ACTIONS.has(b.action)) {
       let s;
       try {
