@@ -5,6 +5,7 @@ const { SESSION_DRAW_ADMIN_ACTIONS, handleSessionDrawAdminAction, sweepSessionDr
 const SD = require('../public/session-draw.js');
 const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('./payments.js');
 const Payments = require('../public/payments.js');
+const AdminNav = require('../public/admin-nav.js');
 
 // Accepts env vars from Vercel Marketplace (KV_REST_API_URL) or direct Upstash (UPSTASH_REDIS_REST_URL)
 let redis = null;
@@ -98,6 +99,9 @@ const DEFAULT_STATE = {
   // come that day. Admins set this in Settings; the admin Session tab surfaces a
   // one-tap "Add regulars" prompt when the session date lands on a matching day.
   regulars: {},
+  // Which admin tabs sit in the PHONE bottom bar (Settings → Phone shortcuts).
+  // Shared by every admin device; the rest are reachable via "More".
+  adminShortcuts: AdminNav.DEFAULT_SHORTCUTS.slice(),
   // ── attendance/payment (2026-07 overhaul) ──
   // Durable per-session attendance/payment records, keyed by ISO date. Separate
   // from `sessions` (which prunes at 31 days) so Monthly aggregation can look
@@ -546,6 +550,8 @@ const handler = async function handler(req, res) {
       // Weekly regulars: a plain weekday->ids object. Coerce anything else (old
       // blobs, arrays, null) to {} so the editor and the Session prompt are safe.
       if (!current.regulars || typeof current.regulars !== 'object' || Array.isArray(current.regulars)) current.regulars = {};
+      // Phone bottom-bar shortcuts: repair old/odd blobs to a clean list (defaults when missing).
+      current.adminShortcuts = AdminNav.normalizeShortcuts(current.adminShortcuts);
       if (!Array.isArray(current.endingSoon)) current.endingSoon = [];
       if (!Array.isArray(current.accounts)) current.accounts = [];
       // Attendance/payment (additive; coerce old blobs safely).
@@ -763,6 +769,14 @@ const handler = async function handler(req, res) {
     // Draw settings have their own validated action; never accept them via the merge.
     if (updates.drawSettings !== undefined || updates.sessionDrawAt !== undefined) {
       return res.status(400).json({ error: 'Use the setDrawSettings action.' });
+    }
+    // Phone bottom-bar shortcuts ride the generic merge, but only as a clean list of
+    // 1–4 known, unique tab ids (canonical order is enforced server-side).
+    if (updates.adminShortcuts !== undefined) {
+      if (!AdminNav.isValidShortcuts(updates.adminShortcuts)) {
+        return res.status(400).json({ error: 'Invalid shortcuts.' });
+      }
+      updates.adminShortcuts = AdminNav.normalizeShortcuts(updates.adminShortcuts);
     }
 
     // Session date change: allow scheduling up to a month ahead (matches the

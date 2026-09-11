@@ -43,9 +43,13 @@ check('.crt-foot flex row, right column', /\.crt-foot\{[^}]*justify-content:spac
 // ── Payments tab wired into every nav surface ──
 check('sidebar nav item', /class="admin-nav-item" data-tab="payments"/.test(html));
 check('tab panel', /class="admin-tab-panel" data-tab="payments"/.test(html));
-check('More sheet item (mobile)', /class="ams-item" data-tab="payments"/.test(html));
+// Phone surfaces are rendered from AdminNav (public/admin-nav.js) — Payments is a
+// default bottom-bar shortcut; when toggled off it falls back to the More sheet.
+const AdminNav = require('../public/admin-nav.js');
+check('Payments is a known phone-nav tab and a default shortcut', AdminNav.TABS.includes('payments') && AdminNav.DEFAULT_SHORTCUTS.includes('payments'));
+check('phone nav renders a data-tab button for bar + More sheet', fn('mobileNavHtml').includes('class="admin-bmn-btn${') && fn('mobileNavHtml').includes('data-tab="${id}"') && fn('mobileNavHtml').includes('class="ams-item${'));
 check('ADMIN_TAB_TITLES has Payments', /ADMIN_TAB_TITLES = \{[^}]*payments: 'Payments'/.test(html));
-check('ADMIN_MORE_TABS lists payments (More button lights up)', /ADMIN_MORE_TABS = \[[^\]]*'payments'/.test(html));
+check('More button lights up for whichever tabs are in the sheet', fn('setAdminTab').includes('adminMoreTabs().includes(name)'));
 check('setAdminTab renders + refreshes the tab', fn('setAdminTab').includes("name === 'payments'") && fn('setAdminTab').includes('renderPaymentsTab()') && fn('setAdminTab').includes('loadAdminOps()'));
 check('nav badge shows unpaid count', fn('updateAdminNavBadges').includes("setNavBadge('navBadgePayments', unpaid)") && html.includes('id="navBadgePayments"'));
 check('help drawer documents Payments', /<summary>Payments<\/summary>/.test(html));

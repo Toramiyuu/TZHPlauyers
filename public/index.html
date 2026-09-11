@@ -998,12 +998,29 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
 /* Bottom nav (mobile) — hidden on desktop */
 .admin-bottomnav{display:none}
-.admin-bmn-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-family:inherit;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px 10px;min-height:56px;border-top:2px solid transparent}
+.admin-bmn-btn{position:relative;background:none;border:none;color:var(--muted);cursor:pointer;font-family:inherit;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px 10px;min-height:56px;border-top:2px solid transparent}
 .admin-bmn-btn .ic{width:22px;height:22px}
 .admin-bmn-btn.active{color:var(--lime);border-top-color:var(--lime)}
-.bmn-label{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-.admin-bmn-more{position:relative}
-.admin-bmn-more .signup-badge{position:absolute;top:5px;left:calc(50% + 6px)}
+.bmn-label{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Live count pill on any bar button that carries one (Payments unpaid, Sign-ups, More) */
+.admin-bmn-btn .signup-badge{position:absolute;top:5px;left:calc(50% + 6px)}
+/* Settings: Phone shortcuts (which tabs sit in the bottom bar) */
+.sc-row{display:flex;align-items:center;gap:12px;padding:9px 4px;border-bottom:1px solid var(--border);cursor:pointer;min-height:52px}
+.sc-row:last-child{border-bottom:none}
+.sc-row .ic{width:20px;height:20px;color:var(--muted);flex-shrink:0}
+.sc-row.on .ic{color:var(--a-blue)}
+.sc-name{flex:1;font-size:var(--fs-base);font-weight:500;color:var(--text)}
+.sc-switch{position:relative;display:inline-flex;width:46px;height:28px;flex:none}
+.sc-switch input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.sc-track{position:absolute;inset:0;background:var(--border2);border-radius:999px;transition:background .2s}
+.sc-thumb{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:var(--shadow-sm);transition:transform .2s;pointer-events:none}
+.sc-switch input:checked ~ .sc-track{background:var(--a-blue)}
+.sc-switch input:checked ~ .sc-thumb{transform:translateX(18px)}
+.sc-preview{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:var(--sp-sm)}
+.sc-pv{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border2);border-radius:100px;padding:5px 11px;font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-2)}
+.sc-pv .ic{width:14px;height:14px}
+.sc-pv-more{color:var(--a-blue);border-color:var(--a-blue)}
+.sc-hint{font-size:var(--fs-xs);color:var(--muted);margin-top:6px}
 
 /* Mobile "More" sheet (reuses .modal-overlay for the allowed scrim) */
 .admin-more-overlay{align-items:flex-end;justify-content:center;padding:0}
@@ -2904,6 +2921,18 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     </div>
   </div>
 
+  <!-- Phone shortcuts (which tabs sit in the mobile bottom bar) -->
+  <div class="admin-card" id="shortcutsCard">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M10 18.5h4"/></svg></span> Phone shortcuts</div>
+    <div class="admin-helper-text">On a phone the admin panel shows a bottom bar with up to <b>4</b> tabs plus <b>More</b>. Turn on the tabs you reach for most; everything else stays one tap away under More. Applies to every admin&rsquo;s phone.</div>
+    <div id="shortcutsList"></div>
+    <div class="sc-preview" id="shortcutsPreview" aria-label="Bottom bar preview"></div>
+    <div class="sc-hint" id="shortcutsHint"></div>
+    <div class="admin-btn-row admin-mt">
+      <button class="btn btn-ghost btn-sm" onclick="resetShortcuts()">Reset to default (Session, Courts, Payments)</button>
+    </div>
+  </div>
+
   <!-- Social Game Days -->
   <div class="admin-card">
     <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4M9 14l2 2 4-4"/></svg></span> Social Game Days</div>
@@ -2934,24 +2963,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
   </div><!-- /admin-main -->
 
-  <!-- Mobile bottom nav -->
-  <nav class="admin-bottomnav" id="adminBottomNav">
-    <button class="admin-bmn-btn" data-tab="session" onclick="setAdminTab('session')"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg><span class="bmn-label">Session</span></button>
-    <button class="admin-bmn-btn" data-tab="courts" onclick="setAdminTab('courts')"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg><span class="bmn-label">Courts</span></button>
-    <button class="admin-bmn-btn" data-tab="engagement" onclick="setAdminTab('engagement')"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg><span class="bmn-label">Draw</span></button>
-    <button class="admin-bmn-btn admin-bmn-more" id="bmnMore" onclick="openMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><circle cx="8" cy="8" r="1.7"/><circle cx="16" cy="8" r="1.7"/><circle cx="8" cy="16" r="1.7"/><circle cx="16" cy="16" r="1.7"/></svg><span class="bmn-label">More</span><span class="signup-badge" id="moreBadge" style="display:none"></span></button>
-  </nav>
+  <!-- Mobile bottom nav — buttons are rendered by renderMobileNav() from state.adminShortcuts
+       (Settings → Phone shortcuts); the trailing "More" button is always present. -->
+  <nav class="admin-bottomnav" id="adminBottomNav"></nav>
 
-  <!-- Mobile "More" sheet -->
+  <!-- Mobile "More" sheet — the tab rows (every tab NOT in the bar) are rendered into
+       #moreSheetTabs by renderMobileNav(); the footer actions below are fixed. -->
   <div class="modal-overlay admin-more-overlay" id="moreSheet" onclick="if(event.target===this)closeMoreSheet()">
     <div class="admin-more-sheet" role="dialog" aria-label="More">
       <div class="ams-handle"></div>
       <div class="ams-title">More</div>
-      <button class="ams-item" data-tab="payments" onclick="setAdminTab('payments');closeMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 14h3"/></svg><span>Payments</span><span class="nav-badge accent" id="moreBadgePayments" style="display:none"></span></button>
-      <button class="ams-item" data-tab="friendly" onclick="setAdminTab('friendly');closeMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><path d="M14.5 3.5 21 10l-2 2-6.5-6.5zM9.5 3.5 3 10l2 2 6.5-6.5M12 12l-7 7M12 12l7 7"/></svg><span>Friendly</span></button>
-      <button class="ams-item" data-tab="signups" onclick="setAdminTab('signups');closeMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><path d="M15 19a4 4 0 0 0-8 0M11 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M18 8v6M21 11h-6"/></svg><span>Sign-ups</span><span class="nav-badge accent" id="moreBadgeSignups" style="display:none"></span></button>
-      <button class="ams-item" data-tab="accounts" onclick="setAdminTab('accounts');closeMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16.2c.6-1.9 2-2.9 3.5-2.9s2.9 1 3.5 2.9"/></svg><span>Accounts</span></button>
-      <button class="ams-item" data-tab="settings" onclick="setAdminTab('settings');closeMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 2h-4l-.5 2.4a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 22h4l.5-2.4a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg><span>Settings</span></button>
+      <div id="moreSheetTabs"></div>
       <div class="ams-divider"></div>
       <button class="ams-item" onclick="showViewer();closeMoreSheet()"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span>View Display</span></button>
       <button class="ams-item" onclick="closeMoreSheet();openHelp()"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.5 1.5c0 1.5-2 2-2 3M12 17h.01"/></svg><span>Help &amp; Tour</span></button>
@@ -2978,7 +3000,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <details class="help-sec"><summary>Lucky Draw &mdash; Shuttlecock</summary><div>The Shuttlecock Draw runs once a month. Players are auto-enrolled when they attended <b>and</b> paid every required session of their regular day this month. Click a player to see the exact record, or override it. You can still import a CSV ballot and run the prize draw as before.</div></details>
       <details class="help-sec"><summary>Sign-ups</summary><div>People who asked to join through the public form, newest first. Mark each one contacted once you&rsquo;ve reached out.</div></details>
       <details class="help-sec"><summary>Accounts</summary><div>Players request an account with their <b>phone number</b> + password. Approve a request and link it to an existing player, or reject with a reason. To help someone who forgot their password, open <b>Manage</b> &rarr; <b>Reveal</b> (re-enter your admin password) or set a temporary password. Deleting an account keeps the player &mdash; it only unlinks the login.</div></details>
-      <details class="help-sec"><summary>Settings</summary><div>Share the viewer link, set the daily <b>site access code</b>, change the admin password, choose which social game days appear on the public sign-up, and set <b>weekly regulars</b> &mdash; players who always come on a given day, added to the line-up automatically when the session date lands on that day.</div></details>
+      <details class="help-sec"><summary>Settings</summary><div>Share the viewer link, set the daily <b>site access code</b>, change the admin password, pick the <b>phone shortcuts</b> (which tabs sit in the bottom bar on phones &mdash; up to 4, the rest live under More), choose which social game days appear on the public sign-up, and set <b>weekly regulars</b> &mdash; players who always come on a given day, added to the line-up automatically when the session date lands on that day.</div></details>
     </div>
   </div>
 </aside>
@@ -3019,6 +3041,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 <script src="phone.js"></script>
 <script src="weekly-draw.js"></script>
 <script src="payments.js"></script>
+<script src="admin-nav.js"></script>
 <script src="monthly-eligibility.js"></script>
 <script src="matchmaking.js"></script>
 <script src="/session-draw.js"></script>
@@ -3194,6 +3217,7 @@ async function poll() {
     // Keep the unread badge live every tick, but NOT the full list — re-rendering
     // up to 500 rows (each running timeAgo) every 2s would be a hot-path regression.
     renderSignupsBadge();
+    syncMobileNav(); // cheap key compare; rebuilds the phone bar only if the shortcuts changed
   }
 }
 
@@ -4390,6 +4414,8 @@ function renderAdmin() {
   if (_hb) { try { if (!localStorage.getItem('adminHelpSeen')) _hb.classList.add('pulse'); } catch (e) {} }
   document.getElementById('shareLink').textContent = window.location.origin + '/';
   renderSiteCodeSection();
+  renderShortcutsCard();
+  renderMobileNav();
   renderSocialGamesCard();
   renderRegularsCard(true); // reinit the editor draft from freshly-loaded state
 }
@@ -7224,8 +7250,104 @@ function renderMdBoard() {
 }
 
 const ADMIN_TAB_TITLES = { session: 'Session', courts: 'Courts', payments: 'Payments', friendly: 'Friendly', engagement: 'Lucky Draw', signups: 'Sign-ups', accounts: 'Accounts', settings: 'Settings' };
+
+// ── Phone bottom bar ("shortcuts") ──────────────────────────────
+// The bar shows the tabs in state.adminShortcuts (Settings → Phone shortcuts;
+// default Session, Courts, Payments) + a fixed "More" button whose sheet lists
+// every other tab. Which/limits/order live in public/admin-nav.js (AdminNav);
+// this block is only the DOM glue. Icons mirror the desktop sidebar.
+const ADMIN_NAV_ICONS = {
+  session: '<svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg>',
+  courts: '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg>',
+  payments: '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 14h3"/></svg>',
+  engagement: '<svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg>',
+  friendly: '<svg class="ic" viewBox="0 0 24 24"><path d="M14.5 3.5 21 10l-2 2-6.5-6.5zM9.5 3.5 3 10l2 2 6.5-6.5M12 12l-7 7M12 12l7 7"/></svg>',
+  signups: '<svg class="ic" viewBox="0 0 24 24"><path d="M15 19a4 4 0 0 0-8 0M11 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M18 8v6M21 11h-6"/></svg>',
+  accounts: '<svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16.2c.6-1.9 2-2.9 3.5-2.9s2.9 1 3.5 2.9"/></svg>',
+  settings: '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 2h-4l-.5 2.4a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 22h4l.5-2.4a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg>',
+  more: '<svg class="ic" viewBox="0 0 24 24"><circle cx="8" cy="8" r="1.7"/><circle cx="16" cy="8" r="1.7"/><circle cx="8" cy="16" r="1.7"/><circle cx="16" cy="16" r="1.7"/></svg>',
+};
+
+// The saved shortcut list, always clean (defaults until state has loaded).
+function adminShortcuts() { return AdminNav.normalizeShortcuts(state && state.adminShortcuts); }
 // Overflow tabs — reachable via the mobile "More" sheet (keeps "More" lit when one is active).
-const ADMIN_MORE_TABS = ['payments', 'friendly', 'signups', 'accounts', 'settings'];
+function adminMoreTabs() { return AdminNav.moreTabs(adminShortcuts()); }
+
+// Pure markup for both phone nav surfaces. Bar buttons carry a `bmnBadge-<tab>`
+// pill and sheet rows a `moreBadge-<tab>` pill ONLY for the accent-count tabs,
+// so updateAdminNavBadges can address whichever surface the tab currently sits on.
+function mobileNavHtml(shortcuts, activeTab) {
+  const sc = AdminNav.normalizeShortcuts(shortcuts);
+  const more = AdminNav.moreTabs(sc);
+  const bar = sc.map(id =>
+    `<button class="admin-bmn-btn${id === activeTab ? ' active' : ''}" data-tab="${id}" onclick="setAdminTab('${id}')">${ADMIN_NAV_ICONS[id] || ''}<span class="bmn-label">${escHtml(AdminNav.shortLabel(id))}</span>${AdminNav.hasAccentBadge(id) ? `<span class="signup-badge" id="bmnBadge-${id}" style="display:none"></span>` : ''}</button>`
+  ).join('')
+    + `<button class="admin-bmn-btn admin-bmn-more${more.includes(activeTab) ? ' active' : ''}" id="bmnMore" onclick="openMoreSheet()">${ADMIN_NAV_ICONS.more}<span class="bmn-label">More</span><span class="signup-badge" id="moreBadge" style="display:none"></span></button>`;
+  const sheet = more.map(id =>
+    `<button class="ams-item${id === activeTab ? ' active' : ''}" data-tab="${id}" onclick="setAdminTab('${id}');closeMoreSheet()">${ADMIN_NAV_ICONS[id] || ''}<span>${escHtml(AdminNav.label(id))}</span>${AdminNav.hasAccentBadge(id) ? `<span class="nav-badge accent" id="moreBadge-${id}" style="display:none"></span>` : ''}</button>`
+  ).join('');
+  return { bar, sheet, key: sc.join(',') };
+}
+
+let mobileNavKey = '';
+function renderMobileNav() {
+  const bar = document.getElementById('adminBottomNav');
+  const sheet = document.getElementById('moreSheetTabs');
+  if (!bar || !sheet) return;
+  const html = mobileNavHtml(adminShortcuts(), currentAdminTab);
+  bar.innerHTML = html.bar;
+  sheet.innerHTML = html.sheet;
+  mobileNavKey = html.key;
+  updateAdminNavBadges();
+}
+// Poll hook: another admin may have changed the shortcuts — rebuild only when the list differs.
+function syncMobileNav() {
+  if (!state) return;
+  if (adminShortcuts().join(',') === mobileNavKey) return;
+  renderMobileNav();
+  if (currentAdminTab === 'settings') renderShortcutsCard();
+}
+
+// Settings → Phone shortcuts card: one switch per tab + a preview of the resulting bar.
+function renderShortcutsCard() {
+  const list = document.getElementById('shortcutsList');
+  if (!list) return;
+  const sc = adminShortcuts();
+  list.innerHTML = AdminNav.TABS.map(id => {
+    const on = sc.includes(id);
+    const name = AdminNav.label(id);
+    return `<label class="sc-row${on ? ' on' : ''}">${ADMIN_NAV_ICONS[id] || ''}<span class="sc-name">${escHtml(name)}</span>`
+      + `<span class="sc-switch"><input type="checkbox"${on ? ' checked' : ''} onchange="toggleShortcut('${id}')" aria-label="Show ${escHtml(name)} in the phone bar"><span class="sc-track"></span><span class="sc-thumb"></span></span></label>`;
+  }).join('');
+  const pv = document.getElementById('shortcutsPreview');
+  if (pv) pv.innerHTML = sc.map(id => `<span class="sc-pv">${ADMIN_NAV_ICONS[id] || ''}${escHtml(AdminNav.shortLabel(id))}</span>`).join('')
+    + `<span class="sc-pv sc-pv-more">${ADMIN_NAV_ICONS.more}More</span>`;
+  const hint = document.getElementById('shortcutsHint');
+  if (hint) hint.textContent = sc.length >= AdminNav.MAX_SHORTCUTS
+    ? `All ${AdminNav.MAX_SHORTCUTS} slots used — turn one off to swap it for another.`
+    : `${sc.length} of ${AdminNav.MAX_SHORTCUTS} slots used.`;
+}
+
+async function toggleShortcut(id) {
+  await refreshState(); // another admin may have changed the list since our last poll
+  const r = AdminNav.toggleShortcut(adminShortcuts(), id);
+  if (r.error) { notify(r.error, 'warn'); renderShortcutsCard(); return; }
+  await saveShortcuts(r.list);
+}
+
+async function resetShortcuts() {
+  await refreshState();
+  if (AdminNav.sameShortcuts(adminShortcuts(), AdminNav.DEFAULT_SHORTCUTS)) { notify('Already on the default shortcuts'); return; }
+  await saveShortcuts(AdminNav.DEFAULT_SHORTCUTS.slice());
+}
+
+async function saveShortcuts(list) {
+  if (await apiPost({ adminShortcuts: list }) === null) { renderShortcutsCard(); return; }
+  state.adminShortcuts = list;
+  renderShortcutsCard();
+  renderMobileNav();
+  notify('Phone shortcuts saved');
+}
 
 function setAdminTab(name) {
   currentAdminTab = name;
@@ -7235,7 +7357,7 @@ function setAdminTab(name) {
     btn.classList.toggle('active', btn.dataset.tab === name);
   });
   const moreBtn = document.getElementById('bmnMore');
-  if (moreBtn) moreBtn.classList.toggle('active', ADMIN_MORE_TABS.includes(name));
+  if (moreBtn) moreBtn.classList.toggle('active', adminMoreTabs().includes(name));
   document.querySelectorAll('#admin .admin-tab-panel').forEach(panel => {
     panel.classList.toggle('active', panel.dataset.tab === name);
   });
@@ -7314,13 +7436,21 @@ function updateAdminNavBadges() {
   const unpaid = (window.Payments && typeof adminOps !== 'undefined')
     ? Payments.summarize(paymentEntriesFor(adminOps, state.sessionDate || '')).unpaid : 0;
   setNavBadge('navBadgePayments', unpaid);
-  setNavBadge('moreBadgePayments', unpaid);
-  setNavBadge('moreBadge', su + unpaid);
-  setNavBadge('moreBadgeSignups', su);
+  // Phone surfaces: each accent tab has a pill on whichever surface it sits on
+  // (bar button OR More-sheet row — renderMobileNav creates only the one that
+  // exists); the More button sums the counts of the tabs hidden inside it.
+  setNavBadge('bmnBadge-payments', unpaid);
+  setNavBadge('moreBadge-payments', unpaid);
+  setNavBadge('bmnBadge-signups', su);
+  setNavBadge('moreBadge-signups', su);
+  setNavBadge('moreBadge', AdminNav.moreBadgeTotal({ payments: unpaid, signups: su }, adminShortcuts()));
 }
 
 function openMoreSheet() { const s = document.getElementById('moreSheet'); if (s) s.classList.add('open'); }
 function closeMoreSheet() { const s = document.getElementById('moreSheet'); if (s) s.classList.remove('open'); }
+// Paint the phone bar with the defaults right away (state arrives a moment later
+// via the first poll, which re-syncs if the saved list differs).
+renderMobileNav();
 
 // Sidebar player search — drives the Session roster filter and jumps to that tab.
 function sidebarSearchInput(v) {
