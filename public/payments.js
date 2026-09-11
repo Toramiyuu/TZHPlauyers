@@ -146,6 +146,27 @@
     return { entries: out, created, existed };
   }
 
+  /**
+   * Second press of "End of the day": drop the records of players who were UNTICKED
+   * from the line-up since the first press. Only records End of the day itself
+   * created (source 'session') that are still unpaid are removed — a paid record
+   * proves the player was there, and a manually marked attendance is admin intent.
+   * Pure. Returns { entries, removed:[{id,name}], keptPaid:[{id,name}] }.
+   */
+  function reconcileInto(entries, players) {
+    const out = Object.assign({}, entries || {});
+    const inLineup = new Set((Array.isArray(players) ? players : []).map((p) => p && p.id).filter(Boolean));
+    const removed = [], keptPaid = [];
+    for (const id of Object.keys(out)) {
+      const e = out[id];
+      if (!e || !e.payment || inLineup.has(id) || e.source !== 'session') continue;
+      if (e.paid) { keptPaid.push({ id, name: e.name || id }); continue; }
+      removed.push({ id, name: e.name || id });
+      delete out[id];
+    }
+    return { entries: out, removed, keptPaid };
+  }
+
   // ── reads ────────────────────────────────────────────────────────────
   function listOf(entries) { return Array.isArray(entries) ? entries : Object.values(entries || {}); }
   function withPayment(entries) { return listOf(entries).filter((e) => e && e.payment); }
@@ -423,10 +444,11 @@
     return 'Paid' + (when ? ' ' + when : '') + (p.method ? ' · ' + methodLabel(p.method) : '');
   }
   /** "Generated 20 payment records, 0 already existed" */
-  function eodSummaryText(created, existed) {
-    const c = Number(created) || 0, x = Number(existed) || 0;
-    if (!c && !x) return 'Nothing to generate — no players in the line-up.';
-    return 'Generated ' + c + ' payment record' + (c === 1 ? '' : 's') + ', ' + x + ' already existed';
+  function eodSummaryText(created, existed, removed) {
+    const c = Number(created) || 0, x = Number(existed) || 0, r = Number(removed) || 0;
+    if (!c && !x && !r) return 'Nothing to generate — no players in the line-up.';
+    return 'Generated ' + c + ' payment record' + (c === 1 ? '' : 's') + ', ' + x + ' already existed'
+      + (r ? ', ' + r + ' removed (no longer in the line-up)' : '');
   }
   /** Courts-footer status: "20 records · 12 paid" / "20 records · all paid" / '' when none. */
   function eodStatusText(sum) {
@@ -450,6 +472,6 @@
     dayHasOutstanding, memberSessions, memberSummary, memberLedger, compareMembers,
     MEMBER_FILTERS, isMemberFilter, memberFilterLabel, matchesMemberFilter, filterMembers, ledgerTotals, memberOweLabel,
     addDaysISO, endOfDayMs, paidWithin, fmtMYT, fmtMYTDateTime,
-    fmtRM, feeLabel, feeTierLabel, paidLine, eodSummaryText, eodStatusText, parseFeeInput,
+    fmtRM, feeLabel, feeTierLabel, paidLine, eodSummaryText, eodStatusText, parseFeeInput, reconcileInto,
   };
 });

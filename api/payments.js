@@ -35,21 +35,27 @@ function doGeneratePayments(state, body, now) {
   const tier = P.feeTierForDate(state, date);
   const day = W.ensureDay(state, date);
   const r = P.generateInto(day.entries, players, tier, now);
-  day.entries = r.entries;
-  if (r.created > 0) {
+  // Players unticked from the line-up since the last press drop out again (unpaid,
+  // End-of-day-created records only) — the ticked line-up is the source of truth.
+  const rc = P.reconcileInto(r.entries, players);
+  day.entries = rc.entries;
+  const changed = r.created > 0 || rc.removed.length > 0;
+  if (changed) {
     if (!day.payments) day.payments = { tier, generatedAt: now, generatedBy: 'admin' };
     day.updatedAt = now;
     day.updatedBy = 'admin';
     pushAudit(state, { action: 'payments.generate', admin: 'admin', at: now,
       target: { type: 'attendance', id: date, label: 'Payments ' + date },
-      newValue: { created: r.created, existed: r.existed, tier } });
-    // New entries default to present — keep Monthly eligibility fresh (same as setAttendance).
+      newValue: { created: r.created, existed: r.existed, removed: rc.removed.length, tier },
+      note: rc.removed.length ? 'Removed (unticked): ' + rc.removed.map((x) => x.name).join(', ') : '' });
+    // New entries default to present / removed ones vanish — keep Monthly eligibility fresh (same as setAttendance).
     W.recomputeMonthlyInto(state, monthOf(date), 'admin');
   }
   return {
     status: 200,
-    body: { ok: true, created: r.created, existed: r.existed, total: r.created + r.existed, date, tier, entries: day.entries },
-    changed: r.created > 0,
+    body: { ok: true, created: r.created, existed: r.existed, total: r.created + r.existed, date, tier, entries: day.entries,
+      removed: rc.removed.length, removedNames: rc.removed.map((x) => x.name), keptPaid: rc.keptPaid.map((x) => x.name) },
+    changed,
   };
 }
 

@@ -1957,7 +1957,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <div class="modal-box">
     <h2 id="eodTitle">End of the day</h2>
     <div id="eodConfirm">
-      <p class="modal-desc">Creates one payment record per player in tonight&rsquo;s line-up at the default fee. Anyone who left after 2 hours can be switched to <b>2h</b> on their row in the payment list. Records that already exist are left untouched, so pressing this twice is safe.</p>
+      <p class="modal-desc">Creates one payment record per player in tonight&rsquo;s line-up at the default fee. Anyone who left after 2 hours can be switched to <b>2h</b> on their row in the payment list. Pressing it again adds anyone who joined later and removes anyone you unticked since &mdash; unless they already paid. Existing records are otherwise untouched.</p>
       <div class="st-details">
         <div><span>Session</span><b id="eodDate"></b></div>
         <div><span>Players</span><b id="eodCount"></b></div>
@@ -3108,7 +3108,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div class="help-sec-list">
       <details class="help-sec"><summary>Session</summary><div>Set tonight&rsquo;s date and tap players to add them to the line-up. In the <b>List</b> view, the <b>Level</b> picker (1.0&ndash;7.0) and the <b>Girl</b> &amp; <b>Mixed</b> toggles set a player&rsquo;s rating and who plays mixed doubles &mdash; these drive level-balanced match generation.</div></details>
       <details class="help-sec"><summary>Courts</summary><div>Build rounds, choose which courts are active, and manage who&rsquo;s resting. Each court&rsquo;s current match shows live on the viewer screen. When play ends, press <b>End of the day</b> (bottom of the tab) to create tonight&rsquo;s payment records.</div></details>
-      <details class="help-sec"><summary>Payments</summary><div>The fee depends on how long each person stayed: <b>2h &middot; RM20</b> or <b>3h &middot; RM25</b>. The Session tab sets the default for the night; after <b>End of the day</b> every player in the line-up gets a row here at that default. Tap <b>2h</b> or <b>3h</b> on a row for early leavers, tap <b>Cash</b>, <b>TnG</b> or <b>DuitNow</b> as each person pays (one tap), or <b>Unpaid</b> to undo &mdash; paid rows drop to the bottom so whoever still owes stays at the top. Tap the amount for a one-off custom fee. Pressing End of the day again only adds players who joined later. Switch to <b>By member</b> to see everyone&rsquo;s running balance across every night on record; tap a member for their points, total outstanding and a night-by-night breakdown, and settle any night right there. A night is never removed from history while someone on it still owes.</div></details>
+      <details class="help-sec"><summary>Payments</summary><div>The fee depends on how long each person stayed: <b>2h &middot; RM20</b> or <b>3h &middot; RM25</b>. The Session tab sets the default for the night; after <b>End of the day</b> every player in the line-up gets a row here at that default. Tap <b>2h</b> or <b>3h</b> on a row for early leavers, tap <b>Cash</b>, <b>TnG</b> or <b>DuitNow</b> as each person pays (one tap), or <b>Unpaid</b> to undo &mdash; paid rows drop to the bottom so whoever still owes stays at the top. Tap the amount for a one-off custom fee. Pressing End of the day again adds players who joined later and drops anyone you unticked in the meantime (unless they already paid), so the ticked line-up is always what counts. Switch to <b>By member</b> to see everyone&rsquo;s running balance across every night on record; tap a member for their points, total outstanding and a night-by-night breakdown, and settle any night right there. A night is never removed from history while someone on it still owes.</div></details>
       <details class="help-sec"><summary>Lucky Draw &mdash; Session draws</summary><div>Every Monday, Friday and Sunday session gets one automatic draw at <b>9:00 AM</b> four mornings later (Mon &rarr; Fri, Fri &rarr; Tue, Sun &rarr; Thu). A player is in it when they attended <b>and</b> their payment was marked paid before that time &mdash; so <b>End of the day</b> and the Payments tab decide who is eligible. Set how many winners are picked. Results are permanent and never re-run; if the scheduled draw did not happen, <b>Run draw now</b> applies the same rules. Players see the winners and the replay video on the public Lucky Draw page; who attended and who paid stays admin-only.</div></details>
       <details class="help-sec"><summary>Lucky Draw &mdash; Monthly draws</summary><div>A points draw once a month. Everyone who reaches the <b>points needed</b> (default 80) during the month is in it; points go back to zero when the month ends. With the <b>automatic</b> switch on, the draw runs itself at <b>9:00 AM on the 1st</b> of the next month; switch it off to run it yourself. <b>Pull players</b> lists everyone at the threshold right now (untick anyone who should sit out), then <b>Run draw now</b> draws this month on the spot. Set how many winners are picked and the ordered prize list &mdash; the 1st winner gets prize 1, the 2nd gets prize 2. Each prize can carry a photo, which shows on the public Lucky Draw page and in the replay video. One draw per month; results are permanent.</div></details>
       <details class="help-sec"><summary>Lucky Draw &mdash; Shuttlecock</summary><div>The Shuttlecock Draw runs once a month. Players are auto-enrolled when they attended <b>and</b> paid every required session of their regular day this month. Click a player to see the exact record, or override it. You can still import a CSV ballot and run the prize draw as before.</div></details>
@@ -8570,7 +8570,17 @@ function renderEodConfirm() {
   const warn = document.getElementById('eodWarn');
   if (warn) {
     if (!n) warn.textContent = 'No players in tonight’s line-up — add them on the Session tab first.';
-    else if (existing) warn.textContent = existing + ' record' + (existing === 1 ? '' : 's') + ' already exist for this date — only new players will be added.';
+    else if (existing) {
+      // Preview the second press: new players are added, unticked (unpaid) players drop out.
+      const day = adminOps.attendance[date];
+      const rc = Payments.reconcileInto((day && day.entries) || {}, state.players || []);
+      const have = new Set(Object.keys((day && day.entries) || {}).filter(id => day.entries[id] && day.entries[id].payment));
+      const adding = (state.players || []).filter(p => p && !have.has(p.id)).length;
+      let txt = existing + ' record' + (existing === 1 ? '' : 's') + ' already exist for this date — ' + (adding ? adding + ' new player' + (adding === 1 ? '' : 's') + ' will be added' : 'no new players to add') + '.';
+      if (rc.removed.length) txt += ' Unticked since, so their records will be removed: ' + rc.removed.map(x => x.name).join(', ') + '.';
+      if (rc.keptPaid.length) txt += ' Unticked but already paid, so kept: ' + rc.keptPaid.map(x => x.name).join(', ') + '.';
+      warn.textContent = txt;
+    }
     warn.style.display = (!n || existing) ? '' : 'none';
   }
   const btn = document.getElementById('eodGenerateBtn');
@@ -8589,8 +8599,10 @@ async function confirmEndOfDay() {
   if (!res.ok) { notify(res.error || 'Could not generate payment records.', 'warn'); renderEodConfirm(); return; }
   mergePaymentEntries(date, res.entries);
   const put = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-  put('eodResultText', Payments.eodSummaryText(res.created, res.existed));
-  put('eodResultSub', 'Default ' + Payments.fmtRM(Payments.feeForTier(res.tier || state.feeTier)) + ' · ' + (res.tier || Payments.tierOf(state.feeTier)) + '. Switch early leavers to 2h on their row.');
+  put('eodResultText', Payments.eodSummaryText(res.created, res.existed, res.removed));
+  put('eodResultSub', 'Default ' + Payments.fmtRM(Payments.feeForTier(res.tier || state.feeTier)) + ' · ' + (res.tier || Payments.tierOf(state.feeTier)) + '. Switch early leavers to 2h on their row.'
+    + (res.removedNames && res.removedNames.length ? ' Removed: ' + res.removedNames.join(', ') + '.' : '')
+    + (res.keptPaid && res.keptPaid.length ? ' Kept although unticked (already paid): ' + res.keptPaid.join(', ') + '.' : ''));
   document.getElementById('eodConfirm').style.display = 'none';
   document.getElementById('eodResult').style.display = '';
   pmDate = date;
@@ -8601,7 +8613,11 @@ async function confirmEndOfDay() {
 function mergePaymentEntries(date, entries) {
   const map = Array.isArray(entries) ? Object.fromEntries(entries.map(e => [e.playerId, e])) : (entries || {});
   const day = adminOps.attendance[date] || (adminOps.attendance[date] = { date, entries: {} });
-  day.entries = { ...(day.entries || {}), ...map };
+  // generatePayments returns the whole day: a record End of the day removed (player
+  // unticked since the last press) must disappear here too, not linger from the cache.
+  const merged = { ...(day.entries || {}), ...map };
+  if (!Array.isArray(entries)) Object.keys(merged).forEach(id => { if (!map[id] && merged[id] && merged[id].payment && merged[id].source === 'session') delete merged[id]; });
+  day.entries = merged;
 }
 function renderEodStatus() {
   const el = document.getElementById('eodStatus');
@@ -8687,7 +8703,7 @@ async function pmGenerateFor() {
   if (res === null) return;
   if (!res.ok) { notify(res.error || 'Could not generate payment records.', 'warn'); return; }
   mergePaymentEntries(date, res.entries);
-  notify(Payments.eodSummaryText(res.created, res.existed));
+  notify(Payments.eodSummaryText(res.created, res.existed, res.removed));
   renderPaymentsTab(); renderEodStatus(); updateAdminNavBadges();
 }
 // Autosave indicator: every tap posts immediately; this just makes that visible.

@@ -60,6 +60,33 @@ const set = (s, body, now) => H.handlePaymentAdminAction(s, Object.assign({ acti
   check('gen after new player: new record at now', s.attendance[DATE].entries.p3.payment.createdAt === NOW + 120000);
 }
 
+// ── 1b. second press reconciles against the ticked line-up ──
+{
+  const s = freshState();
+  gen(s);
+  set(s, { playerId: 'p0', paid: true, method: 'cash' });      // Thomas paid
+  // Harvey-style: Desmond (p1) was ticked at the start but could not make it → unticked.
+  s.players = s.players.filter(p => p.id !== 'p1');
+  // Thomas (p0) also unticked by mistake — but he paid, so his record must stay.
+  s.players = s.players.filter(p => p.id !== 'p0');
+  // Sharmin (p3) joined late.
+  s.players.push({ id: 'p3', name: 'Sharmin' });
+  // A manual attendance mark (not End-of-day-made) for someone off the line-up must survive.
+  s.attendance[DATE].entries.p9 = { playerId: 'p9', name: 'Guest', present: true, paid: false, source: 'manual', payment: P.newPayment('3h', NOW) };
+  const r = gen(s, DATE, NOW + 60000);
+  check('reconcile: unticked unpaid player is removed, late joiner added', r.body.removed === 1 && r.body.removedNames.join() === 'Desmond' && r.body.created === 1 && !s.attendance[DATE].entries.p1 && s.attendance[DATE].entries.p3);
+  check('reconcile: unticked but PAID player is kept and reported', r.body.keptPaid.join() === 'Thomas' && s.attendance[DATE].entries.p0 && s.attendance[DATE].entries.p0.paid === true);
+  check('reconcile: manual attendance record survives', s.attendance[DATE].entries.p9 && s.attendance[DATE].entries.p9.payment);
+  check('reconcile: counts (line-up only) + changed + audit note', r.body.existed === 1 && r.body.total === 2 && r.changed === true && /Removed \(unticked\): Desmond/.test(s.audit[0].note) && s.audit[0].newValue.removed === 1);
+  check('reconcile: summary text mentions the removal', P.eodSummaryText(r.body.created, r.body.existed, r.body.removed) === 'Generated 1 payment record, 1 already existed, 1 removed (no longer in the line-up)');
+  const again = gen(s, DATE, NOW + 120000);
+  check('reconcile: third press with nothing changed → no-op', again.body.created === 0 && again.body.removed === 0 && again.changed === false);
+  // Pure helper never mutates its input
+  const entries = { a: { playerId: 'a', name: 'A', paid: false, source: 'session', payment: {} } };
+  const out = P.reconcileInto(entries, []);
+  check('reconcileInto: input untouched, removal reported', entries.a && !out.entries.a && out.removed[0].id === 'a' && out.keptPaid.length === 0);
+}
+
 // ── 2. unique constraint (one record per player per session) ──
 {
   const s = freshState({ players: [{ id: 'p0', name: 'Thomas' }, { id: 'p0', name: 'Thomas dup' }, { id: 'p1', name: 'Desmond' }] });
