@@ -112,6 +112,11 @@ check('save posts adminShortcuts and repaints bar + card', fn('saveShortcuts').i
 check('reset button restores the defaults', html.includes('onclick="resetShortcuts()"') && fn('resetShortcuts').includes('AdminNav.DEFAULT_SHORTCUTS.slice()'));
 check('switch uses the blue accent, no emoji, no !important', html.includes('.sc-switch input:checked ~ .sc-track{background:var(--a-blue)}') && !/\.sc-[a-z-]*\{[^}]*!important/.test(html));
 check('help drawer documents the setting', /phone shortcuts<\/b>/.test(html));
+// Discoverability: the More sheet itself links to the card.
+check('More sheet has an Edit shortcuts row', html.includes('id="amsEditShortcuts"') && html.includes('onclick="closeMoreSheet();openShortcutsSettings()"') && html.includes('<span>Edit shortcuts</span>'));
+check('Edit shortcuts row sits in the fixed footer, after the dynamic tab rows', html.indexOf('id="amsEditShortcuts"') > html.indexOf('<div id="moreSheetTabs"></div>') && html.indexOf('id="amsEditShortcuts"') < html.indexOf('showViewer();closeMoreSheet()'));
+check('openShortcutsSettings opens Settings, scrolls to the card and flashes it', fn('openShortcutsSettings').includes("setAdminTab('settings')") && fn('openShortcutsSettings').includes("getElementById('shortcutsCard')") && fn('openShortcutsSettings').includes('scrollIntoView') && fn('openShortcutsSettings').includes("classList.add('sc-flash')"));
+check('flash + scroll offset styled without !important', html.includes('#shortcutsCard.sc-flash{box-shadow:0 0 0 3px var(--a-blue)}') && /#shortcutsCard\{scroll-margin-top/.test(html) && !/#shortcutsCard[^\n]*!important/.test(html));
 
 // ── executed glue: mobileNavHtml with stubs ──
 const factory = new Function('AdminNav', 'escHtml', 'ADMIN_NAV_ICONS',

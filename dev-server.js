@@ -41,17 +41,37 @@ const today = new Date();
 const todayIso = iso(today);
 const wd = today.getDay();                 // 0=Sun..6=Sat
 const other = (wd + 2) % 7, other2 = (wd + 4) % 7;
+// Test members (LOCAL ONLY — never touches production). Every roster field the
+// admin UI reads is populated so each tab has something to show: level 1.0–7.0
+// in 0.5 steps, Girl + Mixed flags (drive level-balanced matchmaking), points
+// spread across the loyalty tiers, and a phone so Accounts can link to them.
+const TEST_NAMES = ['Harvey','Desmond','Celine','Sharmin','Terence','Alex','Kokyan','Yit Fung',
+  'Ong Yi','Shane','Boon Chuan','Guo Ping','Kenn','Wei Hao','Yau','Jimmy','Jian','dean',
+  'Choon','Daryl','Karine','Seng','Zheng Quan','Chee Han','Milo','Ah Sheng','Michelle',
+  'Terrence','Yao','Daniel','Henry','Joe','Danny','Hui Tian','Ah Xiang','Irene','Yugene',
+  'Kuan Ming','Yong Jun','Vunhao','Mi Sung','Wei Chong','Hao','Justin','Boey','Harvey Ng'];
+const TEST_GIRLS = new Set(['Celine', 'Sharmin', 'Karine', 'Michelle', 'Hui Tian', 'Irene', 'Mi Sung', 'Boey']);
+const TEST_ROSTER = TEST_NAMES.map((name, i) => ({
+  id: 'p' + i, name, photo: null,
+  points: (i * 7) % 41,                       // 0–40 so Bronze→Gold tiers all appear
+  level: 1 + ((i * 3) % 13) / 2,              // 1.0 … 7.0 in 0.5 steps
+  girl: TEST_GIRLS.has(name),
+  mixed: TEST_GIRLS.has(name) || i % 4 === 0, // every girl + every 4th player plays mixed
+  phone: '01' + String(23456789 + i * 7919).slice(0, 8),
+}));
+// Tonight: the first 12 members are ticked in and Round 1 is already built on
+// both courts (8 playing, 4 resting) so Courts / Payments / End of the day have
+// real rows to work with straight away.
+const TEST_PLAYING = TEST_ROSTER.slice(0, 12).map((r) => ({ id: r.id, name: r.name }));
 STORE = {
-  roster: ['Harvey','Desmond','Celine','Sharmin','Terence','Alex','Kokyan','Yit Fung',
-    'Ong Yi','Shane','Boon Chuan','Guo Ping','Kenn','Wei Hao','Yau','Jimmy','Jian','dean',
-    'Choon','Daryl','Karine','Seng','Zheng Quan','Chee Han','Milo','Ah Sheng','Michelle',
-    'Terrence','Yao','Daniel','Henry','Joe','Danny','Hui Tian','Ah Xiang','Irene','Yugene',
-    'Kuan Ming','Yong Jun','Vunhao','Mi Sung','Wei Chong','Hao','Justin','Boey','Harvey Ng',
-  ].map((name, i) => ({ id: 'p' + i, name, photo: null, points: (i * 7) % 15 })),
-  players: [{ id: 'p5', name: 'Alex' }],   // Alex already ticked in for today
+  roster: TEST_ROSTER,
+  players: TEST_PLAYING,
   numCourts: 2,
   courtNumbers: [1, 2],
-  rounds: [],
+  rounds: [{ label: 'Round 1', courts: [
+    { team1: ['p0', 'p1'], team2: ['p2', 'p3'] },
+    { team1: ['p4', 'p5'], team2: ['p6', 'p7'] },
+  ] }],
   currentRound: 0,
   courtRounds: [0, 0],
   endingSoon: [],
@@ -179,6 +199,7 @@ server.listen(PORT, () => {
   console.log(`\n  TZH dev preview running (in-memory, Node-26 safe)\n`);
   console.log(`  Viewer:  http://localhost:${PORT}/`);
   console.log(`  Admin:   http://localhost:${PORT}/?admin   (password: TZH123)\n`);
+  console.log(`  Test members: ${STORE.roster.length} on the roster, ${STORE.players.length} ticked in tonight, Round 1 on ${STORE.numCourts} courts (local in-memory data only).`);
   console.log(`  Seeded: session date ${todayIso}; today's regulars = Harvey, Sharmin, Kokyan (Alex already in).`);
   console.log(`  Lucky Draw nights seeded: ${STORE.__seededDrawNights.join(', ')}  ->  http://localhost:${PORT}/#draw\n`);
 });
