@@ -107,6 +107,9 @@ check('canRecord is false in Node', DV.canRecord() === false);
 // ── index.html wiring ──
 check('draw-video.js is loaded after session-draw.js', html.indexOf('<script src="/draw-video.js"></script>') > html.indexOf('<script src="/session-draw.js"></script>'));
 check('calendar containers on the public page and the admin list', html.includes('id="drawPageCal"') && html.includes('id="sdAdminCal"'));
+check('public page: "Record" eyebrow sits between How-it-works and the calendar', (() => { const a = html.indexOf('id="drawPageHow"'), b = html.indexOf('class="md-sec-title sd-record-title">Record<'), c = html.indexOf('id="drawPageCal"'); return a > -1 && a < b && b < c; })());
+check('admin: Sessions card is titled "Record" with a pick-a-date hint above the calendar', (() => { const a = html.indexOf('</svg></span> Record</span>'), b = html.indexOf('Pick a date to see who won that night.'), c = html.indexOf('id="sdAdminCal"'); return a > -1 && a < b && b < c; })());
+check('record eyebrow has no double gap under the how-it-works box', html.includes('.sd-record-title{margin-top:0}'));
 check('video modal markup', html.includes('id="drawVideoModal"') && html.includes('id="dvCanvas"') && html.includes('id="dvDownload"') && html.includes('id="dvShare"') && html.includes('id="dvReplay"'));
 check('drawn session cards get Play / Download', fn('sdCardHtml').includes("if (w.length) html += sdVideoRowHtml(v.test ? 'test' : 'session', v.date);") && fn('sdVideoRowHtml').includes('Download video') && fn('sdVideoRowHtml').includes('Play replay'));
 check('manual quick draw cards rendered by the shared list', fn('renderDrawList').includes("i.kind === 'manual' ? qdCardHtml(i.e)") && fn('qdCardHtml').includes('DrawVideo.sourceFromManual(e)') && fn('qdCardHtml').includes('No replay'));

@@ -394,6 +394,11 @@ body.in-3d #joinModal{z-index:1300}
 .acct-pin-badge.none{color:var(--red)}
 .acct-meta{display:flex;flex-wrap:wrap;gap:3px 14px;font-size:var(--fs-xs);color:var(--text-2)}
 .acct-meta b{color:var(--text);font-weight:600}
+/* Payment standing chip on a linked account row: looks like the other meta chips, taps open the member ledger */
+.acct-owe{position:relative;appearance:none;background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.acct-owe::after{content:"";position:absolute;inset:-8px}
+.acct-owe:hover b{text-decoration:underline}
+.acct-owe.owe,.acct-owe.owe b{color:var(--red)}
 .acct-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .acct-actions .btn{min-height:44px}
 .acct-del{width:44px;min-width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;transition:var(--transition)}
@@ -1500,6 +1505,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .me-ov{font-size:var(--fs-sm);color:var(--text-2);margin-top:8px}
 .md-sec-title{font-size:var(--fs-xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px}
 .md-sec-title:first-child{margin-top:2px}
+.sd-record-title{margin-top:0}
 .audit-row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--border);font-size:var(--fs-sm)}
 .audit-main{color:var(--text-2);flex:1;min-width:180px} .audit-main b{color:var(--text)}
 .audit-val{color:var(--a-blue)} .audit-note{color:var(--muted)}
@@ -2339,6 +2345,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <button class="lb-close sd-close" onclick="closeDrawPage()" aria-label="Close Lucky Draw">&#x2715;</button>
     </div>
     <div class="sd-how" id="drawPageHow"></div>
+    <div class="md-sec-title sd-record-title">Record</div>
     <div class="sd-cal" id="drawPageCal"></div>
     <div class="sd-list" id="drawPageList"><div class="acct-empty">Loading&hellip;</div></div>
     <div class="sd-more" id="drawPageMore" style="display:none"><button class="btn btn-secondary btn-sm" onclick="loadDrawPage(true)">Show older sessions</button></div>
@@ -2363,11 +2370,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   </div>
 </div>
 
-<!-- Lucky Draw / Monthly Draw shared reveal overlay (anonymous name-reel picker) -->
+<!-- Lucky Draw / Shuttlecock (monthly) Draw shared reveal overlay (anonymous name-reel picker) -->
 <div id="pickerOverlay" role="dialog" aria-modal="true" aria-labelledby="pickerTitle" onclick="handlePickerOverlayClick(event)">
   <div class="confetti-container" id="pickerConfetti"></div>
   <button id="pickerCloseBtn" onclick="hidePickerOverlay()" aria-label="Close draw">&#x2715;</button>
-  <div id="pickerTitle">Monthly Lucky Draw</div>
+  <div id="pickerTitle">Shuttlecock Lucky Draw</div>
   <div id="pickerPrize" class="picker-prize"></div>
   <div class="picker-stage">
     <div id="pickerName" class="picker-name" aria-live="polite" role="status">&nbsp;</div>
@@ -2375,11 +2382,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <div id="pickerSub" class="picker-sub"></div>
 </div>
 
-<!-- Monthly Prize Draw Board -->
+<!-- Shuttlecock (monthly) Prize Draw Board -->
 <div id="mdBoardModal" role="dialog" aria-modal="true" aria-labelledby="mdBoardTitle">
   <div class="lb-box">
     <button class="lb-close" onclick="closeMdBoard()" aria-label="Close prize draw board">&#x2715;</button>
-    <h2 class="lb-header" id="mdBoardTitle">Monthly Prize Draw</h2>
+    <h2 class="lb-header" id="mdBoardTitle">Shuttlecock Prize Draw</h2>
     <div id="mdBoardBody"></div>
   </div>
 </div>
@@ -2696,10 +2703,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <!-- ── ENGAGEMENT TAB ─────────────────────── -->
   <div class="admin-tab-panel" data-tab="engagement">
 
-  <!-- Session draws / Monthly sub-tabs -->
+  <!-- Session draws / Shuttlecock (monthly) sub-tabs -->
   <div class="ld-subtabs">
     <button class="ld-subtab active" data-sub="weekly" onclick="setLuckyTab('weekly')">Session draws</button>
-    <button class="ld-subtab" data-sub="monthly" onclick="setLuckyTab('monthly')">Monthly</button>
+    <button class="ld-subtab" data-sub="monthly" onclick="setLuckyTab('monthly')">Shuttlecock</button>
   </div>
 
   <!-- ══ SESSION DRAWS (automatic per-session Lucky Draw) ══ -->
@@ -2731,8 +2738,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
     <!-- Sessions newest first (same cards as the public page, plus "Run draw now") -->
     <div class="admin-card">
-      <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> Sessions</span>
+      <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> Record</span>
         <button class="btn btn-ghost btn-sm" onclick="loadAdminDraws(false)"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 4v4h-4"/></svg> Refresh</button></div>
+      <div class="admin-helper-text">Pick a date to see who won that night.</div>
       <div class="sd-cal" id="sdAdminCal"></div>
       <div id="sdAdminList" class="sd-list"><div class="acct-empty">Loading&hellip;</div></div>
       <div class="sd-more" id="sdAdminMore" style="display:none"><button class="btn btn-secondary btn-sm" onclick="loadAdminDraws(true)">Show older sessions</button></div>
@@ -2765,12 +2773,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
   </div><!-- /session draws sub -->
 
-  <!-- ══ MONTHLY LUCKY DRAW ══ -->
+  <!-- ══ SHUTTLECOCK (MONTHLY) LUCKY DRAW ══ -->
   <div class="ld-sub" data-sub="monthly" style="display:none">
 
   <!-- Auto eligibility (attendance + payment) -->
   <div class="admin-card">
-    <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span> Monthly enrolment</span>
+    <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span> Shuttlecock Draw enrolment</span>
       <button class="btn btn-secondary btn-sm" onclick="recomputeMonthlyElig()"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 4v4h-4"/></svg> Recalculate</button></div>
     <div class="admin-helper-text">Players are auto-enrolled when they attended <b>and</b> paid every required session of their regular day(s) this month. Click a player to see the exact record.</div>
     <div id="monthlyEligBody"></div>
@@ -2967,7 +2975,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <details class="help-sec"><summary>Courts</summary><div>Build rounds, choose which courts are active, and manage who&rsquo;s resting. Each court&rsquo;s current match shows live on the viewer screen. When play ends, press <b>End of the day</b> (bottom of the tab) to create tonight&rsquo;s payment records.</div></details>
       <details class="help-sec"><summary>Payments</summary><div>The fee depends on how long each person stayed: <b>2h &middot; RM20</b> or <b>3h &middot; RM25</b>. The Session tab sets the default for the night; after <b>End of the day</b> every player in the line-up gets a row here at that default. Tap <b>2h</b> or <b>3h</b> on a row for early leavers, tap <b>Cash</b>, <b>TnG</b> or <b>DuitNow</b> as each person pays (one tap), or <b>Unpaid</b> to undo &mdash; paid rows drop to the bottom so whoever still owes stays at the top. Tap the amount for a one-off custom fee. Pressing End of the day again only adds players who joined later. Switch to <b>By member</b> to see everyone&rsquo;s running balance across every night on record; tap a member for their points, total outstanding and a night-by-night breakdown, and settle any night right there. A night is never removed from history while someone on it still owes.</div></details>
       <details class="help-sec"><summary>Lucky Draw &mdash; Session draws</summary><div>Every Monday, Friday and Sunday session gets one automatic draw at <b>9:00 AM</b> four mornings later (Mon &rarr; Fri, Fri &rarr; Tue, Sun &rarr; Thu). A player is in it when they attended <b>and</b> their payment was marked paid before that time &mdash; so <b>End of the day</b> and the Payments tab decide who is eligible. Set how many winners are picked. Results are permanent and never re-run; if the scheduled draw did not happen, <b>Run draw now</b> applies the same rules. Players see the winners and the replay video on the public Lucky Draw page; who attended and who paid stays admin-only.</div></details>
-      <details class="help-sec"><summary>Lucky Draw &mdash; Monthly</summary><div>Players are auto-enrolled when they attended <b>and</b> paid every required session of their regular day this month. Click a player to see the exact record, or override it. You can still import a CSV ballot and run the prize draw as before.</div></details>
+      <details class="help-sec"><summary>Lucky Draw &mdash; Shuttlecock</summary><div>The Shuttlecock Draw runs once a month. Players are auto-enrolled when they attended <b>and</b> paid every required session of their regular day this month. Click a player to see the exact record, or override it. You can still import a CSV ballot and run the prize draw as before.</div></details>
       <details class="help-sec"><summary>Sign-ups</summary><div>People who asked to join through the public form, newest first. Mark each one contacted once you&rsquo;ve reached out.</div></details>
       <details class="help-sec"><summary>Accounts</summary><div>Players request an account with their <b>phone number</b> + password. Approve a request and link it to an existing player, or reject with a reason. To help someone who forgot their password, open <b>Manage</b> &rarr; <b>Reveal</b> (re-enter your admin password) or set a temporary password. Deleting an account keeps the player &mdash; it only unlinks the login.</div></details>
       <details class="help-sec"><summary>Settings</summary><div>Share the viewer link, set the daily <b>site access code</b>, change the admin password, choose which social game days appear on the public sign-up, and set <b>weekly regulars</b> &mdash; players who always come on a given day, added to the line-up automatically when the session date lands on that day.</div></details>
@@ -8040,6 +8048,8 @@ function closePmModal() {
   if (m) m.classList.remove('open');
   document.body.style.overflow = '';
   pmModalKind = null;
+  // The member ledger can be opened from the Accounts tab; refresh its chips on close.
+  if (currentAdminTab === 'accounts') renderAcctList();
 }
 function pmBarsHtml(rows, key, fmtVal) {
   const max = Math.max(1, ...rows.map(r => r[key]));
@@ -8190,6 +8200,7 @@ async function pmWrite(pid, patch, apply, atDate) {
   if (res.entry) day.entries[pid] = res.entry; // authoritative paidAt / markedBy / updatedAt
   pmShowSave('saved');
   renderPmBody(); renderEodStatus(); updateAdminNavBadges();
+  if (currentAdminTab === 'accounts') renderAccountsTab(); // owing chip + counter behind the ledger popup
 }
 function pmTap(pid, tap) {
   const e = pmEntry(pid);
@@ -8934,7 +8945,9 @@ async function loadAccountsTab() {
   const list = document.getElementById('accountsList');
   if (!list) return;
   list.innerHTML = '<div class="acct-empty">Loading accounts…</div>';
-  const res = await apiPost({ action: 'adminListAccounts' });
+  // Accounts + ops (attendance/payments + audit) together: one paint, so the
+  // points/payment chips never flash "No records yet" before the ledger arrives.
+  const [res] = await Promise.all([apiPost({ action: 'adminListAccounts' }), loadAdminOps()]);
   if (res === null) return; // 401 already handled inside apiPost
   if (!res.ok || !Array.isArray(res.accounts)) {
     list.innerHTML = '<div class="acct-empty">Could not load accounts.</div>';
@@ -8943,13 +8956,13 @@ async function loadAccountsTab() {
   adminAccountsCache = res.accounts;
   adminAcctCounts = res.counts || {};
   renderAccountsTab();
-  loadAdminOps().then(renderAudit);
+  renderAudit();
 }
 
 const AUDIT_LABELS = {
   'attendance.present': 'Attendance changed', 'attendance.paid': 'Payment changed', 'attendance.seed': 'Attendance seeded',
   'draw.run': 'Session draw run (manual)', 'draw.settings': 'Winners per draw changed',
-  'weekly.draw': 'Weekly draw (retired)', 'weekly.settings': 'Weekly schedule (retired)', 'monthly.recompute': 'Monthly recalculated', 'monthly.override': 'Monthly override',
+  'weekly.draw': 'Weekly draw (retired)', 'weekly.settings': 'Weekly schedule (retired)', 'monthly.recompute': 'Shuttlecock draw recalculated', 'monthly.override': 'Shuttlecock draw override',
   'account.register': 'Account requested', 'account.approve': 'Account approved', 'account.reject': 'Account rejected',
   'account.more_info': 'More info requested', 'account.password_reveal': 'Password revealed', 'account.temp_password': 'Temp password set',
   'account.password_change': 'Password changed', 'account.force_change': 'Force-change toggled', 'account.lock': 'Account locked',
@@ -8984,6 +8997,13 @@ function renderAcctCounters() {
     ['More info', c.more_info || 0, 'wait'], ['Rejected', c.rejected || 0, 'bad'],
     ['Locked', c.locked || 0, 'bad'], ['Suspended', c.suspended || 0, 'bad'],
   ];
+  // Linked members who still owe for a session night (same ledger as the Payments tab).
+  if (window.Payments) {
+    const att = (adminOps && adminOps.attendance) || {};
+    const owing = (adminAccountsCache || []).filter(a => a && a.hasPlayer && a.playerId
+      && Payments.memberSummary(att, a.playerId, a.name || '').outstanding > 0).length;
+    chips.push(['Owing', owing, 'bad']);
+  }
   el.innerHTML = chips.map(([lbl, n, cls]) => `<div class="acct-count ${cls}"><b>${n}</b><span>${lbl}</span></div>`).join('');
 }
 
@@ -9047,6 +9067,21 @@ function renderAcctList() {
   list.innerHTML = accounts.map(accountCardHtml).join('');
 }
 
+// Points + payment standing for an account that is linked to a roster player.
+// Reuses the Payments member ledger (adminOps.attendance) so the numbers match
+// the Payments tab exactly; tapping the payment chip opens that member's ledger.
+function acctFinanceHtml(a) {
+  if (!a || !a.hasPlayer || !a.playerId || !window.Payments) return '';
+  const rp = state ? pmRosterPlayer(a.playerId) : null;
+  const pts = rp ? (rp.points || 0) : null;
+  const tier = pts === null ? null : tierForPoints(pts);
+  const m = Payments.memberSummary((adminOps && adminOps.attendance) || {}, a.playerId, a.name || '');
+  const owe = m.outstanding > 0;
+  const ptsLabel = pts === null ? '&mdash;' : escHtml(pts.toLocaleString()) + (tier ? ' · ' + escHtml(tier.name) : '');
+  return `<span>Points <b>${ptsLabel}</b></span>`
+    + `<button type="button" class="acct-owe${owe ? ' owe' : ''}" onclick="${pmCall('openPmMember', a.playerId)}" aria-haspopup="dialog">Payments <b>${escHtml(Payments.memberOweLabel(m))}</b></button>`;
+}
+
 function accountCardHtml(a) {
   const id = escHtml(a.id);
   const name = escHtml(a.name || '(no name)');
@@ -9069,6 +9104,7 @@ function accountCardHtml(a) {
       </div>
       <div class="acct-meta">
         ${linked}
+        ${acctFinanceHtml(a)}
         <span>Last login <b>${escHtml(acctFmtTsTime(a.lastLoginAt))}</b></span>
         <span>Failed <b>${escHtml(String(a.failedAttempts || 0))}</b></span>
         <span>Pw changed <b>${escHtml(acctFmtTs(a.pwChangedAt))}</b></span>
@@ -10116,7 +10152,7 @@ function checkForNewMonthlyDraw(md) {
 function showPickerOverlay(spin) {
   document.getElementById('pickerOverlay').classList.add('active');
   const titleEl = document.getElementById('pickerTitle');
-  if (titleEl) titleEl.textContent = (spin && spin.title) || 'Monthly Lucky Draw';
+  if (titleEl) titleEl.textContent = (spin && spin.title) || 'Shuttlecock Lucky Draw';
   const prizeEl = document.getElementById('pickerPrize');
   if (prizeEl) {
     const rank = (spin && spin.rank) || 1;
@@ -10547,12 +10583,12 @@ function renderMyDraw(data) {
   const m = data.monthly;
   html += '<div class="md-sec-title">This month</div>';
   if (m) {
-    html += '<div class="st-details"><div><span>Monthly draw</span><b>'
+    html += '<div class="st-details"><div><span>Shuttlecock draw</span><b>'
       + (m.eligible ? '<span class="st-badge ok">Enrolled</span>' : '<span class="st-badge bad">Not enrolled</span>') + '</b></div>'
       + '<div><span>Sessions counted</span><b>' + (m.attendedCount || 0) + '/' + (m.requiredCount || 0) + '</b></div></div>';
     if (!m.eligible && m.reason) html += '<div class="st-reason">' + escHtml(m.reason) + '</div>';
   } else {
-    html += '<div class="acct-empty">Monthly eligibility hasn’t been calculated yet.</div>';
+    html += '<div class="acct-empty">Shuttlecock draw eligibility hasn’t been calculated yet.</div>';
   }
   html += '<div class="md-sec-title">My recent sessions</div>';
   if (data.weekly && data.weekly.length) {
@@ -10562,7 +10598,7 @@ function renderMyDraw(data) {
   } else {
     html += '<div class="acct-empty">No recent session records yet.</div>';
   }
-  html += '<div class="md-sec-title">Monthly winners</div>' + publicWinnersHtml();
+  html += '<div class="md-sec-title">Shuttlecock draw winners</div>' + publicWinnersHtml();
   html += '<div class="admin-btn-row admin-mt" style="justify-content:center"><button class="btn btn-secondary btn-sm" type="button" onclick="closeMyDraw();openDrawPage()">Open the Lucky Draw page</button></div>';
   body.innerHTML = html;
 }
@@ -10570,7 +10606,7 @@ function renderMyDraw(data) {
 function publicWinnersHtml() {
   const items = [];
   const md = (state && state.monthlyDraw) || {};
-  (md.results || []).forEach(r => items.push({ at: r.at || 0, label: 'Monthly — ' + (r.prize || ''), name: r.name }));
+  (md.results || []).forEach(r => items.push({ at: r.at || 0, label: 'Shuttlecock — ' + (r.prize || ''), name: r.name }));
   items.sort((a, b) => b.at - a.at);
   const top = items.slice(0, 8);
   if (!top.length) return '<div class="acct-empty">No winners yet.</div>';

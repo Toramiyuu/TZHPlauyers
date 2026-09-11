@@ -110,4 +110,12 @@ check('test draw falls back to the roster when tonight has nobody', fn('runTestD
 check('test cards: badge, "not saved" footer, test video source', fn('sdCardHtml').includes("v.test ? 'test'") && fn('sdCardHtml').includes('Test draw · not saved') && fn('sdFindSource').includes("kind === 'test'"));
 check('public page retries a failed load once, then offers Try again', fn('loadDrawPage').includes('sdRetried') && fn('loadDrawPage').includes('onclick="loadDrawPage(false)"'));
 
+// ── Shuttlecock Draw rename (2026-09-11: the monthly draw is now labelled "Shuttlecock") ──
+check('Lucky Draw sub-tab reads "Shuttlecock" (data-sub stays monthly)', /data-sub="monthly" onclick="setLuckyTab\('monthly'\)">Shuttlecock<\/button>/.test(html));
+check('reveal overlay defaults to "Shuttlecock Lucky Draw"', html.includes('<div id="pickerTitle">Shuttlecock Lucky Draw</div>') && fn('showPickerOverlay').includes("|| 'Shuttlecock Lucky Draw'"));
+check('board title, enrolment card and help drawer are renamed', html.includes('id="mdBoardTitle">Shuttlecock Prize Draw</h2>') && html.includes('Shuttlecock Draw enrolment</span>') && /Lucky Draw &mdash; Shuttlecock<\/summary>/.test(html));
+check('player-facing copy is renamed', fn('renderMyDraw').includes('<span>Shuttlecock draw</span>') && fn('renderMyDraw').includes('Shuttlecock draw winners') && fn('publicWinnersHtml').includes("'Shuttlecock — '"));
+check('no user-visible "Monthly Lucky Draw" label remains', !/Monthly Lucky Draw|Monthly Prize Draw|>Monthly<\/button>/.test(html));
+check('month semantics copy is untouched', html.includes('Close month &amp; carry over') && html.includes('id="mdHistTitle">Past month</h2>'));
+
 process.exit(fail ? 1 : 0);
