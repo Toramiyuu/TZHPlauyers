@@ -764,9 +764,12 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .rl-row.in{background:var(--green-tint)}
 .rl-player{display:flex;align-items:center;gap:10px;min-width:0;cursor:pointer;border-radius:8px;padding:2px 4px;margin:-2px -4px}
 .rl-player:hover{background:rgba(0,113,227,.06)}
-.rl-check{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;transition:var(--transition)}
+/* The tick is a real button: on phones it is the ONLY control that adds or
+   removes a player, because a tap on the row body opens the drawer instead. */
+.rl-check{position:relative;appearance:none;-webkit-appearance:none;padding:0;margin:0;background:none;font-family:inherit;cursor:pointer;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;transition:var(--transition)}
 .rl-check.on{background:var(--green);border-color:var(--green)}
-.rl-player:hover .rl-check{border-color:var(--green-line)}
+.rl-player:hover .rl-check,.rl-check:hover{border-color:var(--green-line)}
+.rl-check:focus-visible{outline:2px solid var(--a-blue,#0071e3);outline-offset:2px}
 .rl-name{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rl-lvl-inp{width:66px;background:var(--dark);border:1px solid var(--border2);color:var(--muted);font-size:13px;font-weight:600;padding:6px 8px;border-radius:8px;font-family:inherit;text-align:center;transition:border-color .15s,color .15s}
 .rl-lvl-inp.set{color:var(--text);border-color:var(--a-blue,#0071e3)}
@@ -810,6 +813,10 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   .rl-mixed::before{content:'Mixed doubles'}
   .rl-girl .rl-toggle,.rl-mixed .rl-toggle{margin:0}
   .rl-lvl-inp{width:78px;padding:8px}
+  /* Tapping the name opens the drawer, so the tick needs a finger-sized target
+     of its own: 26px of ink, 44px of hit area via the transparent ::after. */
+  .rl-check{width:26px;height:26px;font-size:14px}
+  .rl-check::after{content:"";position:absolute;inset:-9px}
 }
 /* Roster search + sort controls row */
 .roster-controls{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
@@ -10320,6 +10327,36 @@ function setRosterView(v) {
   renderPlayersSection();
 }
 
+// The phone layout changes what a row tap DOES, not just how it looks, so the
+// breakpoint has to be readable from JS as well as CSS. Keep this string in sync
+// with the @media(max-width:560px) block in the stylesheet — test-roster-list-ui.js
+// asserts both use the same 560px.
+const RL_PHONE_MQ = '(max-width:560px)';
+function isRosterPhone() {
+  return !!(typeof window !== 'undefined' && window.matchMedia && window.matchMedia(RL_PHONE_MQ).matches);
+}
+
+// Tap on the row body (avatar + name). On a phone that opens the drawer; on
+// desktop it keeps the original tap-to-toggle. The tick button handles session
+// membership on both, so there is always exactly one way to add or remove.
+function rosterRowTap(id) {
+  if (isRosterPhone()) toggleRosterMore(id);
+  else toggleRosterPlayer(id);
+}
+
+// Crossing the breakpoint (rotating a phone into landscape) flips the meaning of
+// a row tap, so the rows have to be re-rendered with the other set of titles and
+// aria attributes. Closing the drawer on the way out keeps the desktop table clean.
+if (typeof window !== 'undefined' && window.matchMedia) {
+  const rlMq = window.matchMedia(RL_PHONE_MQ);
+  const onRlBreakpoint = () => {
+    __rlOpen = null;
+    if (typeof state !== 'undefined' && state && getRosterView() === 'list') renderPlayersSection();
+  };
+  if (rlMq.addEventListener) rlMq.addEventListener('change', onRlBreakpoint);
+  else if (rlMq.addListener) rlMq.addListener(onRlBreakpoint);
+}
+
 // Which row has its phone drawer open, or null. Only one at a time — a second
 // tap on the same chevron closes it. Held outside the render so the 2s admin poll
 // (and the optimistic re-render inside setPlayerLevel / togglePlayerGirl /
@@ -10343,6 +10380,7 @@ function renderRosterList(listEl, visibleRoster, sessionIds, q) {
     listEl.innerHTML = `<div class="rl-empty">No players match "${escHtml(q)}".</div>`;
     return;
   }
+  const phone = isRosterPhone();
   const rows = visibleRoster.map(rp => {
     // Level: a free rating from 1.0 to 7.0 in 0.5 steps. A number input lets the
     // admin type any value in range; blank leaves it "not set" (reads as 4.0 when
@@ -10356,11 +10394,19 @@ function renderRosterList(listEl, visibleRoster, sessionIds, q) {
     // Mixed cells drop into a drawer underneath (see __rlOpen). Same cells, just
     // re-placed by CSS — nothing is duplicated, and the desktop table is untouched.
     const open = __rlOpen === rp.id;
-    // The player cell toggles today's session (like tapping a Grid card); the
-    // Level/Girl/Mixed cells are separate columns so tapping them never toggles it.
+    // What a tap on the row body means depends on the layout. On desktop it
+    // toggles today's session, like tapping a Grid card. On a phone the name is
+    // the obvious thing to press to see more, so it opens the drawer instead and
+    // the tick becomes the ONLY way to add or remove someone — a mis-tap while
+    // reaching for the drawer can't silently drop a player from the night.
+    const rowAttrs = phone
+      ? `aria-expanded="${open}" title="Tap for level, girl and mixed"`
+      : `aria-pressed="${inS}" title="${inS ? 'Playing today — tap to remove from session' : "Tap to add to today's session"}"`;
+    // The Level/Girl/Mixed cells are separate columns so tapping them never
+    // toggles the session; the tick stops propagation for the same reason.
     return `<div class="rl-row${inS ? ' in' : ''}${open ? ' open' : ''}">
-      <div class="rl-player" onclick="toggleRosterPlayer('${rp.id}')" role="button" tabindex="0" aria-pressed="${inS}" title="${inS ? 'Playing today — tap to remove from session' : "Tap to add to today's session"}">
-        <span class="rl-check${inS ? ' on' : ''}" aria-hidden="true">${inS ? '✓' : ''}</span>
+      <div class="rl-player" onclick="rosterRowTap('${rp.id}')" role="button" tabindex="0" ${rowAttrs}>
+        <button type="button" class="rl-check${inS ? ' on' : ''}" aria-pressed="${inS}" onclick="event.stopPropagation();toggleRosterPlayer('${rp.id}')" title="${inS ? 'Playing today — tap to remove from session' : "Tap to add to today's session"}" aria-label="${inS ? 'Remove' : 'Add'} ${escHtml(rp.name)} ${inS ? "from today's session" : "to today's session"}">${inS ? '✓' : ''}</button>
         ${avatarHTML(rp, 32)}<span class="rl-name">${escHtml(rp.name)}</span>
       </div>
       <div class="rl-level">${seg}</div>

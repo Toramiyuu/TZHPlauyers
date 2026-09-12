@@ -69,7 +69,7 @@ check('Level / Girl / Mixed cells are still rendered once (moved by CSS, not dup
 check('the chevron is hidden outside the phone breakpoint', html.includes('.rl-more{display:none}'));
 check('the desktop five-column grid is unchanged', html.includes('.rl-head,.rl-row{display:grid;grid-template-columns:1fr auto 52px 72px 44px;align-items:center;gap:12px;padding:10px 14px}'));
 check('the phone breakpoint is 560px', html.includes('@media(max-width:560px){'));
-const mq = html.slice(html.indexOf('@media(max-width:560px){'), html.indexOf('@media(max-width:560px){') + 2000);
+const mq = html.slice(html.indexOf('@media(max-width:560px){'), html.indexOf('@media(max-width:560px){') + 2600);
 check('phone rows collapse to Player / chevron / Pts', mq.includes('.rl-head,.rl-row{grid-template-columns:1fr 40px 44px;'));
 check('the Level/Girl/Mixed headers drop out on phones', mq.includes('.rl-head span:nth-child(2),.rl-head span:nth-child(3),.rl-head span:nth-child(4){display:none}'));
 check('Pts stays in the last column in the header', mq.includes('.rl-head span:nth-child(5){grid-column:3}'));
@@ -81,6 +81,58 @@ check('the toggles stop centring themselves inside the drawer', mq.includes('.rl
 check('the level input gets room back', mq.includes('.rl-lvl-inp{width:78px;padding:8px}'));
 check('the old 430px column-cramming rule is gone', !html.includes('@media(max-width:430px){.rl-head,.rl-row{gap:7px'));
 check('no !important in the phone rules', !/!important/.test(mq));
+
+// ── phone: the row tap opens the drawer, the tick owns session membership ──
+// On a phone the name is the obvious thing to press for "more", so pressing it
+// must NOT drop the player from tonight's line-up.
+const tap = new Function(`
+  let __rlOpen = null, phone = false, toggled = [], rendered = 0;
+  function renderPlayersSection(){ rendered++; }
+  function toggleRosterPlayer(id){ toggled.push(id); }
+  function isRosterPhone(){ return phone; }
+  ${fn('toggleRosterMore')}
+  ${fn('rosterRowTap')}
+  return {
+    setPhone: v => { phone = v; },
+    tapRow: rosterRowTap,
+    open: () => __rlOpen,
+    toggled: () => toggled,
+  };
+`)();
+
+tap.setPhone(true);
+tap.tapRow('p2');
+check('phone: tapping the row opens the drawer', tap.open() === 'p2');
+check('phone: tapping the row does NOT add or remove the player', tap.toggled().length === 0);
+tap.tapRow('p2');
+check('phone: tapping the same row again closes the drawer', tap.open() === null && tap.toggled().length === 0);
+
+tap.setPhone(false);
+tap.tapRow('p5');
+check('desktop: tapping the row still toggles the session', tap.toggled().join() === 'p5');
+check('desktop: tapping the row does not open a drawer', tap.open() === null);
+
+check('the JS breakpoint matches the CSS one', html.includes("const RL_PHONE_MQ = '(max-width:560px)';") && html.includes('@media(max-width:560px){'));
+check('isRosterPhone reads it through matchMedia, guarded for non-browser use', fn('isRosterPhone').includes('window.matchMedia(RL_PHONE_MQ).matches') && fn('isRosterPhone').includes("typeof window !== 'undefined'"));
+check('crossing the breakpoint re-renders so the tap semantics stay truthful', html.includes('const onRlBreakpoint = () => {') && html.includes("getRosterView() === 'list') renderPlayersSection();") && html.includes("rlMq.addEventListener('change', onRlBreakpoint)"));
+check('the breakpoint listener closes any open drawer', /const onRlBreakpoint = \(\) => \{\s*__rlOpen = null;/.test(html));
+check('the breakpoint listener falls back to addListener for old Safari', html.includes('else if (rlMq.addListener) rlMq.addListener(onRlBreakpoint);'));
+
+// ── the tick is a real button that never double-fires ──
+check('the tick is a button, not a decorative span', row.includes('<button type="button" class="rl-check${inS ? \' on\' : \'\'}"'));
+check('the tick stops propagation so it never also runs the row tap', row.includes("onclick=\"event.stopPropagation();toggleRosterPlayer('${rp.id}')\""));
+check('the tick carries its own pressed state and label', row.includes('aria-pressed="${inS}"') && row.includes("aria-label=\"${inS ? 'Remove' : 'Add'} ${escHtml(rp.name)}"));
+check('the tick is no longer hidden from screen readers', !row.includes('class="rl-check${inS ? \' on\' : \'\'}" aria-hidden="true"'));
+check('the row body dispatches through rosterRowTap, not toggleRosterPlayer', row.includes("onclick=\"rosterRowTap('${rp.id}')\"") && !row.includes("<div class=\"rl-player\" onclick=\"toggleRosterPlayer("));
+check('row aria/title swap with the layout (aria-expanded on phone, aria-pressed on desktop)', row.includes('const rowAttrs = phone') && row.includes('aria-expanded="${open}" title="Tap for level, girl and mixed"') && row.includes("title=\"${inS ? 'Playing today"));
+check('the layout is read once per render, not once per row', row.includes('const phone = isRosterPhone();') && row.indexOf('const phone = isRosterPhone();') < row.indexOf('visibleRoster.map'));
+
+// ── CSS for the tick button ──
+check('.rl-check resets button chrome and can host a hit area', /\.rl-check\{position:relative;appearance:none;-webkit-appearance:none;padding:0;margin:0;background:none;font-family:inherit;cursor:pointer;/.test(html));
+check('.rl-check keeps its filled "on" look', html.includes('.rl-check.on{background:var(--green);border-color:var(--green)}'));
+check('.rl-check has a visible keyboard focus ring', html.includes('.rl-check:focus-visible{outline:2px solid var(--a-blue,#0071e3);outline-offset:2px}'));
+check('phone: the tick grows to 26px of ink', mq.includes('.rl-check{width:26px;height:26px;font-size:14px}'));
+check('phone: the tick gets a 44px hit area', mq.includes('.rl-check::after{content:"";position:absolute;inset:-9px}'));
 
 console.log(`\ntest-roster-list-ui: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
