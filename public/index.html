@@ -2122,7 +2122,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div id="authSignin">
       <div id="authCodePane">
         <p class="modal-desc">Type the login code the organiser gave you to see your points, payments and draw wins.</p>
-        <input id="siCode" class="modal-input auth-code-input" type="text" placeholder="e.g. Harvey#123" autocomplete="off"
+        <input id="siCode" class="modal-input auth-code-input" type="text" placeholder="e.g. Thomas#123" autocomplete="off"
           autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="32" inputmode="text"
           onkeydown="if(event.key==='Enter')submitCodeSignin()">
         <div class="auth-error" id="siCodeError" role="alert"></div>
@@ -3106,7 +3106,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <div class="admin-card">
     <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16.2c.6-1.9 2-2.9 3.5-2.9s2.9 1 3.5 2.9"/></svg></span> Accounts</span>
       <button class="btn btn-secondary btn-sm" onclick="loadAccountsTab()"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 4v4h-4"/></svg> Refresh</button></div>
-    <div class="admin-helper-text">Members sign in with a <b>login code</b> like <b>Harvey#123</b> to see their points, what they owe and their draw wins. Assign codes once, then tap a code to copy it and send it to that member in person.</div>
+    <div class="admin-helper-text">Members sign in with a <b>login code</b> like <b>Thomas#123</b> to see their points, what they owe and their draw wins. Assign codes once, then tap a code to copy it and send it to that member in person.</div>
     <div class="pw-warning"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M12 8v4M12 16h.01"/></svg> Codes and passwords are private. Only share a code with the member it belongs to.</div>
     <div class="acct-counters" id="acctCounters"></div>
     <div class="admin-btn-row admin-mt">
@@ -3245,7 +3245,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <details class="help-sec"><summary>Lucky Draw &mdash; Monthly draws</summary><div>A points draw once a month. Everyone who reaches the <b>points needed</b> (default 80) during the month is in it; points go back to zero when the month ends. With the <b>automatic</b> switch on, the draw runs itself at <b>9:00 AM on the 1st</b> of the next month; switch it off to run it yourself. <b>Pull players</b> lists everyone at the threshold right now (untick anyone who should sit out), then <b>Run draw now</b> draws this month on the spot. Set how many winners are picked and the ordered prize list &mdash; the 1st winner gets prize 1, the 2nd gets prize 2. Each prize has a <b>quantity</b> (so one winner can take, say, 2 tubes of shuttlecocks), an optional <b>description</b>, and a photo; these show on the public Lucky Draw page, and the winner&rsquo;s prize (with quantity) in the replay video. One draw per month; results are permanent.</div></details>
       <details class="help-sec"><summary>Lucky Draw &mdash; Shuttlecock</summary><div>The Shuttlecock Draw runs once a month. Players are auto-enrolled when they attended <b>and</b> paid every required session of their regular day this month. Click a player to see the exact record, or override it. You can still import a CSV ballot and run the prize draw as before.</div></details>
       <details class="help-sec"><summary>Sign-ups</summary><div>People who asked to join through the public form, newest first. Mark each one contacted once you&rsquo;ve reached out.</div></details>
-      <details class="help-sec"><summary>Accounts</summary><div>Members sign in with a <b>login code</b> like <b>Harvey#123</b> and see their points, what they owe and their draw wins. Press <b>Assign codes to everyone</b> once, then tap a code to copy it and send it to that member; <b>Manage</b> &rarr; <b>Login code</b> lets you type your own, make a new one or remove it. Phone + password sign-in still works for anyone who has one: approve requests, or open <b>Manage</b> &rarr; <b>Reveal</b> / temporary password to help with a forgotten password. Deleting an account keeps the player &mdash; it only removes the login.</div></details>
+      <details class="help-sec"><summary>Accounts</summary><div>Members sign in with a <b>login code</b> like <b>Thomas#123</b> and see their points, what they owe and their draw wins. Press <b>Assign codes to everyone</b> once, then tap a code to copy it and send it to that member; <b>Manage</b> &rarr; <b>Login code</b> lets you type your own, make a new one or remove it. Phone + password sign-in still works for anyone who has one: approve requests, or open <b>Manage</b> &rarr; <b>Reveal</b> / temporary password to help with a forgotten password. Deleting an account keeps the player &mdash; it only removes the login.</div></details>
       <details class="help-sec"><summary>Settings</summary><div>Share the viewer link, set the daily <b>site access code</b>, change the admin password, pick the <b>phone shortcuts</b> (which tabs sit in the bottom bar on phones &mdash; up to 4, the rest live under More), choose which social game days appear on the public sign-up, and set <b>weekly regulars</b> &mdash; players who always come on a given day, added to the line-up automatically when the session date lands on that day.</div></details>
     </div>
   </div>
@@ -11526,7 +11526,7 @@ async function submitCodeSignin() {
 }
 function openNoCode() {
   showInfoModal('Don’t have a login code?',
-    'Ask the TZH organiser at your next session — every member has a code like Harvey#123. '
+    'Ask the TZH organiser at your next session — every member has a code like Thomas#123. '
     + 'Codes are handed out in person, not by SMS, WhatsApp or email.');
 }
 
