@@ -756,7 +756,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 /* Players List view — bulk level + mixed table */
 .roster-list{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;margin-bottom:10px;background:var(--card)}
 .rl-empty{color:var(--muted);font-size:13px;padding:14px}
-.rl-head,.rl-row{display:grid;grid-template-columns:1fr auto 52px 72px 44px;align-items:center;gap:12px;padding:10px 14px}
+.rl-head,.rl-row{display:grid;grid-template-columns:1fr auto 52px 72px 108px;align-items:center;gap:12px;padding:10px 14px}
 .rl-head{background:var(--card2);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .rl-head span:nth-child(3),.rl-head span:nth-child(4){text-align:center}
 .rl-head span:nth-child(5){text-align:right}
@@ -785,7 +785,14 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .rl-toggle.girl.on{background:var(--pink)}
 .rl-knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:var(--shadow-sm);transition:transform .18s}
 .rl-toggle.on .rl-knob{transform:translateX(18px)}
-.rl-pts{text-align:right;font-size:14px;font-weight:700;color:var(--text)}
+/* Points are editable in place: − [total] +. The organiser awards and corrects
+   them by hand; the automatic +2 a session still writes the same field. */
+.rl-pts{display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:14px;font-weight:700;color:var(--text)}
+.rl-pts-inp{width:52px;background:var(--dark);border:1px solid var(--border2);color:var(--text);font-size:14px;font-weight:700;padding:6px 4px;border-radius:8px;font-family:inherit;text-align:center;transition:border-color .15s}
+.rl-pts-inp:focus{outline:none;border-color:var(--a-blue,#0071e3)}
+.rl-pt-step{width:22px;height:26px;flex-shrink:0;appearance:none;-webkit-appearance:none;padding:0;border:1px solid var(--border2);border-radius:7px;background:var(--card2);color:var(--muted);font-family:inherit;font-size:14px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+.rl-pt-step:hover{color:var(--text);border-color:var(--a-blue,#0071e3)}
+.rl-pt-step:focus-visible{outline:2px solid var(--a-blue,#0071e3);outline-offset:1px}
 /* ── Phone: fold Level / Girl / Mixed into a per-row drawer ───────────────────
    Five fixed columns (52 + 72 + 44 + the level input + four gaps) ate the whole
    390px row, leaving ~0px for .rl-name — every name truncated to one letter.
@@ -795,7 +802,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
    every onclick and aria-label carries over and the desktop grid is untouched. */
 .rl-more{display:none}
 @media(max-width:560px){
-  .rl-head,.rl-row{grid-template-columns:1fr 40px 44px;column-gap:8px;row-gap:0;padding:8px 12px}
+  .rl-head,.rl-row{grid-template-columns:1fr 40px 60px;column-gap:8px;row-gap:0;padding:8px 12px}
   .rl-head span:nth-child(2),.rl-head span:nth-child(3),.rl-head span:nth-child(4){display:none}
   .rl-head span:nth-child(5){grid-column:3}
   .rl-player{grid-area:1/1}
@@ -817,6 +824,10 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
      of its own: 26px of ink, 44px of hit area via the transparent ::after. */
   .rl-check{width:26px;height:26px;font-size:14px}
   .rl-check::after{content:"";position:absolute;inset:-9px}
+  /* A 22px stepper is far below a usable touch target, so on a phone the points
+     box is typed into directly and the − / + buttons stay on the mouse layout. */
+  .rl-pt-step{display:none}
+  .rl-pts-inp{width:100%;padding:8px 2px}
 }
 /* Roster search + sort controls row */
 .roster-controls{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
@@ -872,7 +883,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 @media(prefers-reduced-motion:reduce){.confetti-piece{display:none}}
 
 /* ── MONTHLY LUCKY DRAW ───────────────────── */
-.md-summary{font-size:var(--fs-xs);font-weight:600;color:var(--green-light);background:var(--green-tint);border:1px solid var(--green-line);padding:2px 8px;border-radius:100px;margin-left:6px}
+.md-summary{font-size:var(--fs-xs);font-weight:600;color:var(--green-light);background:var(--green-tint);border:1px solid var(--green-line);padding:2px 8px;border-radius:100px;margin-left:6px;white-space:nowrap}
 .md-prizes{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .md-prize-row{display:flex;align-items:center;gap:10px}
 .md-prize-rank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;border:1px solid}
@@ -885,7 +896,10 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .md-cust-name{font-size:var(--fs-base);font-weight:600;color:var(--text);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .md-cust-phone{font-size:var(--fs-xs);color:var(--muted)}
 .md-tokens{font-size:var(--fs-xs);font-weight:700;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);border:1px solid var(--accent-line);padding:2px 8px;border-radius:100px;white-space:nowrap}
-.md-leftover{font-size:10px;color:var(--muted);white-space:nowrap}
+/* No nowrap: on a phone this line is wider than the space left beside the tube
+   stepper, and it used to spill out of the row and be painted over mid-word
+   ("0 tubes carr"). Wrapping keeps the whole sentence readable. */
+.md-leftover{font-size:10px;color:var(--muted)}
 .md-tube-step{display:flex;align-items:center;gap:4px}
 .md-tube-step button{width:26px;height:26px;border-radius:6px;border:1px solid var(--border2);background:var(--card);color:var(--text);font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
 .md-tube-step button:hover{border-color:var(--green);color:var(--green-light)}
@@ -1082,7 +1096,13 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 /* Admin card — dashboard section card */
 .admin-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--sp-md) var(--sp-md)}
 .admin-card-title{font-family:var(--font-mono);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.18em;color:var(--muted);margin-bottom:var(--sp-md);font-weight:700;display:flex;align-items:center;gap:7px}
-.admin-card-title span{font-size:16px;display:inline-flex;align-items:center}
+.admin-card-title span{display:inline-flex;align-items:center}
+/* Only the span that wraps the icon is icon-sized. Scoping this matters: a title
+   that wraps its own text in a span (the title-row cards) used to render 16px —
+   a third bigger than every other card title — and the small status pills that
+   sit at the end of those rows were blown up to 16px too, wrapping onto two
+   lines and colliding with the title on a phone. */
+.admin-card-title span:has(> .ic){font-size:16px}
 .admin-card-title .ic,.section-title .ic{width:16px;height:16px;color:var(--lime)}
 
 /* Form utilities */
@@ -1094,7 +1114,10 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
 /* Session tab */
 .admin-date-display{font-size:var(--fs-md);font-weight:600;color:var(--text);margin-bottom:var(--sp-sm)}
-.admin-card-title-row{justify-content:space-between}
+/* Title + status pill. On a narrow phone a long title (e.g. "Eligible ·
+   September 2026") can't share one line with its pill, so let the pill drop to
+   its own line instead of being squeezed. */
+.admin-card-title-row{justify-content:space-between;flex-wrap:wrap;row-gap:6px}
 .admin-session-count{font-size:var(--fs-sm);color:var(--green-light);font-weight:600;text-transform:none;letter-spacing:0}
 /* Spacing utilities */
 .admin-mt{margin-top:var(--sp-sm)}
@@ -10435,10 +10458,60 @@ function renderRosterList(listEl, visibleRoster, sessionIds, q) {
       <div class="rl-girl"><button class="rl-toggle girl${gl ? ' on' : ''}" role="switch" aria-checked="${gl}" onclick="togglePlayerGirl('${rp.id}')" aria-label="${escHtml(rp.name)} is a girl ${gl ? 'yes' : 'no'}"><span class="rl-knob"></span></button></div>
       <div class="rl-mixed"><button class="rl-toggle${mx ? ' on' : ''}" role="switch" aria-checked="${mx}" onclick="togglePlayerMixed('${rp.id}')" aria-label="Mixed doubles for ${escHtml(rp.name)} ${mx ? 'eligible' : 'not eligible'}"><span class="rl-knob"></span></button></div>
       <button type="button" class="rl-more" aria-expanded="${open}" onclick="toggleRosterMore('${rp.id}')" aria-label="${open ? 'Hide' : 'Show'} level, girl and mixed for ${escHtml(rp.name)}">${open ? '\u2303' : '\u2304'}</button>
-      <div class="rl-pts">${rp.points || 0}</div>
+      <div class="rl-pts">
+        <button type="button" class="rl-pt-step" onclick="event.stopPropagation();bumpPlayerPoints('${rp.id}',-1)" aria-label="One point off ${escHtml(rp.name)}">&minus;</button>
+        <input type="number" class="rl-pts-inp" min="0" step="1" inputmode="numeric" value="${rp.points || 0}" onclick="event.stopPropagation()" onfocus="this.select()" onchange="setPlayerPoints('${rp.id}',this.value)" aria-label="Points for ${escHtml(rp.name)}">
+        <button type="button" class="rl-pt-step" onclick="event.stopPropagation();bumpPlayerPoints('${rp.id}',1)" aria-label="One point on for ${escHtml(rp.name)}">+</button>
+      </div>
     </div>`;
   }).join('');
   listEl.innerHTML = `<div class="rl-head"><span>Player</span><span>Level</span><span>Girl</span><span>Mixed</span><span>Pts</span></div>${rows}`;
+}
+
+// ── MANUAL POINTS ────────────────────────────────────────────────────────────
+// Points normally accrue automatically (+2 a session) and are wiped at month
+// close, but the organiser needs to correct or award them by hand. Both helpers
+// go through the validated, audited setRosterPoints action rather than posting
+// the whole roster back — points decide the Monthly draw, so a silent clobber
+// from a stale read would be expensive. See [[apipost-silent-success]].
+
+// Write a points change, render optimistically, then reconcile with whatever
+// the server actually stored (it clamps, so the two can legitimately differ).
+async function writePlayerPoints(id, body, optimistic) {
+  const roster = (state.roster || []).map(r => r.id === id ? { ...r, points: optimistic } : r);
+  state.roster = roster;
+  renderPlayersSection();
+
+  const r = await apiPost({ action: 'setRosterPoints', playerId: id, ...body })
+    .catch(() => ({ error: 'Network error — points not saved.' }));
+  if (!r) return;                      // 401: apiPost already bounced to the prompt
+  if (!r.ok || r.error) {
+    // Put the old number back rather than leaving a total that was never saved.
+    await refreshState();
+    renderPlayersSection();
+    return notify(r.error || 'Could not save those points.', 'warn');
+  }
+  if (r.roster) state.roster = r.roster;
+  renderPlayersSection();
+}
+
+// Typed straight into the points box: set the total outright.
+async function setPlayerPoints(id, value) {
+  const cur = (state.roster || []).find(r => r.id === id);
+  if (!cur) return;
+  const n = Math.round(Number(value));
+  if (!Number.isFinite(n) || n < 0) { renderPlayersSection(); return notify('Points must be 0 or more.', 'warn'); }
+  if (n === (cur.points || 0)) return;
+  await writePlayerPoints(id, { points: n }, n);
+}
+
+// The − / + buttons. Sent as a delta so the server adjusts the total it holds,
+// which keeps a tap correct even if the automatic session award landed first.
+async function bumpPlayerPoints(id, delta) {
+  const cur = (state.roster || []).find(r => r.id === id);
+  if (!cur) return;
+  const optimistic = Math.max(0, (cur.points || 0) + delta);
+  await writePlayerPoints(id, { delta }, optimistic);
 }
 
 // Optimistic edits: set locally + render instantly, then persist. An empty

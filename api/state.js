@@ -7,6 +7,7 @@ const SD = require('../public/session-draw.js');
 const { MONTHLY_LUCKY_ADMIN_ACTIONS, handleMonthlyLuckyAdminAction, sweepMonthlyDraws, buildMonthlyView, redisMonthlyStore, applyMonthClose } = require('../lib/monthly-lucky.js');
 const ML = require('../public/monthly-lucky.js');
 const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('../lib/payments.js');
+const { pushAudit } = require('../lib/audit.js');
 const Payments = require('../public/payments.js');
 const AdminNav = require('../public/admin-nav.js');
 
@@ -314,6 +315,53 @@ function buildRosterAdditions(roster, names, nowMs) {
     points: 0,
   }));
   return { ok: true, players };
+}
+
+// Manual points edit. Points drive Monthly-draw eligibility and are wiped at
+// month close, so an organiser override is validated here and written to the
+// audit log rather than riding the generic roster merge. Pure: returns the new
+// roster (or an error) and never mutates the one it is given.
+const MAX_POINTS = 100000;
+
+function isPointsValue(n) {
+  return Number.isInteger(n) && n >= 0 && n <= MAX_POINTS;
+}
+
+/**
+ * `points` sets the total outright; `delta` adjusts the current total (the +/-
+ * buttons). Exactly one of them must be supplied. The result is always clamped
+ * into 0..MAX_POINTS so a stepper can never drive a player negative.
+ */
+function buildRosterPointsUpdate(roster, playerId, body) {
+  const list = Array.isArray(roster) ? roster : [];
+  const idx = list.findIndex((r) => r && r.id === playerId);
+  if (idx === -1) return { ok: false, error: 'That player is not on the roster.' };
+
+  const hasPoints = body && body.points !== undefined && body.points !== null && body.points !== '';
+  const hasDelta = body && body.delta !== undefined && body.delta !== null && body.delta !== '';
+  if (hasPoints === hasDelta) return { ok: false, error: 'Send either points or delta.' };
+
+  const prev = Number.isInteger(list[idx].points) ? list[idx].points : 0;
+  // Only a number or a numeric string counts. Number(true) is 1 and Number([])
+  // is 0, so coercing whatever arrives would let junk set a real total.
+  const numeric = (v) => (typeof v === 'number' || typeof v === 'string') ? Number(v) : NaN;
+
+  let next;
+  if (hasPoints) {
+    next = numeric(body.points);
+    if (!isPointsValue(next)) {
+      return { ok: false, error: 'Points must be a whole number from 0 to ' + MAX_POINTS + '.' };
+    }
+  } else {
+    const d = numeric(body.delta);
+    if (!Number.isInteger(d) || Math.abs(d) > MAX_POINTS) return { ok: false, error: 'Invalid points change.' };
+    next = Math.max(0, Math.min(MAX_POINTS, prev + d));
+  }
+
+  const player = Object.assign({}, list[idx], { points: next });
+  const updated = list.slice();
+  updated[idx] = player;
+  return { ok: true, roster: updated, player, prev, next };
 }
 
 // already in today's session, and the ids currently on the roster, return the
@@ -881,6 +929,29 @@ const handler = async function handler(req, res) {
       return res.json({ ok: true, added: built.players.length, roster: state.roster });
     }
 
+    // Manual points edit from the Players list (organiser override).
+    if (updates.action === 'setRosterPoints') {
+      const built = buildRosterPointsUpdate(state.roster, updates.playerId, updates);
+      if (!built.ok) return res.status(400).json({ error: built.error });
+      if (built.prev !== built.next) {
+        state.roster = built.roster;
+        pushAudit(state, {
+          action: 'roster.points',
+          admin: 'admin',
+          target: { type: 'player', id: built.player.id, label: built.player.name || built.player.id },
+          prevValue: built.prev,
+          newValue: built.next,
+        });
+        try {
+          await kv.set(STATE_KEY, state);
+        } catch (e) {
+          console.error('KV write error (setRosterPoints):', e.message);
+          return res.status(500).json({ error: 'Storage error.' });
+        }
+      }
+      return res.json({ ok: true, playerId: built.player.id, points: built.next, roster: state.roster });
+    }
+
     // Handle updateSession action (edit a historical session)
     if (updates.action === 'updateSession') {
       const { date, session } = updates;
@@ -964,6 +1035,9 @@ module.exports.buildMonthlyView = buildMonthlyView;
 module.exports.publicProjection = publicProjection;
 module.exports.todayISO = todayISO;
 module.exports.buildRosterAdditions = buildRosterAdditions;
+module.exports.buildRosterPointsUpdate = buildRosterPointsUpdate;
+module.exports.isPointsValue = isPointsValue;
+module.exports.MAX_POINTS = MAX_POINTS;
 module.exports.MAX_ROSTER = MAX_ROSTER;
 module.exports.MAX_BULK_ADD = MAX_BULK_ADD;
 module.exports.MAX_ROSTER_NAME = MAX_ROSTER_NAME;

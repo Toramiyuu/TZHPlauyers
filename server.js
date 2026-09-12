@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const os = require('os');
 // Reuse the serverless submit validator + clock so local dev matches production.
-const { buildSignups, todayISO, applySessionDateChange, publicProjection, buildRosterAdditions } = require('./api/state.js');
+const { buildSignups, todayISO, applySessionDateChange, publicProjection, buildRosterAdditions, buildRosterPointsUpdate } = require('./api/state.js');
 const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction } = require('./lib/accounts.js');
 const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction } = require('./lib/weekly.js');
 const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('./lib/payments.js');
@@ -187,6 +187,13 @@ app.post('/api/state', async (req, res) => {
     if (!built.ok) return res.status(400).json({ error: built.error });
     state.roster = [...(Array.isArray(state.roster) ? state.roster : []), ...built.players];
     return res.json({ ok: true, added: built.players.length, roster: state.roster });
+  }
+  // Mirrors api/state.js — manual points override from the Players list.
+  if (updates.action === 'setRosterPoints') {
+    const built = buildRosterPointsUpdate(state.roster, updates.playerId, updates);
+    if (!built.ok) return res.status(400).json({ error: built.error });
+    if (built.prev !== built.next) state.roster = built.roster;
+    return res.json({ ok: true, playerId: built.player.id, points: built.next, roster: state.roster });
   }
   if (updates.action !== undefined) {
     return res.status(400).json({ error: 'Unknown action.' });
