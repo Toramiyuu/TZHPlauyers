@@ -1569,6 +1569,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .auth-error.show{display:block}
 .auth-switch{display:block;width:100%;margin-top:14px;background:none;border:none;color:var(--a-blue);font-family:var(--font-apple);font-size:13px;cursor:pointer;padding:8px;text-align:center}
 .auth-switch:hover{text-decoration:underline;text-underline-offset:3px}
+.auth-links{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:0 8px;margin-top:12px}
+.auth-link{background:none;border:none;color:var(--a-blue);font-family:var(--font-apple);font-size:var(--fs-xs);cursor:pointer;padding:6px 0;white-space:nowrap}
+.auth-link:hover{text-decoration:underline;text-underline-offset:3px}
+.auth-dot{color:var(--a-ink-3);font-size:var(--fs-xs)}
+/* On narrow phones the row wraps, so drop the separators rather than leave one dangling */
+@media (max-width:389px){.auth-links{gap:0 10px}.auth-dot{display:none}}
 .acct-photo-prev{width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid var(--a-blue);display:block}
 .acct-photo-ph{width:84px;height:84px;border-radius:50%;background:var(--a-card-2);border:3px solid var(--a-line);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:300;color:var(--a-ink-3)}
 .prof-uname{font-size:13px;color:var(--a-ink-3);margin:-2px 0 10px;text-align:center}
@@ -2144,9 +2150,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
           <button class="btn btn-primary" style="width:100%" onclick="submitSignin()">Sign in</button>
         </div>
         <button type="button" class="auth-switch" onclick="setSigninWay('code')">Sign in with a login code instead</button>
-        <button type="button" class="auth-switch" onclick="openForgotPassword()">Forgot password?</button>
-        <button type="button" class="auth-switch" onclick="setAuthMode('register')">New here? Request an account</button>
-        <button type="button" class="auth-switch" onclick="setAuthMode('status')">Check my request status</button>
+        <div class="auth-links">
+          <button type="button" class="auth-link" onclick="openForgotPassword()">Forgot password?</button>
+          <span class="auth-dot" aria-hidden="true">&middot;</span>
+          <button type="button" class="auth-link" onclick="setAuthMode('register')">Request an account</button>
+          <span class="auth-dot" aria-hidden="true">&middot;</span>
+          <button type="button" class="auth-link" onclick="setAuthMode('status')">My status</button>
+        </div>
       </div>
     </div>
     <!-- Request an account -->
