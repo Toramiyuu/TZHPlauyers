@@ -25,7 +25,7 @@ process.env.KV_REST_API_TOKEN = 'stub';
 const handler = require('../api/state.js');
 const drawsHandler = require('../api/draws.js');
 const cronHandler = require('../api/cron-session-draw.js');
-const D = require('../api/session-draw.js');
+const D = require('../lib/session-draw.js');
 const SD = require('../public/session-draw.js');
 
 let pass = 0, fail = 0;

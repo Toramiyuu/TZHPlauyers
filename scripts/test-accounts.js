@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-/* Tests for the account v2 PURE helpers (api/accounts.js): validators, scrypt
+/* Tests for the account v2 PURE helpers (lib/accounts.js): validators, scrypt
  * hashing, lookups, client-facing shapes (no secrets), legacy migration, and the
  * action sets. The full register->approve->login flow lives in test-accounts-v2.js. */
 'use strict';
-const A = require('../api/accounts.js');
+const A = require('../lib/accounts.js');
 
 let pass = 0, fail = 0;
 const check = (name, cond) => { if (cond) { pass++; } else { fail++; console.log('  FAIL  ' + name); } };

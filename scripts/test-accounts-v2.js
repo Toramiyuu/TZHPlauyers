@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-/* Full-flow tests for account v2 (api/accounts.js): register-as-request ->
+/* Full-flow tests for account v2 (lib/accounts.js): register-as-request ->
  * admin approve+link -> login by phone -> change/reveal password -> lock/suspend.
  * Sets ACCOUNT_ENC_KEY so reveal round-trips. */
 'use strict';
 const crypto = require('crypto');
 process.env.ACCOUNT_ENC_KEY = crypto.randomBytes(32).toString('hex');
-const A = require('../api/accounts.js');
+const A = require('../lib/accounts.js');
 
 let pass = 0, fail = 0;
 const check = (name, cond) => { if (cond) { pass++; } else { fail++; console.log('  FAIL  ' + name); } };

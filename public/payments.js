@@ -1,6 +1,6 @@
 /*
  * payments.js — pure logic for per-player session payments.
- * Loaded in the browser via <script src> (window.Payments) and required by api/payments.js
+ * Loaded in the browser via <script src> (window.Payments) and required by lib/payments.js
  * and the Node tests. No dependencies, no DOM, no clock: `nowMs` is ALWAYS injected so every
  * function is deterministic under test.
  *

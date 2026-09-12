@@ -7,8 +7,8 @@
 // result visible at 09:00 sharp for whoever looks first). The sweep only ever
 // writes a missing result with HSETNX; it never touches court-state.
 const S = require('./state.js');
-const { sweepSessionDraws, buildDrawsView } = require('./session-draw.js');
-const { sweepMonthlyDraws, buildMonthlyView } = require('./monthly-lucky.js');
+const { sweepSessionDraws, buildDrawsView } = require('../lib/session-draw.js');
+const { sweepMonthlyDraws, buildMonthlyView } = require('../lib/monthly-lucky.js');
 const SD = require('../public/session-draw.js');
 const ML = require('../public/monthly-lucky.js');
 

@@ -1,7 +1,7 @@
 /*
  * session-draw.js — pure logic for the automatic per-session Lucky Draw.
  * Loaded in the browser via <script src> (window.SessionDraw) and required by
- * api/session-draw.js + the Node tests. No dependencies, no DOM, no clock, no
+ * lib/session-draw.js + the Node tests. No dependencies, no DOM, no clock, no
  * randomness of its own: `nowMs` and the `seed` are ALWAYS injected so every
  * function is deterministic under test.
  *

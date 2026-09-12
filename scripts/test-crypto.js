@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-/* Tests for reversible password encryption (api/crypto.js).
+/* Tests for reversible password encryption (lib/crypto.js).
  * Round-trips a password, verifies key-missing is a safe NoKeyError (never a
  * crash, never plaintext leakage), and that rotation (OLD key) decrypts. */
 'use strict';
 const crypto = require('crypto');
-const C = require('../api/crypto.js');
+const C = require('../lib/crypto.js');
 
 let pass = 0, fail = 0;
 const check = (name, cond) => { if (cond) { pass++; } else { fail++; console.log('  FAIL  ' + name); } };

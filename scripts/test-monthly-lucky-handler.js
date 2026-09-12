@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Server-side tests for the points-based Monthly Lucky Draw (api/monthly-lucky.js
+/* Server-side tests for the points-based Monthly Lucky Draw (lib/monthly-lucky.js
  * + its wiring in api/state.js, api/draws.js, api/cron-session-draw.js,
  * api/cron-rollover.js): the in-place month close (points reset + snapshot +
  * audit, migration without a reset), the idempotent automatic sweep (auto on/off,
@@ -27,7 +27,7 @@ const handler = require('../api/state.js');
 const drawsHandler = require('../api/draws.js');
 const cronDrawHandler = require('../api/cron-session-draw.js');
 const cronRolloverHandler = require('../api/cron-rollover.js');
-const M = require('../api/monthly-lucky.js');
+const M = require('../lib/monthly-lucky.js');
 const ML = require('../public/monthly-lucky.js');
 
 let pass = 0, fail = 0;

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
-/* test-member-codes — login codes (api/accounts.js) + the member page payload
- * (api/member.js). 2026-09: the organiser pre-assigns every roster player a code
+/* test-member-codes — login codes (lib/accounts.js) + the member page payload
+ * (lib/member.js). 2026-09: the organiser pre-assigns every roster player a code
  * like "HarveyNg#123"; typing it signs the member in and shows their points,
  * what they owe and their draw wins. Covers: code helpers, assign-all (idempotent,
  * creates accounts), set/clear, lenient matching, the shared-name cooldown, status
  * gating, and wins gathered from all four draw records. */
 'use strict';
-const A = require('../api/accounts.js');
-const M = require('../api/member.js');
+const A = require('../lib/accounts.js');
+const M = require('../lib/member.js');
 
 let pass = 0, fail = 0;
 const check = (name, cond) => { if (cond) { pass++; } else { fail++; console.log('  FAIL  ' + name); } };

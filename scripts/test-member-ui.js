@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* test-member-ui — login-code sign-in + the member page ("My TZH") + the admin
  * Accounts tab code controls, as wired in public/index.html (2026-09). Business
- * rules live in api/accounts.js + api/member.js (test-member-codes.js); this
+ * rules live in lib/accounts.js + lib/member.js (test-member-codes.js); this
  * guards the DOM glue: code-first sign-in that opens the member page, the page
  * markup from a memberInfo payload, and the admin chips/actions. */
 'use strict';

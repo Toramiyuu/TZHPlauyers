@@ -3,11 +3,11 @@ const path = require('path');
 const os = require('os');
 // Reuse the serverless submit validator + clock so local dev matches production.
 const { buildSignups, todayISO, applySessionDateChange, publicProjection } = require('./api/state.js');
-const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction } = require('./api/accounts.js');
-const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction } = require('./api/weekly.js');
-const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('./api/payments.js');
-const { SESSION_DRAW_ADMIN_ACTIONS, handleSessionDrawAdminAction, sweepSessionDraws, buildDrawsView, memoryDrawStore } = require('./api/session-draw.js');
-const { MONTHLY_LUCKY_ADMIN_ACTIONS, handleMonthlyLuckyAdminAction, sweepMonthlyDraws, buildMonthlyView, memoryMonthlyStore } = require('./api/monthly-lucky.js');
+const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction } = require('./lib/accounts.js');
+const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction } = require('./lib/weekly.js');
+const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('./lib/payments.js');
+const { SESSION_DRAW_ADMIN_ACTIONS, handleSessionDrawAdminAction, sweepSessionDraws, buildDrawsView, memoryDrawStore } = require('./lib/session-draw.js');
+const { MONTHLY_LUCKY_ADMIN_ACTIONS, handleMonthlyLuckyAdminAction, sweepMonthlyDraws, buildMonthlyView, memoryMonthlyStore } = require('./lib/monthly-lucky.js');
 const ML = require('./public/monthly-lucky.js');
 const Payments = require('./public/payments.js');
 const SD = require('./public/session-draw.js');
@@ -61,7 +61,7 @@ const DEFAULT_STATE = {
 };
 
 let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-// Session draw results (permanent; in-memory for local dev — see api/session-draw.js).
+// Session draw results (permanent; in-memory for local dev — see lib/session-draw.js).
 const drawStore = memoryDrawStore();
 const monthlyStore = memoryMonthlyStore();
 

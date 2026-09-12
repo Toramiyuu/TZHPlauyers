@@ -1,12 +1,12 @@
 const { Redis } = require('@upstash/redis');
-const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction } = require('./accounts.js');
-const { handleMemberInfo } = require('./member.js');
-const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction, pruneWeeklyState } = require('./weekly.js');
-const { SESSION_DRAW_ADMIN_ACTIONS, handleSessionDrawAdminAction, sweepSessionDraws, redisDrawStore } = require('./session-draw.js');
+const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction } = require('../lib/accounts.js');
+const { handleMemberInfo } = require('../lib/member.js');
+const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction, pruneWeeklyState } = require('../lib/weekly.js');
+const { SESSION_DRAW_ADMIN_ACTIONS, handleSessionDrawAdminAction, sweepSessionDraws, redisDrawStore } = require('../lib/session-draw.js');
 const SD = require('../public/session-draw.js');
-const { MONTHLY_LUCKY_ADMIN_ACTIONS, handleMonthlyLuckyAdminAction, sweepMonthlyDraws, buildMonthlyView, redisMonthlyStore, applyMonthClose } = require('./monthly-lucky.js');
+const { MONTHLY_LUCKY_ADMIN_ACTIONS, handleMonthlyLuckyAdminAction, sweepMonthlyDraws, buildMonthlyView, redisMonthlyStore, applyMonthClose } = require('../lib/monthly-lucky.js');
 const ML = require('../public/monthly-lucky.js');
-const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('./payments.js');
+const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('../lib/payments.js');
 const Payments = require('../public/payments.js');
 const AdminNav = require('../public/admin-nav.js');
 
@@ -26,7 +26,7 @@ const kv = {
     if (!redis) throw new Error('No Redis configured');
     return redis.set(key, val);
   },
-  // Hash ops for the permanent draw-result store (api/session-draw.js). HSETNX
+  // Hash ops for the permanent draw-result store (lib/session-draw.js). HSETNX
   // is what makes a draw impossible to write twice, even across racing callers.
   hget: async (key, field) => redis ? redis.hget(key, field) : null,
   hgetall: async (key) => redis ? redis.hgetall(key) : null,
@@ -39,10 +39,10 @@ const kv = {
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'TZH123';
 const STATE_KEY = 'court-state';
 // Session draw results: a separate Redis hash (`court-draws`, field = ISO date),
-// never pruned, never rewritten — see api/session-draw.js.
+// never pruned, never rewritten — see lib/session-draw.js.
 const drawStore = redisDrawStore(kv);
 // Monthly (points-based) draw results: a second permanent hash (`court-monthly-draws`,
-// field = YYYY-MM) — see api/monthly-lucky.js.
+// field = YYYY-MM) — see lib/monthly-lucky.js.
 const monthlyStore = redisMonthlyStore(kv);
 
 // Local "today" for the club. Vercel runs in UTC, so without an offset the
@@ -86,7 +86,7 @@ const DEFAULT_STATE = {
   sessionDate: todayISO(),
   sessions: {},
   // Session fee tier for the live day ('2h' = RM20, '3h' = RM25). Snapshotted with the
-  // session; "End of the day" (api/payments.js) generates payment records at this tier.
+  // session; "End of the day" (lib/payments.js) generates payment records at this tier.
   feeTier: Payments.DEFAULT_TIER,
   luckyDraw: { entries: [], paid: [], drawDate: todayISO(), spin: null, results: [], history: [] },
   monthlyDraw: { month: '', rollSuppressedMonth: '', prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'], participants: [], results: [], spin: null, history: [] },
@@ -124,7 +124,7 @@ const DEFAULT_STATE = {
   monthlyEligibility: null,
   // ── points-based Monthly Lucky Draw (2026-09) ──
   // Settings + the month the roster points belong to + the pulled pool + closed-month
-  // snapshots. Written ONLY through the monthly draw actions (api/monthly-lucky.js);
+  // snapshots. Written ONLY through the monthly draw actions (lib/monthly-lucky.js);
   // results live in the separate `court-monthly-draws` Redis hash.
   monthlyLucky: { auto: true, winners: ML.DEFAULT_WINNERS, threshold: ML.DEFAULT_THRESHOLD, prizes: [], pointsMonth: ML.monthKeyOf(todayISO()), pool: null, closed: {} },
   // Durable admin audit log (bounded).

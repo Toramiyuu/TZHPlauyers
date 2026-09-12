@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-/* Tests for the server-side attendance handlers (api/weekly.js).
+/* Tests for the server-side attendance handlers (lib/weekly.js).
  * Focus: the {status,body,changed} contract, attendance seed/upsert + audit, and
  * monthly recompute feeding the ballot. Timestamps are not asserted (handler reads
  * the clock). The Weekly draw + sweep that used to be tested here were retired in
  * 2026-09 (see scripts/test-session-draw-handler.js). */
 'use strict';
-const W = require('../api/weekly.js');
+const W = require('../lib/weekly.js');
 
 let pass = 0, fail = 0;
 const check = (name, cond) => { if (cond) { pass++; } else { fail++; console.log('  FAIL  ' + name); } };

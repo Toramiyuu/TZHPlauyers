@@ -1,7 +1,7 @@
 /*
  * monthly-lucky.js — pure logic for the Monthly Lucky Draw (points-based).
  * Loaded in the browser via <script src> (window.MonthlyLucky) and required by
- * api/monthly-lucky.js + the Node tests. Depends only on session-draw.js for the
+ * lib/monthly-lucky.js + the Node tests. Depends only on session-draw.js for the
  * seeded Fisher–Yates shuffle so every monthly draw is verifiable the same way.
  * No DOM, no clock, no randomness of its own: `nowMs` / `todayISO` / `seed` are
  * ALWAYS injected so every function is deterministic under test.
@@ -20,7 +20,7 @@
  *     closed month uses its snapshot minus the same removals.
  *   - Winners = first N of the seeded shuffle of the eligible ids; winner k gets
  *     prize k (extra winners win with no named prize). One record per month,
- *     permanent (HSETNX in api/monthly-lucky.js).
+ *     permanent (HSETNX in lib/monthly-lucky.js).
  *   - A prize is { id, name, qty, desc, photo }: `qty` (1..MAX_PRIZE_QTY) lets one
  *     winner take several of the same item ("2 × Tube of shuttlecocks"), `desc`
  *     is an optional short description. Name/qty/desc are snapshotted into the

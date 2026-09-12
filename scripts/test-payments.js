@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /* Tests for per-player session payments: the pure module (public/payments.js) and the
- * server handlers (api/payments.js) with an injected clock. Covers the four behaviours
+ * server handlers (lib/payments.js) with an injected clock. Covers the four behaviours
  * the spec calls out — idempotent generation, uniqueness, paidAt set/cleared, amount
  * follows tier unless overridden — plus validation and the read helpers the UI uses. */
 'use strict';
 const P = require('../public/payments.js');
-const H = require('../api/payments.js');
-const W = require('../api/weekly.js');
+const H = require('../lib/payments.js');
+const W = require('../lib/weekly.js');
 
 let pass = 0, fail = 0;
 const check = (name, cond) => { if (cond) { pass++; } else { fail++; console.log('  FAIL  ' + name); } };
