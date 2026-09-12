@@ -783,8 +783,34 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .rl-knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:var(--shadow-sm);transition:transform .18s}
 .rl-toggle.on .rl-knob{transform:translateX(18px)}
 .rl-pts{text-align:right;font-size:14px;font-weight:700;color:var(--text)}
-/* 5 columns get tight on narrow phones — shrink the gap + level input so they fit at 390px */
-@media(max-width:430px){.rl-head,.rl-row{gap:7px;padding:10px 10px}.rl-lvl-inp{width:52px;padding:6px 4px}}
+/* ── Phone: fold Level / Girl / Mixed into a per-row drawer ───────────────────
+   Five fixed columns (52 + 72 + 44 + the level input + four gaps) ate the whole
+   390px row, leaving ~0px for .rl-name — every name truncated to one letter.
+   Below 560px the row shows Player / chevron / Pts and the three attribute cells
+   re-place themselves as labelled rows underneath, revealed by .rl-row.open.
+   They are the SAME nodes as the desktop table, moved rather than duplicated, so
+   every onclick and aria-label carries over and the desktop grid is untouched. */
+.rl-more{display:none}
+@media(max-width:560px){
+  .rl-head,.rl-row{grid-template-columns:1fr 40px 44px;column-gap:8px;row-gap:0;padding:8px 12px}
+  .rl-head span:nth-child(2),.rl-head span:nth-child(3),.rl-head span:nth-child(4){display:none}
+  .rl-head span:nth-child(5){grid-column:3}
+  .rl-player{grid-area:1/1}
+  .rl-pts{grid-area:1/3}
+  .rl-name{font-size:15px}
+  .rl-more{grid-area:1/2;display:flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0;border:none;border-radius:9px;background:none;color:var(--muted);font-family:inherit;font-size:15px;line-height:1;cursor:pointer;transition:var(--transition)}
+  .rl-more[aria-expanded="true"]{background:var(--card2);color:var(--text)}
+  .rl-level,.rl-girl,.rl-mixed{display:none;align-items:center;justify-content:space-between;gap:12px;padding:9px 2px 9px 42px;font-size:13px;color:var(--muted)}
+  .rl-row.open .rl-level,.rl-row.open .rl-girl,.rl-row.open .rl-mixed{display:flex}
+  .rl-row.open .rl-level{grid-area:2/1/auto/-1;margin-top:6px;border-top:1px solid var(--border)}
+  .rl-row.open .rl-girl{grid-area:3/1/auto/-1}
+  .rl-row.open .rl-mixed{grid-area:4/1/auto/-1;padding-bottom:4px}
+  .rl-level::before{content:'Level'}
+  .rl-girl::before{content:'Girl'}
+  .rl-mixed::before{content:'Mixed doubles'}
+  .rl-girl .rl-toggle,.rl-mixed .rl-toggle{margin:0}
+  .rl-lvl-inp{width:78px;padding:8px}
+}
 /* Roster search + sort controls row */
 .roster-controls{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
 .roster-controls #rosterSearch{flex:1;min-width:160px;margin-bottom:0}
@@ -10290,6 +10316,18 @@ function getRosterView() {
 }
 function setRosterView(v) {
   try { localStorage.setItem('rosterView', v); } catch (e) {}
+  __rlOpen = null; // leaving the List view closes any open phone drawer
+  renderPlayersSection();
+}
+
+// Which row has its phone drawer open, or null. Only one at a time — a second
+// tap on the same chevron closes it. Held outside the render so the 2s admin poll
+// (and the optimistic re-render inside setPlayerLevel / togglePlayerGirl /
+// togglePlayerMixed) can rebuild the list without folding the drawer shut under
+// the admin's finger. Cleared when the List view is left.
+let __rlOpen = null;
+function toggleRosterMore(id) {
+  __rlOpen = (__rlOpen === id) ? null : id;
   renderPlayersSection();
 }
 
@@ -10314,9 +10352,13 @@ function renderRosterList(listEl, visibleRoster, sessionIds, q) {
     const gl = !!rp.girl;
     const mx = !!rp.mixed;
     const inS = sessionIds.has(rp.id);
+    // On phones the row folds down to Player / more / Pts and the Level, Girl and
+    // Mixed cells drop into a drawer underneath (see __rlOpen). Same cells, just
+    // re-placed by CSS — nothing is duplicated, and the desktop table is untouched.
+    const open = __rlOpen === rp.id;
     // The player cell toggles today's session (like tapping a Grid card); the
     // Level/Girl/Mixed cells are separate columns so tapping them never toggles it.
-    return `<div class="rl-row${inS ? ' in' : ''}">
+    return `<div class="rl-row${inS ? ' in' : ''}${open ? ' open' : ''}">
       <div class="rl-player" onclick="toggleRosterPlayer('${rp.id}')" role="button" tabindex="0" aria-pressed="${inS}" title="${inS ? 'Playing today — tap to remove from session' : "Tap to add to today's session"}">
         <span class="rl-check${inS ? ' on' : ''}" aria-hidden="true">${inS ? '✓' : ''}</span>
         ${avatarHTML(rp, 32)}<span class="rl-name">${escHtml(rp.name)}</span>
@@ -10324,6 +10366,7 @@ function renderRosterList(listEl, visibleRoster, sessionIds, q) {
       <div class="rl-level">${seg}</div>
       <div class="rl-girl"><button class="rl-toggle girl${gl ? ' on' : ''}" role="switch" aria-checked="${gl}" onclick="togglePlayerGirl('${rp.id}')" aria-label="${escHtml(rp.name)} is a girl ${gl ? 'yes' : 'no'}"><span class="rl-knob"></span></button></div>
       <div class="rl-mixed"><button class="rl-toggle${mx ? ' on' : ''}" role="switch" aria-checked="${mx}" onclick="togglePlayerMixed('${rp.id}')" aria-label="Mixed doubles for ${escHtml(rp.name)} ${mx ? 'eligible' : 'not eligible'}"><span class="rl-knob"></span></button></div>
+      <button type="button" class="rl-more" aria-expanded="${open}" onclick="toggleRosterMore('${rp.id}')" aria-label="${open ? 'Hide' : 'Show'} level, girl and mixed for ${escHtml(rp.name)}">${open ? '\u2303' : '\u2304'}</button>
       <div class="rl-pts">${rp.points || 0}</div>
     </div>`;
   }).join('');
