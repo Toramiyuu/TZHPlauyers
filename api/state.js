@@ -275,6 +275,47 @@ function awardSessionPoints(state, leavingDate) {
 
 // ── WEEKLY REGULARS ──────────────────────────────────────────────────────────
 // Given the regulars map (weekday -> ids), a weekday (0=Sun..6=Sat), the ids
+// ── ROSTER BULK ADD ──────────────────────────────────────────────────────────
+// Caps for the permanent roster and for one paste into "Add Multiple".
+const MAX_ROSTER = 300;
+const MAX_BULK_ADD = 100;
+const MAX_ROSTER_NAME = 40;
+
+/**
+ * Build the roster entries for a bulk add. Pure — the caller passes the current
+ * roster and a clock and gets back either an error or the new player objects.
+ *
+ * The client used to POST the ENTIRE roster back (every base64 photo included)
+ * just to append a few names. That made a read-modify-write which raced the 2s
+ * poll, grew with the squad, and — because the old confirmBulkImport never read
+ * the response — failed completely silently behind a green success toast. The
+ * client now sends only the names and the server appends to its own fresh copy.
+ */
+function buildRosterAdditions(roster, names, nowMs) {
+  if (!Array.isArray(names)) return { ok: false, error: 'No names supplied.' };
+  const clean = names
+    .map((n) => String(n == null ? '' : n).trim().replace(/\s+/g, ' ').slice(0, MAX_ROSTER_NAME))
+    .filter((n) => n.length > 0);
+  if (!clean.length) return { ok: false, error: 'No names entered.' };
+  if (clean.length > MAX_BULK_ADD) {
+    return { ok: false, error: 'Add at most ' + MAX_BULK_ADD + ' players at a time.' };
+  }
+  const existing = Array.isArray(roster) ? roster : [];
+  if (existing.length + clean.length > MAX_ROSTER) {
+    return { ok: false, error: 'The roster holds at most ' + MAX_ROSTER + ' players — that would make ' + (existing.length + clean.length) + '.' };
+  }
+  const at = Number.isFinite(nowMs) ? nowMs : Date.now();
+  // id = timestamp + row index + entropy, so a whole paste can never self-collide
+  // and two admins pasting in the same millisecond still get distinct ids.
+  const players = clean.map((name, i) => ({
+    id: 'r' + at.toString(36) + i.toString(36) + Math.random().toString(36).slice(2, 6),
+    name,
+    photo: null,
+    points: 0,
+  }));
+  return { ok: true, players };
+}
+
 // already in today's session, and the ids currently on the roster, return the
 // roster ids that should be offered by the admin's one-tap "Add regulars" button:
 // regulars for that day who still exist on the roster and aren't already playing.
@@ -826,6 +867,20 @@ const handler = async function handler(req, res) {
       return res.json({ ok: true });
     }
 
+    // Bulk "Add Multiple to Roster". Carries only the names — see buildRosterAdditions.
+    if (updates.action === 'addRosterPlayers') {
+      const built = buildRosterAdditions(state.roster, updates.names, Date.now());
+      if (!built.ok) return res.status(400).json({ error: built.error });
+      state.roster = [...(Array.isArray(state.roster) ? state.roster : []), ...built.players];
+      try {
+        await kv.set(STATE_KEY, state);
+      } catch (e) {
+        console.error('KV write error (addRosterPlayers):', e.message);
+        return res.status(500).json({ error: 'Storage error.' });
+      }
+      return res.json({ ok: true, added: built.players.length, roster: state.roster });
+    }
+
     // Handle updateSession action (edit a historical session)
     if (updates.action === 'updateSession') {
       const { date, session } = updates;
@@ -908,3 +963,7 @@ module.exports.runMonthlyDrawSweep = runMonthlyDrawSweep;
 module.exports.buildMonthlyView = buildMonthlyView;
 module.exports.publicProjection = publicProjection;
 module.exports.todayISO = todayISO;
+module.exports.buildRosterAdditions = buildRosterAdditions;
+module.exports.MAX_ROSTER = MAX_ROSTER;
+module.exports.MAX_BULK_ADD = MAX_BULK_ADD;
+module.exports.MAX_ROSTER_NAME = MAX_ROSTER_NAME;

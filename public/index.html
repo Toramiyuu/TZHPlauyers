@@ -1988,7 +1988,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <textarea id="bulkInput" class="modal-textarea" placeholder="Thomas&#10;Yugene&#10;Syl&#10;Cy&#10;Jun Xian&#10;..."></textarea>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeBulkModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmBulkImport()">Add Players</button>
+      <button class="btn btn-primary" id="bulkSubmitBtn" onclick="confirmBulkImport()">Add Players</button>
     </div>
   </div>
 </div>
@@ -5382,7 +5382,11 @@ async function confirmAddRoster() {
   await refreshState();
   const id = 'r' + Date.now();
   const roster = [...(state.roster || []), { id, name, photo: addRosterPhotoData || null }];
-  await apiPost({ roster });
+  // Never claim success on a write the server refused — the row would vanish on
+  // the next poll with no explanation (same bug that hid the bulk-add failure).
+  const r = await apiPost({ roster }).catch(() => ({ error: 'Network error — nobody was added.' }));
+  if (!r) return;
+  if (r.error) return notify(r.error, 'warn');
   state.roster = roster;
   addRosterPhotoData = null;
   closeAddRosterModal();
@@ -5407,7 +5411,9 @@ async function confirmAddGuest() {
   await refreshState();
   const id = 'g' + Date.now();
   const players = [...(state.players || []), { id, name, photo: null, guest: true }];
-  await apiPost({ players });
+  const r = await apiPost({ players }).catch(() => ({ error: 'Network error — the guest was not added.' }));
+  if (!r) return;
+  if (r.error) return notify(r.error, 'warn');
   state.players = players;
   closeGuestModal();
   renderPlayersSection();
@@ -5425,6 +5431,12 @@ function closeBulkModal() {
   document.getElementById('bulkModal').classList.remove('open');
 }
 
+// Bulk add. This used to POST the WHOLE roster back — every base64 photo
+// included — just to append a few names, and it never read the response: a
+// rejected write still closed the modal and showed a green "Added N players"
+// toast, so the names simply never appeared and the typing was lost. Now it
+// sends only the names (a few hundred bytes), the server appends to its own
+// fresh copy, and any failure is reported with the modal left open.
 async function confirmBulkImport() {
   const raw = document.getElementById('bulkInput').value;
   const names = raw.split('\n')
@@ -5433,16 +5445,26 @@ async function confirmBulkImport() {
 
   if (!names.length) return notify('No names entered.', 'warn');
 
-  await refreshState();
-  const newPlayers = names
-    .map(n => ({ id: 'r' + Date.now() + Math.random().toString(36).slice(2), name: n, photo: null }));
+  const btn = document.getElementById('bulkSubmitBtn');
+  const restore = () => { if (btn) { btn.disabled = false; btn.textContent = 'Add Players'; } };
+  if (btn) { btn.disabled = true; btn.textContent = 'Adding…'; }
 
-  const roster = [...(state.roster || []), ...newPlayers];
-  await apiPost({ roster });
-  state.roster = roster;
+  let r;
+  try {
+    r = await apiPost({ action: 'addRosterPlayers', names });
+  } catch (e) {
+    restore();
+    return notify('Network error — nobody was added. Your names are still here.', 'warn');
+  }
+  restore();
+  // apiPost returns null after a 401: it has already bounced to the password prompt.
+  if (!r) return;
+  if (!r.ok || r.error) return notify(r.error || 'Could not add those players.', 'warn');
+
+  state.roster = r.roster;
   renderPlayersSection();
   closeBulkModal();
-  notify(`Added ${newPlayers.length} player${newPlayers.length > 1 ? 's' : ''} to roster!`);
+  notify(`Added ${r.added} player${r.added === 1 ? '' : 's'} to roster!`);
 }
 
 // ── COURTS & ROUNDS ──────────────────────────
