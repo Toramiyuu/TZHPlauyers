@@ -88,6 +88,13 @@
     // Deterministic-friendly: callers pass an id when they have one; this is only for brand-new rows.
     return 'pz' + String(seedStr || Date.now().toString(36)) + Math.random().toString(36).slice(2, 6);
   }
+  /** Which place a prize goes to. Several prizes may share one place; a prize
+   *  saved before this existed keeps its old positional meaning (row 1 -> 1st). */
+  function isPlace(n) { return Number.isInteger(n) && n >= 1 && n <= MAX_PRIZES; }
+  function placeOf(p, index) {
+    const n = p && p.place != null ? Number(p.place) : NaN;
+    return isPlace(n) ? n : (Number(index) || 0) + 1;
+  }
   /** Clean prize list: trimmed names (required), qty 1..MAX_PRIZE_QTY (default 1), trimmed optional desc, optional photo, stable ids, max MAX_PRIZES. */
   function normalizePrizes(list) {
     const out = [];
@@ -101,7 +108,7 @@
       seen.add(id);
       const qty = isPrizeQty(Number(p.qty)) ? Number(p.qty) : DEFAULT_PRIZE_QTY;
       const desc = String(p.desc == null ? '' : p.desc).trim().slice(0, MAX_PRIZE_DESC);
-      out.push({ id, name, qty, desc, photo: isPhoto(p.photo) ? p.photo : null });
+      out.push({ id, name, qty, desc, place: placeOf(p, out.length), photo: isPhoto(p.photo) ? p.photo : null });
     });
     return out;
   }
@@ -148,7 +155,7 @@
     const n = normalize(ml, todayISO);
     return {
       auto: n.auto, winners: n.winners, threshold: n.threshold, pointsMonth: n.pointsMonth,
-      prizes: n.prizes.map((p) => ({ id: p.id, name: p.name, qty: p.qty, desc: p.desc, hasPhoto: !!p.photo })),
+      prizes: n.prizes.map((p) => ({ id: p.id, name: p.name, qty: p.qty, desc: p.desc, place: p.place, hasPhoto: !!p.photo })),
       pool: n.pool ? { month: n.pool.month, pulledAt: n.pool.pulledAt, count: n.pool.players.length, removed: n.pool.removed.slice() } : null,
     };
   }
@@ -247,7 +254,7 @@
     const winners = order.slice(0, Math.min(wanted, order.length));
     const names = {}, points = {};
     players.forEach((p) => { names[p.id] = String(p.name || p.id); points[p.id] = Number(p.points) || 0; });
-    const prizes = normalizePrizes(o.prizes).map((p) => ({ id: p.id, name: p.name, qty: p.qty, desc: p.desc }));
+    const prizes = normalizePrizes(o.prizes).map((p) => ({ id: p.id, name: p.name, qty: p.qty, desc: p.desc, place: p.place }));
     const at = Number(o.nowMs) || 0;
     return {
       v: RECORD_VERSION, kind: 'monthly', month, label: monthLabel(month),
@@ -277,11 +284,16 @@
   function awardsOf(rec, prizes) {
     const pz = Array.isArray(prizes) ? prizes : (rec && rec.prizes) || [];
     return ((rec && rec.winners) || []).map((id, i) => {
-      const p = pz[i] || null;
+      const mine = pz.filter((x, xi) => x && placeOf(x, xi) === i + 1);
+      const p = mine[0] || null;
       return {
         rank: i + 1, id, name: (rec.names && rec.names[id]) || id, points: rec.points ? (Number(rec.points[id]) || 0) : 0,
-        prizeId: p ? p.id : null, prize: p ? prizeLabel(p) : '', prizeName: p ? String(p.name || '') : '',
+        // The first prize keeps the old single-prize fields; `prize` is every
+        // label joined, so anything that only prints a string still reads right.
+        prizeId: p ? p.id : null, prize: mine.map(prizeLabel).filter(Boolean).join(' + '), prizeName: p ? String(p.name || '') : '',
         qty: p && isPrizeQty(Number(p.qty)) ? Number(p.qty) : (p ? DEFAULT_PRIZE_QTY : 0), desc: p ? String(p.desc || '') : '',
+        prizes: mine.map((x) => ({ id: x.id, name: String(x.name || ''), qty: isPrizeQty(Number(x.qty)) ? Number(x.qty) : DEFAULT_PRIZE_QTY,
+          desc: String(x.desc || ''), label: prizeLabel(x) })),
       };
     });
   }
@@ -322,7 +334,7 @@
       // Photos are not stored in the record: look them up by prize id in the current settings.
       const photoById = {};
       settings.prizes.forEach((p) => { photoById[p.id] = p.photo || null; });
-      const prizes = (rec.prizes || []).map((p) => ({ id: p.id, name: p.name, qty: isPrizeQty(Number(p.qty)) ? Number(p.qty) : DEFAULT_PRIZE_QTY, desc: String(p.desc || ''), photo: photoById[p.id] || null }));
+      const prizes = (rec.prizes || []).map((p, pi) => ({ id: p.id, name: p.name, qty: isPrizeQty(Number(p.qty)) ? Number(p.qty) : DEFAULT_PRIZE_QTY, desc: String(p.desc || ''), place: placeOf(p, pi), photo: photoById[p.id] || null }));
       return Object.assign(base, {
         status: 'done', method: rec.method || 'auto', source: rec.source || 'closed', drawnAt: rec.drawnAt || null, seed: rec.seed || '',
         winnersWanted: rec.winnersWanted, shortfall: !!rec.shortfall, verified: verifyDrawResult(rec),
@@ -342,7 +354,7 @@
       closed: !!cand.closed, live: !!cand.live,
       counts: { eligible: pf.players.length, winners: 0 },
       lists: { eligible: pf.players, winners: [] },
-      prizes: settings.prizes.map((p) => ({ id: p.id, name: p.name, qty: p.qty, desc: p.desc, photo: p.photo || null })),
+      prizes: settings.prizes.map((p, pi) => ({ id: p.id, name: p.name, qty: p.qty, desc: p.desc, place: placeOf(p, pi), photo: p.photo || null })),
       pool: pool ? { pulledAt: pool.pulledAt, removed: pool.removed.slice(), stale: poolStaleIds(state, pool) } : null,
     });
   }
@@ -373,9 +385,10 @@
       counts: { eligible: (v.counts && v.counts.eligible) || 0, winners: (v.counts && v.counts.winners) || 0 },
       lists: {
         eligible: done ? (lists.eligible || []).map((r) => ({ id: r.id, name: r.name })) : [],
-        winners: (lists.winners || []).map((w) => ({ rank: w.rank, id: w.id, name: w.name, prizeId: w.prizeId || null, prize: w.prize || '', prizeName: w.prizeName || '', qty: w.qty || 0, desc: w.desc || '' })),
+        winners: (lists.winners || []).map((w) => ({ rank: w.rank, id: w.id, name: w.name, prizeId: w.prizeId || null, prize: w.prize || '', prizeName: w.prizeName || '', qty: w.qty || 0, desc: w.desc || '',
+          prizes: (w.prizes || []).map((x) => ({ id: x.id, name: x.name, qty: x.qty, desc: x.desc, label: x.label })) })),
       },
-      prizes: (v.prizes || []).map((p) => ({ id: p.id, name: p.name, qty: isPrizeQty(Number(p.qty)) ? Number(p.qty) : DEFAULT_PRIZE_QTY, desc: String(p.desc || ''), photo: p.photo || null })),
+      prizes: (v.prizes || []).map((p, i) => ({ id: p.id, name: p.name, qty: isPrizeQty(Number(p.qty)) ? Number(p.qty) : DEFAULT_PRIZE_QTY, desc: String(p.desc || ''), place: placeOf(p, i), photo: p.photo || null })),
     };
   }
 
@@ -403,7 +416,7 @@
     isWinnersCount, isThreshold, isPrizeQty, isPhoto, newPrizeId, normalizePrizes, prizeLabel, settingsOf, normalize, liteOf,
     eligibleFromRoster, eligibleFromSnapshot, applyRemoved, buildPool, poolStaleIds,
     closeDue, closeIfDue,
-    buildDrawResult, verifyDrawResult, awardsOf, playersFor, monthCandidates, viewOf, buildView, publicMonthView,
+    buildDrawResult, verifyDrawResult, awardsOf, placeOf, isPlace, playersFor, monthCandidates, viewOf, buildView, publicMonthView,
     drawTimeLabel, howItWorksText, statusLabel,
   };
 });

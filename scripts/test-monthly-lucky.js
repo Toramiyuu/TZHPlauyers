@@ -125,6 +125,30 @@ check('done view looks up prize photos from the CURRENT settings by id', (() => 
   check('pending view carries qty/desc from the current settings', qlive.prizes[0].qty === 5 && qlive.prizes[0].desc === 'changed later');
   const qpub = ML.publicMonthView(qv);
   check('public view exposes qty/desc/prizeName on winners and prizes', qpub.lists.winners[0].qty === 2 && qpub.lists.winners[0].desc === 'Yonex AS-50' && qpub.lists.winners[0].prizeName === 'Tube' && qpub.prizes[0].qty === 2 && qpub.prizes[0].desc === 'Yonex AS-50');
+  // ── one place, several different prizes ──
+  check('isPlace / placeOf: an explicit place wins, junk falls back to the row position',
+    ML.isPlace(1) && ML.isPlace(12) && !ML.isPlace(0) && !ML.isPlace(13) && !ML.isPlace(1.5)
+    && ML.placeOf({ place: 3 }, 0) === 3 && ML.placeOf({}, 1) === 2 && ML.placeOf({ place: 0 }, 4) === 5 && ML.placeOf({ place: 'x' }, 0) === 1);
+  const mpz = ML.normalizePrizes([{ id: 'pzA', name: 'Bag', place: 1 }, { id: 'pzB', name: 'Tube', qty: 2, place: 1 }, { id: 'pzC', name: 'Socks', place: 2 }]);
+  check('normalizePrizes keeps the place; rows with none keep their position', mpz.map(p => p.place).join(',') === '1,1,2'
+    && ML.normalizePrizes([{ id: 'pzA', name: 'A' }, { id: 'pzB', name: 'B' }]).map(p => p.place).join(',') === '1,2');
+  const mrec = ML.buildDrawResult({ month: '2026-09', players, winnersWanted: 3, prizes: mpz, seed: SEED, nowMs: 1 });
+  const ma = ML.awardsOf(mrec);
+  check('awardsOf: 1st takes both prizes at place 1, 2nd takes place 2, 3rd gets none',
+    ma[0].prize === 'Bag + 2 × Tube' && ma[0].prizes.map(p => p.label).join('|') === 'Bag|2 × Tube'
+    && ma[1].prize === 'Socks' && ma[1].prizes.length === 1 && ma[2].prize === '' && ma[2].prizes.length === 0);
+  check('awardsOf: the single-prize fields still describe the first prize of that place',
+    ma[0].prizeId === 'pzA' && ma[0].prizeName === 'Bag' && ma[0].qty === 1);
+  check('the record remembers the places it was drawn with', mrec.prizes.map(p => p.place).join(',') === '1,1,2');
+  check('a record drawn before places existed is still read positionally', (() => {
+    const a = ML.awardsOf({ winners: ['p1', 'p2'], names: { p1: 'A', p2: 'B' }, prizes: [{ id: 'x', name: 'Racket' }, { id: 'y', name: 'Socks' }] });
+    return a[0].prize === 'Racket' && a[1].prize === 'Socks' && a[0].prizes.length === 1;
+  })());
+  const mpub = ML.publicMonthView(ML.buildView({ roster, monthlyLucky: { prizes: mpz } }, { '2026-09': mrec }, { nowMs: NOW }).months.find(m => m.month === '2026-09'));
+  check('public view carries every prize of a place, and the place on each tile',
+    mpub.lists.winners[0].prizes.map(p => p.label).join('|') === 'Bag|2 × Tube' && mpub.prizes.map(p => p.place).join(',') === '1,1,2');
+  check('the poll-safe settings carry the place too', ML.liteOf({ prizes: mpz }, '2026-09-11').prizes.map(p => p.place).join(',') === '1,1,2');
+
   const qlite = ML.liteOf({ prizes: [{ id: 'a', name: 'Tube', qty: 2, desc: 'd', photo: 'data:image/jpeg;base64,QUJD' }] }, '2026-09-11');
   check('liteOf carries qty + desc but still no photo bytes', qlite.prizes[0].qty === 2 && qlite.prizes[0].desc === 'd' && qlite.prizes[0].photo === undefined && qlite.prizes[0].hasPhoto === true);
 }

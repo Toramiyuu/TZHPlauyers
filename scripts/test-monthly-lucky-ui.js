@@ -83,6 +83,33 @@ check('live month card: "This month", no Run button (the pool card has it), elig
 
 // ── public page ──
 check('public page has the monthly section rendered from /api/draws → monthly', html.includes('id="drawPageMonthly"') && fn('renderDrawPage').includes('renderPublicMonthly()') && fn('renderPublicMonthly').includes('sdPublic.monthly') && fn('renderPublicMonthly').includes('ml-prize-strip'));
+// ── one place, several prizes ──
+check('prize editor: every row has a "Goes to" place picker and shows that place as its badge',
+  fn('renderMonthlyPrizes').includes('setMonthlyPrizePlace') && fn('renderMonthlyPrizes').includes('mlPlaceOptions(MonthlyLucky.placeOf(p, i))')
+  && fn('renderMonthlyPrizes').includes("'<span class=\"ml-win-rank\">' + MonthlyLucky.placeOf(p, i)"));
+check('prize editor: warns when a prize points past the last winner',
+  fn('renderMonthlyPrizes').includes('ml-prize-warn') && fn('renderMonthlyPrizes').includes('mlWinnerCount()'));
+check('mlOrdinal reads 1st/2nd/3rd/4th and the teens', (() => {
+  const f = new Function(fn('mlOrdinal') + '; return mlOrdinal;')();
+  return f(1) === '1st' && f(2) === '2nd' && f(3) === '3rd' && f(4) === '4th' && f(11) === '11th' && f(12) === '12th' && f(13) === '13th';
+})());
+check('mlPlaceOptions offers every place up to the winner count and selects the current one', (() => {
+  const f = new Function('mlWinnerCount', 'mlOrdinal', fn('mlPlaceOptions') + '; return mlPlaceOptions;')(() => 3, (n) => n + 'x');
+  const html = f(2);
+  return (html.match(/<option/g) || []).length === 3 && html.includes('value="2" selected');
+})());
+check('mlPlaceOptions keeps a place parked beyond the winner count', (() => {
+  const f = new Function('mlWinnerCount', 'mlOrdinal', fn('mlPlaceOptions') + '; return mlPlaceOptions;')(() => 2, (n) => n + 'x');
+  return (f(5).match(/<option/g) || []).length === 5;
+})());
+const multiCard = cardFn(Object.assign({}, doneView, { prizes: [{ id: 'x', name: 'Racket', photo: 'data:image/jpeg;base64,QQ==' }, { id: 'y', name: 'Tube', photo: 'data:image/jpeg;base64,Qg==' }],
+  lists: { eligible: doneView.lists.eligible, winners: [{ rank: 1, id: 'p3', name: 'Cara', prizeId: 'x', prize: 'Racket + 2 × Tube',
+    prizes: [{ id: 'x', label: 'Racket', desc: 'Yonex' }, { id: 'y', label: '2 × Tube', desc: '' }] }] } }), true);
+check('winner row lists every prize of that place, each with its own photo',
+  (multiCard.match(/ml-win-prize/g) || []).length === 2 && multiCard.includes('>Racket<') && multiCard.includes('>2 × Tube<')
+  && (multiCard.match(/class="ml-win-photo"/g) || []).length === 2 && multiCard.includes('ml-win-photos'));
+check('a winner row from an older record still renders from the single prize string',
+  (cardFn(doneView, true).match(/ml-win-prize/g) || []).length === 2);
 check('public prize tiles: label with qty, a ×N badge on the picture, the description under it', fn('renderPublicMonthly').includes('MonthlyLucky.prizeLabel(p)') && fn('renderPublicMonthly').includes('ml-tile-qty') && fn('renderPublicMonthly').includes("p.desc ? '<small>' + escHtml(p.desc) + '</small>'"));
 check('replay lookup knows monthly + shuttle sources', fn('sdFindSource').includes("kind === 'monthly'") && fn('sdFindSource').includes('DrawVideo.sourceFromMonthly(v)') && fn('sdFindSource').includes("kind === 'shuttle'") && fn('sdFindSource').includes('DrawVideo.sourceFromShuttlecock(e)'));
 check('member widget shows points-to-threshold progress', fn('renderMyDraw').includes('Points this month') && fn('renderMyDraw').includes('MonthlyLucky.isThreshold('));

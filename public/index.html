@@ -1424,6 +1424,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .ml-prize-qty{display:flex;align-items:center;gap:6px;flex:none;font-size:var(--fs-xs);font-weight:600;color:var(--muted)}
 .ml-prize-qty input{width:64px;text-align:center;-moz-appearance:textfield}
 .ml-prize-qty input::-webkit-outer-spin-button,.ml-prize-qty input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.ml-prize-place select{width:78px;text-align:center;padding-right:4px}
+.ml-prize-warn{font-size:var(--fs-xs);color:var(--warn);margin-top:4px;line-height:1.4}
 .ml-prize-desc{width:100%;box-sizing:border-box;font-size:var(--fs-sm)}
 .ml-prize-tools{display:flex;gap:4px;align-items:center;flex:none}
 .ml-prize-tools .btn{min-width:36px;padding:6px 8px}
@@ -1441,6 +1443,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .ml-win-name{font-weight:700;color:var(--text);font-size:var(--fs-md);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ml-win-prize{font-size:var(--fs-sm);color:var(--text-2)}
 .ml-win-desc{font-size:var(--fs-xs);color:var(--muted);line-height:1.35;margin-top:2px}
+.ml-win-photos{display:flex;gap:6px;flex:none}
 .ml-win-photo{width:48px;height:48px;border-radius:var(--radius-sm);object-fit:cover;flex:none;border:1px solid var(--border);background:var(--card)}
 .ml-prize-strip{display:flex;gap:10px;overflow-x:auto;padding:2px 0 8px;-webkit-overflow-scrolling:touch}
 .ml-prize-tile{flex:none;width:112px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center}
@@ -8404,7 +8407,12 @@ function mlFlash(id, kind) {
 }
 
 // ── prizes: ordered list with name + quantity + description + photo, saved as one list ──
-function mlPrizeRow(p) { return { id: p.id, name: p.name || '', qty: MonthlyLucky.isPrizeQty(Number(p.qty)) ? Number(p.qty) : MonthlyLucky.DEFAULT_PRIZE_QTY, desc: p.desc || '', photo: p.photo || null }; }
+function mlPrizeRow(p, i) { return { id: p.id, name: p.name || '', qty: MonthlyLucky.isPrizeQty(Number(p.qty)) ? Number(p.qty) : MonthlyLucky.DEFAULT_PRIZE_QTY, desc: p.desc || '', place: MonthlyLucky.placeOf(p, i), photo: p.photo || null }; }
+// How many winners the draw will pick — the unsaved input wins, as everywhere else.
+function mlWinnerCount() {
+  const inp = document.getElementById('mlWinnersInput');
+  return inp && MonthlyLucky.isWinnersCount(Number(inp.value)) ? Number(inp.value) : mlSettings().winners;
+}
 function mlPrizeList() { return mlPrizeDraft || []; }
 function renderMonthlyPrizes() {
   const el = document.getElementById('mlPrizes'); if (!el) return;
@@ -8415,12 +8423,15 @@ function renderMonthlyPrizes() {
     el.innerHTML = list.map((p, i) => {
       const id = escHtml(p.id);
       return '<div class="ml-prize" data-id="' + id + '">'
-        + '<span class="ml-win-rank">' + (i + 1) + '</span>'
+        + '<span class="ml-win-rank">' + MonthlyLucky.placeOf(p, i) + '</span>'
         + '<button type="button" class="ml-prize-photo" onclick="pickMonthlyPrizePhoto(\'' + id + '\')" aria-label="' + (p.photo ? 'Change' : 'Add') + ' photo for prize ' + (i + 1) + '">'
         + (p.photo ? '<img src="' + p.photo + '" alt="">' : '<svg class="ic" viewBox="0 0 24 24"><path d="M4 7h3l2-2h6l2 2h3v12H4z"/><circle cx="12" cy="13" r="3.5"/></svg>') + '</button>'
         + '<div class="ml-prize-main">'
         + '<div class="ml-prize-line"><input class="admin-form-input" type="text" maxlength="' + MonthlyLucky.MAX_PRIZE_NAME + '" placeholder="Prize ' + (i + 1) + ' name" value="' + escHtml(p.name) + '" oninput="setMonthlyPrizeName(\'' + id + '\', this.value)" aria-label="Prize ' + (i + 1) + ' name">'
-        + '<label class="ml-prize-qty"><span>Qty</span><input class="admin-form-input" type="number" inputmode="numeric" min="' + MonthlyLucky.MIN_PRIZE_QTY + '" max="' + MonthlyLucky.MAX_PRIZE_QTY + '" step="1" value="' + escHtml(String(p.qty == null ? MonthlyLucky.DEFAULT_PRIZE_QTY : p.qty)) + '" oninput="setMonthlyPrizeQty(\'' + id + '\', this.value)" aria-label="Prize ' + (i + 1) + ' quantity"></label></div>'
+        + '<label class="ml-prize-qty"><span>Qty</span><input class="admin-form-input" type="number" inputmode="numeric" min="' + MonthlyLucky.MIN_PRIZE_QTY + '" max="' + MonthlyLucky.MAX_PRIZE_QTY + '" step="1" value="' + escHtml(String(p.qty == null ? MonthlyLucky.DEFAULT_PRIZE_QTY : p.qty)) + '" oninput="setMonthlyPrizeQty(\'' + id + '\', this.value)" aria-label="Prize ' + (i + 1) + ' quantity"></label>'
+        + '<label class="ml-prize-qty ml-prize-place"><span>Goes to</span><select class="admin-form-input" onchange="setMonthlyPrizePlace(\'' + id + '\', this.value)" aria-label="Prize ' + (i + 1) + ' goes to which winner">'
+        + mlPlaceOptions(MonthlyLucky.placeOf(p, i)) + '</select></label></div>'
+        + (MonthlyLucky.placeOf(p, i) > mlWinnerCount() ? '<div class="ml-prize-warn">There is no ' + mlOrdinal(MonthlyLucky.placeOf(p, i)) + ' winner — raise the winner count or this prize is not given.</div>' : '')
         + '<input class="admin-form-input ml-prize-desc" type="text" maxlength="' + MonthlyLucky.MAX_PRIZE_DESC + '" placeholder="Description (optional) — brand, model, what is included" value="' + escHtml(p.desc || '') + '" oninput="setMonthlyPrizeDesc(\'' + id + '\', this.value)" aria-label="Prize ' + (i + 1) + ' description">'
         + (p.photo ? '<button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="clearMonthlyPrizePhoto(\'' + id + '\')">Remove photo</button>' : '') + '</div>'
         + '<div class="ml-prize-tools">'
@@ -8436,7 +8447,8 @@ function renderMonthlyPrizes() {
 function markPrizesDirty() { mlPrizeDirty = true; renderMonthlyPrizes(); }
 function addMonthlyPrize() {
   if (mlPrizeList().length >= MonthlyLucky.MAX_PRIZES) { notify('At most ' + MonthlyLucky.MAX_PRIZES + ' prizes.', 'warn'); return; }
-  mlPrizeDraft = mlPrizeList().concat([{ id: MonthlyLucky.newPrizeId(Date.now().toString(36)), name: '', qty: MonthlyLucky.DEFAULT_PRIZE_QTY, desc: '', photo: null }]);
+  mlPrizeDraft = mlPrizeList().concat([{ id: MonthlyLucky.newPrizeId(Date.now().toString(36)), name: '', qty: MonthlyLucky.DEFAULT_PRIZE_QTY, desc: '',
+    place: Math.min(mlPrizeList().length + 1, MonthlyLucky.MAX_PRIZES), photo: null }]);
   markPrizesDirty();
   const inputs = document.querySelectorAll('#mlPrizes .ml-prize input[type="text"]');
   const last = inputs[inputs.length - 1]; if (last) last.focus();
@@ -8449,6 +8461,27 @@ function setMonthlyPrizeName(id, value) {
   const p = mlPrizeList().find(x => x.id === id); if (!p) return;
   p.name = value;
   mlPrizeTouched();
+}
+// "1st", "2nd", "3rd", "4th"… for the place picker and its warning.
+function mlOrdinal(n) {
+  const v = Number(n) || 0, t = v % 100;
+  const suffix = (t >= 11 && t <= 13) ? 'th' : (['th', 'st', 'nd', 'rd'][v % 10] || 'th');
+  return v + suffix;
+}
+// Offer every place the draw will actually fill, plus the one already chosen
+// (so a prize parked beyond the winner count keeps its setting until changed).
+function mlPlaceOptions(place) {
+  const max = Math.max(mlWinnerCount(), Number(place) || 1);
+  let out = '';
+  for (let n = 1; n <= max; n++) out += '<option value="' + n + '"' + (n === Number(place) ? ' selected' : '') + '>' + mlOrdinal(n) + '</option>';
+  return out;
+}
+function setMonthlyPrizePlace(id, value) {
+  const p = mlPrizeList().find(x => x.id === id); if (!p) return;
+  const n = Math.round(Number(value));
+  if (!MonthlyLucky.isPlace(n)) return;
+  p.place = n;
+  markPrizesDirty();
 }
 function setMonthlyPrizeQty(id, value) {
   const p = mlPrizeList().find(x => x.id === id); if (!p) return;
@@ -8507,7 +8540,7 @@ function compressPrizePhoto(file) {
   });
 }
 async function saveMonthlyPrizes() {
-  const list = mlPrizeList().map(p => ({ id: p.id, name: String(p.name || '').trim(), qty: p.qty === '' || p.qty == null ? MonthlyLucky.DEFAULT_PRIZE_QTY : Number(p.qty), desc: String(p.desc || '').trim(), photo: p.photo || null }));
+  const list = mlPrizeList().map((p, i) => ({ id: p.id, name: String(p.name || '').trim(), qty: p.qty === '' || p.qty == null ? MonthlyLucky.DEFAULT_PRIZE_QTY : Number(p.qty), desc: String(p.desc || '').trim(), place: MonthlyLucky.placeOf(p, i), photo: p.photo || null }));
   if (list.some(p => !p.name)) { notify('Every prize needs a name — or remove the empty row.', 'warn'); return; }
   if (list.some(p => !MonthlyLucky.isPrizeQty(p.qty))) { notify('Quantity must be a whole number from ' + MonthlyLucky.MIN_PRIZE_QTY + ' to ' + MonthlyLucky.MAX_PRIZE_QTY + '.', 'warn'); return; }
   const btn = document.getElementById('mlPrizeSaveBtn'); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
@@ -8632,8 +8665,16 @@ function mlWinnersHtml(v) {
   if (!w.length) return '<div class="sd-nowin">No winners — nobody reached ' + (v.threshold || '') + ' points.</div>';
   const photoOf = pid => { const p = (v.prizes || []).find(x => x.id === pid); return p && p.photo ? p.photo : null; };
   return '<div class="ml-wins">' + w.map(x => {
-    const ph = photoOf(x.prizeId);
-    return '<div class="ml-win"><span class="ml-win-rank">' + x.rank + '</span><div class="ml-win-main"><div class="ml-win-name">' + escHtml(x.name) + '</div><div class="ml-win-prize">' + (x.prize ? escHtml(x.prize) : 'Winner') + '</div>' + (x.desc ? '<div class="ml-win-desc">' + escHtml(x.desc) + '</div>' : '') + '</div>' + (ph ? '<img class="ml-win-photo" src="' + ph + '" alt="">' : '') + '</div>';
+    // One place can hold several prizes; fall back to the single-prize fields
+    // for a record drawn before that was possible.
+    const items = (x.prizes && x.prizes.length) ? x.prizes : (x.prize ? [{ id: x.prizeId, label: x.prize, desc: x.desc }] : []);
+    const photos = items.map(it => photoOf(it.id)).filter(Boolean);
+    return '<div class="ml-win"><span class="ml-win-rank">' + x.rank + '</span><div class="ml-win-main"><div class="ml-win-name">' + escHtml(x.name) + '</div>'
+      + (items.length
+        ? items.map(it => '<div class="ml-win-prize">' + escHtml(it.label || '') + '</div>' + (it.desc ? '<div class="ml-win-desc">' + escHtml(it.desc) + '</div>' : '')).join('')
+        : '<div class="ml-win-prize">Winner</div>')
+      + '</div>'
+      + (photos.length ? '<span class="ml-win-photos">' + photos.map(ph => '<img class="ml-win-photo" src="' + ph + '" alt="">').join('') + '</span>' : '') + '</div>';
   }).join('') + '</div>';
 }
 function mlCardHtml(v, admin) {
@@ -8681,7 +8722,7 @@ function renderPublicMonthly() {
   let html = '<div class="md-sec-title">Monthly draw</div>';
   html += '<div class="sd-how"><b>How it works</b>' + escHtml(MonthlyLucky.howItWorksText(s)) + '</div>';
   const prizes = m.prizes || [];
-  if (prizes.length) html += '<div class="ml-prize-strip">' + prizes.map((p, i) => '<div class="ml-prize-tile"><div class="ml-tile-img">' + (p.photo ? '<img src="' + p.photo + '" alt="">' : (i + 1)) + (Number(p.qty) > 1 ? '<span class="ml-tile-qty">×' + Number(p.qty) + '</span>' : '') + '</div><span>' + escHtml(MonthlyLucky.prizeLabel(p)) + '</span>' + (p.desc ? '<small>' + escHtml(p.desc) + '</small>' : '') + '</div>').join('') + '</div>';
+  if (prizes.length) html += '<div class="ml-prize-strip">' + prizes.map((p, i) => '<div class="ml-prize-tile"><div class="ml-tile-img">' + (p.photo ? '<img src="' + p.photo + '" alt="">' : MonthlyLucky.placeOf(p, i)) + (Number(p.qty) > 1 ? '<span class="ml-tile-qty">×' + Number(p.qty) + '</span>' : '') + '</div><span>' + escHtml(MonthlyLucky.prizeLabel(p)) + '</span>' + (p.desc ? '<small>' + escHtml(p.desc) + '</small>' : '') + '</div>').join('') + '</div>';
   const months = m.months || [];
   const live = months.find(v => v.month === m.pointsMonth && v.status !== 'done');
   if (live) {
