@@ -11720,11 +11720,12 @@ function openAccountModal() {
 }
 function closeAccountModal() { document.getElementById('accountModal').classList.remove('open'); }
 
-// The member page greets them by name; first name only, so a long full name
-// does not wrap the heading on a phone.
+// The member page greets them by name. Use the WHOLE name: plenty of members
+// here have a two-part given name ("Guo Ping", "Ong Yi"), and cutting at the
+// first space greets them by half a name.
 function setAccountTitle(name) {
   const h = document.getElementById('accountTitle');
-  if (h) h.textContent = 'Welcome back, ' + String(name || 'Player').trim().split(/\s+/)[0];
+  if (h) h.textContent = 'Welcome back, ' + (String(name || '').trim() || 'Player');
 }
 
 // "Tue 8 Sep 2026" — fixed English names, so every phone renders the same string.
