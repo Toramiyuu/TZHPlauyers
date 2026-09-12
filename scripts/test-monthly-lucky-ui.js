@@ -48,6 +48,10 @@ check('photos are compressed client-side (fit 480, JPEG, size-capped) and valida
 check('Save prizes posts the whole ordered list and refuses empty names', fn('saveMonthlyPrizes').includes("action: 'setMonthlyPrizes', prizes: list") && fn('saveMonthlyPrizes').includes('Every prize needs a name'));
 check('a background refresh never wipes unsaved prize edits', fn('loadMonthlyAdmin').includes('if (!mlPrizeDirty) mlPrizeDraft ='));
 check('typing a prize name does not re-render (keeps focus)', !fn('setMonthlyPrizeName').includes('renderMonthlyPrizes()'));
+check('prize rows: quantity (1..99 number) + description inputs, wired without re-render', fn('renderMonthlyPrizes').includes('setMonthlyPrizeQty(') && fn('renderMonthlyPrizes').includes('setMonthlyPrizeDesc(') && fn('renderMonthlyPrizes').includes('type="number" inputmode="numeric" min="\' + MonthlyLucky.MIN_PRIZE_QTY') && fn('renderMonthlyPrizes').includes('maxlength="\' + MonthlyLucky.MAX_PRIZE_DESC') && !fn('setMonthlyPrizeQty').includes('renderMonthlyPrizes()') && !fn('setMonthlyPrizeDesc').includes('renderMonthlyPrizes()'));
+check('Save prizes sends qty (blank = 1) + trimmed desc and refuses a bad quantity', fn('saveMonthlyPrizes').includes('MonthlyLucky.DEFAULT_PRIZE_QTY : Number(p.qty)') && fn('saveMonthlyPrizes').includes("desc: String(p.desc || '').trim()") && fn('saveMonthlyPrizes').includes('MonthlyLucky.isPrizeQty(p.qty)'));
+check('prize drafts (load + save + add) keep qty/desc', fn('loadMonthlyAdmin').includes('.map(mlPrizeRow)') && fn('saveMonthlyPrizes').includes('.map(mlPrizeRow)') && fn('mlPrizeRow').includes('MonthlyLucky.isPrizeQty(Number(p.qty))') && fn('addMonthlyPrize').includes("qty: MonthlyLucky.DEFAULT_PRIZE_QTY, desc: ''"));
+check('helper + help drawer explain quantity and description', html.includes('Set a quantity to give one winner several of the same item') && html.includes('Each prize has a <b>quantity</b>'));
 
 // ── pool + manual draw ──
 check('Pull button posts pullMonthlyPool and shows the threshold in its label', fn('pullMonthlyPool').includes("action: 'pullMonthlyPool'") && fn('renderMonthlySettings').includes("'Pull players with ' + s.threshold + '+ points'"));
@@ -67,6 +71,8 @@ check('done card: label, status, winners with prize + photo, replay row, seed + 
 check('done card escapes names and marks winners in the eligible list with points', card.includes('Alice &lt;b&gt;') && !card.includes('Alice <b>') && card.includes('sd-win-tag">Winner<') && card.includes('120 pts'));
 const publicCard = cardFn(Object.assign({ live: false }, doneView), false);
 check('public card: no points, no eligible list, still winners + replay', !publicCard.includes(' pts') && !publicCard.includes('sd-names-wrap') && publicCard.includes('ml-win-prize">Socks<') && publicCard.includes('data-kind="monthly"'));
+const qtyCard = cardFn(Object.assign({}, doneView, { lists: { eligible: doneView.lists.eligible, winners: [{ rank: 1, id: 'p3', name: 'Cara', prizeId: 'x', prize: '2 × Racket', prizeName: 'Racket', qty: 2, desc: 'Yonex Astrox <b>' }] } }), true);
+check('done card shows the quantity label and an escaped description line (none when empty)', qtyCard.includes('ml-win-prize">2 × Racket<') && qtyCard.includes('ml-win-desc">Yonex Astrox &lt;b&gt;<') && !card.includes('ml-win-desc'));
 const waiting = { month: '2026-09', label: 'September 2026', status: 'pending', auto: false, live: false, closed: true, due: true, drawAt: ML.scheduledDrawAt('2026-09', 8), threshold: 80, winnersWanted: 3, counts: { eligible: 2, winners: 0 }, lists: { eligible: [{ id: 'p1', name: 'Alice', points: 90 }, { id: 'p2', name: 'Bob', points: 85 }], winners: [] }, prizes: [] };
 card = cardFn(waiting, true);
 check('closed-but-undrawn month (auto off): Waiting for admin + Run draw now', card.includes('>Waiting for admin<') && card.includes("askRunMonthlyDraw('2026-09')") && card.includes('Automatic draw is off'));
@@ -77,6 +83,7 @@ check('live month card: "This month", no Run button (the pool card has it), elig
 
 // ── public page ──
 check('public page has the monthly section rendered from /api/draws → monthly', html.includes('id="drawPageMonthly"') && fn('renderDrawPage').includes('renderPublicMonthly()') && fn('renderPublicMonthly').includes('sdPublic.monthly') && fn('renderPublicMonthly').includes('ml-prize-strip'));
+check('public prize tiles: label with qty, a ×N badge on the picture, the description under it', fn('renderPublicMonthly').includes('MonthlyLucky.prizeLabel(p)') && fn('renderPublicMonthly').includes('ml-tile-qty') && fn('renderPublicMonthly').includes("p.desc ? '<small>' + escHtml(p.desc) + '</small>'"));
 check('replay lookup knows monthly + shuttle sources', fn('sdFindSource').includes("kind === 'monthly'") && fn('sdFindSource').includes('DrawVideo.sourceFromMonthly(v)') && fn('sdFindSource').includes("kind === 'shuttle'") && fn('sdFindSource').includes('DrawVideo.sourceFromShuttlecock(e)'));
 check('member widget shows points-to-threshold progress', fn('renderMyDraw').includes('Points this month') && fn('renderMyDraw').includes('MonthlyLucky.isThreshold('));
 

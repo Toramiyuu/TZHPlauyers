@@ -41,7 +41,7 @@ function freshState(extra) {
   return Object.assign({
     roster: [{ id: 'p1', name: 'Alice', points: 120 }, { id: 'p2', name: 'Bob', points: 80 }, { id: 'p3', name: 'Cara', points: 40 }, { id: 'p4', name: 'Dan', points: 95 }],
     players: [], sessionDate: '2026-09-28', sessions: {}, attendance: {}, audit: [], signups: [], regulars: {},
-    monthlyLucky: { auto: true, winners: 2, threshold: 80, prizes: [{ id: 'pzA', name: 'Racket' }, { id: 'pzB', name: 'Socks' }], pointsMonth: '2026-09', pool: null, closed: {} },
+    monthlyLucky: { auto: true, winners: 2, threshold: 80, prizes: [{ id: 'pzA', name: 'Racket', qty: 2, desc: 'Yonex Astrox' }, { id: 'pzB', name: 'Socks' }], pointsMonth: '2026-09', pool: null, closed: {} },
   }, extra || {});
 }
 const opts = (nowMs, extra) => Object.assign({ store: extra && extra.store, nowMs, offsetHours: 8, seedFn: seedA }, extra || {});
@@ -116,7 +116,18 @@ const act = (s, body, o) => M.handleMonthlyLuckyAdminAction(s, body, o);
     && s.monthlyLucky.prizes.length === 2);
   r = await act(s, { action: 'setMonthlyPrizes', prizes: [{ id: 'pzB', name: 'Socks', photo: PHOTO }, { name: 'New racket', photo: '' }] }, opts(2, { store }));
   check('setMonthlyPrizes stores the ordered list with photos, ids kept/assigned, audit names only', r.status === 200 && r.changed && r.body.prizes.length === 2 && r.body.prizes[0].id === 'pzB' && r.body.prizes[0].photo === PHOTO && r.body.prizes[1].photo === null && r.body.prizes[1].id
-    && s.audit[0].action === 'monthlyLucky.prizes' && s.audit[0].prevValue.join() === 'Racket,Socks' && s.audit[0].newValue.join() === 'Socks,New racket' && JSON.stringify(s.audit[0]).indexOf('base64') === -1);
+    && s.audit[0].action === 'monthlyLucky.prizes' && s.audit[0].prevValue.join() === '2 × Racket,Socks' && s.audit[0].newValue.join() === 'Socks,New racket' && JSON.stringify(s.audit[0]).indexOf('base64') === -1);
+
+  // ── prize quantity + description ──
+  check('setMonthlyPrizes rejects qty 0 / 1.5 / 100 and an over-long or non-string description', (await act(s, { action: 'setMonthlyPrizes', prizes: [{ name: 'Ok', qty: 0 }] }, opts(3, { store }))).status === 400
+    && (await act(s, { action: 'setMonthlyPrizes', prizes: [{ name: 'Ok', qty: 1.5 }] }, opts(3, { store }))).status === 400
+    && (await act(s, { action: 'setMonthlyPrizes', prizes: [{ name: 'Ok', qty: 100 }] }, opts(3, { store }))).status === 400
+    && (await act(s, { action: 'setMonthlyPrizes', prizes: [{ name: 'Ok', desc: 'x'.repeat(201) }] }, opts(3, { store }))).status === 400
+    && (await act(s, { action: 'setMonthlyPrizes', prizes: [{ name: 'Ok', desc: { a: 1 } }] }, opts(3, { store }))).status === 400
+    && s.monthlyLucky.prizes.map(p => p.name).join() === 'Socks,New racket');
+  r = await act(s, { action: 'setMonthlyPrizes', prizes: [{ id: 'pzB', name: 'Tube of shuttlecocks', qty: '2', desc: '  Yonex AS-50, 12 pcs  ', photo: PHOTO }, { name: 'Bag', qty: '', desc: null }] }, opts(4, { store }));
+  check('setMonthlyPrizes stores qty (blank = 1) + trimmed desc; audit reads "2 × name"', r.status === 200 && r.body.prizes[0].qty === 2 && r.body.prizes[0].desc === 'Yonex AS-50, 12 pcs' && r.body.prizes[0].photo === PHOTO && r.body.prizes[1].qty === 1 && r.body.prizes[1].desc === ''
+    && s.monthlyLucky.prizes[0].qty === 2 && s.monthlyLucky.prizes[0].desc === 'Yonex AS-50, 12 pcs' && s.audit[0].newValue.join() === '2 × Tube of shuttlecocks,Bag' && s.audit[0].prevValue.join() === 'Socks,New racket');
 
   // ── pool + curation + manual draw of the live month ──
   s = freshState(); store = M.memoryMonthlyStore();
@@ -139,6 +150,7 @@ const act = (s, body, o) => M.handleMonthlyLuckyAdminAction(s, body, o);
   r = await act(s, { action: 'runMonthlyDraw', month: '2026-09' }, opts(30, { store }));
   check('manual draw of the live month uses the pool minus removals', r.status === 200 && r.changed && r.body.result.method === 'manual' && r.body.result.source === 'live' && r.body.result.eligible.join() === 'p1,p4,p3' && r.body.result.winners.length === 2 && r.body.result.drawAt === SEP_AT);
   check('audit lists the winners with their prizes', s.audit[0].action === 'monthlyLucky.draw' && s.audit[0].newValue.length === 2 && /—/.test(s.audit[0].newValue[0]));
+  check('the record snapshots qty + desc and the audit shows the quantity', r.body.result.prizes[0].qty === 2 && r.body.result.prizes[0].desc === 'Yonex Astrox' && r.body.result.prizes[1].qty === 1 && / — 2 × Racket$/.test(s.audit[0].newValue[0]) && ML.awardsOf(r.body.result)[0].prize === '2 × Racket');
   r = await act(s, { action: 'runMonthlyDraw', month: '2026-09' }, opts(31, { store: Object.assign(store, {}), seedFn: seedB }));
   check('second manual draw -> 409 with the existing result', r.status === 409 && r.body.result.seed === SEED_A);
   M.applyMonthClose(s, '2026-10-01', 40);

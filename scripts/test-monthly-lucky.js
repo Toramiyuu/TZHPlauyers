@@ -107,6 +107,28 @@ const pub = ML.publicMonthView(done), pubLive = ML.publicMonthView(live);
 check('public view: winners + prizes, eligible names only once drawn, never points', pub.lists.winners[0].prize === 'Racket' && pub.lists.eligible.length === 3 && pub.lists.eligible[0].points === undefined && pubLive.lists.eligible.length === 0 && pubLive.counts.eligible === 3 && pub.prizes.length === 2 && pub.pool === undefined);
 check('done view looks up prize photos from the CURRENT settings by id', (() => { const s = { roster, monthlyLucky: { pointsMonth: '2026-10', prizes: [{ id: 'x', name: 'Racket (renamed)', photo: 'data:image/jpeg;base64,QUJD' }] } }; const v = ML.buildView(s, { '2026-09': rec }, { nowMs: NOW }).months.find(m => m.month === '2026-09'); return v.prizes[0].name === 'Racket' && v.prizes[0].photo === 'data:image/jpeg;base64,QUJD' && v.prizes[1].photo === null; })());
 
+// ── prize quantity + description ──
+{
+  const pz = ML.normalizePrizes([{ id: 'a', name: 'Tube', qty: '2', desc: '  Yonex AS-50, 12 pcs  ' }, { id: 'b', name: 'Bag', qty: 0, desc: null }, { id: 'c', name: 'Grip', qty: 150, desc: 'x'.repeat(300) }, { id: 'd', name: 'Socks', qty: 1.5 }]);
+  check('normalizePrizes: qty parsed (default 1; 0 / 1.5 / 150 fall back), desc trimmed + capped', pz[0].qty === 2 && pz[0].desc === 'Yonex AS-50, 12 pcs' && pz[1].qty === 1 && pz[1].desc === '' && pz[2].qty === 1 && pz[2].desc.length === ML.MAX_PRIZE_DESC && pz[3].qty === 1);
+  check('isPrizeQty bounds (whole numbers 1..99)', ML.isPrizeQty(1) && ML.isPrizeQty(99) && !ML.isPrizeQty(0) && !ML.isPrizeQty(100) && !ML.isPrizeQty(2.5) && !ML.isPrizeQty('2'));
+  check('prizeLabel: bare name at qty 1, "N × name" above, empty for junk', ML.prizeLabel({ name: 'Tube' }) === 'Tube' && ML.prizeLabel({ name: 'Tube', qty: 1 }) === 'Tube' && ML.prizeLabel({ name: 'Tube', qty: 3 }) === '3 × Tube' && ML.prizeLabel({ name: ' ', qty: 3 }) === '' && ML.prizeLabel(null) === '');
+  const qrec = ML.buildDrawResult({ month: '2026-09', players, winnersWanted: 3, prizes: [{ id: 'a', name: 'Tube', qty: 2, desc: 'Yonex AS-50', photo: 'data:image/jpeg;base64,QUJD' }, { id: 'b', name: 'Bag' }], seed: SEED, nowMs: 1 });
+  check('record snapshots qty + desc (never the photo)', qrec.prizes[0].qty === 2 && qrec.prizes[0].desc === 'Yonex AS-50' && qrec.prizes[0].photo === undefined && qrec.prizes[1].qty === 1 && qrec.prizes[1].desc === '');
+  const qa = ML.awardsOf(qrec);
+  check('awardsOf: prize = label with qty, plus prizeName/qty/desc; extras empty', qa[0].prize === '2 × Tube' && qa[0].prizeName === 'Tube' && qa[0].qty === 2 && qa[0].desc === 'Yonex AS-50' && qa[1].prize === 'Bag' && qa[1].qty === 1 && qa[2].prize === '' && qa[2].qty === 0 && qa[2].desc === '');
+  check('old records without qty/desc still read as qty 1, no desc', (() => { const a = ML.awardsOf({ winners: ['p1'], names: { p1: 'A' }, prizes: [{ id: 'x', name: 'Racket' }] }); return a[0].prize === 'Racket' && a[0].qty === 1 && a[0].desc === ''; })());
+  const qs = { roster, monthlyLucky: { pointsMonth: '2026-10', prizes: [{ id: 'a', name: 'Tube (renamed)', qty: 5, desc: 'changed later', photo: 'data:image/jpeg;base64,QUJD' }] } };
+  const qv = ML.buildView(qs, { '2026-09': qrec }, { nowMs: NOW }).months.find(m => m.month === '2026-09');
+  check('done view keeps the RECORDED qty/desc; the photo still comes by id from settings', qv.prizes[0].qty === 2 && qv.prizes[0].desc === 'Yonex AS-50' && qv.prizes[0].photo === 'data:image/jpeg;base64,QUJD' && qv.lists.winners[0].prize === '2 × Tube' && qv.lists.winners[0].desc === 'Yonex AS-50');
+  const qlive = ML.buildView(qs, {}, { nowMs: NOW }).months.find(m => m.month === '2026-10');
+  check('pending view carries qty/desc from the current settings', qlive.prizes[0].qty === 5 && qlive.prizes[0].desc === 'changed later');
+  const qpub = ML.publicMonthView(qv);
+  check('public view exposes qty/desc/prizeName on winners and prizes', qpub.lists.winners[0].qty === 2 && qpub.lists.winners[0].desc === 'Yonex AS-50' && qpub.lists.winners[0].prizeName === 'Tube' && qpub.prizes[0].qty === 2 && qpub.prizes[0].desc === 'Yonex AS-50');
+  const qlite = ML.liteOf({ prizes: [{ id: 'a', name: 'Tube', qty: 2, desc: 'd', photo: 'data:image/jpeg;base64,QUJD' }] }, '2026-09-11');
+  check('liteOf carries qty + desc but still no photo bytes', qlite.prizes[0].qty === 2 && qlite.prizes[0].desc === 'd' && qlite.prizes[0].photo === undefined && qlite.prizes[0].hasPhoto === true);
+}
+
 // ── copy ──
 check('howItWorksText mentions threshold, winners, schedule and the reset', /Reach 80 points/.test(ML.howItWorksText({})) && /3 winners are picked/.test(ML.howItWorksText({})) && /9:00 AM on the 1st/.test(ML.howItWorksText({})) && /from zero every month/.test(ML.howItWorksText({})));
 check('howItWorksText with auto off says an admin runs it; singular winner', /when an admin runs the draw/.test(ML.howItWorksText({ auto: false })) && /1 winner is picked/.test(ML.howItWorksText({ winners: 1 })));

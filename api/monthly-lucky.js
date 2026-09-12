@@ -14,7 +14,7 @@
  * Actions (admin-password gated by api/state.js):
  *   getMonthlyDraws {}                       — closes a due month, sweeps, returns the admin view
  *   setMonthlySettings {auto?,winners?,threshold?}
- *   setMonthlyPrizes {prizes:[{id,name,photo}]}
+ *   setMonthlyPrizes {prizes:[{id,name,qty,desc,photo}]}
  *   pullMonthlyPool {}                       — pool = roster at/above the threshold (current month)
  *   setMonthlyPoolRemoved {playerId,removed} — admin curation of the pulled pool
  *   runMonthlyDraw {month}                   — manual draw; refused once a record exists
@@ -134,6 +134,9 @@ function doSetMonthlyPrizes(state, body, o) {
     if (!p || typeof p !== 'object') return bad('Invalid prize.');
     if (!String(p.name == null ? '' : p.name).trim()) return bad('Every prize needs a name.');
     if (String(p.name).trim().length > ML.MAX_PRIZE_NAME) return bad('Prize names are limited to ' + ML.MAX_PRIZE_NAME + ' characters.');
+    if (p.qty != null && p.qty !== '' && !ML.isPrizeQty(Number(p.qty))) return bad('Quantity must be a whole number from ' + ML.MIN_PRIZE_QTY + ' to ' + ML.MAX_PRIZE_QTY + '.');
+    if (p.desc != null && typeof p.desc !== 'string') return bad('Invalid prize description.');
+    if (p.desc != null && String(p.desc).trim().length > ML.MAX_PRIZE_DESC) return bad('Prize descriptions are limited to ' + ML.MAX_PRIZE_DESC + ' characters.');
     if (p.photo != null && p.photo !== '' && !ML.isPhoto(p.photo)) return bad('A prize photo must be a JPEG/PNG/WebP under ' + Math.round(ML.MAX_PHOTO_BYTES / 1024) + ' KB.');
   }
   const prizes = ML.normalizePrizes(body.prizes);
@@ -141,7 +144,7 @@ function doSetMonthlyPrizes(state, body, o) {
   state.monthlyLucky = Object.assign({}, ML.normalize(state.monthlyLucky, o.today), { prizes });
   pushAudit(state, { action: 'monthlyLucky.prizes', admin: 'admin', at: o.nowMs,
     target: { type: 'monthlyLucky', id: 'prizes', label: 'Monthly draw prizes' },
-    prevValue: prev.map((p) => p.name), newValue: prizes.map((p) => p.name) });
+    prevValue: prev.map(ML.prizeLabel), newValue: prizes.map(ML.prizeLabel) });
   return { status: 200, body: { ok: true, prizes }, changed: true };
 }
 

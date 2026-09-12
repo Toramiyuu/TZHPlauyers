@@ -21,6 +21,10 @@
  *   - Winners = first N of the seeded shuffle of the eligible ids; winner k gets
  *     prize k (extra winners win with no named prize). One record per month,
  *     permanent (HSETNX in api/monthly-lucky.js).
+ *   - A prize is { id, name, qty, desc, photo }: `qty` (1..MAX_PRIZE_QTY) lets one
+ *     winner take several of the same item ("2 × Tube of shuttlecocks"), `desc`
+ *     is an optional short description. Name/qty/desc are snapshotted into the
+ *     record; photos are looked up live by prize id.
  */
 (function (root, factory) {
   const dep = (root && root.SessionDraw) || (typeof require === 'function' ? require('./session-draw.js') : null);
@@ -34,7 +38,8 @@
   const DRAW_TIME = '09:00';            // wall-clock (Asia/Kuala_Lumpur) on the 1st of the next month
   const DEFAULT_THRESHOLD = 80, MIN_THRESHOLD = 1, MAX_THRESHOLD = 10000;
   const DEFAULT_WINNERS = 3, MIN_WINNERS = 1, MAX_WINNERS = 20;
-  const MAX_PRIZES = 12, MAX_PRIZE_NAME = 60;
+  const MAX_PRIZES = 12, MAX_PRIZE_NAME = 60, MAX_PRIZE_DESC = 200;
+  const DEFAULT_PRIZE_QTY = 1, MIN_PRIZE_QTY = 1, MAX_PRIZE_QTY = 99;
   const MAX_PHOTO_BYTES = 200 * 1024;   // data-URL length cap for one prize photo
   const KEEP_CLOSED_MONTHS = 12;
   const ALGORITHM = 'sfc32-fisher-yates-v1';
@@ -77,12 +82,13 @@
   // ── settings ─────────────────────────────────────────────────────────
   function isWinnersCount(n) { return Number.isInteger(n) && n >= MIN_WINNERS && n <= MAX_WINNERS; }
   function isThreshold(n) { return Number.isInteger(n) && n >= MIN_THRESHOLD && n <= MAX_THRESHOLD; }
+  function isPrizeQty(n) { return Number.isInteger(n) && n >= MIN_PRIZE_QTY && n <= MAX_PRIZE_QTY; }
   function isPhoto(s) { return typeof s === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s) && s.length <= MAX_PHOTO_BYTES; }
   function newPrizeId(seedStr) {
     // Deterministic-friendly: callers pass an id when they have one; this is only for brand-new rows.
     return 'pz' + String(seedStr || Date.now().toString(36)) + Math.random().toString(36).slice(2, 6);
   }
-  /** Clean prize list: trimmed names (required), optional photo, stable ids, max MAX_PRIZES. */
+  /** Clean prize list: trimmed names (required), qty 1..MAX_PRIZE_QTY (default 1), trimmed optional desc, optional photo, stable ids, max MAX_PRIZES. */
   function normalizePrizes(list) {
     const out = [];
     const seen = new Set();
@@ -93,9 +99,18 @@
       let id = typeof p.id === 'string' && /^[A-Za-z0-9_-]{2,40}$/.test(p.id) ? p.id : ('pz' + (i + 1));
       while (seen.has(id)) id += 'x';
       seen.add(id);
-      out.push({ id, name, photo: isPhoto(p.photo) ? p.photo : null });
+      const qty = isPrizeQty(Number(p.qty)) ? Number(p.qty) : DEFAULT_PRIZE_QTY;
+      const desc = String(p.desc == null ? '' : p.desc).trim().slice(0, MAX_PRIZE_DESC);
+      out.push({ id, name, qty, desc, photo: isPhoto(p.photo) ? p.photo : null });
     });
     return out;
+  }
+  /** Display label for a prize: "Name" or "3 × Name" when the quantity is above one. */
+  function prizeLabel(p) {
+    if (!p || typeof p !== 'object') return '';
+    const name = String(p.name == null ? '' : p.name).trim();
+    const qty = isPrizeQty(Number(p.qty)) ? Number(p.qty) : DEFAULT_PRIZE_QTY;
+    return !name ? '' : qty > 1 ? qty + ' × ' + name : name;
   }
   /** Validated settings from state.monthlyLucky (defaults for anything missing/junk). */
   function settingsOf(state) {
@@ -133,7 +148,7 @@
     const n = normalize(ml, todayISO);
     return {
       auto: n.auto, winners: n.winners, threshold: n.threshold, pointsMonth: n.pointsMonth,
-      prizes: n.prizes.map((p) => ({ id: p.id, name: p.name, hasPhoto: !!p.photo })),
+      prizes: n.prizes.map((p) => ({ id: p.id, name: p.name, qty: p.qty, desc: p.desc, hasPhoto: !!p.photo })),
       pool: n.pool ? { month: n.pool.month, pulledAt: n.pool.pulledAt, count: n.pool.players.length, removed: n.pool.removed.slice() } : null,
     };
   }
@@ -219,7 +234,7 @@
   /**
    * Build the permanent record for one month. Pure: seed + clock injected.
    *   { month, drawAt, players:[{id,name,points}], threshold, winnersWanted,
-   *     prizes:[{id,name}], seed, nowMs, method:'auto'|'manual', source:'closed'|'live' }
+   *     prizes:[{id,name,qty,desc}], seed, nowMs, method:'auto'|'manual', source:'closed'|'live' }
    */
   function buildDrawResult(opts) {
     const o = opts || {};
@@ -232,7 +247,7 @@
     const winners = order.slice(0, Math.min(wanted, order.length));
     const names = {}, points = {};
     players.forEach((p) => { names[p.id] = String(p.name || p.id); points[p.id] = Number(p.points) || 0; });
-    const prizes = normalizePrizes(o.prizes).map((p) => ({ id: p.id, name: p.name }));
+    const prizes = normalizePrizes(o.prizes).map((p) => ({ id: p.id, name: p.name, qty: p.qty, desc: p.desc }));
     const at = Number(o.nowMs) || 0;
     return {
       v: RECORD_VERSION, kind: 'monthly', month, label: monthLabel(month),
@@ -255,13 +270,20 @@
     const w = Array.isArray(rec.winners) ? rec.winners : [];
     return winners.length === w.length && winners.every((id, i) => id === w[i]);
   }
-  /** Winner rows with their prize: [{rank,id,name,points,prizeId,prize}]. */
+  /**
+   * Winner rows with their prize: [{rank,id,name,points,prizeId,prize,prizeName,qty,desc}].
+   * `prize` is the display label ("2 × Tube of shuttlecocks"); `prizeName` the bare name.
+   */
   function awardsOf(rec, prizes) {
     const pz = Array.isArray(prizes) ? prizes : (rec && rec.prizes) || [];
-    return ((rec && rec.winners) || []).map((id, i) => ({
-      rank: i + 1, id, name: (rec.names && rec.names[id]) || id, points: rec.points ? (Number(rec.points[id]) || 0) : 0,
-      prizeId: pz[i] ? pz[i].id : null, prize: pz[i] ? pz[i].name : '',
-    }));
+    return ((rec && rec.winners) || []).map((id, i) => {
+      const p = pz[i] || null;
+      return {
+        rank: i + 1, id, name: (rec.names && rec.names[id]) || id, points: rec.points ? (Number(rec.points[id]) || 0) : 0,
+        prizeId: p ? p.id : null, prize: p ? prizeLabel(p) : '', prizeName: p ? String(p.name || '') : '',
+        qty: p && isPrizeQty(Number(p.qty)) ? Number(p.qty) : (p ? DEFAULT_PRIZE_QTY : 0), desc: p ? String(p.desc || '') : '',
+      };
+    });
   }
 
   // ── which months are in play ─────────────────────────────────────────
@@ -300,7 +322,7 @@
       // Photos are not stored in the record: look them up by prize id in the current settings.
       const photoById = {};
       settings.prizes.forEach((p) => { photoById[p.id] = p.photo || null; });
-      const prizes = (rec.prizes || []).map((p) => ({ id: p.id, name: p.name, photo: photoById[p.id] || null }));
+      const prizes = (rec.prizes || []).map((p) => ({ id: p.id, name: p.name, qty: isPrizeQty(Number(p.qty)) ? Number(p.qty) : DEFAULT_PRIZE_QTY, desc: String(p.desc || ''), photo: photoById[p.id] || null }));
       return Object.assign(base, {
         status: 'done', method: rec.method || 'auto', source: rec.source || 'closed', drawnAt: rec.drawnAt || null, seed: rec.seed || '',
         winnersWanted: rec.winnersWanted, shortfall: !!rec.shortfall, verified: verifyDrawResult(rec),
@@ -320,7 +342,7 @@
       closed: !!cand.closed, live: !!cand.live,
       counts: { eligible: pf.players.length, winners: 0 },
       lists: { eligible: pf.players, winners: [] },
-      prizes: settings.prizes.map((p) => ({ id: p.id, name: p.name, photo: p.photo || null })),
+      prizes: settings.prizes.map((p) => ({ id: p.id, name: p.name, qty: p.qty, desc: p.desc, photo: p.photo || null })),
       pool: pool ? { pulledAt: pool.pulledAt, removed: pool.removed.slice(), stale: poolStaleIds(state, pool) } : null,
     });
   }
@@ -351,9 +373,9 @@
       counts: { eligible: (v.counts && v.counts.eligible) || 0, winners: (v.counts && v.counts.winners) || 0 },
       lists: {
         eligible: done ? (lists.eligible || []).map((r) => ({ id: r.id, name: r.name })) : [],
-        winners: (lists.winners || []).map((w) => ({ rank: w.rank, id: w.id, name: w.name, prizeId: w.prizeId || null, prize: w.prize || '' })),
+        winners: (lists.winners || []).map((w) => ({ rank: w.rank, id: w.id, name: w.name, prizeId: w.prizeId || null, prize: w.prize || '', prizeName: w.prizeName || '', qty: w.qty || 0, desc: w.desc || '' })),
       },
-      prizes: (v.prizes || []).map((p) => ({ id: p.id, name: p.name, photo: p.photo || null })),
+      prizes: (v.prizes || []).map((p) => ({ id: p.id, name: p.name, qty: isPrizeQty(Number(p.qty)) ? Number(p.qty) : DEFAULT_PRIZE_QTY, desc: String(p.desc || ''), photo: p.photo || null })),
     };
   }
 
@@ -376,9 +398,9 @@
   }
 
   return {
-    DRAW_TIME, DEFAULT_THRESHOLD, MIN_THRESHOLD, MAX_THRESHOLD, DEFAULT_WINNERS, MIN_WINNERS, MAX_WINNERS, MAX_PRIZES, MAX_PRIZE_NAME, MAX_PHOTO_BYTES, KEEP_CLOSED_MONTHS, ALGORITHM, RECORD_VERSION,
+    DRAW_TIME, DEFAULT_THRESHOLD, MIN_THRESHOLD, MAX_THRESHOLD, DEFAULT_WINNERS, MIN_WINNERS, MAX_WINNERS, MAX_PRIZES, MAX_PRIZE_NAME, MAX_PRIZE_DESC, DEFAULT_PRIZE_QTY, MIN_PRIZE_QTY, MAX_PRIZE_QTY, MAX_PHOTO_BYTES, KEEP_CLOSED_MONTHS, ALGORITHM, RECORD_VERSION,
     isMonthKey, monthKeyOf, monthLabel, shiftMonthKey, nextMonthKey, prevMonthKey, drawDateFor, scheduledDrawAt, monthOfInstant, isoOfInstant,
-    isWinnersCount, isThreshold, isPhoto, newPrizeId, normalizePrizes, settingsOf, normalize, liteOf,
+    isWinnersCount, isThreshold, isPrizeQty, isPhoto, newPrizeId, normalizePrizes, prizeLabel, settingsOf, normalize, liteOf,
     eligibleFromRoster, eligibleFromSnapshot, applyRemoved, buildPool, poolStaleIds,
     closeDue, closeIfDue,
     buildDrawResult, verifyDrawResult, awardsOf, playersFor, monthCandidates, viewOf, buildView, publicMonthView,
