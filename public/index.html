@@ -1623,6 +1623,21 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .mb-hist summary{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:42px;padding:8px 12px;cursor:pointer;list-style:none;font-size:var(--fs-sm);font-weight:700;color:var(--text)}
 .mb-hist summary::-webkit-details-marker{display:none}
 .mb-hist summary b{font-weight:600;color:var(--muted)}
+.mb-win+.mb-win{border-top:1px solid var(--border)}
+.mb-win>summary{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 12px;cursor:pointer;list-style:none}
+.mb-win>summary::-webkit-details-marker{display:none}
+.mb-win>summary:hover{background:var(--card2)}
+.mb-win-end{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.mb-chev{width:15px;height:15px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mb-chev .up{display:none}
+.mb-win[open] .mb-chev .down{display:none}
+.mb-win[open] .mb-chev .up{display:inline}
+.mb-win-detail{padding:2px 12px 12px}
+.mb-dl{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:var(--fs-sm);padding:4px 0}
+.mb-dl+.mb-dl{border-top:1px solid var(--border)}
+.mb-dl>span{color:var(--muted);flex-shrink:0}
+.mb-dl>b{font-weight:600;color:var(--text);text-align:right}
+.mb-dl>b.mb-seed{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--fs-xs);font-weight:500;color:var(--muted);word-break:break-all}
 .mb-hist .mb-list{border:none;border-radius:0;border-top:1px solid var(--border)}
 .auth-code-input{text-align:center;font-size:20px;font-weight:600;letter-spacing:.04em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .acct-code{appearance:none;font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--fs-sm);font-weight:600;color:var(--text);background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:3px 9px;min-height:30px;transition:var(--transition)}
@@ -11741,6 +11756,28 @@ function mbNights(n) { n = Number(n) || 0; return n + ' night' + (n === 1 ? '' :
 function mbRM(n) { return window.Payments ? Payments.fmtRM(n) : 'RM' + (Number(n) || 0); }
 
 // The member page markup from a memberInfo payload. Pure apart from the avatar.
+// One win row expanded: when it ran, who else won, how big the pool was and the
+// seed that makes the shuffle checkable. Older records carry no detail block.
+function mbWinDetailHtml(w) {
+  const d = (w && w.detail) || null;
+  if (!d) return '<div class="mb-win-detail"><div class="mb-dl"><span>Detail</span><b>Not recorded for this draw</b></div></div>';
+  const rows = [];
+  const when = d.drawnAt && window.SessionDraw ? SessionDraw.fmtDrawTime(d.drawnAt) : '';
+  if (when) rows.push(['Drawn', escHtml(when)]);
+  if (w.prize) rows.push(['Prize', escHtml(w.prize)]);
+  if (d.winners > 0) rows.push(['Your place', escHtml('Winner ' + (w.rank || 1) + ' of ' + d.winners)]);
+  if (d.poolCount > 0) rows.push(['Picked from', escHtml(d.poolCount + ' player' + (d.poolCount === 1 ? '' : 's') + ' ' + (d.poolLabel || 'in the draw'))]);
+  if (d.attended > 0) rows.push(['That night', escHtml(d.attended + ' played · ' + d.paid + ' paid in time')]);
+  if (d.myPoints > 0) rows.push(['Your points', escHtml(d.myPoints + (d.threshold ? ' (needed ' + d.threshold + ')' : ''))]);
+  if (d.others && d.others.length) {
+    rows.push(['Also won', d.others.map(o => escHtml(o.name + (o.prize ? ' — ' + o.prize : ''))).join('<br>')]);
+  }
+  if (d.seed) rows.push(['Draw seed', escHtml(d.seed), 'mb-seed']);
+  if (!rows.length) return '';
+  return '<div class="mb-win-detail">' + rows.map(r => '<div class="mb-dl"><span>' + r[0] + '</span>'
+    + '<b' + (r[2] ? ' class="' + r[2] + '"' : '') + '>' + r[1] + '</b></div>').join('') + '</div>';
+}
+
 function memberPageHtml(d) {
   d = d || {};
   const m = d.member || {}, p = d.points || {}, pay = d.payments || {};
@@ -11775,8 +11812,11 @@ function memberPageHtml(d) {
   } else {
     html += '<div class="mb-list">' + wins.map(w => {
       const when = w.date ? mbDate(w.date) : (w.label || w.month || '');
-      return '<div class="mb-row"><div><div class="mb-row-main">' + escHtml(w.title || 'Lucky draw') + (when ? ' · ' + escHtml(when) : '') + '</div>'
-        + '<div class="mb-row-sub">' + escHtml(w.prize || 'Winner') + '</div></div><span class="st-badge ok">Won</span></div>';
+      return '<details class="mb-win"><summary><div><div class="mb-row-main">' + escHtml(w.title || 'Lucky draw') + (when ? ' · ' + escHtml(when) : '') + '</div>'
+        + '<div class="mb-row-sub">' + escHtml(w.prize || 'Winner') + '</div></div>'
+        + '<span class="mb-win-end"><span class="st-badge ok">Won</span>'
+        + '<svg class="mb-chev" viewBox="0 0 24 24" aria-hidden="true"><path class="down" d="M6 9l6 6 6-6"/><path class="up" d="M6 15l6-6 6 6"/></svg></span></summary>'
+        + mbWinDetailHtml(w) + '</details>';
     }).join('') + '</div>';
   }
   if (pay.settled && pay.settled.length) {

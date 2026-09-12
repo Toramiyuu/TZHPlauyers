@@ -45,18 +45,22 @@ check('openAccountModal fetches memberInfo with the session token', fn('openAcco
 check('openAccountModal handles an expired session and a failed load', fn('openAccountModal').includes('res.status === 401') && fn('openAccountModal').includes('Retry'));
 check('openAccountModal ignores a late reply after sign-out', fn('openAccountModal').includes('acctSession.token !== token'));
 
-const factory = new Function('escHtml', 'acctAvatarHtml', 'acctPlayer', 'window', 'Payments',
-  fn('mbDate') + ';' + fn('mbNights') + ';' + fn('mbRM') + ';' + fn('memberPageHtml') + '; return memberPageHtml;');
+const factory = new Function('escHtml', 'acctAvatarHtml', 'acctPlayer', 'window', 'Payments', 'SessionDraw',
+  fn('mbDate') + ';' + fn('mbNights') + ';' + fn('mbRM') + ';' + fn('mbWinDetailHtml') + ';' + fn('memberPageHtml') + '; return memberPageHtml;');
 const Payments = require('../public/payments.js');
+const SessionDraw = require('../public/session-draw.js');
 const page = factory(
   (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'),
-  () => '<span class="acctpg-av">H</span>', () => ({ id: 'p0', name: 'Harvey Ng' }), { Payments }, Payments);
+  () => '<span class="acctpg-av">H</span>', () => ({ id: 'p0', name: 'Harvey Ng' }), { Payments, SessionDraw }, Payments, SessionDraw);
 
 const owing = page({
   member: { name: 'Harvey Ng', code: 'HarveyNg#123', hasPassword: false },
   points: { points: 12, threshold: 80, toGo: 68, inDraw: false, monthLabel: 'September 2026' },
   payments: { outstanding: 40, unpaidCount: 2, paidTotal: 20, paidCount: 1, owing: [{ date: '2026-09-08', fee: 25, tier: '3h' }, { date: '2026-09-01', fee: 15, tier: '2h', feeOverridden: true }], settled: [{ date: '2026-09-05', fee: 20, method: 'cash' }] },
-  wins: [{ kind: 'monthly', title: 'Monthly draw', label: 'August 2026', prize: 'Racket bag', at: 2 }, { kind: 'session', title: 'Session draw', date: '2026-09-07', prize: '', at: 1 }],
+  wins: [{ kind: 'monthly', title: 'Monthly draw', label: 'August 2026', prize: 'Racket bag', at: 2, rank: 1,
+    detail: { drawnAt: 1788224400000, winners: 3, poolLabel: 'in the draw', poolCount: 9, myPoints: 96, threshold: 80,
+      others: [{ name: 'Ah Sheng', prize: 'Tube of shuttlecocks' }], seed: 'def456', method: 'auto' } },
+    { kind: 'session', title: 'Session draw', date: '2026-09-07', prize: '', at: 1 }],
 });
 // The name lives in the modal heading ("Welcome back, Harvey") now, so the page
 // header itself is just the avatar + the login code.
@@ -65,6 +69,11 @@ check('page: three stats — points, owing (red), wins', owing.includes('<b>12</
 check('page: Monthly draw progress with points to go', owing.includes('September 2026 draw') && owing.includes('68 more points to enter') && owing.includes('width:15%') && owing.includes('12 / 80 points this month'));
 check('page: nights to settle listed newest first with amounts', owing.includes('To settle · 2 nights') && owing.indexOf('Tue 8 Sep 2026') > -1 && owing.indexOf('Tue 8 Sep 2026') < owing.indexOf('Tue 1 Sep 2026') && owing.includes('<b class="owe">RM25</b>') && owing.includes('custom amount'));
 check('page: wins list shows prize or Winner', owing.includes('Monthly draw · August 2026') && owing.includes('Racket bag') && owing.includes('Session draw · Mon 7 Sep 2026') && owing.includes('>Winner<'));
+check('page: every win is a tappable disclosure row', (owing.match(/<details class="mb-win">/g) || []).length === 2 && owing.includes('class="mb-chev"'));
+check('page: expanded win shows pool size, co-winner + prize, own points and the seed',
+  owing.includes('<span>Picked from</span><b>9 players in the draw</b>') && owing.includes('Ah Sheng — Tube of shuttlecocks')
+  && owing.includes('<span>Your place</span><b>Winner 1 of 3</b>') && owing.includes('96 (needed 80)') && owing.includes('class="mb-seed">def456'));
+check('page: a win with no recorded detail says so instead of rendering an empty block', owing.includes('Not recorded for this draw'));
 check('page: dates use fixed English names (locale-proof)', (() => { const f = new Function(fn('mbDate') + '; return mbDate;')(); return f('2026-09-08') === 'Tue 8 Sep 2026' && f('2026-01-01') === 'Thu 1 Jan 2026' && f('bad') === 'bad'; })());
 check('page: paid history is collapsed with totals', owing.includes('<details class="mb-hist">') && owing.includes('1 night · RM20') && owing.includes('Paid · Cash'));
 check('page: no Change password button without a password', !owing.includes('Change password') && owing.includes('Contact administrator'));

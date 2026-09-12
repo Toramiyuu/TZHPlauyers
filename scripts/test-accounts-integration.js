@@ -128,7 +128,13 @@ const post = (b) => call('POST', {}, b);
   check('memberInfo: points + threshold progress', r.body.points.points === 90 && r.body.points.threshold === 80 && r.body.points.inDraw === true);
   check('memberInfo: owing from the Payments ledger', r.body.payments.outstanding === 25 && r.body.payments.owing[0].date === '2026-07-20');
   check('memberInfo: session-draw win read from the draws hash', r.body.wins.length === 1 && r.body.wins[0].kind === 'session' && r.body.wins[0].date === '2026-07-20');
-  check('memberInfo: nothing about other members leaks', !JSON.stringify(r.body).includes('Kokyan') && !JSON.stringify(r.body).includes('p6'));
+  // The expanded win row names the OTHER winners, which GET /api/draws already
+  // publishes to anyone. Everything else about another member stays out: no
+  // roster ids, and never a row from their ledger.
+  check('memberInfo: no other member\'s id or ledger leaks', !JSON.stringify(r.body).includes('p6')
+    && !JSON.stringify(r.body.payments).includes('Kokyan') && !JSON.stringify(r.body.points).includes('Kokyan'));
+  check('memberInfo: the win detail names co-winners (already public) and nothing more',
+    JSON.stringify(r.body.wins[0].detail.others) === JSON.stringify([{ name: 'Kokyan', prize: '' }]));
   check('memberInfo without a valid token -> 401', (await post({ action: 'memberInfo', token: 'nope' })).status === 401 && (await post({ action: 'memberInfo' })).status === 401);
   const snap = JSON.stringify(STORE);
   await post({ action: 'memberInfo', token: codeToken });
