@@ -51,7 +51,9 @@ check('typing a prize name does not re-render (keeps focus)', !fn('setMonthlyPri
 check('prize rows: quantity (1..99 number) + description inputs, wired without re-render', fn('renderMonthlyPrizes').includes('setMonthlyPrizeQty(') && fn('renderMonthlyPrizes').includes('setMonthlyPrizeDesc(') && fn('renderMonthlyPrizes').includes('type="number" inputmode="numeric" min="\' + MonthlyLucky.MIN_PRIZE_QTY') && fn('renderMonthlyPrizes').includes('maxlength="\' + MonthlyLucky.MAX_PRIZE_DESC') && !fn('setMonthlyPrizeQty').includes('renderMonthlyPrizes()') && !fn('setMonthlyPrizeDesc').includes('renderMonthlyPrizes()'));
 check('Save prizes sends qty (blank = 1) + trimmed desc and refuses a bad quantity', fn('saveMonthlyPrizes').includes('MonthlyLucky.DEFAULT_PRIZE_QTY : Number(p.qty)') && fn('saveMonthlyPrizes').includes("desc: String(p.desc || '').trim()") && fn('saveMonthlyPrizes').includes('MonthlyLucky.isPrizeQty(p.qty)'));
 check('prize drafts (load + save + add) keep qty/desc', fn('loadMonthlyAdmin').includes('.map(mlPrizeRow)') && fn('saveMonthlyPrizes').includes('.map(mlPrizeRow)') && fn('mlPrizeRow').includes('MonthlyLucky.isPrizeQty(Number(p.qty))') && fn('addMonthlyPrize').includes("qty: MonthlyLucky.DEFAULT_PRIZE_QTY, desc: ''"));
-check('helper + help drawer explain quantity and description', html.includes('Set a quantity to give one winner several of the same item') && html.includes('Each prize has a <b>quantity</b>'));
+check('helper + help drawer explain the place picker, quantity and description',
+  html.includes('Each prize says which place it <b>goes to</b>') && html.includes('that winner takes both')
+  && html.includes('Set a quantity to give several of the <em>same</em> item') && html.includes('Each prize has a <b>quantity</b>'));
 
 // ── pool + manual draw ──
 check('Pull button posts pullMonthlyPool and shows the threshold in its label', fn('pullMonthlyPool').includes("action: 'pullMonthlyPool'") && fn('renderMonthlySettings').includes("'Pull players with ' + s.threshold + '+ points'"));
