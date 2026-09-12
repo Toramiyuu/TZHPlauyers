@@ -69,7 +69,10 @@ check('Level / Girl / Mixed cells are still rendered once (moved by CSS, not dup
 check('the chevron is hidden outside the phone breakpoint', html.includes('.rl-more{display:none}'));
 check('the desktop five-column grid is intact (points column widened for the − [total] + editor)', html.includes('.rl-head,.rl-row{display:grid;grid-template-columns:1fr auto 52px 72px 108px;align-items:center;gap:12px;padding:10px 14px}'));
 check('the phone breakpoint is 560px', html.includes('@media(max-width:560px){'));
-const mq = html.slice(html.indexOf('@media(max-width:560px){'), html.indexOf('@media(max-width:560px){') + 2600);
+// Several 560px blocks exist now (the round list stacks at the same width), so
+// anchor on the roster-list one rather than the first occurrence in the file.
+const mqStart = html.lastIndexOf('@media(max-width:560px){', html.indexOf('.rl-head,.rl-row{grid-template-columns:1fr 40px 60px'));
+const mq = html.slice(mqStart, mqStart + 2600);
 check('phone rows collapse to Player / chevron / Pts', mq.includes('.rl-head,.rl-row{grid-template-columns:1fr 40px 60px;'));
 check('the Level/Girl/Mixed headers drop out on phones', mq.includes('.rl-head span:nth-child(2),.rl-head span:nth-child(3),.rl-head span:nth-child(4){display:none}'));
 check('Pts stays in the last column in the header', mq.includes('.rl-head span:nth-child(5){grid-column:3}'));

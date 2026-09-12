@@ -188,10 +188,29 @@ body.in-3d #joinModal{z-index:1300}
 .round-live-dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex-shrink:0}
 .round-row.live .round-live-dot{background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 1.5s infinite}
 .rl{font-size:var(--fs-base);font-weight:600;min-width:73px;flex-shrink:0}
-.rsummary{font-size:var(--fs-sm);color:var(--text-2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsummary{font-size:var(--fs-sm);color:var(--text-2);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rs-c{font-weight:700;color:var(--a-blue,#0071e3);margin-right:5px}
+.rs-t{white-space:nowrap}
+.rs-v{font-style:normal;color:var(--muted);margin:0 5px}
+.rs-sep{color:var(--border2);margin:0 8px}
 .live-badge{font-size:var(--fs-xs);font-weight:700;color:var(--green);background:rgba(0,113,227,.15);padding:2px 8px;border-radius:100px;white-space:nowrap;flex-shrink:0}
 .round-editor{display:none;border-top:1px solid var(--border);padding:14px 12px;background:var(--dark)}
 .round-row.expanded .round-editor{display:block}
+/* Phone: "Round 1" keeps the top line with Live + the buttons, and each match
+   drops onto a line of its own underneath. Squeezed into the flex:1 remainder
+   the summary ellipsised to "C1: C…" — the round number was readable but the
+   match it described was not. The MATCH column heading goes with it, since
+   nothing lines up under it once the row stacks. */
+@media(max-width:560px){
+  .round-list-header{gap:0}
+  .rl-hdr-match{display:none}
+  .round-row-header{flex-wrap:wrap;row-gap:8px;column-gap:8px}
+  .rl{min-width:0;flex:1}
+  .rsummary{order:5;flex:1 0 100%;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.5}
+  .rs-m{display:flex;align-items:baseline;gap:2px}
+  .rs-t{white-space:normal}
+  .rs-sep{display:none}
+}
 /* Demote "Set Live" to quiet outline in round rows; accent only on the live row */
 .round-row-header .rl-set-live{background:transparent;color:var(--muted);border:1px solid var(--border);font-size:var(--fs-xs)}
 .round-row-header .rl-set-live:hover{color:var(--text);border-color:var(--border2);background:var(--card2)}
@@ -5708,11 +5727,21 @@ async function saveRound(i) {
   notify('Round saved!');
 }
 
+// One line per match in the round row. Each match is its own element so a phone
+// can stack them — squeezed onto one line the whole summary ellipsised down to
+// "C1: C…", which told the admin nothing about the round they were looking at.
+//
+// The court number comes from courtLabel(), the same helper the editor headings
+// use, so a venue playing on courts 3 and 4 reads "C3"/"C4" here too. It used to
+// hardcode C1..Cn and disagree with the "Court 3" heading right below it.
 function roundSummary(round) {
-  return (round.courts || []).map((c, i) => {
-    const n = id => playerById(id)?.name || '?';
-    return `C${i+1}: ${n(c.team1[0])} & ${n(c.team1[1])} vs ${n(c.team2[0])} & ${n(c.team2[1])}`;
-  }).join('  ·  ');
+  const n = id => escHtml(playerById(id)?.name || '?');
+  return (round.courts || []).map((c, i) =>
+    `<span class="rs-m"><b class="rs-c">C${courtLabel(i)}</b>`
+    + `<span class="rs-t">${n(c.team1[0])} &amp; ${n(c.team1[1])}</span>`
+    + `<i class="rs-v">v</i>`
+    + `<span class="rs-t">${n(c.team2[0])} &amp; ${n(c.team2[1])}</span></span>`
+  ).join('<span class="rs-sep">·</span>');
 }
 
 // Build the <option> list for a player dropdown. A <select> whose value matches
