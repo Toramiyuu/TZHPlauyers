@@ -38,7 +38,10 @@ const kv = {
 };
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'TZH123';
-const STATE_KEY = 'court-state';
+// A demo/sandbox deployment can point the whole app at a throwaway set of keys
+// (TZH_KEY_PREFIX=demo-) so it can never read or write the live data.
+const KEY_PREFIX = process.env.TZH_KEY_PREFIX || '';
+const STATE_KEY = KEY_PREFIX + 'court-state';
 // Session draw results: a separate Redis hash (`court-draws`, field = ISO date),
 // never pruned, never rewritten — see lib/session-draw.js.
 const drawStore = redisDrawStore(kv);

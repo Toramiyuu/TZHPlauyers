@@ -58,7 +58,9 @@ const owing = page({
   payments: { outstanding: 40, unpaidCount: 2, paidTotal: 20, paidCount: 1, owing: [{ date: '2026-09-08', fee: 25, tier: '3h' }, { date: '2026-09-01', fee: 15, tier: '2h', feeOverridden: true }], settled: [{ date: '2026-09-05', fee: 20, method: 'cash' }] },
   wins: [{ kind: 'monthly', title: 'Monthly draw', label: 'August 2026', prize: 'Racket bag', at: 2 }, { kind: 'session', title: 'Session draw', date: '2026-09-07', prize: '', at: 1 }],
 });
-check('page: name + code chip', owing.includes('Harvey Ng') && owing.includes('<span class="mb-code">HarveyNg#123</span>'));
+// The name lives in the modal heading ("Welcome back, Harvey") now, so the page
+// header itself is just the avatar + the login code.
+check('page: code chip, name not repeated in the body', owing.includes('<span class="mb-code">HarveyNg#123</span>') && !owing.includes('Harvey Ng'));
 check('page: three stats — points, owing (red), wins', owing.includes('<b>12</b><span>Points</span>') && owing.includes('class="mb-stat owe"><b>RM40</b><span>You owe</span>') && owing.includes('<b>2</b><span>Draw wins</span>'));
 check('page: Monthly draw progress with points to go', owing.includes('September 2026 draw') && owing.includes('68 more points to enter') && owing.includes('width:15%') && owing.includes('12 / 80 points this month'));
 check('page: nights to settle listed newest first with amounts', owing.includes('To settle · 2 nights') && owing.indexOf('Tue 8 Sep 2026') > -1 && owing.indexOf('Tue 8 Sep 2026') < owing.indexOf('Tue 1 Sep 2026') && owing.includes('<b class="owe">RM25</b>') && owing.includes('custom amount'));

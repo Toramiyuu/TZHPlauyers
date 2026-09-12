@@ -231,6 +231,10 @@ const server = http.createServer((req, res) => {
   serveStatic(req, res);
 });
 
+// TZH_DUMP_SEED=1 prints the seeded state as JSON and exits, so the same fixture
+// can be loaded into a throwaway Redis key for a sandbox deployment.
+if (process.env.TZH_DUMP_SEED) { process.stdout.write(JSON.stringify(STORE)); process.exit(0); }
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`\n  TZH dev preview running (in-memory, Node-26 safe)\n`);

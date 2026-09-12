@@ -11700,8 +11700,9 @@ function openAccountModal() {
   const body = document.getElementById('accountBody');
   const player = acctPlayer();
   const name = (player && player.name) || acctSession.name || 'Player';
-  body.innerHTML = '<div class="acctpg-top">' + acctAvatarHtml(player, 'acctpg-av') + '<div><div class="acctpg-name">' + escHtml(name) + '</div>'
-    + '<div class="acctpg-phone">Loading your points and payments…</div></div></div>';
+  setAccountTitle(name);
+  body.innerHTML = '<div class="acctpg-top">' + acctAvatarHtml(player, 'acctpg-av')
+    + '<div class="acctpg-phone">Loading your points and payments…</div></div>';
   document.getElementById('accountModal').classList.add('open');
   const token = acctSession.token;
   acctPost('memberInfo', { token }).then(res => {
@@ -11713,10 +11714,18 @@ function openAccountModal() {
       return;
     }
     memberInfoCache = res.data;
+    setAccountTitle((res.data.member && res.data.member.name) || name);
     body.innerHTML = memberPageHtml(res.data);
   });
 }
 function closeAccountModal() { document.getElementById('accountModal').classList.remove('open'); }
+
+// The member page greets them by name; first name only, so a long full name
+// does not wrap the heading on a phone.
+function setAccountTitle(name) {
+  const h = document.getElementById('accountTitle');
+  if (h) h.textContent = 'Welcome back, ' + String(name || 'Player').trim().split(/\s+/)[0];
+}
 
 // "Tue 8 Sep 2026" — fixed English names, so every phone renders the same string.
 function mbDate(iso) {
@@ -11741,8 +11750,8 @@ function memberPageHtml(d) {
   const points = Number(p.points) || 0, threshold = Number(p.threshold) || 0;
   const pct = threshold ? Math.min(100, Math.round(points / threshold * 100)) : 0;
   const toGo = Number(p.toGo) || 0;
-  let html = '<div class="acctpg-top">' + acctAvatarHtml(player, 'acctpg-av') + '<div><div class="acctpg-name">' + escHtml(name) + '</div>'
-    + '<div class="acctpg-phone">' + (m.code ? 'Login code <span class="mb-code">' + escHtml(m.code) + '</span>' : escHtml(m.phone || '')) + '</div></div></div>';
+  let html = '<div class="acctpg-top">' + acctAvatarHtml(player, 'acctpg-av')
+    + '<div class="acctpg-phone">' + (m.code ? 'Login code <span class="mb-code">' + escHtml(m.code) + '</span>' : escHtml(m.phone || '')) + '</div></div>';
   html += '<div class="mb-stats">'
     + '<div class="mb-stat"><b>' + escHtml(points.toLocaleString()) + '</b><span>Points</span></div>'
     + '<div class="mb-stat' + (owe ? ' owe' : '') + '"><b>' + escHtml(mbRM(pay.outstanding || 0)) + '</b><span>' + (owe ? 'You owe' : 'Nothing owing') + '</span></div>'
