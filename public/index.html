@@ -47,6 +47,10 @@
   --a-line:#d4e2f5;--a-line-2:#c0d4ee;
   --a-blue:#0071e3;--a-blue-2:#0066cc;--a-blue-tint:rgba(0,113,227,.16);
   --a-amber:#9a4d00;--a-amber-tint:rgba(255,149,0,.18);/* "Ending Soon" — WCAG AA on the amber tint over a white card */
+  /* ── Lucky Draw hub: one accent per draw so the three stay distinct ─── */
+  --dw-session:#0071e3;--dw-session-tint:rgba(0,113,227,.14);
+  --dw-monthly:#5b4bd6;--dw-monthly-tint:rgba(91,75,214,.14);
+  --dw-shuttle:#0e6d8c;--dw-shuttle-tint:rgba(14,109,140,.14);
   --font-apple:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
   /* ── motion easing (animated lockscreen) ─── */
   --ease-out:cubic-bezier(.16,1,.3,1);--ease-soft:cubic-bezier(.4,0,.2,1);
@@ -408,6 +412,11 @@ body.in-3d #joinModal{z-index:1300}
 .acct-main{flex:1;min-width:180px;display:flex;flex-direction:column;gap:5px}
 .acct-name-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .acct-name{font-size:var(--fs-md);font-weight:600;color:var(--text)}
+/* The avatar and the name both open that member's profile */
+.acct-open-hit{display:inline-flex;cursor:pointer;border-radius:100px;line-height:0}
+.acct-open-hit:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.acct-name-btn{appearance:none;background:none;border:0;padding:0;margin:0;font-family:inherit;text-align:left;cursor:pointer;border-bottom:1px solid transparent}
+.acct-name-btn:hover{color:var(--green);border-bottom-color:var(--green)}
 .acct-uname{font-size:var(--fs-sm);color:var(--muted)}
 .acct-pin-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:100px;background:var(--a-blue-tint);border:1px solid var(--border2);color:var(--text-2);font-size:12px;font-weight:600;line-height:1.2}
 .acct-pin-badge.none{color:var(--red)}
@@ -775,10 +784,10 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 /* Players List view — bulk level + mixed table */
 .roster-list{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;margin-bottom:10px;background:var(--card)}
 .rl-empty{color:var(--muted);font-size:13px;padding:14px}
-.rl-head,.rl-row{display:grid;grid-template-columns:1fr auto 52px 72px 108px;align-items:center;gap:12px;padding:10px 14px}
+.rl-head,.rl-row{display:grid;grid-template-columns:1fr auto 52px 72px 64px 108px;align-items:center;gap:12px;padding:10px 14px}
 .rl-head{background:var(--card2);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .rl-head span:nth-child(3),.rl-head span:nth-child(4){text-align:center}
-.rl-head span:nth-child(5){text-align:right}
+.rl-head span:nth-child(5),.rl-head span:nth-child(6){text-align:right}
 .rl-row{border-top:1px solid var(--border)}
 .rl-row.in{background:var(--green-tint)}
 .rl-player{display:flex;align-items:center;gap:10px;min-width:0;cursor:pointer;border-radius:8px;padding:2px 4px;margin:-2px -4px}
@@ -812,6 +821,10 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .rl-pt-step{width:22px;height:26px;flex-shrink:0;appearance:none;-webkit-appearance:none;padding:0;border:1px solid var(--border2);border-radius:7px;background:var(--card2);color:var(--muted);font-family:inherit;font-size:14px;font-weight:700;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
 .rl-pt-step:hover{color:var(--text);border-color:var(--a-blue,#0071e3)}
 .rl-pt-step:focus-visible{outline:2px solid var(--a-blue,#0071e3);outline-offset:1px}
+/* Lifetime total — read-only on purpose: it is a record, not a setting. Muted so
+   the editable monthly figure next to it stays the one that draws the eye. */
+.rl-life{text-align:right;white-space:nowrap}
+.rl-life-n{font-size:13px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
 /* ── Phone: fold Level / Girl / Mixed into a per-row drawer ───────────────────
    Five fixed columns (52 + 72 + 44 + the level input + four gaps) ate the whole
    390px row, leaving ~0px for .rl-name — every name truncated to one letter.
@@ -822,21 +835,24 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .rl-more{display:none}
 @media(max-width:560px){
   .rl-head,.rl-row{grid-template-columns:1fr 40px 60px;column-gap:8px;row-gap:0;padding:8px 12px}
-  .rl-head span:nth-child(2),.rl-head span:nth-child(3),.rl-head span:nth-child(4){display:none}
-  .rl-head span:nth-child(5){grid-column:3}
+  .rl-head span:nth-child(2),.rl-head span:nth-child(3),.rl-head span:nth-child(4),.rl-head span:nth-child(5){display:none}
+  .rl-head span:nth-child(6){grid-column:3}
   .rl-player{grid-area:1/1}
   .rl-pts{grid-area:1/3}
   .rl-name{font-size:15px}
   .rl-more{grid-area:1/2;display:flex;align-items:center;justify-content:center;width:40px;height:40px;padding:0;border:none;border-radius:9px;background:none;color:var(--muted);font-family:inherit;font-size:15px;line-height:1;cursor:pointer;transition:var(--transition)}
   .rl-more[aria-expanded="true"]{background:var(--card2);color:var(--text)}
-  .rl-level,.rl-girl,.rl-mixed{display:none;align-items:center;justify-content:space-between;gap:12px;padding:9px 2px 9px 42px;font-size:13px;color:var(--muted)}
-  .rl-row.open .rl-level,.rl-row.open .rl-girl,.rl-row.open .rl-mixed{display:flex}
+  .rl-level,.rl-girl,.rl-mixed,.rl-life{display:none;align-items:center;justify-content:space-between;gap:12px;padding:9px 2px 9px 42px;font-size:13px;color:var(--muted)}
+  .rl-row.open .rl-level,.rl-row.open .rl-girl,.rl-row.open .rl-mixed,.rl-row.open .rl-life{display:flex}
   .rl-row.open .rl-level{grid-area:2/1/auto/-1;margin-top:6px;border-top:1px solid var(--border)}
   .rl-row.open .rl-girl{grid-area:3/1/auto/-1}
-  .rl-row.open .rl-mixed{grid-area:4/1/auto/-1;padding-bottom:4px}
+  .rl-row.open .rl-mixed{grid-area:4/1/auto/-1}
+  .rl-row.open .rl-life{grid-area:5/1/auto/-1;padding-bottom:4px}
   .rl-level::before{content:'Level'}
   .rl-girl::before{content:'Girl'}
   .rl-mixed::before{content:'Mixed doubles'}
+  .rl-life::before{content:'Lifetime points'}
+  .rl-life-n{color:var(--text);font-size:14px;font-weight:700}
   .rl-girl .rl-toggle,.rl-mixed .rl-toggle{margin:0}
   .rl-lvl-inp{width:78px;padding:8px}
   /* Tapping the name opens the drawer, so the tick needs a finger-sized target
@@ -1205,9 +1221,43 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .pm-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:var(--sp-sm)}
 .pm-filter-sel{max-width:220px}
 /* Payments popup: reuses #membersModal's overlay + box; content is one-hue bars + name lists */
-#pmModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:350;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
-#pmModal.open{display:flex}
+#pmModal,#acctProfile{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:350;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+#pmModal.open,#acctProfile.open{display:flex}
 .pm-modal-box{max-width:720px}
+/* Member profile: tap an Accounts row to open everything the member can see, editable */
+/* The hero fills the box width, so the close button can't float on its line —
+   it sits in the box's own top-right corner, above the hero card. */
+.ap-box{max-width:760px;position:relative;padding-top:60px}
+.ap-box .members-close{float:none;position:absolute;top:16px;right:16px}
+.ap-hero{display:flex;align-items:center;gap:14px;padding:16px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:14px}
+.ap-avatar{position:relative;flex:0 0 auto;width:64px;height:64px;border-radius:100px;overflow:hidden;cursor:pointer;display:block;line-height:0}
+.ap-avatar input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.ap-cam{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:9px;line-height:1.4;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(0,0,0,.5);padding:3px 0 4px;pointer-events:none}
+.ap-hero-main{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1}
+.ap-name-inp{font-family:var(--font-apple);font-size:clamp(20px,3.4vw,26px);font-weight:700;letter-spacing:-.02em;color:var(--text);background:transparent;border:1px solid transparent;border-radius:var(--radius-sm);padding:3px 6px;margin:-3px -6px;width:100%;max-width:360px}
+.ap-name-inp:hover{border-color:var(--border)}
+.ap-name-inp:focus{outline:none;border-color:var(--green);background:var(--card)}
+.ap-chips{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:var(--fs-xs);color:var(--muted);font-weight:600}
+.ap-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:18px}
+@media(max-width:560px){.ap-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.ap-hero{flex-wrap:wrap}}
+.ap-tile{text-align:center;padding:10px 6px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md)}
+.ap-tile b{display:block;font-family:var(--font-apple);font-size:var(--fs-xl);font-weight:700;letter-spacing:-.02em;color:var(--text);line-height:1.15}
+.ap-tile span{display:block;font-size:var(--fs-xs);color:var(--muted);font-weight:600;margin-top:2px}
+.ap-tile.owe b,.ap-tile.owe span{color:var(--red)}
+.ap-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 0}
+.ap-row+.ap-row{border-top:1px solid var(--border)}
+.ap-lbl{flex:0 0 108px;font-size:var(--fs-sm);font-weight:600;color:var(--muted)}
+.ap-note{font-size:var(--fs-xs);color:var(--muted);line-height:1.5;margin-top:6px}
+.ap-pts{display:inline-flex;align-items:center;gap:6px}
+.ap-pts-inp{width:96px;text-align:center}
+.ap-pts .rl-pt-step{display:flex} /* the profile has room for them, the phone roster row does not */
+.ap-tog{display:inline-flex;align-items:center;gap:8px;font-size:var(--fs-sm);font-weight:600;color:var(--muted)}
+.ap-bar{flex:1;min-width:140px;height:6px;border-radius:3px;background:var(--border);overflow:hidden}
+.ap-bar i{display:block;height:100%;background:var(--green);border-radius:3px}
+.ap-goal{font-size:var(--fs-sm);font-weight:600;color:var(--text-2)}
+.ap-goal.in{color:var(--green)}
+.ap-sec{border:1px solid var(--border);border-radius:var(--radius-md);background:var(--card);padding:4px 14px 10px;margin-bottom:14px}
+.ap-danger{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-top:4px}
 .pm-hero{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:18px 16px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:18px}
 .pm-hero-big{font-family:var(--font-apple);font-size:clamp(34px,6vw,46px);font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--text)}
 .pm-hero-big.owe{color:var(--red)}
@@ -1254,9 +1304,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .pm-mem-chev .ic{width:16px;height:16px}
 /* Member popup: points + outstanding side by side, then the night-by-night breakdown */
 .pm-modal-save{display:block;text-align:center;margin:-16px 0 12px;min-height:16px}
-.pm-mem-hero{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-sm);margin-bottom:18px}
-.pm-mem-stat{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;padding:16px 12px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md)}
-.pm-mem-stat b{font-family:var(--font-apple);font-size:clamp(26px,4.5vw,36px);font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--text)}
+.pm-mem-hero{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--sp-sm);margin-bottom:18px}
+.pm-mem-stat{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;padding:16px 8px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);min-width:0}
+/* Three across now (points · lifetime · outstanding), so the numerals start
+   smaller than they did at two and "RM120" still fits a phone column. */
+.pm-mem-stat b{font-family:var(--font-apple);font-size:clamp(21px,4vw,30px);font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--text);max-width:100%;overflow-wrap:anywhere}
 .pm-mem-stat span{font-size:var(--fs-xs);color:var(--muted);font-weight:600}
 .pm-mem-stat.owe b{color:var(--red)}
 .pm-mem-sess-list{border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;background:var(--card)}
@@ -1312,8 +1364,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .sd-title{font-family:var(--font-apple);font-size:clamp(24px,5vw,32px);font-weight:700;letter-spacing:-.02em;color:var(--text);margin:0;line-height:1.1}
 .sd-sub{font-size:var(--fs-sm);color:var(--muted);margin-top:4px}
 .sd-close{position:static;flex:none;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--border);border-radius:50%}
-.sd-how{padding:12px 14px;border-radius:var(--radius-md);background:var(--a-blue-tint);color:var(--text);font-size:var(--fs-sm);line-height:1.5;margin-bottom:14px}
-.sd-how b{color:var(--a-blue);margin-right:6px}
 .sd-list{display:flex;flex-direction:column;gap:12px}
 .sd-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden}
 .sd-card.done{border-color:var(--a-blue-2)}
@@ -1357,6 +1407,60 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .sd-test-note{font-size:var(--fs-sm);color:var(--text-2);line-height:1.5;margin:10px 0}
 .sd-card.test{border-color:var(--accent)}
 .sd-status.test{background:rgba(240,180,41,.18);border-color:transparent;color:var(--a-amber)}
+/* ── Lucky Draw hub (3 draws) + shared detail skeleton ── */
+.dh-headings{flex:1;min-width:0}
+.dh-back{font-size:26px;line-height:1;padding:0}
+.dh-hub{display:flex;flex-direction:column;gap:12px}
+.dh-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:16px;border-radius:var(--radius-md);background:var(--card);border:1px solid var(--border);cursor:pointer;font-family:inherit;color:var(--text);transition:var(--transition)}
+.dh-card:hover{border-color:var(--dw);box-shadow:var(--shadow-sm)}
+.dh-card-ic{flex:none;width:44px;height:44px;border-radius:var(--radius-md);background:var(--dw-tint);color:var(--dw);display:flex;align-items:center;justify-content:center}
+.dh-card-ic .ic{width:22px;height:22px}
+.dh-card-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.dh-card-name{font-size:var(--fs-md);font-weight:700;letter-spacing:-.01em;color:var(--text)}
+.dh-card-entry{font-size:var(--fs-sm);color:var(--muted);line-height:1.4}
+.dh-card-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:4px;font-size:var(--fs-xs);color:var(--text-2)}
+.dh-card-last{display:inline-flex;align-items:center;gap:5px;min-width:0}
+.dh-card-last b{font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dh-chev{flex:none;color:var(--muted);font-size:22px;line-height:1}
+.dh-card[data-draw=session]{--dw:var(--dw-session);--dw-tint:var(--dw-session-tint)}
+.dh-card[data-draw=monthly]{--dw:var(--dw-monthly);--dw-tint:var(--dw-monthly-tint)}
+.dh-card[data-draw=shuttlecock]{--dw:var(--dw-shuttle);--dw-tint:var(--dw-shuttle-tint)}
+.dh-hub-note{margin-top:14px;font-size:var(--fs-xs);color:var(--muted);text-align:center;line-height:1.5}
+.dh-hub-note button{background:none;border:0;padding:0;font:inherit;color:var(--a-blue);font-weight:600;cursor:pointer;text-decoration:underline}
+/* pills */
+.dh-pills{display:flex;gap:6px;padding:4px;margin-bottom:14px;background:var(--card2);border-radius:100px}
+.dh-pill{flex:1;min-width:0;padding:9px 8px;border:0;border-radius:100px;background:transparent;color:var(--text-2);font-family:inherit;font-size:var(--fs-sm);font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:var(--transition)}
+.dh-pill.on{background:var(--card);color:var(--text);box-shadow:var(--shadow-sm)}
+/* status-first card */
+.dh-status{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--dw,var(--a-blue));border-radius:var(--radius-md);padding:14px 16px;margin-bottom:12px}
+.dh-view[data-draw=session]{--dw:var(--dw-session);--dw-tint:var(--dw-session-tint)}
+.dh-view[data-draw=monthly]{--dw:var(--dw-monthly);--dw-tint:var(--dw-monthly-tint)}
+.dh-view[data-draw=shuttlecock]{--dw:var(--dw-shuttle);--dw-tint:var(--dw-shuttle-tint)}
+.dh-st-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.dh-st-when{font-size:var(--fs-lg);font-weight:700;letter-spacing:-.02em;color:var(--text);margin-top:3px}
+.dh-st-count{font-size:var(--fs-xl);font-weight:700;letter-spacing:-.02em;color:var(--dw,var(--a-blue));font-variant-numeric:tabular-nums}
+.dh-st-sub{font-size:var(--fs-sm);color:var(--muted);margin-top:3px}
+.dh-st-mine{display:flex;align-items:center;gap:9px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.dh-st-mine .ic{width:18px;height:18px;flex:none}
+.dh-st-mine-txt{flex:1;min-width:0;font-size:var(--fs-sm);font-weight:600;color:var(--text)}
+.dh-st-mine-txt small{display:block;font-weight:400;color:var(--muted);margin-top:2px}
+.dh-st-mine.ok .ic{color:var(--a-blue)}
+.dh-st-mine.warn .ic{color:var(--warn)}
+.dh-st-mine.wait .ic,.dh-st-mine.off .ic{color:var(--muted)}
+.dh-signin{width:100%;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);background:none;border-left:0;border-right:0;border-bottom:0;font:inherit;font-size:var(--fs-sm);font-weight:600;color:var(--a-blue);cursor:pointer;text-align:left}
+.dh-bar{height:6px;border-radius:3px;background:var(--card2);overflow:hidden;margin-top:10px}
+.dh-bar span{display:block;height:100%;background:var(--dw,var(--a-blue));border-radius:3px}
+/* prize line (session) + collapsed rules */
+.dh-prize{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--radius-md);background:var(--dw-tint,var(--a-blue-tint));margin-bottom:12px;font-size:var(--fs-sm);color:var(--text)}
+.dh-prize .ic{width:18px;height:18px;flex:none;color:var(--dw,var(--a-blue))}
+.dh-prize b{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dw,var(--a-blue))}
+.dh-how{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:14px;overflow:hidden}
+.dh-how>summary{padding:13px 16px;font-size:var(--fs-sm);font-weight:600;color:var(--text);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dh-how>summary::-webkit-details-marker{display:none}
+.dh-how>summary::after{content:'+';font-size:18px;font-weight:400;color:var(--muted);line-height:1}
+.dh-how[open]>summary::after{content:'\2212'}
+.dh-how-body{padding:0 16px 14px;font-size:var(--fs-sm);line-height:1.55;color:var(--text-2)}
+.dh-prize-ranks{padding:0;margin-bottom:14px}
 /* ── Lucky Draw replay video modal (canvas render + MediaRecorder) ── */
 #drawVideoModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:460;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
 #drawVideoModal.open{display:flex}
@@ -1405,6 +1509,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .sd-stepper{display:inline-flex;align-items:center;gap:6px}
 .sd-stepper .btn{width:40px;height:40px;padding:0;font-size:20px;display:inline-flex;align-items:center;justify-content:center}
 .sd-winners-input{width:64px;text-align:center;font-size:16px;min-height:40px}
+.sd-setting-prize{align-items:flex-start}
+.sd-prize-input{flex:1;min-width:180px;font-size:16px;min-height:40px}
 /* ── Monthly (points) Lucky Draw: admin sub-tab + public section ── */
 .ld-subtabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .ld-subtabs::-webkit-scrollbar{display:none}
@@ -1454,7 +1560,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .ml-prize-tile small{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:var(--fs-xs);font-weight:500;color:var(--muted);line-height:1.3}
 .ml-sec{margin-bottom:16px}
 .ml-line{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:var(--fs-sm);color:var(--text-2);padding:8px 0}
-.sdc-dot.sh{background:transparent;border:1.5px solid var(--a-blue)}
 @media(max-width:520px){.ml-prize-main{flex:1 1 100%;order:4}.ml-prize-tools{margin-left:auto}}
 
 /* Mobile bottom tab bar */
@@ -2137,6 +2242,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   </div>
 </div>
 
+<!-- Member profile (admin): tap an Accounts row to change everything that member can see -->
+<div id="acctProfile" role="dialog" aria-modal="true" aria-labelledby="acctProfileName" onclick="if(event.target===this)closeAcctProfile()">
+  <div class="members-box ap-box">
+    <button class="members-close" onclick="closeAcctProfile()" aria-label="Close">&#x2715;</button>
+    <div id="acctProfileBody"></div>
+  </div>
+</div>
+
 <!-- Account auth modal (v2: phone number + password, admin-approved) -->
 <div id="authModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="authTitle"
   onclick="if(event.target===this)closeAuthModal()">
@@ -2560,16 +2673,45 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 <div id="drawPage" role="dialog" aria-modal="true" aria-labelledby="drawPageTitle">
   <div class="sd-page">
     <div class="sd-head">
-      <div><h2 id="drawPageTitle" class="sd-title">Lucky Draw</h2><div class="sd-sub" id="drawPageSub"></div></div>
+      <button class="sd-close dh-back" id="drawBackBtn" onclick="drawGo('hub')" aria-label="All draws" style="display:none">&lsaquo;</button>
+      <div class="dh-headings"><h2 id="drawPageTitle" class="sd-title">Lucky Draw</h2><div class="sd-sub" id="drawPageSub"></div></div>
       <button class="lb-close sd-close" onclick="closeDrawPage()" aria-label="Close Lucky Draw">&#x2715;</button>
     </div>
-    <div class="sd-how" id="drawPageHow"></div>
-    <!-- Monthly (points) draw: prizes, this month's progress, past months + replay -->
-    <div class="ml-sec" id="drawPageMonthly"></div>
-    <div class="md-sec-title sd-record-title">Record</div>
-    <div class="sd-cal" id="drawPageCal"></div>
-    <div class="sd-list" id="drawPageList"><div class="acct-empty">Loading&hellip;</div></div>
-    <div class="sd-more" id="drawPageMore" style="display:none"><button class="btn btn-secondary btn-sm" onclick="loadDrawPage(true)">Show older sessions</button></div>
+
+    <!-- HUB: the three draws, each with its own entry rule, status and last winner -->
+    <div class="dh-hub" id="drawHub"></div>
+
+    <!-- DETAIL: one draw at a time. Same skeleton for all three —
+         status first, prizes, rules collapsed, then that draw's own record. -->
+    <div class="dh-detail" id="drawDetail" style="display:none">
+      <div class="dh-pills" id="drawPills" role="tablist" aria-label="Choose a draw">
+        <button type="button" class="dh-pill" role="tab" data-draw="session" onclick="drawGo('session')">Session</button>
+        <button type="button" class="dh-pill" role="tab" data-draw="monthly" onclick="drawGo('monthly')">Monthly</button>
+        <button type="button" class="dh-pill" role="tab" data-draw="shuttlecock" onclick="drawGo('shuttlecock')">Shuttlecock</button>
+      </div>
+
+      <!-- ── SESSION DRAW ── -->
+      <section class="dh-view" data-draw="session" role="tabpanel" aria-label="Session Draw" style="display:none">
+        <div class="dh-status-wrap" id="sdStatusCard"></div>
+        <details class="dh-how"><summary>How it works</summary><div class="dh-how-body" id="drawPageHow"></div></details>
+        <div class="md-sec-title sd-record-title">Record</div>
+        <div class="sd-cal" id="drawPageCal"></div>
+        <div class="sd-list" id="drawPageList"><div class="acct-empty">Loading&hellip;</div></div>
+        <div class="sd-more" id="drawPageMore" style="display:none"><button class="btn btn-secondary btn-sm" onclick="loadDrawPage(true)">Show older sessions</button></div>
+      </section>
+
+      <!-- ── MONTHLY (points) DRAW ── -->
+      <section class="dh-view" data-draw="monthly" role="tabpanel" aria-label="Monthly Draw" style="display:none">
+        <div class="dh-status-wrap" id="mlStatusCard"></div>
+        <div class="ml-sec" id="drawPageMonthly"></div>
+      </section>
+
+      <!-- ── SHUTTLECOCK (ballot) DRAW ── -->
+      <section class="dh-view" data-draw="shuttlecock" role="tabpanel" aria-label="Shuttlecock Draw" style="display:none">
+        <div class="dh-status-wrap" id="shStatusCard"></div>
+        <div class="ml-sec" id="drawPageShuttle"></div>
+      </section>
+    </div>
   </div>
 </div>
 
@@ -2926,9 +3068,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
   <!-- Session draws / Shuttlecock (monthly) sub-tabs -->
   <div class="ld-subtabs">
-    <button class="ld-subtab active" data-sub="weekly" onclick="setLuckyTab('weekly')">Session draws</button>
-    <button class="ld-subtab" data-sub="monthlylucky" onclick="setLuckyTab('monthlylucky')">Monthly draws</button>
-    <button class="ld-subtab" data-sub="monthly" onclick="setLuckyTab('monthly')">Shuttlecock</button>
+    <button class="ld-subtab active" data-sub="weekly" onclick="setLuckyTab('weekly')">Session draw</button>
+    <button class="ld-subtab" data-sub="monthlylucky" onclick="setLuckyTab('monthlylucky')">Monthly draw</button>
+    <button class="ld-subtab" data-sub="monthly" onclick="setLuckyTab('monthly')">Shuttlecock draw</button>
   </div>
 
   <!-- ══ SESSION DRAWS (automatic per-session Lucky Draw) ══ -->
@@ -2937,7 +3079,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <!-- Fixed schedule + winners setting -->
     <div class="admin-card" id="sdAutoCard">
       <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span> Automatic draw</span>
-        <button class="btn btn-secondary btn-sm" onclick="openDrawPage()"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Open public page</button></div>
+        <button class="btn btn-secondary btn-sm" onclick="openDrawPage('session')"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Open public page</button></div>
       <div class="admin-helper-text" id="sdAdminHow"></div>
       <div class="sd-setting">
         <label class="admin-form-label" for="sdWinnersInput">Winners per draw</label>
@@ -2948,6 +3090,15 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         </div>
         <span class="pm-save-state" id="sdSaveState"></span>
       </div>
+      <!-- Session draws award no recorded prize (winners are names only), so what
+           they get is a line of copy the admin keeps current. Shown on the public
+           Session Draw page under the next-draw card. -->
+      <div class="sd-setting sd-setting-prize">
+        <label class="admin-form-label" for="sdPrizeInput">Winners get</label>
+        <input id="sdPrizeInput" type="text" maxlength="80" class="admin-form-input sd-prize-input" placeholder="e.g. A tube of shuttlecocks" onchange="setDrawPrize(this.value)" aria-label="What session draw winners get">
+        <span class="pm-save-state" id="sdPrizeSaveState"></span>
+      </div>
+      <div class="admin-helper-text">Leave empty to show no prize line on the public page.</div>
       <!-- Dry run: same rules/shuffle/card/video as the real draw, never saved -->
       <div class="sd-test">
         <div class="sd-test-row">
@@ -3266,14 +3417,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <div class="help-body">
     <button class="help-tour-btn" onclick="startTour()"><span class="help-tour-row"><svg class="ic" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg> Start the guided tour</span><span class="help-tour-sub">A 2-minute walkthrough of every tab</span></button>
     <div class="help-sec-list">
-      <details class="help-sec"><summary>Session</summary><div>Set tonight&rsquo;s date and tap players to add them to the line-up. In the <b>List</b> view, the <b>Level</b> picker (1.0&ndash;7.0) and the <b>Girl</b> &amp; <b>Mixed</b> toggles set a player&rsquo;s rating and who plays mixed doubles &mdash; these drive level-balanced match generation.</div></details>
+      <details class="help-sec"><summary>Session</summary><div>Set tonight&rsquo;s date and tap players to add them to the line-up. In the <b>List</b> view, the <b>Level</b> picker (1.0&ndash;7.0) and the <b>Girl</b> &amp; <b>Mixed</b> toggles set a player&rsquo;s rating and who plays mixed doubles &mdash; these drive level-balanced match generation. <b>Pts</b> is this month&rsquo;s points (+2 a session, editable by hand) and goes back to zero for <b>everyone</b> when the month ends &mdash; whether or not they made the Monthly draw. <b>Life</b> next to it is their lifetime total: every point they have ever earned, never reset. Members never see it; it is on the Players list, the Accounts rows and the Payments member popup, for you only.</div></details>
       <details class="help-sec"><summary>Courts</summary><div>Build rounds, choose which courts are active, and manage who&rsquo;s resting. Each court&rsquo;s current match shows live on the viewer screen. When play ends, press <b>End of the day</b> (bottom of the tab) to create tonight&rsquo;s payment records.</div></details>
       <details class="help-sec"><summary>Payments</summary><div>The fee depends on how long each person stayed: <b>2h &middot; RM20</b> or <b>3h &middot; RM25</b>. The Session tab sets the default for the night; after <b>End of the day</b> every player in the line-up gets a row here at that default. Tap <b>2h</b> or <b>3h</b> on a row for early leavers, tap <b>Cash</b>, <b>TnG</b> or <b>DuitNow</b> as each person pays (one tap), or <b>Unpaid</b> to undo &mdash; paid rows drop to the bottom so whoever still owes stays at the top. Tap the amount for a one-off custom fee. Pressing End of the day again adds players who joined later and drops anyone you unticked in the meantime (unless they already paid), so the ticked line-up is always what counts. Switch to <b>By member</b> to see everyone&rsquo;s running balance across every night on record; tap a member for their points, total outstanding and a night-by-night breakdown, and settle any night right there. A night is never removed from history while someone on it still owes.</div></details>
       <details class="help-sec"><summary>Lucky Draw &mdash; Session draws</summary><div>Every Monday, Friday and Sunday session gets one automatic draw at <b>9:00 AM</b> four mornings later (Mon &rarr; Fri, Fri &rarr; Tue, Sun &rarr; Thu). A player is in it when they attended <b>and</b> their payment was marked paid before that time &mdash; so <b>End of the day</b> and the Payments tab decide who is eligible. Set how many winners are picked. Results are permanent and never re-run; if the scheduled draw did not happen, <b>Run draw now</b> applies the same rules. Players see the winners and the replay video on the public Lucky Draw page; who attended and who paid stays admin-only.</div></details>
-      <details class="help-sec"><summary>Lucky Draw &mdash; Monthly draws</summary><div>A points draw once a month. Everyone who reaches the <b>points needed</b> (default 80) during the month is in it; points go back to zero when the month ends. With the <b>automatic</b> switch on, the draw runs itself at <b>9:00 AM on the 1st</b> of the next month; switch it off to run it yourself. <b>Pull players</b> lists everyone at the threshold right now (untick anyone who should sit out), then <b>Run draw now</b> draws this month on the spot. Set how many winners are picked and the prize list &mdash; each prize picks the <b>place</b> it goes to (two prizes on the same place means that winner takes both). Each prize has a <b>quantity</b> (so one winner can take, say, 2 tubes of shuttlecocks), an optional <b>description</b>, and a photo; these show on the public Lucky Draw page, and the winner&rsquo;s prize (with quantity) in the replay video. One draw per month; results are permanent.</div></details>
+      <details class="help-sec"><summary>Lucky Draw &mdash; Monthly draws</summary><div>A points draw once a month. Everyone who reaches the <b>points needed</b> (default 80) during the month is in it; points go back to zero for <b>everyone</b> when the month ends &mdash; winners, non-winners and anyone who never reached the threshold alike. Only the admin-only <b>lifetime</b> total on the Session tab keeps the full record. With the <b>automatic</b> switch on, the draw runs itself at <b>9:00 AM on the 1st</b> of the next month; switch it off to run it yourself. <b>Pull players</b> lists everyone at the threshold right now (untick anyone who should sit out), then <b>Run draw now</b> draws this month on the spot. Set how many winners are picked and the prize list &mdash; each prize picks the <b>place</b> it goes to (two prizes on the same place means that winner takes both). Each prize has a <b>quantity</b> (so one winner can take, say, 2 tubes of shuttlecocks), an optional <b>description</b>, and a photo; these show on the public Lucky Draw page, and the winner&rsquo;s prize (with quantity) in the replay video. One draw per month; results are permanent.</div></details>
       <details class="help-sec"><summary>Lucky Draw &mdash; Shuttlecock</summary><div>The Shuttlecock Draw runs once a month. Players are auto-enrolled when they attended <b>and</b> paid every required session of their regular day this month. Click a player to see the exact record, or override it. You can still import a CSV ballot and run the prize draw as before.</div></details>
       <details class="help-sec"><summary>Sign-ups</summary><div>People who asked to join through the public form, newest first. Mark each one contacted once you&rsquo;ve reached out.</div></details>
-      <details class="help-sec"><summary>Accounts</summary><div>Members sign in with a <b>login code</b> like <b>Thomas#123</b> and see their points, what they owe and their draw wins. Press <b>Assign codes to everyone</b> once, then tap a code to copy it and send it to that member; <b>Manage</b> &rarr; <b>Login code</b> lets you type your own, make a new one or remove it. Phone + password sign-in still works for anyone who has one: approve requests, or open <b>Manage</b> &rarr; <b>Reveal</b> / temporary password to help with a forgotten password. Deleting an account keeps the player &mdash; it only removes the login.</div></details>
+      <details class="help-sec"><summary>Accounts</summary><div>Members sign in with a <b>login code</b> like <b>Thomas#123</b> and see their points, what they owe and their draw wins. Press <b>Assign codes to everyone</b> once, then tap a code to copy it and send it to that member. Tap a member&rsquo;s name (or <b>Manage</b>) to open their profile: their points, what they owe, their level and their login code are all there and all editable, and <b>Copy invite</b> puts the whole sign-in message on your clipboard. Phone + password sign-in still works for anyone who has one: approve requests, or open <b>Manage</b> &rarr; <b>Reveal</b> / temporary password to help with a forgotten password. Deleting an account keeps the player &mdash; it only removes the login.</div></details>
       <details class="help-sec"><summary>Settings</summary><div>Share the viewer link, set the daily <b>site access code</b>, change the admin password, pick the <b>phone shortcuts</b> (which tabs sit in the bottom bar on phones &mdash; up to 4, the rest live under More), choose which social game days appear on the public sign-up, and set <b>weekly regulars</b> &mdash; players who always come on a given day, added to the line-up automatically when the session date lands on that day.</div></details>
     </div>
   </div>
@@ -3321,6 +3472,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 <script src="/session-draw.js"></script>
 <script src="/monthly-lucky.js"></script>
 <script src="/draw-video.js"></script>
+<script src="/draw-hub.js"></script>
 <script>
 // ── STATE ────────────────────────────────────
 let state = null;
@@ -7695,6 +7847,9 @@ function setAdminTab(name) {
   if (name === 'monthly') renderMonthlyTab();
   if (name === 'engagement') { renderMonthlyTab(); loadAdminOps().then(() => { if (currentLuckyTab === 'weekly') renderSessionDrawsAdmin(); if (currentLuckyTab === 'monthlylucky') renderMonthlyLuckyAdmin(); renderMonthlyElig(); }); }
   if (name === 'signups') renderSignupsTab();
+  // The Players list shows each player's lifetime total, which lives in the
+  // admin-only ops cache rather than the public poll — paint, then refresh.
+  if (name === 'session') loadAdminOps().then(() => { renderPlayersSection(); renderEodStatus(); updateAdminNavBadges(); });
   if (name === 'accounts') loadAccountsTab();
   if (name === 'friendly') renderFriendlyAdmin();
   // Payments live in the admin-only ops cache (not the public poll): paint from cache, then refresh.
@@ -7802,7 +7957,7 @@ function setLuckyTab(sub) {
 // ── ADMIN: private ops cache (attendance / draw settings / eligibility / audit) ──
 // This data never rides the public GET — the admin fetches it here with the
 // admin password. Payments, Session draws and Monthly eligibility all read it.
-let adminOps = { attendance: {}, drawSettings: null, monthlyEligibility: null, audit: [] };
+let adminOps = { attendance: {}, drawSettings: null, monthlyEligibility: null, audit: [], lifetimePoints: null };
 const WD_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 async function loadAdminOps() {
@@ -7812,8 +7967,26 @@ async function loadAdminOps() {
     attendance: res.attendance || {}, drawSettings: res.drawSettings || null,
     monthlyEligibility: res.monthlyEligibility || null,
     audit: res.audit || [],
+    lifetimePoints: res.lifetimePoints || {},
   };
   return adminOps;
+}
+
+// ── LIFETIME POINTS (admin only) ─────────────────────────────────────────────
+// Monthly points go back to zero for EVERYONE when the month closes — that is
+// how the Monthly draw works. Lifetime points are the permanent running total
+// of everything a player has ever earned and are for the organiser's eyes only:
+// they never ride the 2s public poll, only the admin-password ops fetch above.
+// `null` means "not fetched yet" and renders as an em-dash rather than a wrong 0.
+function lifetimePointsLoaded() { return !!(adminOps && adminOps.lifetimePoints); }
+function lifetimePointsFor(playerId) {
+  if (!lifetimePointsLoaded()) return null;
+  const n = Number(adminOps.lifetimePoints[playerId]);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+}
+function lifetimePointsLabel(playerId) {
+  const n = lifetimePointsFor(playerId);
+  return n === null ? '&mdash;' : escHtml(n.toLocaleString());
 }
 
 function serverNowMs() { return Date.now() + (clockOffset || 0); }
@@ -7842,30 +8015,116 @@ let sdPublicTimer = null, sdDeepLinkDone = false, sdRetried = false, sdLastError
 const sdBusy = new Set();
 
 function isDrawPageOpen() { const el = document.getElementById('drawPage'); return !!(el && el.classList.contains('open')); }
+
+// ── the three-way split ──────────────────────────────────────────────
+// #drawPage is a hub of three separate draws (Session / Monthly / Shuttlecock),
+// each with its own page. Before this it was one scrolling column that mixed all
+// three — the header described the session draw, the prize photos belonged to
+// the monthly one, and the record at the bottom interleaved every kind.
+// `drawView` is the router: 'hub' or one of DrawHub.KINDS.
+const DRAW_ICONS = {
+  // Drawn for 22 px in a 44 px tile: silhouette first, detail only where it still
+  // reads at that size. Stroked like every other .ic, with one solid accent each
+  // (the star, the cork) because a filled shape survives small sizes and a
+  // stroked one turns to mush.
+  //   session — trophy: cup, both handles, stem, tapered base
+  session: '<svg class="ic" viewBox="0 0 24 24">'
+    + '<path d="M7 4h10v5a5 5 0 0 1-10 0z"/>'
+    + '<path d="M17 5.5h3v1a4 4 0 0 1-3.3 3.95"/><path d="M7 5.5H4v1a4 4 0 0 0 3.3 3.95"/>'
+    + '<path d="M12 14v3"/><path d="M9 20h6l-.7-3h-4.6z"/></svg>',
+  //   monthly — calendar with a solid star on the page (the points month)
+  monthly: '<svg class="ic" viewBox="0 0 24 24">'
+    + '<rect x="3" y="5" width="18" height="16" rx="2.5"/>'
+    + '<path d="M3 9.5h18"/><path d="M8 3v3.5M16 3v3.5"/>'
+    + '<path d="M12 12.4l.91 2.15 2.32.2-1.76 1.53.54 2.27L12 17.35l-2 1.2.53-2.27-1.76-1.53 2.32-.2z" fill="currentColor" stroke="none"/></svg>',
+  //   shuttlecock — feather skirt flaring from a solid cork, two ribs
+  shuttlecock: '<svg class="ic" viewBox="0 0 24 24">'
+    + '<path d="M8.9 13 6.1 5.7a13.5 13.5 0 0 1 11.8 0L15.1 13z"/>'
+    + '<path d="M8.9 13h6.2"/><path d="M10.6 4.9 11.2 13M13.4 4.9 12.8 13"/>'
+    + '<path d="M9.7 13v2.1a2.3 2.3 0 0 0 4.6 0V13z" fill="currentColor" stroke="none"/>'
+    + '<path d="M9.7 13v2.1a2.3 2.3 0 0 0 4.6 0V13"/></svg>',
+};
+let drawView = 'hub';
+// The signed-in member's own eligibility (POST accountDrawInfo). Token-gated and
+// self-only — it never rides the public poll, so it is fetched once per open.
+let drawMe = null, drawMeToken = null, drawTickTimer = null;
+
+function drawHashFor(view) { return view === 'hub' ? '#draw' : '#draw/' + view; }
+function drawViewFromHash() {
+  const m = /^#draw(?:\/([a-z]+))?$/.exec(window.location.hash || '');
+  return m && m[1] && window.DrawHub && DrawHub.isKind(m[1]) ? m[1] : 'hub';
+}
+/** Threshold for the Monthly entry line — the page payload first, the poll as a fallback. */
+function drawThreshold() {
+  const m = sdPublic.monthly;
+  if (m && Number(m.threshold) > 0) return Number(m.threshold);
+  const lite = (state && state.monthlyLucky) || null;
+  return lite && Number(lite.threshold) > 0 ? Number(lite.threshold) : 0;
+}
+
+/** Switch view. Everything else (title, back arrow, pills, hash) follows from it. */
+function drawGo(view) {
+  const v = (window.DrawHub && DrawHub.isKind(view)) ? view : 'hub';
+  const page = document.getElementById('drawPage'); if (!page) return;
+  drawView = v;
+  const hub = document.getElementById('drawHub'), detail = document.getElementById('drawDetail');
+  const back = document.getElementById('drawBackBtn');
+  if (hub) hub.style.display = v === 'hub' ? '' : 'none';
+  if (detail) detail.style.display = v === 'hub' ? 'none' : '';
+  if (back) back.style.display = v === 'hub' ? 'none' : '';
+  page.querySelectorAll('.dh-view').forEach(sec => { sec.style.display = sec.dataset.draw === v ? '' : 'none'; });
+  page.querySelectorAll('.dh-pill').forEach(b => {
+    const on = b.dataset.draw === v;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  if (isDrawPageOpen() && window.location.hash !== drawHashFor(v)) {
+    try { history.replaceState(null, '', window.location.pathname + window.location.search + drawHashFor(v)); } catch (e) { /* ignore */ }
+  }
+  renderDrawPage();
+  page.scrollTop = 0;
+}
+
 function openDrawPage(section) {
   const el = document.getElementById('drawPage'); if (!el) return;
   const wrap = document.getElementById('accountWidget'); if (wrap) wrap.classList.remove('open');
   el.classList.add('open');
   el.scrollTop = 0;
-  if (window.location.hash !== '#draw') { try { history.replaceState(null, '', window.location.pathname + window.location.search + '#draw'); } catch (e) { /* ignore */ } }
-  loadDrawPage(false).then(() => {
-    if (section === 'monthly') { const t = document.getElementById('drawPageMonthly'); if (t) t.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
-  });
+  drawGo(section === undefined ? drawViewFromHash() : section);
+  loadDrawPage(false);
+  drawFetchMine();
   clearInterval(sdPublicTimer);
   sdPublicTimer = setInterval(() => { if (isDrawPageOpen()) loadDrawPage(false, true); }, 30000);
+  clearInterval(drawTickTimer);
+  drawTickTimer = setInterval(() => { if (isDrawPageOpen()) drawTick(); }, 1000);
 }
 function closeDrawPage() {
   const el = document.getElementById('drawPage'); if (!el) return;
   el.classList.remove('open');
   clearInterval(sdPublicTimer); sdPublicTimer = null;
-  if (window.location.hash === '#draw') { try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) { /* ignore */ } }
+  clearInterval(drawTickTimer); drawTickTimer = null;
+  if (/^#draw(\/|$)/.test(window.location.hash || '')) { try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) { /* ignore */ } }
 }
 // Called from poll() once the site is unlocked: honours a shared "#draw" link and
 // recovers a page that was opened while the site code was still missing.
 function sdAfterPoll() {
-  if (!sdDeepLinkDone) { sdDeepLinkDone = true; if (window.location.hash === '#draw' && !isDrawPageOpen()) openDrawPage(); return; }
+  if (!sdDeepLinkDone) { sdDeepLinkDone = true; if (/^#draw(\/|$)/.test(window.location.hash || '') && !isDrawPageOpen()) openDrawPage(); return; }
   if (isDrawPageOpen() && sdPublic.locked) loadDrawPage(false, true);
 }
+
+/** The member's own standing in all three draws. Silent on failure — the page still works signed out. */
+function drawFetchMine() {
+  if (!acctSession || !acctSession.token) { drawMe = null; drawMeToken = null; return; }
+  if (drawMeToken === acctSession.token && drawMe) return;
+  const token = acctSession.token;
+  acctPost('accountDrawInfo', { token }).then(res => {
+    if (!acctSession || acctSession.token !== token) return; // signed out meanwhile
+    if (!res || !res.ok || !res.data) return;
+    drawMe = res.data; drawMeToken = token;
+    if (isDrawPageOpen()) renderDrawPage();
+  });
+}
+
 async function fetchPublicDraws(before) {
   const code = localStorage.getItem('siteCode') || '';
   const qs = new URLSearchParams({ limit: String(SD_LIST_LIMIT) });
@@ -7891,18 +8150,178 @@ async function loadDrawPage(more, quiet) {
   sdPublic = Object.assign({}, res, { locked: false, sessions: more ? sdPublic.sessions.concat(res.sessions || []) : (res.sessions || []) });
   renderDrawPage();
 }
+
+/** Renders whichever view is open. Safe to call before the first fetch lands. */
 function renderDrawPage() {
+  renderDrawHeader();
+  if (drawView === 'hub') renderDrawHub();
+  else if (drawView === 'session') renderSessionDraw();
+  else if (drawView === 'monthly') renderPublicMonthly();
+  else if (drawView === 'shuttlecock') renderPublicShuttle();
+  drawTick();
+}
+function renderDrawHeader() {
+  const t = document.getElementById('drawPageTitle'), sub = document.getElementById('drawPageSub');
+  if (!t || !sub || !window.DrawHub) return;
+  if (drawView === 'hub') {
+    t.textContent = 'Lucky Draw';
+    sub.textContent = 'Three draws run here. Tap one to see how to get in and who has won.';
+    return;
+  }
+  t.textContent = DrawHub.kindName(drawView);
+  sub.textContent = DrawHub.entryLine(drawView, { threshold: drawThreshold() });
+}
+/** Re-times every countdown in place (1 s while the page is open). */
+function drawTick() {
+  const page = document.getElementById('drawPage'); if (!page || !window.DrawHub) return;
+  const now = clockNow();
+  page.querySelectorAll('[data-draw-at]').forEach(el => {
+    el.textContent = DrawHub.countdownText(now, Number(el.dataset.drawAt));
+  });
+}
+
+// ── hub ──
+function renderDrawHub() {
+  const el = document.getElementById('drawHub'); if (!el || !window.DrawHub) return;
+  const now = clockNow();
+  const sd = DrawHub.sessionStatus(sdPublic, drawMe, now);
+  const ml = DrawHub.monthlyStatus(sdPublic.monthly, dhMyPoints(), now);
+  const sh = DrawHub.shuttleStatus(state && state.monthlyDraw, drawMe && drawMe.monthly, now);
+  const html = [
+    dhCardHtml('session', DrawHub.entryLine('session'), [
+      dhCountChip(sd.drawAt, sd.due), dhPoolChip(sd.poolCount), dhMineChip(sd.mine),
+      dhLastChip(DrawHub.latestSessionWin(sdPublic.sessions)),
+    ]),
+    dhCardHtml('monthly', DrawHub.entryLine('monthly', { threshold: drawThreshold() }), [
+      ml ? dhCountChip(ml.drawAt, false) : '', ml ? dhPoolChip(ml.poolCount) : '', dhMineChip(ml && ml.mine),
+      dhLastChip(DrawHub.latestMonthlyWin(sdPublic.monthly)),
+    ]),
+    dhCardHtml('shuttlecock', DrawHub.entryLine('shuttlecock'), [
+      dhPoolChip(sh.poolCount, 'enrolled'), dhMineChip(sh.mine),
+      dhLastChip(DrawHub.latestShuttleWin(shuttleDrawEntries())),
+    ]),
+  ].join('');
+  el.innerHTML = html + (acctSession ? '' :
+    '<div class="dh-hub-note">Signed in members see whether they are in each draw. <button type="button" onclick="closeDrawPage();openAuthModal()">Sign in</button></div>');
+}
+function dhCardHtml(kind, entry, chips) {
+  const meta = (chips || []).filter(Boolean);
+  return '<button type="button" class="dh-card" data-draw="' + kind + '" onclick="drawGo(\'' + kind + '\')">'
+    + '<span class="dh-card-ic">' + DRAW_ICONS[kind] + '</span>'
+    + '<span class="dh-card-main">'
+    + '<span class="dh-card-name">' + escHtml(DrawHub.kindName(kind)) + '</span>'
+    + '<span class="dh-card-entry">' + escHtml(entry) + '</span>'
+    + (meta.length ? '<span class="dh-card-meta">' + meta.join('') + '</span>' : '')
+    + '</span><span class="dh-chev" aria-hidden="true">&rsaquo;</span></button>';
+}
+function dhCountChip(at, due) {
+  if (!(Number(at) > 0)) return '';
+  if (due) return '<span class="dh-card-last">Drawing now</span>';
+  return '<span class="dh-card-last">Draws in <b data-draw-at="' + Number(at) + '">' + escHtml(DrawHub.countdownText(clockNow(), at)) + '</b></span>';
+}
+function dhPoolChip(n, word) {
+  const line = DrawHub.poolLine(n, word);
+  return line ? '<span class="dh-card-last">' + escHtml(line) + '</span>' : '';
+}
+function dhMineChip(mine) {
+  if (!mine) return '';
+  return '<span class="dh-card-last">' + dhMineIcon(mine.tone) + '<b>' + escHtml(mine.text) + '</b></span>';
+}
+function dhLastChip(win) {
+  const line = win ? DrawHub.winnerLine(win.names) : '';
+  return line ? '<span class="dh-card-last">Last: <b>' + escHtml(line) + '</b></span>' : '';
+}
+function dhMineIcon(tone) {
+  if (tone === 'ok') return '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5 5-5.5"/></svg>';
+  if (tone === 'warn') return '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>';
+  return '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 12h7"/></svg>';
+}
+
+// ── the shared "status first" card at the top of every draw page ──
+// o: { label, when, count, sub, mine, bar:{value,max} }
+function dhStatusHtml(o) {
+  let html = '<div class="dh-status">';
+  html += '<div class="dh-st-label">' + escHtml(o.label || '') + '</div>';
+  if (o.count != null) html += '<div class="dh-st-count">' + escHtml(String(o.count)) + '</div>';
+  if (o.when) html += '<div class="dh-st-when">' + o.when + '</div>';
+  if (o.sub) html += '<div class="dh-st-sub">' + o.sub + '</div>';
+  if (o.bar && Number(o.bar.max) > 0) {
+    const pct = Math.max(0, Math.min(100, Math.round((Number(o.bar.value) || 0) / Number(o.bar.max) * 100)));
+    html += '<div class="dh-bar"><span style="width:' + pct + '%"></span></div>';
+  }
+  if (o.mine) {
+    html += '<div class="dh-st-mine ' + escHtml(o.mine.tone) + '">' + dhMineIcon(o.mine.tone)
+      + '<span class="dh-st-mine-txt">' + escHtml(o.mine.text)
+      + (o.mine.note ? '<small>' + escHtml(o.mine.note) + '</small>' : '') + '</span></div>';
+  } else if (!acctSession) {
+    html += '<button type="button" class="dh-signin" onclick="closeDrawPage();openAuthModal()">Sign in to see if you’re in &rsaquo;</button>';
+  }
+  return html + '</div>';
+}
+/** "in 2d 14h · 12 in the draw" — the live line under the scheduled time. */
+function dhSubLine(at, poolCount, word) {
+  const parts = [];
+  if (Number(at) > 0) parts.push('in <b data-draw-at="' + Number(at) + '">' + escHtml(DrawHub.countdownText(clockNow(), at)) + '</b>');
+  const pool = DrawHub.poolLine(poolCount, word);
+  if (pool) parts.push(escHtml(pool));
+  return parts.join(' · ');
+}
+/** The prize banner (Session's admin-written line; the other two use photo tiles). */
+function dhPrizeLineHtml(text) {
+  if (!text) return '';
+  return '<div class="dh-prize"><svg class="ic" viewBox="0 0 24 24"><path d="M20 8H4v4h16zM12 8v13M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 8S9.5 3 7.5 4.5 9 8 12 8zM12 8s2.5-5 4.5-3.5S15 8 12 8z"/></svg>'
+    + '<span><b>Winners get</b>' + escHtml(text) + '</span></div>';
+}
+function dhPrizeStripHtml(prizes, opts) {
+  const list = (prizes || []).filter(Boolean);
+  if (!list.length) return '';
+  const o = opts || {};
+  return '<div class="ml-prize-strip">' + list.map((p, i) => '<div class="ml-prize-tile">'
+    + '<div class="ml-tile-img">' + (p.photo ? '<img src="' + p.photo + '" alt="">' : escHtml(o.placeOf ? o.placeOf(p, i) : String(i + 1)))
+    + (Number(p.qty) > 1 ? '<span class="ml-tile-qty">×' + Number(p.qty) + '</span>' : '') + '</div>'
+    + '<span>' + escHtml(o.nameOf ? o.nameOf(p, i) : String(p.name || '')) + '</span>'
+    + (p.desc ? '<small>' + escHtml(p.desc) + '</small>' : '') + '</div>').join('') + '</div>';
+}
+/** Shuttlecock prizes are three plain strings (1st/2nd/3rd), not photo tiles. */
+function dhPrizeRanksHtml(prizes) {
+  const list = (prizes || []).map(x => String(x || '').trim());
+  if (!list.some(Boolean)) return '';
+  return '<div class="ml-wins dh-prize-ranks">' + list.map((name, i) => name
+    ? '<div class="ml-win"><span class="ml-win-rank">' + (i + 1) + '</span><span class="ml-win-name">' + escHtml(name) + '</span></div>' : '').join('') + '</div>';
+}
+/** Collapsed rules row, identical on all three pages. */
+function dhHowHtml(text) {
+  return '<details class="dh-how"><summary>How it works</summary><div class="dh-how-body">' + escHtml(text || '') + '</div></details>';
+}
+/** The signed-in member's points this month, or null when signed out / not on the roster. */
+function dhMyPoints() {
+  if (!acctSession) return null;
+  const me = acctPlayer();
+  return me ? (Number(me.points) || 0) : null;
+}
+
+// ── SESSION DRAW page ──
+function renderSessionDraw() {
+  const st = DrawHub.sessionStatus(sdPublic, drawMe, clockNow());
+  const card = document.getElementById('sdStatusCard');
+  if (card) {
+    const mine = st.mine ? Object.assign({}, st.mine) : null;
+    if (mine && st.date) mine.note = SessionDraw.fmtSessionDate(st.date);
+    card.innerHTML = dhStatusHtml({
+      label: st.due ? 'Drawing now' : 'Next draw',
+      when: st.drawAt ? escHtml(SessionDraw.fmtDrawTime(st.drawAt)) : 'After the next session',
+      sub: st.drawAt ? dhSubLine(st.due ? 0 : st.drawAt, st.poolCount) : '',
+      mine,
+    }) + dhPrizeLineHtml(st.prize);
+  }
   const how = document.getElementById('drawPageHow');
-  if (how) how.innerHTML = sdHowHtml(sdPublic.winnersPerDraw);
-  const sub = document.getElementById('drawPageSub');
-  if (sub) sub.textContent = sdWinnersLabel(sdPublic.winnersPerDraw) + ' per session · drawn at ' + SessionDraw.drawTimeLabel();
-  renderPublicMonthly();
+  if (how) how.textContent = SessionDraw.howItWorksText(sdPublic.winnersPerDraw);
   renderDrawCalendar(document.getElementById('drawPageCal'), sdPublic, false);
   renderDrawList(document.getElementById('drawPageList'), sdPublic.sessions, { admin: false, items: sdListItems(sdPublic, false), filtered: !!sdCal.pub.sel });
   const more = document.getElementById('drawPageMore'); if (more) more.style.display = sdPublic.hasMore && !sdCal.pub.sel ? '' : 'none';
 }
 function sdWinnersLabel(n) { const k = SessionDraw.isWinnersCount(Number(n)) ? Number(n) : SessionDraw.DEFAULT_WINNERS; return k + ' winner' + (k === 1 ? '' : 's'); }
-function sdHowHtml(n) { return '<b>How it works</b>' + escHtml(SessionDraw.howItWorksText(n)); }
+
 
 // Shared renderer: one card per session, newest first (the server orders them).
 function renderDrawList(container, sessions, opts) {
@@ -7913,7 +8332,7 @@ function renderDrawList(container, sessions, opts) {
     container.innerHTML = '<div class="acct-empty">' + (opts && opts.filtered ? 'No draw on this day.' : 'No sessions yet — the first draw appears after the next Monday, Friday or Sunday night.') + '</div>';
     return;
   }
-  container.innerHTML = items.map(i => (i.kind === 'manual' ? qdCardHtml(i.e) : i.kind === 'shuttle' ? shCardHtml(i.e) : sdCardHtml(i.v, admin))).join('');
+  container.innerHTML = items.map(i => (i.kind === 'manual' ? qdCardHtml(i.e) : sdCardHtml(i.v, admin))).join('');
 }
 function sdCardHtml(v, admin) {
   const done = v.status === 'done';
@@ -7981,7 +8400,9 @@ function sdListHtml(v, key, label, done) {
 const sdCal = { pub: { y: 0, m: 0, sel: null, init: false }, adm: { y: 0, m: 0, sel: null, init: false } };
 function sdCalState(admin) { return admin ? sdCal.adm : sdCal.pub; }
 function manualDrawEntries() { return window.DrawVideo ? DrawVideo.manualEntriesOf(state && state.luckyDraw, clockNow()) : []; }
-// Cards to list: session views + manual quick draws interleaved newest first.
+// Cards for the SESSION record: session views + the manual quick draws made on
+// those nights, interleaved newest first. Shuttlecock draws are NOT here — they
+// are a separate draw with their own page, listed by month (renderPublicShuttle).
 // While older sessions are still unloaded, manual draws older than the loaded
 // range wait too, so the order never jumps when "Show older sessions" appends.
 function sdListItems(data, admin) {
@@ -7989,18 +8410,16 @@ function sdListItems(data, admin) {
   const sessions = (data && data.sessions) || [];
   const oldest = sessions.length ? sessions[sessions.length - 1].date : null;
   let manual = manualDrawEntries();
-  let shuttle = shuttleDrawEntries();
-  if (!cs.sel && data && data.hasMore && oldest) { manual = manual.filter(e => e.date >= oldest); shuttle = shuttle.filter(e => e.date >= oldest); }
-  const KIND_ORDER = { session: 0, manual: 1, shuttle: 2 };
+  if (!cs.sel && data && data.hasMore && oldest) manual = manual.filter(e => e.date >= oldest);
+  const KIND_ORDER = { session: 0, manual: 1 };
   const items = sessions.map(v => ({ kind: 'session', date: v.date, at: Number(v.drawnAt || v.drawAt) || 0, v }))
-    .concat(manual.map(e => ({ kind: 'manual', date: e.date, at: e.at || 0, e })))
-    .concat(shuttle.map(e => ({ kind: 'shuttle', date: e.date, at: e.at || 0, e })));
+    .concat(manual.map(e => ({ kind: 'manual', date: e.date, at: e.at || 0, e })));
   items.sort((a, b) => a.date === b.date ? (a.kind === b.kind ? b.at - a.at : KIND_ORDER[a.kind] - KIND_ORDER[b.kind]) : (a.date < b.date ? 1 : -1));
   return cs.sel ? items.filter(i => i.date === cs.sel) : items;
 }
 // Shuttlecock (ballot) draws: this month's revealed results + archived months, as
-// replayable entries (see DrawVideo.shuttlecockEntriesOf). Rendered as cards on
-// both Record lists and marked on the calendar with a hollow blue dot.
+// replayable entries (see DrawVideo.shuttlecockEntriesOf). They belong to the
+// Shuttlecock page only — one card per month, never on the session calendar.
 function shuttleDrawEntries() { return window.DrawVideo ? DrawVideo.shuttlecockEntriesOf(state && state.monthlyDraw, clockNow()) : []; }
 function renderDrawCalendar(container, data, admin) {
   if (!container || !window.DrawVideo) return;
@@ -8010,7 +8429,7 @@ function renderDrawCalendar(container, data, admin) {
     const mo = DrawVideo.monthOf((sessions[0] && sessions[0].date) || (manualDrawEntries()[0] || {}).date) || DrawVideo.monthOf(serverToday());
     cs.y = mo.year; cs.m = mo.month0; cs.init = true;
   }
-  const idx = DrawVideo.indexDraws(sessions, manualDrawEntries(), shuttleDrawEntries());
+  const idx = DrawVideo.indexDraws(sessions, manualDrawEntries(), []);
   const grid = DrawVideo.monthGrid(cs.y, cs.m, 1);
   const today = serverToday();
   const a = admin ? 'true' : 'false';
@@ -8021,11 +8440,11 @@ function renderDrawCalendar(container, data, admin) {
     const has = !!d;
     const done = !!(d && d.session && d.session.status === 'done');
     const cls = ['sdc-day', c.inMonth ? '' : 'out', has ? 'has' : '', c.iso === today ? 'today' : '', c.iso === cs.sel ? 'sel' : ''].filter(Boolean).join(' ');
-    const marks = has ? '<span class="sdc-marks">' + (d.session ? '<i class="sdc-dot ' + (done ? 'auto' : 'wait') + '"></i>' : '') + (d.manual.length ? '<i class="sdc-dot man"></i>' : '') + (d.shuttle && d.shuttle.length ? '<i class="sdc-dot sh"></i>' : '') + '</span>' : '';
-    const label = SessionDraw.fmtSessionDate(c.iso) + (has ? (done ? ', drawn' : (d.session ? ', draw pending' : '')) + (d.manual.length ? ', manual quick draw' : '') + (d.shuttle && d.shuttle.length ? ', shuttlecock draw' : '') : ', no draw');
+    const marks = has ? '<span class="sdc-marks">' + (d.session ? '<i class="sdc-dot ' + (done ? 'auto' : 'wait') + '"></i>' : '') + (d.manual.length ? '<i class="sdc-dot man"></i>' : '') + '</span>' : '';
+    const label = SessionDraw.fmtSessionDate(c.iso) + (has ? (done ? ', drawn' : (d.session ? ', draw pending' : '')) + (d.manual.length ? ', quick draw' : '') : ', no draw');
     return '<button type="button" class="' + cls + '"' + (has ? ' onclick="sdCalPick(' + a + ',\'' + c.iso + '\')"' : ' disabled') + ' aria-label="' + escHtml(label) + '"' + (c.iso === cs.sel ? ' aria-pressed="true"' : '') + '><span>' + c.day + '</span>' + marks + '</button>';
   }).join('') + '</div>';
-  html += '<div class="sdc-legend"><span><i class="sdc-dot auto"></i>Session draw</span><span><i class="sdc-dot wait"></i>Draw pending</span><span><i class="sdc-dot man"></i>Manual quick draw</span><span><i class="sdc-dot sh"></i>Shuttlecock draw</span></div>';
+  html += '<div class="sdc-legend"><span><i class="sdc-dot auto"></i>Drawn</span><span><i class="sdc-dot wait"></i>Draw pending</span><span><i class="sdc-dot man"></i>Quick draw</span></div>';
   if (cs.sel) html += '<div class="sdc-sel"><span>Showing ' + escHtml(SessionDraw.fmtSessionDate(cs.sel)) + '</span><button type="button" class="btn btn-ghost btn-sm" onclick="sdCalPick(' + a + ',null)">Show all</button></div>';
   container.innerHTML = html;
 }
@@ -8213,14 +8632,42 @@ function sdAdminWinners() {
   const s = state && state.drawSettings && state.drawSettings.winners;
   return SessionDraw.isWinnersCount(Number(a)) ? Number(a) : (SessionDraw.isWinnersCount(Number(s)) ? Number(s) : SessionDraw.DEFAULT_WINNERS);
 }
+function sdAdminPrize() {
+  const a = adminOps.drawSettings && adminOps.drawSettings.prize;
+  if (typeof a === 'string') return a;
+  const v = state && state.drawSettings && state.drawSettings.prize;
+  return typeof v === 'string' ? v : '';
+}
 function renderSessionDrawsAdmin() {
   if (!window.SessionDraw) return;
   const n = sdAdminWinners();
   const inp = document.getElementById('sdWinnersInput');
   if (inp && document.activeElement !== inp) inp.value = n;
+  const prize = document.getElementById('sdPrizeInput');
+  if (prize && document.activeElement !== prize) prize.value = sdAdminPrize();
   const how = document.getElementById('sdAdminHow');
   if (how) how.textContent = SessionDraw.howItWorksText(n) + SD_ADMIN_NOTE;
   loadAdminDraws(false);
+}
+// The prize line is stored beside `winners` on drawSettings, but each is sent on
+// its own so saving one never resets the other (see lib/session-draw.js).
+async function setDrawPrize(value) {
+  const inp = document.getElementById('sdPrizeInput');
+  const next = String(value == null ? '' : value).trim().replace(/\s+/g, ' ').slice(0, SessionDraw.MAX_PRIZE_LEN);
+  if (inp) inp.value = next;
+  if (next === sdAdminPrize()) return;
+  const res = await apiPost({ action: 'setDrawSettings', prize: next });
+  if (res === null) return;
+  if (!res.ok) {
+    notify(res.error || 'Could not save the prize line.', 'warn');
+    sdFlashSave('err', 'sdPrizeSaveState');
+    if (inp) inp.value = sdAdminPrize();
+    return;
+  }
+  adminOps.drawSettings = res.drawSettings || Object.assign({}, adminOps.drawSettings || {}, { prize: next });
+  if (state) state.drawSettings = Object.assign({}, state.drawSettings || {}, { prize: next });
+  sdFlashSave('ok', 'sdPrizeSaveState');
+  notify(next ? 'Winners get: ' + next : 'Prize line cleared.');
 }
 async function loadAdminDraws(more) {
   const list = document.getElementById('sdAdminList'); if (!list) return;
@@ -8255,7 +8702,7 @@ async function setDrawWinners(value) {
   const res = await apiPost({ action: 'setDrawSettings', winners: n });
   if (res === null) return;
   if (!res.ok) { notify(res.error || 'Could not save.', 'warn'); sdFlashSave('err'); if (inp) inp.value = sdAdminWinners(); return; }
-  adminOps.drawSettings = res.drawSettings || { winners: n };
+  adminOps.drawSettings = res.drawSettings || Object.assign({}, adminOps.drawSettings || {}, { winners: n });
   if (state) state.drawSettings = Object.assign({}, state.drawSettings || {}, { winners: n });
   const how = document.getElementById('sdAdminHow');
   if (how) how.textContent = SessionDraw.howItWorksText(n) + SD_ADMIN_NOTE;
@@ -8263,8 +8710,8 @@ async function setDrawWinners(value) {
   notify('Winners per draw: ' + n);
   loadAdminDraws(false);
 }
-function sdFlashSave(kind) {
-  const el = document.getElementById('sdSaveState'); if (!el) return;
+function sdFlashSave(kind, id) {
+  const el = document.getElementById(id || 'sdSaveState'); if (!el) return;
   el.textContent = kind === 'ok' ? 'Saved' : 'Not saved';
   el.className = 'pm-save-state show ' + (kind === 'ok' ? 'ok' : 'err');
   setTimeout(() => el.classList.remove('show'), 1800);
@@ -8713,24 +9160,68 @@ function mlCardHtml(v, admin) {
   return html + '</div>';
 }
 
-// ── public page section (from GET /api/draws → monthly) ──
+// ── public page sections: MONTHLY (points) and SHUTTLECOCK (ballot) ──
+// Each owns its whole page — status first, prizes, rules collapsed, then that
+// draw's own record. Neither shares a list or a calendar with the others.
 function renderPublicMonthly() {
   const el = document.getElementById('drawPageMonthly'); if (!el || !window.MonthlyLucky) return;
   const m = sdPublic.monthly;
-  if (!m) { el.innerHTML = ''; return; }
-  const s = { auto: m.auto, winners: m.winners, threshold: m.threshold };
-  let html = '<div class="md-sec-title">Monthly draw</div>';
-  html += '<div class="sd-how"><b>How it works</b>' + escHtml(MonthlyLucky.howItWorksText(s)) + '</div>';
-  const prizes = m.prizes || [];
-  if (prizes.length) html += '<div class="ml-prize-strip">' + prizes.map((p, i) => '<div class="ml-prize-tile"><div class="ml-tile-img">' + (p.photo ? '<img src="' + p.photo + '" alt="">' : MonthlyLucky.placeOf(p, i)) + (Number(p.qty) > 1 ? '<span class="ml-tile-qty">×' + Number(p.qty) + '</span>' : '') + '</div><span>' + escHtml(MonthlyLucky.prizeLabel(p)) + '</span>' + (p.desc ? '<small>' + escHtml(p.desc) + '</small>' : '') + '</div>').join('') + '</div>';
+  const card = document.getElementById('mlStatusCard');
+  if (!m) {
+    if (card) card.innerHTML = '';
+    el.innerHTML = '<div class="acct-empty">The monthly draw has not been set up yet.</div>';
+    return;
+  }
+  const st = DrawHub.monthlyStatus(m, dhMyPoints(), clockNow());
+  if (card) {
+    const mine = st.mine ? { tone: st.mine.tone, text: st.mine.text, note: st.mine.points + ' of ' + st.mine.threshold + ' points this month' } : null;
+    card.innerHTML = dhStatusHtml({
+      label: st.auto ? 'Next draw' : 'This month',
+      when: st.drawAt ? escHtml(SessionDraw.fmtDrawTime(st.drawAt)) : escHtml(st.label || 'Drawn by the admin'),
+      sub: dhSubLine(st.drawAt, st.poolCount, 'at the target so far'),
+      mine,
+      bar: st.mine ? { value: st.mine.points, max: st.mine.threshold } : null,
+    });
+  }
+  let html = dhPrizeStripHtml(m.prizes, { placeOf: MonthlyLucky.placeOf, nameOf: MonthlyLucky.prizeLabel });
+  html += dhHowHtml(MonthlyLucky.howItWorksText({ auto: m.auto, winners: m.winners, threshold: m.threshold }));
   const months = m.months || [];
   const live = months.find(v => v.month === m.pointsMonth && v.status !== 'done');
-  if (live) {
-    const n = (live.counts && live.counts.eligible) || 0;
-    html += '<div class="ml-line"><span>' + escHtml(live.label + ' · ' + n + ' player' + (n === 1 ? '' : 's') + ' at ' + m.threshold + '+ points so far') + '</span><span>' + escHtml(m.auto ? 'Draw ' + SessionDraw.fmtDrawTime(live.drawAt) : 'Drawn by admin') + '</span></div>';
-  }
   const rest = months.filter(v => v !== live);
-  if (rest.length) html += '<div class="sd-list">' + rest.map(v => mlCardHtml(Object.assign({ live: false }, v), false)).join('') + '</div>';
+  html += '<div class="md-sec-title sd-record-title">Record</div>';
+  html += rest.length
+    ? '<div class="sd-list">' + rest.map(v => mlCardHtml(Object.assign({ live: false }, v), false)).join('') + '</div>'
+    : '<div class="acct-empty">No monthly draw has been run yet — the first one appears after this month closes.</div>';
+  el.innerHTML = html;
+}
+
+function renderPublicShuttle() {
+  const el = document.getElementById('drawPageShuttle'); if (!el || !window.DrawHub) return;
+  const md = (state && state.monthlyDraw) || {};
+  const st = DrawHub.shuttleStatus(md, drawMe && drawMe.monthly, clockNow());
+  const card = document.getElementById('shStatusCard');
+  if (card) {
+    const mine = st.mine
+      ? { tone: st.mine.tone, text: st.mine.text,
+          note: st.mine.required > 0 ? st.mine.attended + ' of ' + st.mine.required + ' sessions counted' : (st.mine.reason || '') }
+      : null;
+    card.innerHTML = dhStatusHtml({
+      label: 'Enrolled this month',
+      count: st.poolCount,
+      sub: escHtml((MonthlyLucky.monthLabel(st.month) || 'This month') + ' · the admin runs this draw once a month'),
+      mine,
+      bar: st.mine && st.mine.required > 0 ? { value: st.mine.attended, max: st.mine.required } : null,
+    });
+  }
+  let html = dhPrizeRanksHtml(md.prizes);
+  html += dhHowHtml('Play and pay every session of your regular day this month and you are enrolled automatically. '
+    + 'The admin draws the prizes once a month and the winners are revealed live on the viewer screen. '
+    + 'Points are not used here — this draw is about turning up.');
+  const entries = shuttleDrawEntries();
+  html += '<div class="md-sec-title sd-record-title">Record</div>';
+  html += entries.length
+    ? '<div class="sd-list">' + entries.map(e => shCardHtml(e)).join('') + '</div>'
+    : '<div class="acct-empty">No shuttlecock draw has been run yet.</div>';
   el.innerHTML = html;
 }
 
@@ -9259,8 +9750,11 @@ function renderPmMemberModal(body, put) {
   const owe = m.outstanding > 0;
   put('pmModalEyebrow', 'Member · ' + (m.sessions ? pmNights(m.sessions) + ' on record' : 'no records yet')); // tier sits next to the points, not repeated here
   put('pmModalTitle', m.name);
+  // Three figures: this month's points (which reset for everyone at month close),
+  // the lifetime total (organiser-only, never reset), and what they still owe.
   let html = '<div class="pm-mem-hero">'
     + '<div class="pm-mem-stat"><b>' + (pts === null ? '&mdash;' : escHtml(pts.toLocaleString())) + '</b><span>Points' + (tier ? ' · ' + escHtml(tier.name) : '') + '</span></div>'
+    + '<div class="pm-mem-stat"><b>' + lifetimePointsLabel(pmMemPid) + '</b><span>Lifetime</span></div>'
     + '<div class="pm-mem-stat' + (owe ? ' owe' : '') + '"><b>' + escHtml(Payments.fmtRM(m.outstanding)) + '</b><span>' + (owe ? 'Outstanding · ' + pmNights(m.unpaidCount) : 'Outstanding') + '</span></div>'
     + '</div>';
   html += '<div class="pm-sec"><div class="pm-sec-hd"><span>Breakdown</span><b>' + (owe ? escHtml(Payments.fmtRM(m.outstanding) + ' still owing') : 'Nothing owing') + '</b></div>'
@@ -9365,7 +9859,8 @@ function showAdmin() {
   setAdminTab(currentAdminTab);
   // Payments data never rides the public poll — fetch it once so the Courts footer
   // status and the Payments badge are right on the first tab, whichever it is.
-  if (currentAdminTab !== 'payments' && currentAdminTab !== 'courts') {
+  // (Session, Payments and Courts already fetched it in setAdminTab above.)
+  if (currentAdminTab !== 'payments' && currentAdminTab !== 'courts' && currentAdminTab !== 'session') {
     loadAdminOps().then(() => { renderEodStatus(); updateAdminNavBadges(); });
   }
 }
@@ -9940,6 +10435,7 @@ function renderAccountsTab() {
   renderAcctCounters();
   renderAcctRequests();
   renderAcctList();
+  renderAcctProfile(); // the open member profile sits on top of this list
 }
 
 function renderAcctCounters() {
@@ -10061,6 +10557,7 @@ function acctFinanceHtml(a) {
   const owe = m.outstanding > 0;
   const ptsLabel = pts === null ? '&mdash;' : escHtml(pts.toLocaleString()) + (tier ? ' · ' + escHtml(tier.name) : '');
   return `<span>Points <b>${ptsLabel}</b></span>`
+    + `<span title="Every point ever earned — never reset at the end of the month. Admin only.">Lifetime <b>${lifetimePointsLabel(a.playerId)}</b></span>`
     + `<button type="button" class="acct-owe${owe ? ' owe' : ''}" onclick="${pmCall('openPmMember', a.playerId)}" aria-haspopup="dialog">Payments <b>${escHtml(Payments.memberOweLabel(m))}</b></button>`;
 }
 
@@ -10075,10 +10572,10 @@ function accountCardHtml(a) {
   if (a.status === 'locked') statusBtns.push(`<button class="btn btn-secondary btn-sm" onclick="acctStatusAction('${id}','adminUnlockAccount','Unlocked')">Unlock</button>`);
   if (a.status === 'suspended') statusBtns.push(`<button class="btn btn-secondary btn-sm" onclick="acctStatusAction('${id}','adminReactivateAccount','Reactivated')">Reactivate</button>`);
   return `<div class="acct-row">
-    ${avatar}
+    <span class="acct-open-hit" role="button" tabindex="0" title="Open ${name}'s profile" aria-label="Open the profile for ${name}" onclick="${pmCall('openAcctProfile', a.id)}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${pmCall('openAcctProfile', a.id)}}">${avatar}</span>
     <div class="acct-main">
       <div class="acct-name-row">
-        <span class="acct-name">${name}</span>
+        <button type="button" class="acct-name acct-name-btn" onclick="${pmCall('openAcctProfile', a.id)}" aria-haspopup="dialog">${name}</button>
         ${acctCodeChipHtml(a)}
         <span class="acct-uname">${escHtml(a.phoneDisplay || a.phone || (a.code ? 'Code sign-in' : 'no phone'))}</span>
         ${adminStatusBadge(a.status)}
@@ -10094,44 +10591,237 @@ function accountCardHtml(a) {
       </div>
     </div>
     <div class="acct-actions">
-      <button class="btn btn-secondary btn-sm" onclick="toggleInline('mng_${id}')"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 2.6 7"/></svg> Manage</button>
+      <button class="btn btn-secondary btn-sm" onclick="${pmCall('openAcctProfile', a.id)}" aria-haspopup="dialog"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 2.6 7"/></svg> Manage</button>
       <button class="acct-del" onclick="deleteAccountAdmin('${id}',this)" title="Delete account" aria-label="Delete account ${name}">×</button>
     </div>
-    <div class="acct-inline acct-manage" id="mng_${id}">
-      <div class="acct-mng-row">
-        <span class="acct-mng-lbl">Login code</span>
-        <input class="admin-form-input acct-pw-input" id="codeVal_${id}" type="text" value="${escHtml(a.code || '')}" placeholder="e.g. ${escHtml(codeSuggestion(a.name))}" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="32" onkeydown="if(event.key==='Enter')saveCode('${id}')">
-        <button class="btn btn-primary btn-sm" onclick="saveCode('${id}')">Save</button>
-        <button class="btn btn-ghost btn-sm" onclick="regenCode('${id}')">New code</button>
-        ${a.code ? `<button class="btn btn-ghost btn-sm" onclick="clearCode('${id}')">Remove</button>` : ''}
-      </div>
-      <div class="acct-mng-row">
-        <span class="acct-mng-lbl">Password</span>
-        <button class="btn btn-secondary btn-sm" onclick="toggleReveal('${id}')" ${canReveal ? '' : 'disabled title="No stored password or key"'}>Reveal</button>
-        <button class="btn btn-ghost btn-sm" onclick="toggleInline('chpw_${id}')">Change</button>
-        <button class="btn btn-ghost btn-sm" onclick="setTempPw('${id}')">Temp password</button>
-        <label class="acct-force"><input type="checkbox" ${a.forceChange ? 'checked' : ''} onchange="toggleForceChange('${id}',this.checked)"> Force change at next login</label>
-      </div>
-      <div class="acct-inline" id="rev_${id}">
-        <input class="admin-form-input acct-pw-input" id="revPw_${id}" type="password" placeholder="Re-enter admin password" autocomplete="off" onkeydown="if(event.key==='Enter')doRevealPw('${id}')">
-        <button class="btn btn-primary btn-sm" onclick="doRevealPw('${id}')">Show password</button>
-        <div class="acct-pw-shown" id="revShown_${id}"></div>
-      </div>
-      <div class="acct-inline" id="chpw_${id}">
-        <input class="admin-form-input acct-pw-input" id="chpwVal_${id}" type="text" placeholder="New password (6+ chars)" autocomplete="off">
-        <button class="btn btn-primary btn-sm" onclick="adminChangePw('${id}')">Set password</button>
-      </div>
-      <div class="acct-mng-row">
-        <span class="acct-mng-lbl">Player link</span>
-        ${rosterSelectHtml('linkSel_' + id, a.playerId || '')}
-        <button class="btn btn-secondary btn-sm" onclick="linkAccountPlayer('${id}')">Link</button>
-      </div>
-      <div class="acct-mng-row">
-        <span class="acct-mng-lbl">Status</span>
-        ${statusBtns.join('') || '<span class="acct-uname">—</span>'}
+  </div>`;
+}
+
+// ── ADMIN: MEMBER PROFILE ────────────────────────────────────────────────────
+// Tapping an Accounts row opens one screen per member that mirrors their own
+// "My TZH" page — name, photo, points, Monthly-draw progress, what they owe —
+// and makes every part of it editable, with the sign-in controls (login code,
+// password, player link, status) underneath. Every control reuses the existing
+// validated + audited action (setRosterPoints, setPayment, adminSetCode …)
+// rather than posting raw state back; nothing new is written to the server.
+let acctProfileId = null;
+
+function openAcctProfile(id) {
+  const m = document.getElementById('acctProfile');
+  if (!m) return;
+  acctProfileId = id;
+  renderAcctProfile();
+  m.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeAcctProfile() {
+  const m = document.getElementById('acctProfile');
+  if (m) m.classList.remove('open');
+  document.body.style.overflow = '';
+  acctProfileId = null;
+  if (currentAdminTab === 'accounts') renderAcctList();
+}
+function acctProfileOpen() { return !!(acctProfileId && document.getElementById('acctProfile')); }
+function acctProfileAccount() { return (adminAccountsCache || []).find(a => a && a.id === acctProfileId) || null; }
+
+// Repainted after every edit (and by the Accounts tab render behind it). A
+// rebuild while the organiser is typing in the panel would swallow the edit,
+// so a focused field inside it holds the repaint — same rule as the round
+// editor. Anything that must land immediately re-renders after its await.
+function renderAcctProfile() {
+  if (!acctProfileOpen()) return;
+  const body = document.getElementById('acctProfileBody');
+  if (!body) return;
+  const a = acctProfileAccount();
+  if (!a) { closeAcctProfile(); return; }
+  const el = document.activeElement;
+  if (el && el !== document.body && body.contains(el) && /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) return;
+  body.innerHTML = acctProfileHtml(a);
+}
+
+function acctProfileHtml(a) {
+  const id = escHtml(a.id);
+  const pid = a.playerId || '';
+  const rp = pid ? pmRosterPlayer(pid) : null;
+  const name = rp ? rp.name : (a.name || '(no name)');
+  const esc = escHtml(name);
+  const pts = rp ? (rp.points || 0) : null;
+  const tier = pts === null ? null : tierForPoints(pts);
+  const m = (window.Payments && pid) ? Payments.memberSummary((adminOps && adminOps.attendance) || {}, pid, name) : null;
+  const owe = !!(m && m.outstanding > 0);
+  const nights = pid ? sessionsAttended(pid) : 0;
+  return `<div class="ap-hero">
+      <label class="ap-avatar" title="${rp ? 'Change photo' : 'Link a player first'}">
+        ${avatarHTML({ id: pid || a.id, name, photo: (rp && rp.photo) || a.photo }, 64)}
+        <span class="ap-cam">Photo</span>
+        <input type="file" accept="image/*" ${rp ? '' : 'disabled'} onchange="acctProfPhoto('${escHtml(pid)}',this)" aria-label="Change photo for ${esc}">
+      </label>
+      <div class="ap-hero-main">
+        <input class="ap-name-inp" id="acctProfileName" type="text" value="${esc}" ${rp ? '' : 'disabled'} maxlength="40"
+          onchange="acctProfName('${escHtml(pid)}',this.value)" onkeydown="if(event.key==='Enter')this.blur()" aria-label="Name">
+        <div class="ap-chips">${acctCodeChipHtml(a)}${adminStatusBadge(a.status)}
+          <span>${escHtml(a.phoneDisplay || a.phone || 'Code sign-in')}</span>
+          ${a.hasPlayer ? '' : '<span class="acct-warn">Not linked to a player</span>'}
+          ${a.forceChange ? '<span class="st-badge wait">Must change pw</span>' : ''}
+          ${a.tempPassword ? '<span class="st-badge wait">Temp pw</span>' : ''}
+        </div>
       </div>
     </div>
+    <div class="ap-tiles">
+      <div class="ap-tile"><b>${pts === null ? '&mdash;' : escHtml(pts.toLocaleString())}</b><span>Points${tier ? ' · ' + escHtml(tier.name) : ''}</span></div>
+      <div class="ap-tile"><b>${lifetimePointsLabel(pid)}</b><span>Lifetime</span></div>
+      <div class="ap-tile${owe ? ' owe' : ''}"><b>${m ? escHtml(Payments.fmtRM(m.outstanding)) : '&mdash;'}</b><span>${m && owe ? 'Owing · ' + pmNights(m.unpaidCount) : 'Owing'}</span></div>
+      <div class="ap-tile"><b>${nights}</b><span>${nights === 1 ? 'Night played' : 'Nights played'}</span></div>
+    </div>
+    ${acctProfPointsHtml(a, rp, pts)}
+    ${acctProfPayHtml(a, m)}
+    ${acctProfPlayHtml(a, rp)}
+    ${acctProfSigninHtml(a, id)}`;
+}
+
+// Points + Monthly-draw progress: exactly the two numbers the member sees on
+// their own page, editable here (typed total or −/+ delta, both through
+// setRosterPoints). Lifetime sits alongside, labelled as organiser-only.
+function acctProfPointsHtml(a, rp, pts) {
+  const pid = escHtml(a.playerId || '');
+  if (!rp) return '<div class="ap-sec"><div class="pm-sec-hd"><span>Points</span></div><div class="ap-note">Link this account to a roster player to give them points, payments and draw entries.</div></div>';
+  const thr = (window.MonthlyLucky && typeof mlSettings === 'function') ? mlSettings().threshold : 0;
+  const inDraw = thr > 0 && pts >= thr;
+  const pctv = thr > 0 ? Math.min(100, Math.round(100 * pts / thr)) : 0;
+  return `<div class="ap-sec">
+    <div class="pm-sec-hd"><span>Points</span><b>${escHtml(tierForPoints(pts).name)}</b></div>
+    <div class="ap-row">
+      <span class="ap-lbl">This month</span>
+      <span class="ap-pts">
+        <button type="button" class="rl-pt-step" onclick="acctProfBump('${pid}',-1)" aria-label="One point off">&minus;</button>
+        <input type="number" class="admin-form-input ap-pts-inp" min="0" step="1" inputmode="numeric" value="${pts}" onfocus="this.select()" onchange="acctProfPoints('${pid}',this.value)" aria-label="Points">
+        <button type="button" class="rl-pt-step" onclick="acctProfBump('${pid}',1)" aria-label="One point on">+</button>
+      </span>
+      ${thr > 0 ? `<span class="ap-bar" aria-hidden="true"><i style="width:${pctv}%"></i></span>
+      <span class="ap-goal${inDraw ? ' in' : ''}">${inDraw ? 'In the Monthly draw ✓' : escHtml(String(Math.max(0, thr - pts))) + ' more for the draw'}</span>` : ''}
+    </div>
+    <div class="ap-row"><span class="ap-lbl">Lifetime</span><b>${lifetimePointsLabel(a.playerId)}</b><span class="ap-note">Every point ever earned — never reset at month close, and never shown to the member.</span></div>
+    <div class="ap-note">Points and the draw bar are what ${escHtml(rp.name)} sees when they sign in.</div>
   </div>`;
+}
+
+// The member's own ledger, with the same tap-to-settle rows as the Payments tab.
+function acctProfPayHtml(a, m) {
+  if (!m) return '';
+  const owe = m.outstanding > 0;
+  return `<div class="ap-sec">
+    <div class="pm-sec-hd"><span>Payments</span><b>${owe ? escHtml(Payments.fmtRM(m.outstanding) + ' still owing') : 'Nothing owing'}</b></div>
+    ${owe ? '<div class="pm-mem-sess-list">' + m.owing.map(x => pmMemSessHtml(x, m.playerId)).join('') + '</div>'
+          : '<div class="pm-modal-empty">' + (m.sessions ? 'Every night is settled ✓' : 'No payment records for this member yet.') + '</div>'}
+    ${m.settled.length ? `<details class="pm-mem-hist"><summary><span>Paid history</span><b>${pmNights(m.paidCount)} · ${escHtml(Payments.fmtRM(m.paidTotal))}</b></summary>
+      <div class="pm-mem-sess-list">${m.settled.map(x => pmMemSessHtml(x, m.playerId)).join('')}</div></details>` : ''}
+  </div>`;
+}
+
+// Level / girl / mixed — how the generator treats them on court.
+function acctProfPlayHtml(a, rp) {
+  if (!rp) return '';
+  const pid = escHtml(rp.id);
+  const lv = (rp.level == null || rp.level === '') ? '' : rp.level;
+  return `<div class="ap-sec">
+    <div class="pm-sec-hd"><span>On court</span><b>${lv ? 'Level ' + escHtml(String(lv)) : 'No level set'}</b></div>
+    <div class="ap-row">
+      <span class="ap-lbl">Level</span>
+      <input type="number" class="admin-form-input rl-lvl-inp${rp.level ? ' set' : ''}" min="1" max="7" step="0.5" inputmode="decimal" placeholder="&mdash;" value="${escHtml(String(lv))}" onchange="acctProfLevel('${pid}',this.value)" aria-label="Level">
+      <span class="ap-note">1.0 – 7.0, used to balance the courts.</span>
+    </div>
+    <div class="ap-row">
+      <span class="ap-lbl">Plays as</span>
+      <span class="ap-tog">Girl<button class="rl-toggle girl${rp.girl ? ' on' : ''}" role="switch" aria-checked="${!!rp.girl}" onclick="acctProfGirl('${pid}')" aria-label="Girl"><span class="rl-knob"></span></button></span>
+      <span class="ap-tog">Mixed<button class="rl-toggle${rp.mixed ? ' on' : ''}" role="switch" aria-checked="${!!rp.mixed}" onclick="acctProfMixed('${pid}')" aria-label="Mixed doubles"><span class="rl-knob"></span></button></span>
+    </div>
+  </div>`;
+}
+
+// Sign-in: the login code, the password tools, the player link and the status —
+// the old inline Manage panel, now with room to breathe.
+function acctProfSigninHtml(a, id) {
+  const canReveal = a.canReveal;
+  const statusBtns = [];
+  if (a.status === 'active') { statusBtns.push(`<button class="btn btn-ghost btn-sm" onclick="lockAccount('${id}')">Lock</button>`); statusBtns.push(`<button class="btn btn-ghost btn-sm" onclick="suspendAccount('${id}')">Suspend</button>`); }
+  if (a.status === 'locked') statusBtns.push(`<button class="btn btn-secondary btn-sm" onclick="acctStatusAction('${id}','adminUnlockAccount','Unlocked')">Unlock</button>`);
+  if (a.status === 'suspended') statusBtns.push(`<button class="btn btn-secondary btn-sm" onclick="acctStatusAction('${id}','adminReactivateAccount','Reactivated')">Reactivate</button>`);
+  return `<div class="ap-sec">
+    <div class="pm-sec-hd"><span>Sign-in</span><b>${escHtml(a.code ? a.code : 'No login code')}</b></div>
+    <div class="ap-row">
+      <span class="ap-lbl">Login code</span>
+      <input class="admin-form-input acct-pw-input" id="codeVal_${id}" type="text" value="${escHtml(a.code || '')}" placeholder="e.g. ${escHtml(codeSuggestion(a.name))}" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="32" onkeydown="if(event.key==='Enter')saveCode('${id}')">
+      <button class="btn btn-primary btn-sm" onclick="saveCode('${id}')">Save</button>
+      <button class="btn btn-ghost btn-sm" onclick="regenCode('${id}')">New code</button>
+      ${a.code ? `<button class="btn btn-ghost btn-sm" onclick="clearCode('${id}')">Remove</button>` : ''}
+      ${a.code ? `<button class="btn btn-secondary btn-sm" onclick="copyAcctInvite('${id}')">Copy invite</button>` : ''}
+    </div>
+    <div class="ap-row">
+      <span class="ap-lbl">Password</span>
+      <button class="btn btn-secondary btn-sm" onclick="toggleReveal('${id}')" ${canReveal ? '' : 'disabled title="No stored password or key"'}>Reveal</button>
+      <button class="btn btn-ghost btn-sm" onclick="toggleInline('chpw_${id}')">Change</button>
+      <button class="btn btn-ghost btn-sm" onclick="setTempPw('${id}')">Temp password</button>
+      <label class="acct-force"><input type="checkbox" ${a.forceChange ? 'checked' : ''} onchange="toggleForceChange('${id}',this.checked)"> Force change at next login</label>
+    </div>
+    <div class="acct-inline" id="rev_${id}">
+      <input class="admin-form-input acct-pw-input" id="revPw_${id}" type="password" placeholder="Re-enter admin password" autocomplete="off" onkeydown="if(event.key==='Enter')doRevealPw('${id}')">
+      <button class="btn btn-primary btn-sm" onclick="doRevealPw('${id}')">Show password</button>
+      <div class="acct-pw-shown" id="revShown_${id}"></div>
+    </div>
+    <div class="acct-inline" id="chpw_${id}">
+      <input class="admin-form-input acct-pw-input" id="chpwVal_${id}" type="text" placeholder="New password (6+ chars)" autocomplete="off">
+      <button class="btn btn-primary btn-sm" onclick="adminChangePw('${id}')">Set password</button>
+    </div>
+    <div class="ap-row">
+      <span class="ap-lbl">Player link</span>
+      ${rosterSelectHtml('linkSel_' + id, a.playerId || '')}
+      <button class="btn btn-secondary btn-sm" onclick="linkAccountPlayer('${id}')">Link</button>
+    </div>
+    <div class="ap-row">
+      <span class="ap-lbl">Status</span>
+      ${statusBtns.join('') || '<span class="acct-uname">—</span>'}
+      <span class="ap-note">Last login ${escHtml(acctFmtTsTime(a.lastLoginAt))} · ${escHtml(String(a.failedAttempts || 0))} failed · password changed ${escHtml(acctFmtTs(a.pwChangedAt))}</span>
+    </div>
+    <div class="ap-danger">
+      <span class="ap-note">Deleting only removes the sign-in — the player and their history stay.</span>
+      <button class="btn btn-danger btn-sm" onclick="deleteAccountAdmin('${id}',this)">Delete account</button>
+    </div>
+  </div>`;
+}
+
+// ── member profile edits ──
+// Each one reuses the roster/points helper the Players List already uses, then
+// repaints the panel with whatever the server actually stored.
+async function acctProfPhoto(pid, input) {
+  if (!pid) return;
+  await handleRosterPhoto(pid, input);
+  renderAcctProfile();
+}
+async function acctProfName(pid, value) {
+  if (!pid || !String(value || '').trim()) { renderAcctProfile(); return; }
+  await saveRosterName(pid, value);
+  renderAcctProfile();
+}
+async function acctProfPoints(pid, value) { await setPlayerPoints(pid, value); renderAcctProfile(); }
+async function acctProfBump(pid, delta) { await bumpPlayerPoints(pid, delta); renderAcctProfile(); }
+async function acctProfLevel(pid, value) { await setPlayerLevel(pid, value); renderAcctProfile(); }
+async function acctProfGirl(pid) { await togglePlayerGirl(pid); renderAcctProfile(); }
+async function acctProfMixed(pid) { await togglePlayerMixed(pid); renderAcctProfile(); }
+
+// One tap copies the whole "here is how you sign in" message, ready to paste
+// into the group chat — the code on its own needs explaining every time.
+function copyAcctInvite(id) {
+  const a = (adminAccountsCache || []).find(x => x && x.id === id);
+  if (!a) return;
+  if (!a.code) { notify('Give them a login code first.', 'warn'); return; }
+  const url = location.origin + location.pathname;
+  const lines = ['Hi ' + (a.name || 'there') + '! Your TZH login code is ' + a.code,
+    'Open ' + url + ' and tap Sign in, then type the code to see your points, what you owe and your draw wins.'];
+  if (state && state.siteCode) lines.push('Site access code: ' + state.siteCode);
+  const msg = lines.join('\n');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(msg).then(() => notify('Invite message copied.'), () => notify(msg, 'ok', 10000));
+  } else notify(msg, 'ok', 10000);
 }
 
 function toggleInline(elId) {
@@ -10317,7 +11007,6 @@ async function setTempPw(id) {
   // Show the temp password once so the admin can read it out to the player.
   document.getElementById('revShown_' + id) && (document.getElementById('revShown_' + id).innerHTML = '');
   notify('Temporary password: ' + res.tempPassword, 'ok', 8000);
-  window.setTimeout(() => toggleInline('mng_' + id), 10);
 }
 
 async function toggleForceChange(id, value) {
@@ -10329,13 +11018,19 @@ async function toggleForceChange(id, value) {
 
 async function deleteAccountAdmin(id, btn) {
   if (btn.dataset.confirmed !== 'yes') {
-    btn.textContent = '?'; btn.dataset.confirmed = 'yes'; btn.classList.add('confirm');
-    setTimeout(() => { if (btn.dataset.confirmed === 'yes') { btn.textContent = '×'; btn.dataset.confirmed = ''; btn.classList.remove('confirm'); } }, 3000);
+    // Same two-tap confirm from the row's × and the profile's worded button, so
+    // put back whichever label the button started with.
+    const label = btn.dataset.label || btn.textContent;
+    btn.dataset.label = label;
+    btn.textContent = label.length > 2 ? 'Tap again to delete' : '?';
+    btn.dataset.confirmed = 'yes'; btn.classList.add('confirm');
+    setTimeout(() => { if (btn.dataset.confirmed === 'yes') { btn.textContent = label; btn.dataset.confirmed = ''; btn.classList.remove('confirm'); } }, 3000);
     return;
   }
   const res = await apiPost({ action: 'adminDeleteAccount', id });
   if (res === null) return;
   if (!res.ok) { notify(res.error || 'Could not delete account.', 'warn'); return; }
+  if (acctProfileId === id) closeAcctProfile(); // nothing left to show behind it
   notify('Account deleted (player kept).');
   await loadAccountsTab();
   await refreshState();
@@ -10426,26 +11121,18 @@ function setRosterSort(val) {
 }
 
 // ── POINTS EDITING ───────────────────────────
+// The Grid card's − [total] + control. It used to POST the whole roster back,
+// which both raced the poll and bypassed the lifetime ledger; it now goes
+// through the same validated, audited setRosterPoints action as the List view
+// (see writePlayerPoints) so every point earned is counted exactly once.
 async function adjustPoints(id, delta) {
-  await refreshState();
-  const roster = (state.roster || []).map(r =>
-    r.id === id ? { ...r, points: Math.max(0, (r.points || 0) + delta) } : r
-  );
-  await apiPost({ roster });
-  state.roster = roster;
-  renderPlayersSection();
+  await bumpPlayerPoints(id, delta);
   renderLeaderboard();
 }
 
 async function setPoints(id, val) {
   const n = Math.max(0, parseInt(val) || 0);
-  await refreshState();
-  const cur = (state.roster || []).find(r => r.id === id);
-  if (cur && (cur.points || 0) === n) return;
-  const roster = (state.roster || []).map(r => r.id === id ? { ...r, points: n } : r);
-  await apiPost({ roster });
-  state.roster = roster;
-  renderPlayersSection();
+  await setPlayerPoints(id, n);
   renderLeaderboard();
 }
 
@@ -10540,7 +11227,7 @@ function renderRosterList(listEl, visibleRoster, sessionIds, q) {
     // the tick becomes the ONLY way to add or remove someone — a mis-tap while
     // reaching for the drawer can't silently drop a player from the night.
     const rowAttrs = phone
-      ? `aria-expanded="${open}" title="Tap for level, girl and mixed"`
+      ? `aria-expanded="${open}" title="Tap for level, girl, mixed and lifetime points"`
       : `aria-pressed="${inS}" title="${inS ? 'Playing today — tap to remove from session' : "Tap to add to today's session"}"`;
     // The Level/Girl/Mixed cells are separate columns so tapping them never
     // toggles the session; the tick stops propagation for the same reason.
@@ -10552,7 +11239,8 @@ function renderRosterList(listEl, visibleRoster, sessionIds, q) {
       <div class="rl-level">${seg}</div>
       <div class="rl-girl"><button class="rl-toggle girl${gl ? ' on' : ''}" role="switch" aria-checked="${gl}" onclick="togglePlayerGirl('${rp.id}')" aria-label="${escHtml(rp.name)} is a girl ${gl ? 'yes' : 'no'}"><span class="rl-knob"></span></button></div>
       <div class="rl-mixed"><button class="rl-toggle${mx ? ' on' : ''}" role="switch" aria-checked="${mx}" onclick="togglePlayerMixed('${rp.id}')" aria-label="Mixed doubles for ${escHtml(rp.name)} ${mx ? 'eligible' : 'not eligible'}"><span class="rl-knob"></span></button></div>
-      <button type="button" class="rl-more" aria-expanded="${open}" onclick="toggleRosterMore('${rp.id}')" aria-label="${open ? 'Hide' : 'Show'} level, girl and mixed for ${escHtml(rp.name)}">${open ? '\u2303' : '\u2304'}</button>
+      <div class="rl-life" title="Every point ${escHtml(rp.name)} has ever earned \u2014 never reset at the end of the month. Admin only." aria-label="Lifetime points for ${escHtml(rp.name)}"><span class="rl-life-n">${lifetimePointsLabel(rp.id)}</span></div>
+      <button type="button" class="rl-more" aria-expanded="${open}" onclick="toggleRosterMore('${rp.id}')" aria-label="${open ? 'Hide' : 'Show'} level, girl, mixed and lifetime points for ${escHtml(rp.name)}">${open ? '\u2303' : '\u2304'}</button>
       <div class="rl-pts">
         <button type="button" class="rl-pt-step" onclick="event.stopPropagation();bumpPlayerPoints('${rp.id}',-1)" aria-label="One point off ${escHtml(rp.name)}">&minus;</button>
         <input type="number" class="rl-pts-inp" min="0" step="1" inputmode="numeric" value="${rp.points || 0}" onclick="event.stopPropagation()" onfocus="this.select()" onchange="setPlayerPoints('${rp.id}',this.value)" aria-label="Points for ${escHtml(rp.name)}">
@@ -10560,7 +11248,7 @@ function renderRosterList(listEl, visibleRoster, sessionIds, q) {
       </div>
     </div>`;
   }).join('');
-  listEl.innerHTML = `<div class="rl-head"><span>Player</span><span>Level</span><span>Girl</span><span>Mixed</span><span>Pts</span></div>${rows}`;
+  listEl.innerHTML = `<div class="rl-head"><span>Player</span><span>Level</span><span>Girl</span><span>Mixed</span><span>Life</span><span>Pts</span></div>${rows}`;
 }
 
 // ── MANUAL POINTS ────────────────────────────────────────────────────────────
@@ -10587,6 +11275,9 @@ async function writePlayerPoints(id, body, optimistic) {
     return notify(r.error || 'Could not save those points.', 'warn');
   }
   if (r.roster) state.roster = r.roster;
+  // Keep the lifetime column live without another ops fetch: the action returns
+  // the player's new permanent total, which moved by the same signed amount.
+  if (typeof r.lifetime === 'number' && lifetimePointsLoaded()) adminOps.lifetimePoints[id] = r.lifetime;
   renderPlayersSection();
 }
 
@@ -11263,6 +11954,7 @@ function closeOpenOverlays() {
   if (isOpen('joinModal'))    { closeJoinModal();    closed = true; }
   if (isOpen('eodModal'))     { closeEodModal();     closed = true; }
   if (isOpen('pmModal'))      { closePmModal();      closed = true; }
+  if (isOpen('acctProfile'))  { closeAcctProfile();  closed = true; }
   if (isOpen('drawVideoModal')) { closeDrawVideo();  closed = true; }
   if (isOpen('drawPage'))     { closeDrawPage();     closed = true; }
   return closed;

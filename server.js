@@ -2,7 +2,8 @@ const express = require('express');
 const path = require('path');
 const os = require('os');
 // Reuse the serverless submit validator + clock so local dev matches production.
-const { buildSignups, todayISO, applySessionDateChange, publicProjection, buildRosterAdditions, buildRosterPointsUpdate } = require('./api/state.js');
+const { buildSignups, todayISO, applySessionDateChange, publicProjection, buildRosterAdditions, buildRosterPointsUpdate,
+        ensureLifetimePoints, addLifetimePoints, lifetimeOf } = require('./api/state.js');
 const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction } = require('./lib/accounts.js');
 const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction } = require('./lib/weekly.js');
 const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('./lib/payments.js');
@@ -57,6 +58,7 @@ const DEFAULT_STATE = {
   drawSettings: { winners: SD.DEFAULT_WINNERS },
   sessionDrawAt: SD.scheduledDrawAt(todayISO()),
   monthlyEligibility: null,
+  lifetimePoints: {}, // permanent { playerId: total } — the month close never touches it
   audit: [],
 };
 
@@ -139,10 +141,13 @@ app.post('/api/state', async (req, res) => {
   if (password !== ADMIN_PASSWORD) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
+  ensureLifetimePoints(state); // seed/repair the admin-only lifetime ledger once, up front
   // Auth-only ping (no updates): return state so an authenticated admin can
   // bypass the site lock and reach the admin panel even without the site code.
+  // Never carries lifetimePoints — that comes from adminGetOps, as in production.
   if (Object.keys(updates).length === 0) {
-    return res.json({ ok: true, state: { ...redactState(state), serverTime: Date.now() } });
+    const { lifetimePoints, ...safe } = redactState(state);
+    return res.json({ ok: true, state: { ...safe, serverTime: Date.now() } });
   }
   // Admin account-management actions (approve / reject / reveal / lock / ...).
   if (updates.action && ADMIN_ACCOUNT_ACTIONS.has(updates.action)) {
@@ -179,6 +184,7 @@ app.post('/api/state', async (req, res) => {
       audit: Array.isArray(state.audit) ? state.audit.slice(0, 300) : [],
       feeTier: Payments.tierOf(state.feeTier),
       sessionDate: state.sessionDate || null,
+      lifetimePoints: state.lifetimePoints || {},
     });
   }
   // Mirrors the api/state.js branch — bulk roster add carries only the names.
@@ -192,8 +198,11 @@ app.post('/api/state', async (req, res) => {
   if (updates.action === 'setRosterPoints') {
     const built = buildRosterPointsUpdate(state.roster, updates.playerId, updates);
     if (!built.ok) return res.status(400).json({ error: built.error });
-    if (built.prev !== built.next) state.roster = built.roster;
-    return res.json({ ok: true, playerId: built.player.id, points: built.next, roster: state.roster });
+    if (built.prev !== built.next) {
+      state.roster = built.roster;
+      state.lifetimePoints = addLifetimePoints(state.lifetimePoints, built.player.id, built.next - built.prev);
+    }
+    return res.json({ ok: true, playerId: built.player.id, points: built.next, roster: state.roster, lifetime: lifetimeOf(state.lifetimePoints, built.player.id) });
   }
   if (updates.action !== undefined) {
     return res.status(400).json({ error: 'Unknown action.' });
@@ -206,6 +215,9 @@ app.post('/api/state', async (req, res) => {
   }
   if (updates.monthlyLucky !== undefined) {
     return res.status(400).json({ error: 'Use the monthly draw actions.' });
+  }
+  if (updates.lifetimePoints !== undefined) {
+    return res.status(400).json({ error: 'Lifetime points are kept by the server.' });
   }
   // Session-date change uses the SAME shared logic as production (api/state.js)
   // so local dev reproduces the snapshot/restore/one-month-ahead behaviour.

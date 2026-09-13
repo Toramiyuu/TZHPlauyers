@@ -59,26 +59,26 @@ check('leaving the List view clears the drawer', fn('setRosterView').includes('_
 // ── row markup ──
 const row = fn('renderRosterList');
 check('the chevron is a real button with aria-expanded', row.includes('<button type="button" class="rl-more" aria-expanded="${open}"') && row.includes("onclick=\"toggleRosterMore('${rp.id}')\""));
-check('the chevron carries a per-player aria-label', row.includes("aria-label=\"${open ? 'Hide' : 'Show'} level, girl and mixed for ${escHtml(rp.name)}\""));
+check('the chevron carries a per-player aria-label', row.includes("aria-label=\"${open ? 'Hide' : 'Show'} level, girl, mixed and lifetime points for ${escHtml(rp.name)}\""));
 check('the chevron flips glyph with state', row.includes("${open ? '\\u2303' : '\\u2304'}"));
-check('the chevron sits between Mixed and Pts, outside .rl-player', row.indexOf('class="rl-more"') > row.indexOf('class="rl-mixed"') && row.indexOf('class="rl-more"') < row.indexOf('class="rl-pts"'));
+check('the chevron sits between the attribute cells and Pts, outside .rl-player', row.indexOf('class="rl-more"') > row.indexOf('class="rl-life"') && row.indexOf('class="rl-more"') < row.indexOf('class="rl-pts"'));
 check('the chevron is a sibling of .rl-player, so it never toggles the session', !/rl-player[\s\S]*?rl-more[\s\S]*?<\/div>\s*<div class="rl-level"/.test(row));
-check('Level / Girl / Mixed cells are still rendered once (moved by CSS, not duplicated)', (row.match(/class="rl-level"/g) || []).length === 1 && (row.match(/class="rl-girl"/g) || []).length === 1 && (row.match(/class="rl-mixed"/g) || []).length === 1);
+check('Level / Girl / Mixed / Life cells are still rendered once (moved by CSS, not duplicated)', (row.match(/class="rl-level"/g) || []).length === 1 && (row.match(/class="rl-girl"/g) || []).length === 1 && (row.match(/class="rl-mixed"/g) || []).length === 1 && (row.match(/class="rl-life"/g) || []).length === 1);
 
 // ── CSS ──
 check('the chevron is hidden outside the phone breakpoint', html.includes('.rl-more{display:none}'));
-check('the desktop five-column grid is intact (points column widened for the − [total] + editor)', html.includes('.rl-head,.rl-row{display:grid;grid-template-columns:1fr auto 52px 72px 108px;align-items:center;gap:12px;padding:10px 14px}'));
+check('the desktop six-column grid is intact (Level, Girl, Mixed, the read-only Life total, then the − [total] + editor)', html.includes('.rl-head,.rl-row{display:grid;grid-template-columns:1fr auto 52px 72px 64px 108px;align-items:center;gap:12px;padding:10px 14px}'));
 check('the phone breakpoint is 560px', html.includes('@media(max-width:560px){'));
 // Several 560px blocks exist now (the round list stacks at the same width), so
 // anchor on the roster-list one rather than the first occurrence in the file.
 const mqStart = html.lastIndexOf('@media(max-width:560px){', html.indexOf('.rl-head,.rl-row{grid-template-columns:1fr 40px 60px'));
 const mq = html.slice(mqStart, mqStart + 2600);
 check('phone rows collapse to Player / chevron / Pts', mq.includes('.rl-head,.rl-row{grid-template-columns:1fr 40px 60px;'));
-check('the Level/Girl/Mixed headers drop out on phones', mq.includes('.rl-head span:nth-child(2),.rl-head span:nth-child(3),.rl-head span:nth-child(4){display:none}'));
-check('Pts stays in the last column in the header', mq.includes('.rl-head span:nth-child(5){grid-column:3}'));
-check('attribute cells are hidden until the row is open', mq.includes('.rl-level,.rl-girl,.rl-mixed{display:none;') && mq.includes('.rl-row.open .rl-level,.rl-row.open .rl-girl,.rl-row.open .rl-mixed{display:flex}'));
-check('open cells stack on their own full-width rows', mq.includes('.rl-row.open .rl-level{grid-area:2/1/auto/-1') && mq.includes('.rl-row.open .rl-girl{grid-area:3/1/auto/-1') && mq.includes('.rl-row.open .rl-mixed{grid-area:4/1/auto/-1'));
-check('each control is labelled in the drawer', mq.includes(".rl-level::before{content:'Level'}") && mq.includes(".rl-girl::before{content:'Girl'}") && mq.includes(".rl-mixed::before{content:'Mixed doubles'}"));
+check('the Level/Girl/Mixed/Life headers drop out on phones', mq.includes('.rl-head span:nth-child(2),.rl-head span:nth-child(3),.rl-head span:nth-child(4),.rl-head span:nth-child(5){display:none}'));
+check('Pts stays in the last column in the header', mq.includes('.rl-head span:nth-child(6){grid-column:3}'));
+check('attribute cells are hidden until the row is open', mq.includes('.rl-level,.rl-girl,.rl-mixed,.rl-life{display:none;') && mq.includes('.rl-row.open .rl-level,.rl-row.open .rl-girl,.rl-row.open .rl-mixed,.rl-row.open .rl-life{display:flex}'));
+check('open cells stack on their own full-width rows', mq.includes('.rl-row.open .rl-level{grid-area:2/1/auto/-1') && mq.includes('.rl-row.open .rl-girl{grid-area:3/1/auto/-1') && mq.includes('.rl-row.open .rl-mixed{grid-area:4/1/auto/-1') && mq.includes('.rl-row.open .rl-life{grid-area:5/1/auto/-1'));
+check('each control is labelled in the drawer', mq.includes(".rl-level::before{content:'Level'}") && mq.includes(".rl-girl::before{content:'Girl'}") && mq.includes(".rl-mixed::before{content:'Mixed doubles'}") && mq.includes(".rl-life::before{content:'Lifetime points'}"));
 check('the chevron has a 40px touch target', mq.includes('width:40px;height:40px'));
 check('the toggles stop centring themselves inside the drawer', mq.includes('.rl-girl .rl-toggle,.rl-mixed .rl-toggle{margin:0}'));
 check('the level input gets room back', mq.includes('.rl-lvl-inp{width:78px;padding:8px}'));
@@ -127,7 +127,7 @@ check('the tick stops propagation so it never also runs the row tap', row.includ
 check('the tick carries its own pressed state and label', row.includes('aria-pressed="${inS}"') && row.includes("aria-label=\"${inS ? 'Remove' : 'Add'} ${escHtml(rp.name)}"));
 check('the tick is no longer hidden from screen readers', !row.includes('class="rl-check${inS ? \' on\' : \'\'}" aria-hidden="true"'));
 check('the row body dispatches through rosterRowTap, not toggleRosterPlayer', row.includes("onclick=\"rosterRowTap('${rp.id}')\"") && !row.includes("<div class=\"rl-player\" onclick=\"toggleRosterPlayer("));
-check('row aria/title swap with the layout (aria-expanded on phone, aria-pressed on desktop)', row.includes('const rowAttrs = phone') && row.includes('aria-expanded="${open}" title="Tap for level, girl and mixed"') && row.includes("title=\"${inS ? 'Playing today"));
+check('row aria/title swap with the layout (aria-expanded on phone, aria-pressed on desktop)', row.includes('const rowAttrs = phone') && row.includes('aria-expanded="${open}" title="Tap for level, girl, mixed and lifetime points"') && row.includes("title=\"${inS ? 'Playing today"));
 check('the layout is read once per render, not once per row', row.includes('const phone = isRosterPhone();') && row.indexOf('const phone = isRosterPhone();') < row.indexOf('visibleRoster.map'));
 
 // ── CSS for the tick button ──

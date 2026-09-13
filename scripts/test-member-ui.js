@@ -99,7 +99,11 @@ check('Accounts tab has the Assign codes button + code-aware search', html.inclu
 check('assignAllCodes posts adminAssignCodes and reloads', fn('assignAllCodes').includes("apiPost({ action: 'adminAssignCodes' })") && fn('assignAllCodes').includes('await loadAccountsTab()'));
 check('assignCodeFor / regenCode / saveCode / clearCode hit the right actions', fn('assignCodeFor').includes("action: 'adminSetCode', playerId") && fn('regenCode').includes("action: 'adminSetCode', id }") && fn('saveCode').includes("action: 'adminSetCode', id, code") && fn('clearCode').includes("action: 'adminClearCode', id"));
 check('blank Save regenerates instead of erroring', fn('saveCode').includes("if (!code) return regenCode(id);"));
-check('account card shows the tappable code chip and a code row under Manage', fn('accountCardHtml').includes('${acctCodeChipHtml(a)}') && fn('accountCardHtml').includes('id="codeVal_${id}"') && fn('accountCardHtml').includes(">Login code</span>"));
+// The code row moved out of the card's inline panel into the member profile
+// (Manage now opens that profile), so the chip is on the card and the editable
+// code row is in the profile's Sign-in section.
+check('account card shows the tappable code chip and opens the profile', fn('accountCardHtml').includes('${acctCodeChipHtml(a)}') && fn('accountCardHtml').includes("pmCall('openAcctProfile', a.id)"));
+check('the member profile carries the editable login-code row', fn('acctProfSigninHtml').includes('id="codeVal_${id}"') && fn('acctProfSigninHtml').includes(">Login code</span>") && fn('acctProfileHtml').includes('acctProfSigninHtml(a, id)'));
 check('code chip copies on tap and is a real button', fn('acctCodeChipHtml').includes('<button type="button" class="acct-code"') && fn('acctCodeChipHtml').includes("pmCall('copyCode', a.code)"));
 check('roster players without an account get an Assign code row', fn('renderAcctList').includes('unlinkedRosterHtml(needle)') && fn('unlinkedRosterHtml').includes("pmCall('assignCodeFor', r.id)") && fn('unlinkedRosterHtml').includes('No login code yet'));
 check('counters lead with Login codes / No code', fn('renderAcctCounters').includes("['Login codes', codedPlayers.size, 'ok']") && fn('renderAcctCounters').includes("['No code', noCode"));

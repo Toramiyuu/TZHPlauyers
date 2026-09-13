@@ -78,7 +78,7 @@ check('a real change is written to the audit log', /pushAudit\(state, \{\s*actio
 check('the audit entry names the player', src.includes("target: { type: 'player', id: built.player.id, label: built.player.name || built.player.id }"));
 check('a no-op edit skips the write and the audit entry', src.includes('if (built.prev !== built.next) {'));
 check('a failed KV write answers 500 rather than pretending to succeed', /KV write error \(setRosterPoints\)[\s\S]{0,140}res\.status\(500\)/.test(src));
-check('the response returns the stored total (it may have been clamped)', src.includes('return res.json({ ok: true, playerId: built.player.id, points: built.next, roster: state.roster });'));
+check('the response returns the stored total (it may have been clamped) and the new lifetime total', src.includes('return res.json({ ok: true, playerId: built.player.id, points: built.next, roster: state.roster, lifetime: lifetimeOf(state.lifetimePoints, built.player.id) });'));
 check('pushAudit is imported in api/state.js', src.includes("const { pushAudit } = require('../lib/audit.js');"));
 check('server.js mirrors the branch', (() => {
   const srv = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');

@@ -120,7 +120,7 @@ const DEFAULT_STATE = {
   // ── automatic per-session Lucky Draw (2026-09) ──
   // Winners per draw (admin-configurable). The schedule itself is a fixed table in
   // public/session-draw.js; results live in the separate `court-draws` Redis hash.
-  drawSettings: { winners: SD.DEFAULT_WINNERS },
+  drawSettings: { winners: SD.DEFAULT_WINNERS, prize: '' },
   // Scheduled draw instant (epoch ms) for the LIVE session day, stamped when the
   // day is created (applySessionDateChange); null on days that never draw.
   sessionDrawAt: SD.scheduledDrawAt(todayISO()),
@@ -131,6 +131,10 @@ const DEFAULT_STATE = {
   // snapshots. Written ONLY through the monthly draw actions (lib/monthly-lucky.js);
   // results live in the separate `court-monthly-draws` Redis hash.
   monthlyLucky: { auto: true, winners: ML.DEFAULT_WINNERS, threshold: ML.DEFAULT_THRESHOLD, prizes: [], pointsMonth: ML.monthKeyOf(todayISO()), pool: null, closed: {} },
+  // Permanent { playerId: total } ledger of every point ever earned. Survives
+  // the month-close reset and never leaves the server without the admin
+  // password (see ensureLifetimePoints / adminGetOps).
+  lifetimePoints: {},
   // Durable admin audit log (bounded).
   audit: [],
 };
@@ -150,8 +154,12 @@ function publicProjection(current) {
 // Both polls (public GET + admin auth ping) carry only the LIGHT monthly-draw
 // settings: prize photos and the closed-month point snapshots are bulky and are
 // served by GET /api/draws (players) and the getMonthlyDraws action (admin).
+// Neither poll carries `lifetimePoints`: it is admin-only, and stripping it in
+// ONE place means there is exactly one source for it on the client (the
+// adminGetOps ops cache) rather than a field that appears and vanishes every 2s.
 function liteMonthlyLucky(s) {
-  return Object.assign({}, s, { monthlyLucky: ML.liteOf(s && s.monthlyLucky, todayISO()) });
+  const { lifetimePoints, ...rest } = s || {};
+  return Object.assign({}, rest, { monthlyLucky: ML.liteOf(s && s.monthlyLucky, todayISO()) });
 }
 
 // Tokens per tubes (1 per 4). Inlined here (not require('../public/monthly-draw.js'))
@@ -253,27 +261,104 @@ function addDaysISO(iso, n) {
 // that day is closed (see awardSessionPoints / applySessionDateChange).
 const POINTS_PER_SESSION = 2;
 
+// ── LIFETIME POINTS (admin-only) ─────────────────────────────────────────────
+// Monthly points are wiped for EVERYONE at month close — whether or not they
+// reached the threshold, whether or not they won (ML.closeIfDue). That reset is
+// the Monthly draw's whole premise, so the running total of what a player has
+// ever earned has to live somewhere the reset can't reach: `state.lifetimePoints`,
+// a plain { playerId: total } map that closeIfDue never touches.
+//
+// It is deliberately NOT a field on the roster entries. The admin client posts
+// its WHOLE roster copy back for name/level/photo/girl/mixed edits, so a stale
+// copy would silently rewrite every total on the next tap. Kept apart, it can
+// only ever change through the two places points are actually credited
+// (awardSessionPoints and the setRosterPoints action).
+//
+// It is also never in the public GET (see liteMonthlyLucky) — an authenticated
+// admin fetches it with the rest of the private ops data via adminGetOps.
+const MAX_LIFETIME_POINTS = 10000000;
+
+function isPlainMap(v) { return !!v && typeof v === 'object' && !Array.isArray(v); }
+
+/** One player's lifetime total, 0 for anything missing or junk. Pure. */
+function lifetimeOf(map, playerId) {
+  const n = isPlainMap(map) ? Number(map[playerId]) : NaN;
+  return Number.isFinite(n) && n > 0 ? Math.floor(Math.min(n, MAX_LIFETIME_POINTS)) : 0;
+}
+
+/**
+ * Apply a signed change to one player's lifetime total. Returns a NEW map
+ * clamped into 0..MAX_LIFETIME_POINTS and never mutates the one it is given; a
+ * zero/junk delta or a missing id returns the map untouched, so callers can
+ * assign the result unconditionally. Pure.
+ */
+function addLifetimePoints(map, playerId, delta) {
+  const base = isPlainMap(map) ? map : {};
+  const id = String(playerId == null ? '' : playerId);
+  // Only a number or a numeric string counts — Number(true) is 1 and Number([])
+  // is 0, so coercing whatever arrives would let junk move a permanent total.
+  const d = Math.trunc((typeof delta === 'number' || typeof delta === 'string') ? Number(delta) : NaN);
+  if (!id || !Number.isFinite(d) || d === 0) return base;
+  const next = Math.max(0, Math.min(MAX_LIFETIME_POINTS, lifetimeOf(base, id) + d));
+  return Object.assign({}, base, { [id]: next });
+}
+
+/**
+ * Make sure the blob HAS a lifetime map, in place. An existing map is only
+ * coerced (junk values -> 0), never re-seeded, so real totals can't be
+ * overwritten by a later read. A blob that has never seen this feature is
+ * seeded with everything still on record: what each roster player holds right
+ * now PLUS every closed-month snapshot we still keep. Those two are disjoint —
+ * a month's points are snapshotted and only then zeroed — so nothing is
+ * double-counted. Returns the map.
+ */
+function ensureLifetimePoints(state) {
+  if (!state || typeof state !== 'object') return {};
+  if (isPlainMap(state.lifetimePoints)) {
+    const clean = {};
+    for (const id of Object.keys(state.lifetimePoints)) clean[id] = lifetimeOf(state.lifetimePoints, id);
+    state.lifetimePoints = clean;
+    return clean;
+  }
+  const seeded = {};
+  const bump = (id, n) => {
+    if (!id) return;
+    seeded[id] = Math.max(0, Math.min(MAX_LIFETIME_POINTS, (seeded[id] || 0) + (Math.trunc(Number(n)) || 0)));
+  };
+  for (const r of (Array.isArray(state.roster) ? state.roster : [])) if (r && r.id) bump(r.id, r.points);
+  const closed = (state.monthlyLucky && isPlainMap(state.monthlyLucky.closed)) ? state.monthlyLucky.closed : {};
+  for (const m of Object.keys(closed)) {
+    const pts = (closed[m] && isPlainMap(closed[m].points)) ? closed[m].points : {};
+    for (const id of Object.keys(pts)) bump(id, pts[id]);
+  }
+  state.lifetimePoints = seeded;
+  return seeded;
+}
+
 /**
  * Credit POINTS_PER_SESSION to every roster player who appears in the outgoing
- * day's `players`, ONCE per session date. Returns { roster, awardedSessions }
- * with fresh arrays only when an award actually happens; otherwise returns the
+ * day's `players`, ONCE per session date. The same +2 also lands on their
+ * permanent lifetime total. Returns { roster, awardedSessions, lifetimePoints }
+ * with fresh values only when an award actually happens; otherwise returns the
  * originals untouched (so callers can assign unconditionally without breaking
  * purity). Guests (in players, not in roster) earn nothing. Pure.
  */
 function awardSessionPoints(state, leavingDate) {
   const roster = state.roster || [];
   const awarded = Array.isArray(state.awardedSessions) ? state.awardedSessions : [];
-  if (!leavingDate || awarded.includes(leavingDate)) {
-    return { roster: state.roster, awardedSessions: state.awardedSessions };
-  }
+  const unchanged = { roster: state.roster, awardedSessions: state.awardedSessions, lifetimePoints: state.lifetimePoints };
+  if (!leavingDate || awarded.includes(leavingDate)) return unchanged;
   const playedIds = new Set((state.players || []).map((p) => p.id));
   const anyPlayed = roster.some((r) => playedIds.has(r.id));
-  if (!anyPlayed) return { roster: state.roster, awardedSessions: state.awardedSessions };
+  if (!anyPlayed) return unchanged;
+  let lifetime = isPlainMap(state.lifetimePoints) ? state.lifetimePoints : {};
+  roster.forEach((r) => { if (r && r.id && playedIds.has(r.id)) lifetime = addLifetimePoints(lifetime, r.id, POINTS_PER_SESSION); });
   return {
     roster: roster.map((r) =>
       playedIds.has(r.id) ? Object.assign({}, r, { points: (r.points || 0) + POINTS_PER_SESSION }) : r
     ),
     awardedSessions: awarded.concat([leavingDate]),
+    lifetimePoints: lifetime,
   };
 }
 
@@ -436,6 +521,7 @@ function applySessionDateChange(state, newDate, today) {
     const award = awardSessionPoints(state, state.sessionDate);
     next.roster = award.roster;
     if (award.awardedSessions !== undefined) next.awardedSessions = award.awardedSessions;
+    if (award.lifetimePoints !== undefined) next.lifetimePoints = award.lifetimePoints;
     const snapshot = {
       players: (state.players || []).map((p) => ({ id: p.id, name: p.name })),
       rounds: state.rounds || [],
@@ -504,6 +590,9 @@ async function rolloverSessionDate() {
     return { ok: false, error: 'read', changed: false };
   }
   const today = todayISO();
+  // Seed the lifetime ledger BEFORE the day closes, so the night's +2 is added
+  // to a real starting total rather than to an empty map.
+  ensureLifetimePoints(state);
   const target = nextRolloverDate(state.sessionDate, today);
   let next = state, dateChanged = false;
   if (target) {
@@ -566,6 +655,9 @@ async function runMonthlyDrawSweep() {
   } catch (e) {
     return { ok: false, error: 'read', changed: false };
   }
+  // The close wipes every roster total; the lifetime ledger it leaves alone, so
+  // seed it first and the reset write carries the pre-reset figures forward.
+  ensureLifetimePoints(state);
   const closedMonths = applyMonthClose(state, todayISO(), Date.now());
   if (closedMonths.length) {
     try { await kv.set(STATE_KEY, state); } catch (e) { return { ok: false, error: 'write', changed: false, closedMonths }; }
@@ -704,11 +796,14 @@ const handler = async function handler(req, res) {
       delete current.weeklyDraws;
       delete current.weeklySettings;
       // Session draw settings + the live day's scheduled draw instant.
-      current.drawSettings = { winners: SD.winnersOf(current.drawSettings) };
+      current.drawSettings = { winners: SD.winnersOf(current.drawSettings), prize: SD.prizeOf(current.drawSettings) };
       if (current.sessionDrawAt === undefined) current.sessionDrawAt = SD.scheduledDrawAt(current.sessionDate);
       if (current.monthlyEligibility === undefined) current.monthlyEligibility = null;
       // Monthly (points) draw: repair old/odd blobs; a missing pointsMonth means "this month".
       current.monthlyLucky = ML.normalize(current.monthlyLucky, todayISO());
+      // Lifetime points: seed/repair the map (stripped again by publicProjection —
+      // this keeps a read and a write agreeing on the same starting totals).
+      ensureLifetimePoints(current);
       if (!Array.isArray(current.audit)) current.audit = [];
       // Session fee tier: coerce anything but '2h'/'3h' (old blobs, junk) to the default.
       current.feeTier = Payments.tierOf(current.feeTier);
@@ -840,6 +935,10 @@ const handler = async function handler(req, res) {
     } catch (e) {
       state = { ...DEFAULT_STATE };
     }
+    // Every admin write below starts here, so seeding the lifetime ledger once,
+    // up front, means the first write of ANY kind persists it — and every
+    // branch that credits points is adding to a real total, never to {}.
+    ensureLifetimePoints(state);
 
     // Auth-only ping (no updates): return state so an authenticated admin can
     // bypass the site lock and reach the admin panel even without the site code.
@@ -897,16 +996,17 @@ const handler = async function handler(req, res) {
     }
 
     // Admin fetch of the full private ops data (attendance / drawSettings /
-    // monthlyEligibility / audit) — kept out of public GET.
+    // monthlyEligibility / audit / lifetime points) — kept out of public GET.
     if (updates.action === 'adminGetOps') {
       return res.json({
         ok: true,
         attendance: state.attendance || {},
-        drawSettings: { winners: SD.winnersOf(state.drawSettings) },
+        drawSettings: { winners: SD.winnersOf(state.drawSettings), prize: SD.prizeOf(state.drawSettings) },
         monthlyEligibility: state.monthlyEligibility || null,
         audit: Array.isArray(state.audit) ? state.audit.slice(0, 300) : [],
         feeTier: Payments.tierOf(state.feeTier),
         sessionDate: state.sessionDate || null,
+        lifetimePoints: state.lifetimePoints || {},
       });
     }
 
@@ -938,6 +1038,10 @@ const handler = async function handler(req, res) {
       if (!built.ok) return res.status(400).json({ error: built.error });
       if (built.prev !== built.next) {
         state.roster = built.roster;
+        // The lifetime ledger follows the SIGNED change, so a correction of a
+        // mis-typed award takes itself back out again instead of inflating the
+        // permanent total forever.
+        state.lifetimePoints = addLifetimePoints(state.lifetimePoints, built.player.id, built.next - built.prev);
         pushAudit(state, {
           action: 'roster.points',
           admin: 'admin',
@@ -952,7 +1056,7 @@ const handler = async function handler(req, res) {
           return res.status(500).json({ error: 'Storage error.' });
         }
       }
-      return res.json({ ok: true, playerId: built.player.id, points: built.next, roster: state.roster });
+      return res.json({ ok: true, playerId: built.player.id, points: built.next, roster: state.roster, lifetime: lifetimeOf(state.lifetimePoints, built.player.id) });
     }
 
     // Handle updateSession action (edit a historical session)
@@ -981,6 +1085,12 @@ const handler = async function handler(req, res) {
     // The monthly (points) draw blob holds point snapshots — never accept it via the merge.
     if (updates.monthlyLucky !== undefined) {
       return res.status(400).json({ error: 'Use the monthly draw actions.' });
+    }
+    // Lifetime points are the server's own record: they are never sent to the
+    // client on a poll, so anything arriving here is stale or forged. Refusing
+    // it outright is what makes the ledger safe from the whole-roster merge.
+    if (updates.lifetimePoints !== undefined) {
+      return res.status(400).json({ error: 'Lifetime points are kept by the server.' });
     }
     // Phone bottom-bar shortcuts ride the generic merge, but only as a clean list of
     // 1–4 known, unique tab ids (canonical order is enforced server-side).
@@ -1023,6 +1133,10 @@ module.exports.addMonthsISO = addMonthsISO;
 module.exports.addDaysISO = addDaysISO;
 module.exports.applySessionDateChange = applySessionDateChange;
 module.exports.awardSessionPoints = awardSessionPoints;
+module.exports.addLifetimePoints = addLifetimePoints;
+module.exports.ensureLifetimePoints = ensureLifetimePoints;
+module.exports.lifetimeOf = lifetimeOf;
+module.exports.MAX_LIFETIME_POINTS = MAX_LIFETIME_POINTS;
 module.exports.paidEntryExpiry = paidEntryExpiry;
 module.exports.pruneExpiredPaid = pruneExpiredPaid;
 module.exports.regularsToAdd = regularsToAdd;

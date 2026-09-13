@@ -33,15 +33,15 @@ check('session-draw.js is loaded as a UMD lib', /<script src="\/session-draw\.js
 check('viewer header has the Lucky Draw button styled like its siblings', /<button id="drawBtn" onclick="openDrawPage\(\)">/.test(html) && /\.vh-nav #td3Btn,\.vh-nav #drawBtn\{/.test(html) && /\.vh-nav #td3Btn:hover,\.vh-nav #drawBtn:hover\{/.test(html));
 check('#drawPage overlay exists with title, how-it-works, list and "older" button', /<div id="drawPage" role="dialog"/.test(html) && html.includes('id="drawPageHow"') && html.includes('id="drawPageList"') && html.includes('id="drawPageMore"'));
 check('#drawPage is registered in closeOpenOverlays', fn('closeOpenOverlays').includes("isOpen('drawPage')") && fn('closeOpenOverlays').includes('closeDrawPage()'));
-check('#draw deep link is honoured after the site unlocks', fn('sdAfterPoll').includes("'#draw'") && fn('poll').includes('sdAfterPoll()'));
+check('#draw deep link is honoured after the site unlocks', /#draw\(\\\/\|\$\)/.test(fn('sdAfterPoll')) && fn('poll').includes('sdAfterPoll()'));
 check('page data comes from /api/draws with the site code, not the 2s poll', fn('fetchPublicDraws').includes("fetch('/api/draws?'") && fn('fetchPublicDraws').includes("localStorage.getItem('siteCode')") && !fn('poll').includes('loadDrawPage'));
 check('page refreshes every 30s while open and stops on close', fn('openDrawPage').includes('30000') && fn('closeDrawPage').includes('clearInterval(sdPublicTimer)'));
 check('locked response shows a site-code hint instead of an error', fn('loadDrawPage').includes('res.locked') && /site code/.test(fn('loadDrawPage')));
-check('how-it-works copy comes from the shared module', fn('sdHowHtml').includes('SessionDraw.howItWorksText('));
+check('how-it-works copy comes from the shared module', fn('renderSessionDraw').includes('SessionDraw.howItWorksText(sdPublic.winnersPerDraw)'));
 check('"My Lucky Draw" links to the public page and no longer claims weekly wins', fn('renderMyDraw').includes('openDrawPage()') && !fn('renderMyDraw').includes('Won!'));
 
 // ── admin sub-tab ──
-check('Lucky Draw sub-tab is relabelled "Session draws"', /data-sub="weekly" onclick="setLuckyTab\('weekly'\)">Session draws<\/button>/.test(html));
+check('Lucky Draw sub-tab is relabelled "Session draw"', /data-sub="weekly" onclick="setLuckyTab\('weekly'\)">Session draw<\/button>/.test(html));
 check('setLuckyTab renders the session draws admin view', fn('setLuckyTab').includes("if (sub === 'weekly') { renderSessionDrawsAdmin(); }"));
 check('setAdminTab engagement hook loads ops then renders', fn('setAdminTab').includes('renderSessionDrawsAdmin()') && !fn('setAdminTab').includes('renderWeeklyTab'));
 check('winners stepper + numeric input post setDrawSettings', html.includes('id="sdWinnersInput"') && html.includes('onclick="stepDrawWinners(-1)"') && fn('setDrawWinners').includes("action: 'setDrawSettings'") && fn('setDrawWinners').includes('SessionDraw.isWinnersCount('));
@@ -111,11 +111,12 @@ check('test cards: badge, "not saved" footer, test video source', fn('sdCardHtml
 check('public page retries a failed load once, then offers Try again', fn('loadDrawPage').includes('sdRetried') && fn('loadDrawPage').includes('onclick="loadDrawPage(false)"'));
 
 // ── Shuttlecock Draw rename (2026-09-11: the monthly draw is now labelled "Shuttlecock") ──
-check('Lucky Draw sub-tab reads "Shuttlecock" (data-sub stays monthly)', /data-sub="monthly" onclick="setLuckyTab\('monthly'\)">Shuttlecock<\/button>/.test(html));
+check('Lucky Draw sub-tab reads "Shuttlecock draw" (data-sub stays monthly)', /data-sub="monthly" onclick="setLuckyTab\('monthly'\)">Shuttlecock draw<\/button>/.test(html));
 check('reveal overlay defaults to "Shuttlecock Lucky Draw"', html.includes('<div id="pickerTitle">Shuttlecock Lucky Draw</div>') && fn('showPickerOverlay').includes("|| 'Shuttlecock Lucky Draw'"));
 check('board title, enrolment card and help drawer are renamed', html.includes('id="mdBoardTitle">Shuttlecock Prize Draw</h2>') && html.includes('Shuttlecock Draw enrolment</span>') && /Lucky Draw &mdash; Shuttlecock<\/summary>/.test(html));
 check('player-facing copy is renamed', fn('renderMyDraw').includes('<span>Shuttlecock draw</span>') && fn('renderMyDraw').includes('Shuttlecock draw winners') && fn('publicWinnersHtml').includes("'Shuttlecock — '"));
-check('no user-visible "Monthly Lucky Draw" label remains', !/Monthly Lucky Draw|Monthly Prize Draw|>Monthly<\/button>/.test(html));
+check('no user-visible "Monthly Lucky Draw" label remains', !/Monthly Lucky Draw|Monthly Prize Draw/.test(html)
+  && !/data-sub="monthly" onclick="setLuckyTab\('monthly'\)">Monthly</.test(html));
 check('month semantics copy is untouched', html.includes('Close month &amp; carry over') && html.includes('id="mdHistTitle">Past month</h2>'));
 
 process.exit(fail ? 1 : 0);

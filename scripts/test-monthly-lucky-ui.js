@@ -30,7 +30,7 @@ const fn = (name) => extractFn(name, html);
 
 // ── wiring ──
 check('monthly-lucky.js is loaded after session-draw.js (it borrows the shuffle)', html.indexOf('<script src="/session-draw.js"></script>') < html.indexOf('<script src="/monthly-lucky.js"></script>') && html.indexOf('<script src="/monthly-lucky.js"></script>') < html.indexOf('<script src="/draw-video.js"></script>'));
-check('sub-tab order: Session draws · Monthly draws · Shuttlecock', (() => { const a = html.indexOf('data-sub="weekly" onclick="setLuckyTab(\'weekly\')">Session draws'); const b = html.indexOf('data-sub="monthlylucky" onclick="setLuckyTab(\'monthlylucky\')">Monthly draws'); const c = html.indexOf('data-sub="monthly" onclick="setLuckyTab(\'monthly\')">Shuttlecock'); return a > 0 && b > a && c > b; })());
+check('sub-tab order + names match the public page: Session draw · Monthly draw · Shuttlecock draw', (() => { const a = html.indexOf('data-sub="weekly" onclick="setLuckyTab(\'weekly\')">Session draw<'); const b = html.indexOf('data-sub="monthlylucky" onclick="setLuckyTab(\'monthlylucky\')">Monthly draw<'); const c = html.indexOf('data-sub="monthly" onclick="setLuckyTab(\'monthly\')">Shuttlecock draw<'); return a > 0 && b > a && c > b; })());
 check('panel exists and starts hidden', /<div class="ld-sub" data-sub="monthlylucky" style="display:none">/.test(html));
 check('setLuckyTab + setAdminTab render the monthly admin', fn('setLuckyTab').includes("if (sub === 'monthlylucky') { renderMonthlyLuckyAdmin(); }") && fn('setAdminTab').includes("if (currentLuckyTab === 'monthlylucky') renderMonthlyLuckyAdmin()"));
 check('poll only refreshes the light pool list while the tab is open', fn('poll').includes("currentLuckyTab === 'monthlylucky') renderMonthlyPool()") && !fn('poll').includes('loadMonthlyAdmin'));
@@ -40,7 +40,7 @@ check('help drawer + audit labels cover the feature', /Lucky Draw &mdash; Monthl
 check('automatic switch is a real switch posting setMonthlySettings', /id="mlAutoToggle" type="button" role="switch"/.test(html) && fn('toggleMonthlyAuto').includes('saveMonthlySettings({ auto: !s.auto }') && fn('saveMonthlySettings').includes("action: 'setMonthlySettings'"));
 check('winners + points-needed steppers validate with the shared module', html.includes('id="mlWinnersInput"') && html.includes('id="mlThresholdInput"') && fn('setMonthlyWinners').includes('MonthlyLucky.isWinnersCount(') && fn('setMonthlyThreshold').includes('MonthlyLucky.isThreshold(') && html.includes('onclick="stepMonthlyThreshold(-5)"'));
 check('how-it-works copy comes from the shared module', fn('renderMonthlySettings').includes('MonthlyLucky.howItWorksText(s)'));
-check('"Open public page" jumps to the monthly section', html.includes('onclick="openDrawPage(\'monthly\')"') && fn('openDrawPage').includes("section === 'monthly'") && fn('openDrawPage').includes("getElementById('drawPageMonthly')"));
+check('"Open public page" opens the Monthly Draw page itself', html.includes('onclick="openDrawPage(\'monthly\')"') && fn('openDrawPage').includes('drawGo(section === undefined ? drawViewFromHash() : section)') && fn('drawGo').includes('DrawHub.isKind(view)'));
 
 // ── prizes ──
 check('prize rows: photo button, name input, reorder, remove; hidden file input', html.includes('id="mlPrizePhotoInput" type="file" accept="image/*"') && fn('renderMonthlyPrizes').includes('pickMonthlyPrizePhoto(') && fn('renderMonthlyPrizes').includes('setMonthlyPrizeName(') && fn('renderMonthlyPrizes').includes('moveMonthlyPrize(') && fn('renderMonthlyPrizes').includes('removeMonthlyPrize('));
@@ -84,7 +84,7 @@ card = cardFn({ month: '2026-10', label: 'October 2026', status: 'pending', auto
 check('live month card: "This month", no Run button (the pool card has it), eligible-so-far foot', card.includes('>This month<') && !card.includes('askRunMonthlyDraw') && card.includes('1 at 80+ points so far'));
 
 // ── public page ──
-check('public page has the monthly section rendered from /api/draws → monthly', html.includes('id="drawPageMonthly"') && fn('renderDrawPage').includes('renderPublicMonthly()') && fn('renderPublicMonthly').includes('sdPublic.monthly') && fn('renderPublicMonthly').includes('ml-prize-strip'));
+check('Monthly Draw page is rendered from /api/draws → monthly', html.includes('id="drawPageMonthly"') && fn('renderDrawPage').includes('renderPublicMonthly()') && fn('renderPublicMonthly').includes('sdPublic.monthly') && fn('renderPublicMonthly').includes('dhPrizeStripHtml(m.prizes') && fn('dhPrizeStripHtml').includes('ml-prize-strip'));
 // ── one place, several prizes ──
 check('prize editor: every row has a "Goes to" place picker and shows that place as its badge',
   fn('renderMonthlyPrizes').includes('setMonthlyPrizePlace') && fn('renderMonthlyPrizes').includes('mlPlaceOptions(MonthlyLucky.placeOf(p, i))')
@@ -112,14 +112,15 @@ check('winner row lists every prize of that place, each with its own photo',
   && (multiCard.match(/class="ml-win-photo"/g) || []).length === 2 && multiCard.includes('ml-win-photos'));
 check('a winner row from an older record still renders from the single prize string',
   (cardFn(doneView, true).match(/ml-win-prize/g) || []).length === 2);
-check('public prize tiles: label with qty, a ×N badge on the picture, the description under it', fn('renderPublicMonthly').includes('MonthlyLucky.prizeLabel(p)') && fn('renderPublicMonthly').includes('ml-tile-qty') && fn('renderPublicMonthly').includes("p.desc ? '<small>' + escHtml(p.desc) + '</small>'"));
+check('public prize tiles: label with qty, a ×N badge on the picture, the description under it', fn('renderPublicMonthly').includes('nameOf: MonthlyLucky.prizeLabel') && fn('dhPrizeStripHtml').includes('ml-tile-qty') && fn('dhPrizeStripHtml').includes("p.desc ? '<small>' + escHtml(p.desc) + '</small>'"));
 check('replay lookup knows monthly + shuttle sources', fn('sdFindSource').includes("kind === 'monthly'") && fn('sdFindSource').includes('DrawVideo.sourceFromMonthly(v)') && fn('sdFindSource').includes("kind === 'shuttle'") && fn('sdFindSource').includes('DrawVideo.sourceFromShuttlecock(e)'));
 check('member widget shows points-to-threshold progress', fn('renderMyDraw').includes('Points this month') && fn('renderMyDraw').includes('MonthlyLucky.isThreshold('));
 
 // ── Shuttlecock draws can record ──
 check('Shuttlecock drawPrize stores the ballot pool on each result', fn('drawPrize').includes('pool: [...new Set(ballot.map(p => p.name))]'));
 check('Shuttlecock winners list + past-month modal offer the replay', fn('renderMonthlyResults').includes("sdVideoRowHtml('shuttle', live.key, true)") && fn('openMdHist').includes("sdVideoRowHtml('shuttle', ent.key, true)"));
-check('Record calendar + list know the shuttle kind (third dot + card)', fn('sdListItems').includes("kind: 'shuttle'") && fn('renderDrawList').includes("i.kind === 'shuttle' ? shCardHtml(i.e)") && fn('renderDrawCalendar').includes('shuttleDrawEntries()') && fn('renderDrawCalendar').includes('sdc-dot sh') && html.includes('.sdc-dot.sh{'));
+check('Shuttlecock draws are OFF the session record: own page, own month list', !fn('sdListItems').includes("kind: 'shuttle'") && !fn('renderDrawList').includes('shCardHtml') && !fn('renderDrawCalendar').includes('shuttleDrawEntries()') && !html.includes('.sdc-dot.sh{')
+  && html.includes('id="drawPageShuttle"') && fn('renderPublicShuttle').includes('shuttleDrawEntries()') && fn('renderPublicShuttle').includes('shCardHtml(e)'));
 const shFn = new Function('escHtml', 'SessionDraw', 'ordinalLbl', 'DrawVideo', 'sdVideoRowHtml', 'window', fn('shCardHtml') + '\nreturn shCardHtml;')(ctx.escHtml, SD, (n) => n + 'th', require('../public/draw-video.js'), ctx.sdVideoRowHtml, { DrawVideo: require('../public/draw-video.js') });
 const shCard = shFn({ date: '2026-09-20', at: Date.UTC(2026, 8, 20, 12, 0), key: 'shuttle:2026-09:live', label: 'September 2026', live: true, pool: ['Al', 'Bo'], winners: [{ rank: 1, name: 'Bo', prize: 'Tube', pool: ['Al', 'Bo'] }] });
 check('shuttle card: title, month, winner chip with prize, replay row', shCard.includes('Shuttlecock Draw · September 2026') && shCard.includes('>Bo<small>Tube</small>') && shCard.includes('data-kind="shuttle" data-key="shuttle:2026-09:live"'));

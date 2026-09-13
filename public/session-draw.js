@@ -40,6 +40,10 @@
   const DRAW_EPOCH = (typeof process !== 'undefined' && process.env && /^\d{4}-\d{2}-\d{2}$/.test(process.env.DRAW_EPOCH || ''))
     ? process.env.DRAW_EPOCH : '2026-09-09';
   const DEFAULT_WINNERS = 2, MIN_WINNERS = 1, MAX_WINNERS = 10;
+  // Free-text "what winners get" line shown on the public Session Draw page.
+  // Session draws award no recorded prize (winners are names only), so this is
+  // copy the admin maintains, not part of any draw record.
+  const MAX_PRIZE_LEN = 80;
   const ALGORITHM = 'sfc32-fisher-yates-v1';
   const RECORD_VERSION = 1;
 
@@ -98,6 +102,11 @@
   function winnersOf(settings) {
     const n = settings && Number(settings.winners);
     return isWinnersCount(n) ? n : DEFAULT_WINNERS;
+  }
+  /** The prize line, trimmed and clamped. Anything unusable becomes '' (no prize shown). */
+  function prizeOf(settings) {
+    const v = settings && settings.prize;
+    return typeof v === 'string' ? v.trim().replace(/\s+/g, ' ').slice(0, MAX_PRIZE_LEN) : '';
   }
 
   // ── lists ────────────────────────────────────────────────────────────
@@ -451,13 +460,13 @@
   }
 
   return {
-    DRAW_SCHEDULE, DRAW_TIME, PAY_WINDOW_DAYS, DRAW_EPOCH, DEFAULT_WINNERS, MIN_WINNERS, MAX_WINNERS, ALGORITHM, RECORD_VERSION, TIME_ZONE,
+    DRAW_SCHEDULE, DRAW_TIME, PAY_WINDOW_DAYS, DRAW_EPOCH, DEFAULT_WINNERS, MIN_WINNERS, MAX_WINNERS, MAX_PRIZE_LEN, ALGORITHM, RECORD_VERSION, TIME_ZONE,
     WEEKDAY_NAMES, WEEKDAY_SHORT,
     isValidISO, isoWeekday, addDaysISO, mytInstant,
     drawWeekdayFor, isDrawDay, drawDateFor, scheduledDrawAt, isWinnersCount, winnersOf,
     attendedFrom, paidFrom, eligibleFrom,
     prngFromSeed, shuffleWithSeed, buildDrawResult, verifyDrawResult, testDrawResult,
     lineupOf, dayOf, drawAtFor, sessionCandidates, viewOf, buildView, publicSessionView,
-    fmtDrawTime, fmtMYT, fmtSessionDate, statusLabel, drawDayLabel, drawTimeLabel, howItWorksText, countsLine,
+    fmtDrawTime, fmtMYT, fmtSessionDate, statusLabel, drawDayLabel, drawTimeLabel, howItWorksText, countsLine, prizeOf,
   };
 });
