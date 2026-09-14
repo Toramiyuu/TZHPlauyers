@@ -112,7 +112,57 @@ check('winner row lists every prize of that place, each with its own photo',
   && (multiCard.match(/class="ml-win-photo"/g) || []).length === 2 && multiCard.includes('ml-win-photos'));
 check('a winner row from an older record still renders from the single prize string',
   (cardFn(doneView, true).match(/ml-win-prize/g) || []).length === 2);
-check('public prize tiles: label with qty, a ×N badge on the picture, the description under it', fn('renderPublicMonthly').includes('nameOf: MonthlyLucky.prizeLabel') && fn('dhPrizeStripHtml').includes('ml-tile-qty') && fn('dhPrizeStripHtml').includes("p.desc ? '<small>' + escHtml(p.desc) + '</small>'"));
+check('public prize cards: place badge, how many of it, a ×N badge on the picture, the description under it',
+  fn('dhPrizeStripHtml').includes('MonthlyLucky.placeOf(p, i)') && fn('dhPrizeStripHtml').includes('ml-tile-place')
+  && fn('dhPrizeStripHtml').includes(' of these') && fn('dhPrizeStripHtml').includes('ml-tile-qty')
+  && fn('dhPrizeStripHtml').includes("p.desc ? '<small>' + escHtml(p.desc) + '</small>'"));
+check('a prize with no photo still reads as a card (placeholder, not a blank box)', fn('dhPrizeStripHtml').includes('ml-tile-ph') && fn('dhPrizeStripHtml').includes("' place prize'"));
+check('phones page through the prizes: per-card counter + arrow, dots under the strip, swipe keeps up',
+  fn('dhPrizeStripHtml').includes('ml-tile-count') && fn('dhPrizeStripHtml').includes('mlPrizeStep(1)')
+  && fn('mlPrizeNavHtml').includes('mlPrizeGo(') && fn('dhPrizeStripHtml').includes('onscroll="mlPrizeSync()"')
+  && fn('mlPrizeSync').includes('scrollLeft') && fn('mlPrizeStep').includes('% n'));
+check('a 30 s background refresh does not jump the carousel back to the first prize', fn('renderPublicMonthly').includes('mlPrizeSync(true)') && fn('mlPrizeSync').includes("mlPrizeGo(Math.min(mlPrizeIdx, tiles.length - 1), true)"));
+
+// ── the page shell: back to the hub, the draw switch, the record calendar ──
+check('the head carries a labelled back pill and the Session/Monthly switch',
+  html.includes('id="drawBackBtn" onclick="drawGo(\'hub\')"') && html.includes('<span class="dh-back-txt">All draws</span>')
+  && /<div class="dh-pills" id="drawPills"[^>]*>\s*<button type="button" class="dh-pill" role="tab" data-draw="session"/.test(html));
+check('both are hidden on the hub itself, where there is nothing to go back to',
+  fn('drawGo').includes("pills.style.display = v === 'hub' ? 'none' : ''") && fn('drawGo').includes('page.dataset.view = v'));
+check('the Monthly page leads with standing, then prizes, then the record',
+  /class="dh-view ml-page" data-draw="monthly"/.test(html) && html.includes('id="drawPageMonthlyPrizes"') && html.includes('class="mlp-record ml-sec" id="drawPageMonthly"') && html.includes('class="mlp-how" id="drawPageMonthlyHow"') && html.includes('class="mlp-side"')
+  && fn('renderPublicMonthly').includes('big: st.mine') && fn('dhStatusHtml').includes('dh-st-big'));
+check('the rules are stated openly on this page, not behind a toggle', fn('dhHowHtml').includes('dh-howcard') && fn('renderPublicMonthly').includes('MonthlyLucky.howItWorksText('));
+check('the record has its own calendar — a year of months, not the session day grid',
+  fn('renderPublicMonthly').includes("renderMonthlyCalendar(document.getElementById('drawPageMonthlyCal')")
+  && fn('renderMonthlyCalendar').includes('MonthlyLucky.monthYearGrid(mlCal.y)') && !fn('renderMonthlyCalendar').includes('DrawVideo.'));
+check('picking a month filters the record; Show all clears it', fn('mlCalPick').includes('mlCal.sel = (month && mlCal.sel !== month) ? month : null') && fn('renderPublicMonthly').includes('rest.filter(v => v.month === mlCal.sel)') && fn('renderMonthlyCalendar').includes('mlCalPick(null)'));
+check('the record says which months are still to come', fn('renderPublicMonthly').includes('MonthlyLucky.prevMonthKey(') && fn('renderPublicMonthly').includes('and earlier appear here once drawn.'));
+
+// ── month calendar (evaluated) ──
+const calFn = (() => {
+  const src = fn('renderMonthlyCalendar');
+  return (m, cal) => {
+    const box = { innerHTML: '' };
+    new Function('escHtml', 'MonthlyLucky', 'clockNow', 'mlCal', 'window', src + '\nreturn renderMonthlyCalendar;')(
+      ctx.escHtml, ML, () => Date.UTC(2026, 8, 14), cal, { MonthlyLucky: ML })(box, m);
+    return box.innerHTML;
+  };
+})();
+const calData = { pointsMonth: '2026-09', months: [
+  { month: '2026-09', label: 'September 2026', status: 'pending' },
+  { month: '2026-08', label: 'August 2026', status: 'done' },
+  { month: '2026-07', label: 'July 2026', status: 'pending' },
+] };
+let cal = calFn(calData, { y: 2026, sel: null, init: true });
+check('calendar draws twelve months of one year with its own nav', (cal.match(/class="sdc-day/g) || []).length === 12 && cal.includes('>2026<') && cal.includes('mlCalShift(-1)') && cal.includes('mlCalShift(1)'));
+check('a drawn month is pickable and marked; a month with no draw is disabled', cal.includes("mlCalPick('2026-08')") && cal.includes('<i class="sdc-dot"></i>') && (cal.match(/ disabled/g) || []).length === 10);
+check('a month still waiting on its draw is pickable with a hollow mark', cal.includes("mlCalPick('2026-07')") && cal.includes('<i class="sdc-dot wait"></i>'));
+check('the running month is flagged, not offered — it has no card yet', cal.includes('this month') && !cal.includes("mlCalPick('2026-09')"));
+cal = calFn(calData, { y: 2026, sel: '2026-08', init: true });
+check('a picked month shows what is being filtered and how to clear it', cal.includes('sdc-day mo has sel') && cal.includes('Showing August 2026') && cal.includes('mlCalPick(null)') && cal.includes('aria-pressed="true"'));
+cal = calFn(calData, { y: 2025, sel: null, init: true });
+check('an empty year still draws, with nothing to pick', (cal.match(/class="sdc-day/g) || []).length === 12 && !cal.includes('mlCalPick(\'') && cal.includes('>2025<'));
 check('replay lookup knows the monthly source (and no longer the shuttle one)', fn('sdFindSource').includes("kind === 'monthly'") && fn('sdFindSource').includes('DrawVideo.sourceFromMonthly(v)') && !fn('sdFindSource').includes("kind === 'shuttle'"));
 check('member widget shows points-to-threshold progress', fn('renderMyDraw').includes('Points this month') && fn('renderMyDraw').includes('MonthlyLucky.isThreshold('));
 

@@ -23,6 +23,14 @@ check('next / prev month roll over the year', ML.nextMonthKey('2026-12') === '20
 check('draw date = 1st of the following month', ML.drawDateFor('2026-09') === '2026-10-01' && ML.drawDateFor('2026-12') === '2027-01-01' && ML.drawDateFor('nope') === null);
 check('scheduled draw instant = 09:00 MYT on that day', ML.scheduledDrawAt('2026-09', 8) === Date.UTC(2026, 9, 1, 1, 0) && ML.scheduledDrawAt('x') === null);
 check('monthOfInstant / isoOfInstant use Malaysia time', ML.monthOfInstant(Date.UTC(2026, 8, 30, 20, 0), 8) === '2026-10' && ML.isoOfInstant(Date.UTC(2026, 8, 30, 20, 0), 8) === '2026-10-01');
+check('yearOf reads the year, and nothing from a non-month', ML.yearOf('2026-09') === 2026 && ML.yearOf('2026-9') === 0 && ML.yearOf(null) === 0);
+check('monthYearGrid is Jan..Dec of one year, keyed like every other month', (() => {
+  const g = ML.monthYearGrid(2026);
+  return g.year === 2026 && g.cells.length === 12
+    && g.cells[0].month === '2026-01' && g.cells[0].short === 'Jan' && g.cells[0].long === 'January'
+    && g.cells[11].month === '2026-12' && g.cells[11].short === 'Dec'
+    && g.cells.every((c) => ML.isMonthKey(c.month));
+})());
 
 // ── settings ──
 const s0 = ML.settingsOf({});

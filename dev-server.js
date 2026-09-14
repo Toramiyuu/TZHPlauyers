@@ -119,14 +119,23 @@ STORE = {
 // fires on the first view of the tab / public page.
 (function seedMonthlyLucky() {
   STORE.roster.forEach((r, i) => { if (i % 5 === 0) r.points = 80 + (i * 3) % 40; });
-  const thisMonth = ML.monthKeyOf(todayIso), lastMonth = ML.prevMonthKey(thisMonth);
+  const thisMonth = ML.monthKeyOf(todayIso);
   const points = {}, names = {};
   STORE.roster.forEach((r, i) => { points[r.id] = i % 4 === 0 ? 80 + i : (i * 7) % 60; names[r.id] = r.name; });
+  // Three closed months, so the record list and its year calendar have history.
+  const closed = {};
+  for (let back = 1; back <= 3; back++) {
+    const m = ML.shiftMonthKey(thisMonth, -back);
+    closed[m] = { month: m, closedAt: Date.now() - back * 30 * 864e5, points, names };
+  }
   STORE.monthlyLucky = {
     auto: true, winners: 3, threshold: 80,
-    prizes: [{ id: 'pz1', name: 'Racket bag', photo: null }, { id: 'pz2', name: 'Tube of shuttlecocks', photo: null }, { id: 'pz3', name: 'Grip + socks bundle', photo: null }],
-    pointsMonth: thisMonth, pool: null,
-    closed: { [lastMonth]: { month: lastMonth, closedAt: Date.now() - 864e5, points, names } },
+    prizes: [
+      { id: 'pz1', name: 'Restring + grip', qty: 1, place: 1, desc: 'Your choice of string, fitted at the shop, with a fresh overgrip on top.', photo: null },
+      { id: 'pz2', name: 'Overgrip pack', qty: 1, place: 2, desc: 'Three overgrips in your pick of colour.', photo: null },
+      { id: 'pz3', name: 'Tube of shuttlecocks', qty: 1, place: 3, desc: 'Twelve shuttles, collected at your next session.', photo: null },
+    ],
+    pointsMonth: thisMonth, pool: null, closed,
   };
 })();
 

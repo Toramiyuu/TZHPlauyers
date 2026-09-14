@@ -1292,7 +1292,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 #drawPage{display:none;position:fixed;inset:0;background:var(--a-bg);z-index:250;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:env(safe-area-inset-bottom,0px)}
 #drawPage.open{display:block}
 .sd-page{max-width:640px;margin:0 auto;padding:12px 16px 40px}
-.sd-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 0 12px;position:sticky;top:0;background:var(--a-bg);z-index:2}
+.sd-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 12px;padding:10px 0 12px;position:sticky;top:0;background:var(--a-bg);z-index:2}
 .sd-title{font-family:var(--font-apple);font-size:clamp(24px,5vw,32px);font-weight:700;letter-spacing:-.02em;color:var(--text);margin:0;line-height:1.1}
 .sd-sub{font-size:var(--fs-sm);color:var(--muted);margin-top:4px}
 .sd-close{position:static;flex:none;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;background:var(--card);border:1px solid var(--border);border-radius:50%}
@@ -1331,6 +1331,16 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .sdc-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;font-size:11px;color:var(--muted)}
 .sdc-legend span{display:inline-flex;align-items:center;gap:5px}
 .sdc-sel{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:var(--fs-sm);color:var(--text)}
+/* Monthly record calendar: the same shell, but a year of months instead of a
+   month of days — this draw belongs to a month, not to a night. */
+.sdc-grid.mo{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.sdc-day.mo{min-height:54px;font-size:var(--fs-sm)}
+.sd-cal.mo .sdc-dot{background:var(--dw-monthly)}
+.sd-cal.mo .sdc-dot.wait{background:transparent}
+.sd-cal.mo .sdc-day.has:hover{border-color:var(--dw-monthly)}
+.sd-cal.mo .sdc-day.sel{background:var(--dw-monthly);border-color:var(--dw-monthly);color:#fff}
+.sd-cal.mo .sdc-day.sel .sdc-dot{background:#fff;border-color:#fff}
+.sdc-now{display:inline-block;width:12px;height:7px;border-bottom:2px solid var(--text-2)}
 .sd-video-row{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 12px}
 .sd-win-chip small{font-size:11px;font-weight:600;opacity:.85}
 .sd-test{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
@@ -1339,9 +1349,19 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .sd-test-note{font-size:var(--fs-sm);color:var(--text-2);line-height:1.5;margin:10px 0}
 .sd-card.test{border-color:var(--accent)}
 .sd-status.test{background:rgba(240,180,41,.18);border-color:transparent;color:var(--a-amber)}
-/* ── Lucky Draw hub (3 draws) + shared detail skeleton ── */
-.dh-headings{flex:1;min-width:0}
-.dh-back{font-size:26px;line-height:1;padding:0}
+/* ── Lucky Draw hub (2 draws) + shared detail skeleton ── */
+/* Head row: back · title · close, with the Session/Monthly switch on its own
+   full-width line under them. On a wide screen (below) the switch moves up beside
+   the back pill and the title drops to a second line. */
+.dh-headings{flex:1;min-width:0;display:flex;align-items:center;gap:12px;order:2}
+.dh-head-txt{min-width:0}
+.dh-head-ic{flex:none;width:44px;height:44px;border-radius:var(--radius-md);background:var(--dw-tint,var(--a-blue-tint));color:var(--dw,var(--a-blue));display:none;align-items:center;justify-content:center}
+.dh-head-ic .ic{width:22px;height:22px}
+.dh-head-ic[data-draw=session]{--dw:var(--dw-session);--dw-tint:var(--dw-session-tint)}
+.dh-head-ic[data-draw=monthly]{--dw:var(--dw-monthly);--dw-tint:var(--dw-monthly-tint)}
+.dh-back{font-size:26px;line-height:1;padding:0;order:1;gap:6px}
+.dh-back-txt{display:none;font-size:var(--fs-sm);font-weight:600}
+.sd-head>.lb-close{order:3}
 .dh-hub{display:flex;flex-direction:column;gap:12px}
 .dh-card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:16px;border-radius:var(--radius-md);background:var(--card);border:1px solid var(--border);cursor:pointer;font-family:inherit;color:var(--text);transition:var(--transition)}
 .dh-card:hover{border-color:var(--dw);box-shadow:var(--shadow-sm)}
@@ -1359,7 +1379,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .dh-hub-note{margin-top:14px;font-size:var(--fs-xs);color:var(--muted);text-align:center;line-height:1.5}
 .dh-hub-note button{background:none;border:0;padding:0;font:inherit;color:var(--a-blue);font-weight:600;cursor:pointer;text-decoration:underline}
 /* pills */
-.dh-pills{display:flex;gap:6px;padding:4px;margin-bottom:14px;background:var(--card2);border-radius:100px}
+.dh-pills{display:flex;gap:6px;padding:4px;background:var(--card2);border-radius:100px;order:4;flex:0 0 100%}
 .dh-pill{flex:1;min-width:0;padding:9px 8px;border:0;border-radius:100px;background:transparent;color:var(--text-2);font-family:inherit;font-size:var(--fs-sm);font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:var(--transition)}
 .dh-pill.on{background:var(--card);color:var(--text);box-shadow:var(--shadow-sm)}
 /* status-first card */
@@ -1380,6 +1400,10 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .dh-signin{width:100%;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);background:none;border-left:0;border-right:0;border-bottom:0;font:inherit;font-size:var(--fs-sm);font-weight:600;color:var(--a-blue);cursor:pointer;text-align:left}
 .dh-bar{height:6px;border-radius:3px;background:var(--card2);overflow:hidden;margin-top:10px}
 .dh-bar span{display:block;height:100%;background:var(--dw,var(--a-blue));border-radius:3px}
+/* the member's own number, read at arm's length (Monthly: points vs the target) */
+.dh-st-big{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;margin-top:12px;padding-top:14px;border-top:1px solid var(--border)}
+.dh-st-big b{font-size:clamp(36px,9vw,44px);font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--dw,var(--a-blue));font-variant-numeric:tabular-nums}
+.dh-st-big span{font-size:var(--fs-md);font-weight:600;color:var(--text-2)}
 /* prize line (session) + collapsed rules */
 .dh-prize{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--radius-md);background:var(--dw-tint,var(--a-blue-tint));margin-bottom:12px;font-size:var(--fs-sm);color:var(--text)}
 .dh-prize .ic{width:18px;height:18px;flex:none;color:var(--dw,var(--a-blue))}
@@ -1390,6 +1414,10 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .dh-how>summary::after{content:'+';font-size:18px;font-weight:400;color:var(--muted);line-height:1}
 .dh-how[open]>summary::after{content:'\2212'}
 .dh-how-body{padding:0 16px 14px;font-size:var(--fs-sm);line-height:1.55;color:var(--text-2)}
+/* Monthly states its rules openly instead of behind a toggle — it is the one
+   thing a first-time visitor has to read to know how to get in. */
+.dh-howcard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:14px}
+.dh-howcard .dh-how-body{padding:0;margin:8px 0 0}
 /* ── Lucky Draw replay video modal (canvas render + MediaRecorder) ── */
 #drawVideoModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:460;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
 #drawVideoModal.open{display:flex}
@@ -1480,14 +1508,69 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .ml-win-desc{font-size:var(--fs-xs);color:var(--muted);line-height:1.35;margin-top:2px}
 .ml-win-photos{display:flex;gap:6px;flex:none}
 .ml-win-photo{width:48px;height:48px;border-radius:var(--radius-sm);object-fit:cover;flex:none;border:1px solid var(--border);background:var(--card)}
-.ml-prize-strip{display:flex;gap:10px;overflow-x:auto;padding:2px 0 8px;-webkit-overflow-scrolling:touch}
-.ml-prize-tile{flex:none;width:112px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center}
-.ml-tile-img{position:relative;width:112px;height:112px;border-radius:var(--radius-md);background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--a-blue);font-weight:800;font-size:26px}
+/* ── Monthly prize cards (public page) ──
+   One card per prize: picture, the place it goes to, how many of it, name and
+   description. A phone sees one card at a time (snap carousel, dots below); from
+   700px up they sit side by side and the carousel furniture is hidden. */
+.ml-prize-wrap{position:relative}
+.ml-prize-strip{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 0 8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.ml-prize-strip::-webkit-scrollbar{display:none}
+.ml-prize-tile{flex:0 0 100%;scroll-snap-align:center;display:flex;flex-direction:column;min-width:0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;text-align:left}
+.ml-tile-img{position:relative;width:100%;aspect-ratio:4/3;background:var(--card2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden}
 .ml-tile-img img{width:100%;height:100%;object-fit:cover;display:block}
-.ml-tile-qty{position:absolute;top:6px;right:6px;padding:2px 7px;border-radius:100px;background:var(--a-blue);color:#fff;font-size:11px;font-weight:800;line-height:1.4}
-.ml-prize-tile span{font-size:var(--fs-xs);font-weight:600;color:var(--text);line-height:1.3}
-.ml-prize-tile small{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:var(--fs-xs);font-weight:500;color:var(--muted);line-height:1.3}
+.ml-tile-ph{position:absolute;inset:10px;border:1px dashed var(--border2);border-radius:var(--radius-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:var(--fs-sm);font-weight:500;text-align:center;padding:0 12px}
+.ml-tile-ph .ic{width:26px;height:26px}
+.ml-tile-qty{position:absolute;top:10px;left:10px;padding:3px 9px;border-radius:100px;background:var(--dw-monthly);color:#fff;font-size:11px;font-weight:800;line-height:1.4}
+.ml-tile-count{position:absolute;top:10px;right:10px;padding:4px 11px;border-radius:100px;background:var(--card);border:1px solid var(--border);color:var(--text-2);font-size:12px;font-weight:600;line-height:1.4}
+.ml-tile-next{position:absolute;top:50%;right:10px;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-sm);color:var(--text);font-size:22px;line-height:1;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ml-tile-next:hover{border-color:var(--dw-monthly);color:var(--dw-monthly)}
+.ml-tile-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.ml-tile-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ml-tile-place{padding:3px 10px;border-radius:100px;background:var(--dw-monthly-tint);color:var(--dw-monthly);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.ml-tile-place.first{background:var(--dw-monthly);color:#fff}
+.ml-tile-of{font-size:var(--fs-xs);color:var(--muted)}
+.ml-tile-name{font-size:var(--fs-lg);font-weight:700;letter-spacing:-.02em;color:var(--text);line-height:1.2}
+.ml-prize-tile small{font-size:var(--fs-sm);font-weight:400;color:var(--text-2);line-height:1.45}
+.ml-prize-dots{display:flex;align-items:center;justify-content:center;gap:7px;padding:2px 0 8px}
+.ml-dot{width:9px;height:9px;padding:0;border:0;border-radius:50%;background:var(--border2);cursor:pointer;transition:var(--transition)}
+.ml-dot.on{width:26px;border-radius:100px;background:var(--dw-monthly)}
+.ml-prize-hint{font-size:var(--fs-xs);color:var(--muted);text-align:center;padding-bottom:4px}
+@media(min-width:700px){
+  .ml-prize-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;overflow:visible}
+  .ml-prize-tile{flex:none}
+  .ml-tile-count,.ml-tile-next,.ml-prize-dots,.ml-prize-hint{display:none}
+}
+/* ── Monthly page layout ──
+   Phone: where I stand · what I can win · who has won. Wide screen: prizes across
+   the top, standing + rules on the left, the record on the right. */
+.ml-page{display:flex;flex-direction:column}
+.mlp-side{display:contents} /* phone: status and rules order themselves around the prizes */
+.mlp-status{order:1}
+.mlp-prizes{order:2}
+.mlp-record{order:3}
+.mlp-how{order:4}
+.mlp-prize-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.mlp-prize-head small{font-size:var(--fs-xs);font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted)}
+.ml-record-hint{margin-top:12px;padding:14px 16px;border-radius:var(--radius-md);background:var(--card);border:1px solid var(--border);font-size:var(--fs-sm);color:var(--muted)}
 .ml-sec{margin-bottom:16px}
+/* ── Lucky Draw · wide screen ──
+   Inside a draw (never on the hub, where there is nothing to switch or go back
+   to) the back pill and the Session/Monthly switch share the top line, the title
+   drops under them, and Monthly spreads into two columns. */
+@media(min-width:900px){
+  #drawPage:not([data-view=hub]) .sd-close.dh-back{width:auto;height:40px;border-radius:100px;padding:0 16px 0 13px}
+  #drawPage:not([data-view=hub]) .dh-back-txt{display:inline}
+  #drawPage:not([data-view=hub]) .dh-pills{order:2;flex:0 0 auto;width:auto;min-width:280px;margin-left:auto}
+  #drawPage:not([data-view=hub]) .dh-headings{order:4;flex:0 0 100%;margin-top:2px}
+  #drawPage:not([data-view=hub]) .dh-head-ic{display:flex}
+}
+@media(min-width:1000px){
+  #drawPage[data-view=monthly] .sd-page{max-width:1160px}
+  #drawPage[data-view=monthly] .ml-page{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);column-gap:28px;align-items:start}
+  #drawPage[data-view=monthly] .mlp-prizes{grid-column:1/-1;grid-row:1}
+  #drawPage[data-view=monthly] .mlp-side{display:block;grid-column:1;grid-row:2}
+  #drawPage[data-view=monthly] .mlp-record{grid-column:2;grid-row:2}
+}
 .ml-line{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:var(--fs-sm);color:var(--text-2);padding:8px 0}
 @media(max-width:520px){.ml-prize-main{flex:1 1 100%;order:4}.ml-prize-tools{margin-left:auto}}
 
@@ -2597,22 +2680,28 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
      one card per session night, newest first, with four expandable name lists. -->
 <div id="drawPage" role="dialog" aria-modal="true" aria-labelledby="drawPageTitle">
   <div class="sd-page">
+    <!-- Head row. On a phone it stacks (back · title · close, then the pills);
+         on a wide screen the back pill and the Session/Monthly switch share the
+         top line and the title drops below them. -->
     <div class="sd-head">
-      <button class="sd-close dh-back" id="drawBackBtn" onclick="drawGo('hub')" aria-label="All draws" style="display:none">&lsaquo;</button>
-      <div class="dh-headings"><h2 id="drawPageTitle" class="sd-title">Lucky Draw</h2><div class="sd-sub" id="drawPageSub"></div></div>
+      <button class="sd-close dh-back" id="drawBackBtn" onclick="drawGo('hub')" aria-label="All draws" style="display:none">&lsaquo;<span class="dh-back-txt">All draws</span></button>
+      <div class="dh-headings">
+        <span class="dh-head-ic" id="drawHeadIc" aria-hidden="true"></span>
+        <span class="dh-head-txt"><h2 id="drawPageTitle" class="sd-title">Lucky Draw</h2><div class="sd-sub" id="drawPageSub"></div></span>
+      </div>
+      <div class="dh-pills" id="drawPills" role="tablist" aria-label="Choose a draw" style="display:none">
+        <button type="button" class="dh-pill" role="tab" data-draw="session" onclick="drawGo('session')">Session</button>
+        <button type="button" class="dh-pill" role="tab" data-draw="monthly" onclick="drawGo('monthly')">Monthly</button>
+      </div>
       <button class="lb-close sd-close" onclick="closeDrawPage()" aria-label="Close Lucky Draw">&#x2715;</button>
     </div>
 
     <!-- HUB: the two draws, each with its own entry rule, status and last winner -->
     <div class="dh-hub" id="drawHub"></div>
 
-    <!-- DETAIL: one draw at a time. Same skeleton for all three —
-         status first, prizes, rules collapsed, then that draw's own record. -->
+    <!-- DETAIL: one draw at a time. Same skeleton for both —
+         status first, prizes, rules, then that draw's own record. -->
     <div class="dh-detail" id="drawDetail" style="display:none">
-      <div class="dh-pills" id="drawPills" role="tablist" aria-label="Choose a draw">
-        <button type="button" class="dh-pill" role="tab" data-draw="session" onclick="drawGo('session')">Session</button>
-        <button type="button" class="dh-pill" role="tab" data-draw="monthly" onclick="drawGo('monthly')">Monthly</button>
-      </div>
 
       <!-- ── SESSION DRAW ── -->
       <section class="dh-view" data-draw="session" role="tabpanel" aria-label="Session Draw" style="display:none">
@@ -2624,10 +2713,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <div class="sd-more" id="drawPageMore" style="display:none"><button class="btn btn-secondary btn-sm" onclick="loadDrawPage(true)">Show older sessions</button></div>
       </section>
 
-      <!-- ── MONTHLY (points) DRAW ── -->
-      <section class="dh-view" data-draw="monthly" role="tabpanel" aria-label="Monthly Draw" style="display:none">
-        <div class="dh-status-wrap" id="mlStatusCard"></div>
-        <div class="ml-sec" id="drawPageMonthly"></div>
+      <!-- ── MONTHLY (points) DRAW ──
+           Three blocks. On a phone they read top to bottom in the order that
+           matters (where am I · what can I win · who has won); on a wide screen
+           the prizes span the top and the other two sit side by side. -->
+      <section class="dh-view ml-page" data-draw="monthly" role="tabpanel" aria-label="Monthly Draw" style="display:none">
+        <div class="mlp-prizes" id="drawPageMonthlyPrizes"></div>
+        <div class="mlp-side">
+          <div class="dh-status-wrap mlp-status" id="mlStatusCard"></div>
+          <div class="mlp-how" id="drawPageMonthlyHow"></div>
+        </div>
+        <div class="mlp-record ml-sec" id="drawPageMonthly"></div>
       </section>
 
     </div>
@@ -7431,10 +7527,14 @@ function drawGo(view) {
   const page = document.getElementById('drawPage'); if (!page) return;
   drawView = v;
   const hub = document.getElementById('drawHub'), detail = document.getElementById('drawDetail');
-  const back = document.getElementById('drawBackBtn');
+  const back = document.getElementById('drawBackBtn'), pills = document.getElementById('drawPills');
   if (hub) hub.style.display = v === 'hub' ? '' : 'none';
   if (detail) detail.style.display = v === 'hub' ? 'none' : '';
+  // Back arrow + switch live in the sticky head, so they are toggled here rather
+  // than riding #drawDetail: on the hub there is nothing to go back to.
   if (back) back.style.display = v === 'hub' ? 'none' : '';
+  if (pills) pills.style.display = v === 'hub' ? 'none' : '';
+  page.dataset.view = v; // the Monthly page widens into two columns on a big screen
   page.querySelectorAll('.dh-view').forEach(sec => { sec.style.display = sec.dataset.draw === v ? '' : 'none'; });
   page.querySelectorAll('.dh-pill').forEach(b => {
     const on = b.dataset.draw === v;
@@ -7524,7 +7624,9 @@ function renderDrawPage() {
 }
 function renderDrawHeader() {
   const t = document.getElementById('drawPageTitle'), sub = document.getElementById('drawPageSub');
+  const ic = document.getElementById('drawHeadIc');
   if (!t || !sub || !window.DrawHub) return;
+  if (ic) { ic.innerHTML = DRAW_ICONS[drawView] || ''; ic.style.display = DRAW_ICONS[drawView] ? '' : 'none'; ic.dataset.draw = drawView; }
   if (drawView === 'hub') {
     t.textContent = 'Lucky Draw';
     sub.textContent = 'Two draws run here. Tap one to see how to get in and who has won.';
@@ -7595,13 +7697,16 @@ function dhMineIcon(tone) {
 }
 
 // ── the shared "status first" card at the top of every draw page ──
-// o: { label, when, count, sub, mine, bar:{value,max} }
+// o: { label, when, count, sub, big:{value,unit}, mine, bar:{value,max} }
 function dhStatusHtml(o) {
   let html = '<div class="dh-status">';
   html += '<div class="dh-st-label">' + escHtml(o.label || '') + '</div>';
   if (o.count != null) html += '<div class="dh-st-count">' + escHtml(String(o.count)) + '</div>';
   if (o.when) html += '<div class="dh-st-when">' + o.when + '</div>';
   if (o.sub) html += '<div class="dh-st-sub">' + o.sub + '</div>';
+  // The member's own number, big enough to read at arm's length (Monthly: points
+  // this month against the target). Sits under a rule, above the bar it fills.
+  if (o.big) html += '<div class="dh-st-big"><b>' + escHtml(String(o.big.value)) + '</b><span>' + escHtml(o.big.unit || '') + '</span></div>';
   if (o.bar && Number(o.bar.max) > 0) {
     const pct = Math.max(0, Math.min(100, Math.round((Number(o.bar.value) || 0) / Number(o.bar.max) * 100)));
     html += '<div class="dh-bar"><span style="width:' + pct + '%"></span></div>';
@@ -7629,19 +7734,42 @@ function dhPrizeLineHtml(text) {
   return '<div class="dh-prize"><svg class="ic" viewBox="0 0 24 24"><path d="M20 8H4v4h16zM12 8v13M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 8S9.5 3 7.5 4.5 9 8 12 8zM12 8s2.5-5 4.5-3.5S15 8 12 8z"/></svg>'
     + '<span><b>Winners get</b>' + escHtml(text) + '</span></div>';
 }
-function dhPrizeStripHtml(prizes, opts) {
+/**
+ * The Monthly prize cards: one card per prize, each showing the place it goes to,
+ * how many of it a winner gets, its picture, name and description. On a wide
+ * screen they sit side by side; on a phone the strip is a snap carousel driven by
+ * the dots / arrow below it (mlPrizeStep).
+ */
+function dhPrizeStripHtml(prizes) {
   const list = (prizes || []).filter(Boolean);
   if (!list.length) return '';
-  const o = opts || {};
-  return '<div class="ml-prize-strip">' + list.map((p, i) => '<div class="ml-prize-tile">'
-    + '<div class="ml-tile-img">' + (p.photo ? '<img src="' + p.photo + '" alt="">' : escHtml(o.placeOf ? o.placeOf(p, i) : String(i + 1)))
-    + (Number(p.qty) > 1 ? '<span class="ml-tile-qty">×' + Number(p.qty) + '</span>' : '') + '</div>'
-    + '<span>' + escHtml(o.nameOf ? o.nameOf(p, i) : String(p.name || '')) + '</span>'
-    + (p.desc ? '<small>' + escHtml(p.desc) + '</small>' : '') + '</div>').join('') + '</div>';
+  const n = list.length;
+  return '<div class="ml-prize-strip" id="mlPrizeStrip" onscroll="mlPrizeSync()">' + list.map((p, i) => {
+    const place = MonthlyLucky.placeOf(p, i);
+    const qty = Number(p.qty) > 1 ? Number(p.qty) : 1;
+    return '<article class="ml-prize-tile" data-idx="' + i + '">'
+      + '<div class="ml-tile-img">'
+      + (p.photo ? '<img src="' + p.photo + '" alt="">'
+        : '<span class="ml-tile-ph"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l4.5-4.5 3.5 3.5 3-2.5L20 18"/></svg>'
+          + escHtml(mlOrdinal(place) + ' place prize') + '</span>')
+      + (Number(p.qty) > 1 ? '<span class="ml-tile-qty">×' + Number(p.qty) + '</span>' : '')
+      // Phone-only carousel furniture: the counter and the arrow ride the picture
+      // so they land in the same place on every card. Hidden once they fit side by side.
+      + (n > 1 ? '<span class="ml-tile-count">' + (i + 1) + ' of ' + n + '</span>'
+        + '<button type="button" class="ml-tile-next" onclick="mlPrizeStep(1)" aria-label="Next prize">&rsaquo;</button>' : '')
+      + '</div>'
+      + '<div class="ml-tile-body">'
+      + '<div class="ml-tile-head"><span class="ml-tile-place' + (place === 1 ? ' first' : '') + '">' + escHtml(mlOrdinal(place) + ' place') + '</span>'
+      + '<span class="ml-tile-of">' + qty + ' of these</span></div>'
+      + '<span class="ml-tile-name">' + escHtml(String(p.name || '')) + '</span>'
+      + (p.desc ? '<small>' + escHtml(p.desc) + '</small>' : '')
+      + '</div></article>';
+  }).join('') + '</div>';
 }
-/** Collapsed rules row, identical on all three pages. */
+/** Rules card — open, not collapsed: it is the one thing a first-time visitor reads. */
 function dhHowHtml(text) {
-  return '<details class="dh-how"><summary>How it works</summary><div class="dh-how-body">' + escHtml(text || '') + '</div></details>';
+  return '<div class="dh-howcard"><div class="dh-st-label">How it works</div>'
+    + '<p class="dh-how-body">' + escHtml(text || '') + '</p></div>';
 }
 /** The signed-in member's points this month, or null when signed out / not on the roster. */
 function dhMyPoints() {
@@ -8488,14 +8616,22 @@ function mlCardHtml(v, admin) {
 }
 
 // ── public page section: MONTHLY (points) draw ──
-// It owns its whole page — status first, prizes, rules collapsed, then its own
-// record. It shares no list or calendar with the Session draw.
+// It owns its whole page — status, prizes, rules, then its own record with its
+// own calendar. It shares no list or calendar with the Session draw: that one is
+// a day grid (draws happen on a night), this one is a year of months.
+const mlCal = { y: 0, sel: null, init: false };
+let mlPrizeIdx = 0;
+
 function renderPublicMonthly() {
   const el = document.getElementById('drawPageMonthly'); if (!el || !window.MonthlyLucky) return;
   const m = sdPublic.monthly;
   const card = document.getElementById('mlStatusCard');
+  const prizeEl = document.getElementById('drawPageMonthlyPrizes');
+  const howEl = document.getElementById('drawPageMonthlyHow');
   if (!m) {
     if (card) card.innerHTML = '';
+    if (prizeEl) prizeEl.innerHTML = '';
+    if (howEl) howEl.innerHTML = '';
     el.innerHTML = '<div class="acct-empty">The monthly draw has not been set up yet.</div>';
     return;
   }
@@ -8506,20 +8642,122 @@ function renderPublicMonthly() {
       label: st.auto ? 'Next draw' : 'This month',
       when: st.drawAt ? escHtml(SessionDraw.fmtDrawTime(st.drawAt)) : escHtml(st.label || 'Drawn by the admin'),
       sub: dhSubLine(st.drawAt, st.poolCount, 'at the target so far'),
+      big: st.mine ? { value: st.mine.points, unit: '/ ' + st.mine.threshold + ' points this month' } : null,
       mine,
       bar: st.mine ? { value: st.mine.points, max: st.mine.threshold } : null,
     });
   }
-  let html = dhPrizeStripHtml(m.prizes, { placeOf: MonthlyLucky.placeOf, nameOf: MonthlyLucky.prizeLabel });
-  html += dhHowHtml(MonthlyLucky.howItWorksText({ auto: m.auto, winners: m.winners, threshold: m.threshold }));
+  if (prizeEl) {
+    const winners = Number(m.winners) || 0;
+    prizeEl.innerHTML = (m.prizes || []).length
+      ? '<div class="md-sec-title mlp-prize-head"><span>This month’s prizes</span>'
+        + (winners ? '<small>' + winners + ' winner' + (winners === 1 ? '' : 's') + ' will be picked</small>' : '') + '</div>'
+        + '<div class="ml-prize-wrap">' + dhPrizeStripHtml(m.prizes) + mlPrizeNavHtml(m.prizes) + '</div>'
+      : '';
+    mlPrizeSync(true);
+  }
+  if (howEl) howEl.innerHTML = dhHowHtml(MonthlyLucky.howItWorksText({ auto: m.auto, winners: m.winners, threshold: m.threshold }));
   const months = m.months || [];
   const live = months.find(v => v.month === m.pointsMonth && v.status !== 'done');
   const rest = months.filter(v => v !== live);
-  html += '<div class="md-sec-title sd-record-title">Record</div>';
-  html += rest.length
-    ? '<div class="sd-list">' + rest.map(v => mlCardHtml(Object.assign({ live: false }, v), false)).join('') + '</div>'
-    : '<div class="acct-empty">No monthly draw has been run yet — the first one appears after this month closes.</div>';
+  const shown = mlCal.sel ? rest.filter(v => v.month === mlCal.sel) : rest;
+  let html = '<div class="md-sec-title sd-record-title">Record</div>';
+  html += '<div class="sd-cal mo" id="drawPageMonthlyCal"></div>';
+  if (shown.length) {
+    html += '<div class="sd-list">' + shown.map(v => mlCardHtml(Object.assign({ live: false }, v), false)).join('') + '</div>';
+    if (!mlCal.sel) {
+      const older = MonthlyLucky.prevMonthKey(shown[shown.length - 1].month);
+      html += '<div class="ml-record-hint">' + escHtml(MonthlyLucky.monthLabel(older)) + ' and earlier appear here once drawn.</div>';
+    }
+  } else {
+    html += '<div class="acct-empty">' + (mlCal.sel
+      ? 'No draw for ' + escHtml(MonthlyLucky.monthLabel(mlCal.sel)) + '.'
+      : 'No monthly draw has been run yet — the first one appears after this month closes.') + '</div>';
+  }
   el.innerHTML = html;
+  renderMonthlyCalendar(document.getElementById('drawPageMonthlyCal'), m);
+}
+
+/** Year grid of months: a dot on every month that has a draw, tap one to filter the record. */
+function renderMonthlyCalendar(container, m) {
+  if (!container || !window.MonthlyLucky) return;
+  const months = (m && m.months) || [];
+  const byMonth = {};
+  months.forEach(v => { if (v && v.month) byMonth[v.month] = v; });
+  const liveMonth = m && m.pointsMonth ? m.pointsMonth : '';
+  if (!mlCal.init) {
+    mlCal.y = MonthlyLucky.yearOf((months[0] && months[0].month) || liveMonth)
+      || MonthlyLucky.yearOf(MonthlyLucky.monthOfInstant(clockNow()));
+    mlCal.init = true;
+  }
+  const grid = MonthlyLucky.monthYearGrid(mlCal.y);
+  let html = '<div class="sdc-head"><button type="button" class="sdc-nav" onclick="mlCalShift(-1)" aria-label="Previous year">&lsaquo;</button>'
+    + '<div class="sdc-label">' + grid.year + '</div>'
+    + '<button type="button" class="sdc-nav" onclick="mlCalShift(1)" aria-label="Next year">&rsaquo;</button></div>';
+  html += '<div class="sdc-grid mo" role="grid">' + grid.cells.map(c => {
+    const v = byMonth[c.month];
+    const isLive = c.month === liveMonth && (!v || v.status !== 'done');
+    const done = !!(v && v.status === 'done');
+    const pick = !!v && !isLive; // the running month has no record card yet
+    const cls = ['sdc-day', 'mo', pick ? 'has' : '', isLive ? 'today' : '', c.month === mlCal.sel ? 'sel' : ''].filter(Boolean).join(' ');
+    const marks = '<span class="sdc-marks">' + (pick ? '<i class="' + (done ? 'sdc-dot' : 'sdc-dot wait') + '"></i>' : '') + '</span>';
+    const label = MonthlyLucky.monthLabel(c.month) + (done ? ', drawn' : (isLive ? ', this month' : (v ? ', draw pending' : ', no draw')));
+    return '<button type="button" class="' + cls + '"' + (pick ? ' onclick="mlCalPick(\'' + c.month + '\')"' : ' disabled')
+      + ' aria-label="' + escHtml(label) + '"' + (c.month === mlCal.sel ? ' aria-pressed="true"' : '') + '><span>' + c.short + '</span>' + marks + '</button>';
+  }).join('') + '</div>';
+  html += '<div class="sdc-legend"><span><i class="sdc-dot"></i>Drawn</span><span><i class="sdc-dot wait"></i>Draw pending</span><span><i class="sdc-now"></i>This month</span></div>';
+  if (mlCal.sel) html += '<div class="sdc-sel"><span>Showing ' + escHtml(MonthlyLucky.monthLabel(mlCal.sel)) + '</span><button type="button" class="btn btn-ghost btn-sm" onclick="mlCalPick(null)">Show all</button></div>';
+  container.innerHTML = html;
+}
+function mlCalShift(delta) {
+  mlCal.y = (Number(mlCal.y) || 0) + (Math.trunc(Number(delta)) || 0);
+  mlCal.init = true;
+  renderPublicMonthly();
+}
+function mlCalPick(month) {
+  mlCal.sel = (month && mlCal.sel !== month) ? month : null;
+  if (mlCal.sel) { const y = MonthlyLucky.yearOf(mlCal.sel); if (y) mlCal.y = y; }
+  renderPublicMonthly();
+}
+
+// ── prize carousel (phones) ──
+// On a wide screen every prize is on screen at once and this row is hidden; on a
+// phone the strip is one card wide and these move it.
+function mlPrizeNavHtml(prizes) {
+  const n = (prizes || []).filter(Boolean).length;
+  if (n < 2) return '';
+  return '<div class="ml-prize-dots" id="mlPrizeDots">' + Array.from({ length: n }, (_, i) =>
+    '<button type="button" class="ml-dot" onclick="mlPrizeGo(' + i + ')" aria-label="Prize ' + (i + 1) + '"></button>').join('') + '</div>'
+    + '<div class="ml-prize-hint">Tap the arrow or a dot for the next prize</div>';
+}
+function mlPrizeTiles() { const s = document.getElementById('mlPrizeStrip'); return s ? Array.from(s.children) : []; }
+function mlPrizeGo(i, instant) {
+  const strip = document.getElementById('mlPrizeStrip'); const tiles = mlPrizeTiles();
+  if (!strip || !tiles.length) return;
+  const idx = Math.max(0, Math.min(tiles.length - 1, Number(i) || 0));
+  mlPrizeIdx = idx;
+  const left = tiles[idx].offsetLeft - strip.offsetLeft;
+  if (strip.scrollWidth > strip.clientWidth + 1) strip.scrollTo({ left, behavior: instant ? 'auto' : 'smooth' });
+  mlPrizeMarks();
+}
+function mlPrizeStep(d) { const n = mlPrizeTiles().length; if (n) mlPrizeGo((mlPrizeIdx + (Number(d) || 0) + n) % n); }
+/** Follows a finger-swipe: nearest tile to the current scroll position wins. */
+function mlPrizeSync(restore) {
+  const strip = document.getElementById('mlPrizeStrip'); const tiles = mlPrizeTiles();
+  if (!strip || !tiles.length) return;
+  if (restore) { mlPrizeGo(Math.min(mlPrizeIdx, tiles.length - 1), true); return; }
+  let best = 0, bestD = Infinity;
+  tiles.forEach((t, i) => { const d = Math.abs((t.offsetLeft - strip.offsetLeft) - strip.scrollLeft); if (d < bestD) { bestD = d; best = i; } });
+  mlPrizeIdx = best;
+  mlPrizeMarks();
+}
+function mlPrizeMarks() {
+  const dots = document.getElementById('mlPrizeDots');
+  if (!dots) return;
+  Array.from(dots.children).forEach((b, i) => {
+    b.classList.toggle('on', i === mlPrizeIdx);
+    b.setAttribute('aria-current', i === mlPrizeIdx ? 'true' : 'false');
+  });
 }
 
 // ── ADMIN: PAYMENTS (per-player session fees) ─────────────────────────

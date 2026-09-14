@@ -138,8 +138,8 @@ check('prizeOf trims, collapses whitespace and clamps', SD.prizeOf({ prize: '  A
 
   // ══ 3. static wiring ═══════════════════════════════════════════════
   check('draw-hub.js is loaded as a UMD lib after draw-video.js', html.indexOf('<script src="/draw-video.js"></script>') < html.indexOf('<script src="/draw-hub.js"></script>'));
-  check('hub container + three detail sections exist', html.includes('id="drawHub"') && html.includes('id="drawDetail"')
-    && /<section class="dh-view" data-draw="session"/.test(html) && /<section class="dh-view" data-draw="monthly"/.test(html)
+  check('hub container + both detail sections exist', html.includes('id="drawHub"') && html.includes('id="drawDetail"')
+    && /<section class="dh-view[^"]*" data-draw="session"/.test(html) && /<section class="dh-view[^"]*" data-draw="monthly"/.test(html)
     && !/data-draw="shuttlecock"/.test(html));
   check('two pills, one per draw, in hub order', (() => {
     const a = html.indexOf('class="dh-pill" role="tab" data-draw="session"'), b = html.indexOf('class="dh-pill" role="tab" data-draw="monthly"');

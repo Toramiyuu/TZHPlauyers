@@ -61,6 +61,25 @@
   }
   function nextMonthKey(m) { return shiftMonthKey(m, 1); }
   function prevMonthKey(m) { return shiftMonthKey(m, -1); }
+  /** Calendar year of a month key, or 0 when it is not one. */
+  function yearOf(m) { const x = MONTH_RE.exec(String(m || '')); return x ? +x[1] : 0; }
+  /**
+   * The twelve cells of one year, for the Monthly record calendar. The session
+   * draw happens on a day, so its calendar is a day grid; this draw happens to a
+   * MONTH, so its grid is Jan..Dec of one year. Pure: no clock, no DOM.
+   * @returns {{year:number, cells:{month:string, short:string, long:string}[]}}
+   */
+  function monthYearGrid(year) {
+    const y = Math.trunc(Number(year)) || 0;
+    return {
+      year: y,
+      cells: MONTHS_LONG.map((long, i) => ({
+        month: y + '-' + String(i + 1).padStart(2, '0'),
+        short: long.slice(0, 3),
+        long,
+      })),
+    };
+  }
   /** ISO date of the day the draw for `month` happens (1st of the following month). */
   function drawDateFor(month) { return isMonthKey(month) ? nextMonthKey(month) + '-01' : null; }
   /** Epoch ms of the scheduled automatic draw for `month`, or null. */
@@ -412,7 +431,7 @@
 
   return {
     DRAW_TIME, DEFAULT_THRESHOLD, MIN_THRESHOLD, MAX_THRESHOLD, DEFAULT_WINNERS, MIN_WINNERS, MAX_WINNERS, MAX_PRIZES, MAX_PRIZE_NAME, MAX_PRIZE_DESC, DEFAULT_PRIZE_QTY, MIN_PRIZE_QTY, MAX_PRIZE_QTY, MAX_PHOTO_BYTES, KEEP_CLOSED_MONTHS, ALGORITHM, RECORD_VERSION,
-    isMonthKey, monthKeyOf, monthLabel, shiftMonthKey, nextMonthKey, prevMonthKey, drawDateFor, scheduledDrawAt, monthOfInstant, isoOfInstant,
+    isMonthKey, monthKeyOf, monthLabel, shiftMonthKey, nextMonthKey, prevMonthKey, yearOf, monthYearGrid, drawDateFor, scheduledDrawAt, monthOfInstant, isoOfInstant,
     isWinnersCount, isThreshold, isPrizeQty, isPhoto, newPrizeId, normalizePrizes, prizeLabel, settingsOf, normalize, liteOf,
     eligibleFromRoster, eligibleFromSnapshot, applyRemoved, buildPool, poolStaleIds,
     closeDue, closeIfDue,
