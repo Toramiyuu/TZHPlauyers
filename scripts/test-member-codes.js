@@ -21,7 +21,6 @@ function freshState() {
     ],
     accounts: [], audit: [], attendance: {},
     monthlyLucky: { auto: true, winners: 3, threshold: 80, prizes: [{ id: 'pz1', name: 'Racket bag' }], pointsMonth: '2026-09', pool: null, closed: {} },
-    monthlyDraw: { month: '2026-09', prizes: [], participants: [], results: [], spin: null, history: [] },
     luckyDraw: { entries: [], paid: [], drawDate: '2026-09-08', spin: null, results: [], history: [] },
   };
 }
@@ -143,8 +142,11 @@ check('validateCode rejects short digits, digits-first, empty', !A.validateCode(
     '2026-09-05': { entries: { p0: { playerId: 'p0', name: 'Harvey Ng', present: true, paid: true, payment: { fee: 20, tier: '2h', method: 'cash', paidAt: 5 } }, p1: { playerId: 'p1', name: 'Ah Sheng', present: true, paid: false, payment: { fee: 25, tier: '3h' } } } },
     '2026-09-01': { entries: { p0: { playerId: 'p0', name: 'Harvey Ng', present: true, paid: false, payment: { fee: 15, tier: '2h', feeOverridden: true } } } },
   };
-  s.monthlyDraw.results = [{ rank: 1, id: 'mp2', name: 'harvey ng', prize: '1 Tube of new G2 Shuttlecock', at: 4000 }];
-  s.monthlyDraw.history = [{ month: '2026-08', label: 'August 2026', at: 3000, winners: [{ rank: 2, name: 'Harvey Ng', prize: 'Premium Sports Socks' }, { rank: 1, name: 'Ah Sheng', prize: 'Tube' }] }];
+  // A dormant Shuttlecock ballot may still sit in the blob (the draw was removed
+  // in 2026-09 without destroying its records) — it must never produce a win row.
+  s.monthlyDraw = { month: '2026-09', prizes: [], participants: [], spin: null,
+    results: [{ rank: 1, id: 'mp2', name: 'harvey ng', prize: '1 Tube of new G2 Shuttlecock', at: 4000 }],
+    history: [{ month: '2026-08', label: 'August 2026', at: 3000, winners: [{ rank: 2, name: 'Harvey Ng', prize: 'Premium Sports Socks' }] }] };
   s.luckyDraw.results = [{ rank: 1, name: 'Harvey Ng', at: 2000, pool: ['Harvey Ng', 'Ah Sheng', 'Mei'] }];
   s.luckyDraw.history = [{ date: '2026-08-20', at: 1000, winners: [{ rank: 1, name: 'Ah Sheng' }] }];
   const drawResults = {
@@ -162,22 +164,22 @@ check('validateCode rejects short digits, digits-first, empty', !A.validateCode(
   check('member: owing total + nights (newest first), settled history', info.payments.outstanding === 40 && info.payments.unpaidCount === 2 && info.payments.owing.map(x => x.date).join(',') === '2026-09-08,2026-09-01' && info.payments.owing[1].feeOverridden === true && info.payments.paidTotal === 20 && info.payments.settled[0].method === 'cash');
   check('member: never includes another player\'s rows', !JSON.stringify(info.payments).includes('Ah Sheng') && !JSON.stringify(info.payments).includes('p1'));
   const kinds = info.wins.map(w => w.kind + ':' + w.at).join(' ');
-  check('member: wins from all four sources, newest first', kinds === 'monthly:6000 session:5000 shuttlecock:4000 shuttlecock:3000 quick:2000');
+  check('member: wins from all three live sources, newest first', kinds === 'monthly:6000 session:5000 quick:2000');
   check('member: monthly win carries its prize by rank', info.wins[0].prize === 'Racket bag' && info.wins[0].label === 'August 2026');
   check('member: session win has date + no prize', info.wins[1].date === '2026-09-07' && info.wins[1].prize === '' && info.wins[1].rank === 2);
-  check('member: shuttlecock matched by name, case-insensitive, with prize', info.wins[2].prize === '1 Tube of new G2 Shuttlecock' && info.wins[3].prize === 'Premium Sports Socks');
-  check('member: quick draw matched by name', info.wins[4].title === 'Lucky draw' && info.wins[4].date === '2026-09-08');
+  check('member: a dormant Shuttlecock ballot produces no win rows', !info.wins.some(w => w.kind === 'shuttlecock') && !JSON.stringify(info.wins).includes('Shuttlecock'));
+  check('member: quick draw matched by name', info.wins[2].title === 'Lucky draw' && info.wins[2].date === '2026-09-08');
   // ── the expandable detail behind each win row ──
   const sd = info.wins[1].detail, md = info.wins[0].detail;
   check('member: session win detail — pool, who else won, verifiable seed', sd.poolCount === 12 && sd.attended === 14 && sd.paid === 12
     && sd.winners === 2 && sd.others.length === 1 && sd.others[0].name === 'Ah Sheng' && sd.seed === 'abc123' && sd.drawnAt === 5000);
   check('member: monthly win detail — own points vs threshold, other winners and their prizes', md.myPoints === 96 && md.threshold === 80
     && md.poolCount === 9 && md.winners === 2 && md.others[0].name === 'Ah Sheng' && md.others[0].prize === '');
-  check('member: name-matched draws carry the reel pool size', info.wins[4].detail.poolCount === 3 && info.wins[4].detail.winners === 1);
+  check('member: name-matched draws carry the reel pool size', info.wins[2].detail.poolCount === 3 && info.wins[2].detail.winners === 1);
   check('member: detail never names a non-winner', !JSON.stringify(info.wins.map(w => w.detail)).includes('Mei'));
 
   const other = M.buildMemberInfo(s, { id: 'x', playerId: 'p1', name: 'Ah Sheng' }, { drawResults, monthlyResults });
-  check('member: the other player sees only their own wins/owing', other.wins.length === 5 && other.payments.outstanding === 25 && other.points.inDraw === true && other.points.toGo === 0);
+  check('member: the other player sees only their own wins/owing', other.wins.length === 4 && other.payments.outstanding === 25 && other.points.inDraw === true && other.points.toGo === 0);
   const nobody = M.buildMemberInfo(s, { id: 'y', playerId: 'gone', name: '' }, {});
   check('member: unlinked/empty is safe', nobody.ok && nobody.wins.length === 0 && nobody.payments.outstanding === 0 && nobody.member.onRoster === false);
 }

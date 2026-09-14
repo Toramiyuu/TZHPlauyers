@@ -123,7 +123,7 @@ check('openDrawVideo records when supported and auto-saves on Download', fn('ope
 check('closeDrawVideo stops playback and is in the Escape registry', fn('closeDrawVideo').includes('dvCtl.stop()') && fn('closeOpenOverlays').includes("isOpen('drawVideoModal')"));
 check('CSS: calendar + modal styles present, portrait canvas', /\.sdc-grid\{display:grid;grid-template-columns:repeat\(7,minmax\(0,1fr\)\)/.test(html) && /#drawVideoModal\.open\{display:flex\}/.test(html) && /#dvCanvas\{[^}]*aspect-ratio:9\/16/.test(html));
 
-// ── monthly (points) draw + Shuttlecock ballot sources ──
+// ── monthly (points) draw source ──
 const monthlyView = { month: '2026-09', label: 'September 2026', status: 'done', method: 'auto', drawnAt: Date.UTC(2026, 9, 1, 1, 0), drawDate: '2026-10-01', seed: 'abcdef0123456789abcdef0123456789', verified: true, threshold: 80,
   counts: { eligible: 3, winners: 2 }, lists: { eligible: [{ id: 'p1', name: 'Alex' }, { id: 'p2', name: 'Bao' }, { id: 'p3', name: 'Celine' }], winners: [{ rank: 2, name: 'Alex', prize: '' }, { rank: 1, name: 'Celine', prize: 'Racket' }] } };
 const mo = DV.sourceFromMonthly(monthlyView);
@@ -132,17 +132,13 @@ check('monthly source: pool = eligible names, winners sorted by rank with prizes
 check('monthly source: note/method/verified, pending or winnerless months not replayable', mo.note === '3 reached 80 points · verified' && mo.method === 'Automatic draw' && DV.sourceFromMonthly(Object.assign({}, monthlyView, { status: 'pending' })) === null && DV.sourceFromMonthly(Object.assign({}, monthlyView, { lists: { eligible: [], winners: [] } })) === null && DV.sourceFromMonthly(Object.assign({}, monthlyView, { method: 'manual' })).method === 'Draw run by admin');
 const moScript = DV.buildScript(mo);
 check('script carries the prize into each reel segment', moScript.segments.filter(x => x.type === 'reel').map(x => x.prize).join('|') === 'Racket|');
-check('filenames per kind', DV.filenameFor(mo, 'video/mp4') === 'TZH-Monthly-Draw-2026-09.mp4' && DV.filenameFor({ kind: 'shuttle', month: '2026-08' }, 'video/webm') === 'TZH-Shuttlecock-Draw-2026-08.webm');
-const md = { month: '2026-09', participants: [{ name: 'Al' }, { name: 'Bo' }, { name: 'Cy' }],
-  results: [{ rank: 1, name: 'Bo', prize: 'Tube', at: NOW - 1000, pool: ['Al', 'Bo', 'Cy'] }, { rank: 2, name: 'Cy', prize: 'Strings', at: NOW + 5000 }],
-  history: [{ month: '2026-08', label: 'August 2026', at: NOW - 12 * 864e5, winners: [{ rank: 1, name: 'Di', prize: 'Socks' }], participants: [{ name: 'Di' }, { name: 'Ed' }] }, { month: '2026-07', at: NOW - 40 * 864e5, winners: [] }] };
-const sh = DV.shuttlecockEntriesOf(md, NOW);
-check('shuttlecockEntriesOf: live month (revealed only) + archived months with winners, newest first', sh.length === 2 && sh[0].live === true && sh[0].key === 'shuttle:2026-09:live' && sh[0].winners.length === 1 && sh[1].key === 'shuttle:2026-08:0' && sh[1].label === 'August 2026');
-const shs = DV.sourceFromShuttlecock(sh[0]), sha = DV.sourceFromShuttlecock(sh[1]);
-check('shuttle source (live): stored pool, prize per winner, title/subtitle/note', shs && shs.kind === 'shuttle' && shs.pool.join() === 'Al,Bo,Cy' && shs.winners[0].prize === 'Tube' && shs.title === 'Shuttlecock Draw' && shs.subtitle === 'September 2026' && shs.note === '3 in the ballot' && shs.method === 'Ballot draw');
-check('shuttle source (archive): participants stand in as the pool', sha && sha.pool.join() === 'Di,Ed' && sha.winners[0].name === 'Di' && sha.winners[0].prize === 'Socks');
-check('shuttle source: no pool anywhere -> not replayable', DV.sourceFromShuttlecock({ date: '2026-09-01', at: 1, winners: [{ rank: 1, name: 'X' }] }) === null);
-check('indexDraws marks shuttle draws as a third kind', (() => { const i = DV.indexDraws([], [], sh); return i[sh[0].date].shuttle.length === 1 && i[sh[0].date].session === null && idx['2026-09-07'].shuttle.length === 0; })());
+check('filenames per kind', DV.filenameFor(mo, 'video/mp4') === 'TZH-Monthly-Draw-2026-09.mp4' && DV.filenameFor(s, 'video/webm') === 'TZH-Lucky-Draw-2026-09-07.webm');
+// ── Shuttlecock ballot replays removed with the draw (2026-09) ──
+check('no Shuttlecock source or entry builder survives', DV.sourceFromShuttlecock === undefined && DV.shuttlecockEntriesOf === undefined);
+check('indexDraws takes only sessions + quick draws now', DV.indexDraws.length === 2 && (() => {
+  const i = DV.indexDraws([doneView], DV.manualEntriesOf(ld, NOW));
+  return i['2026-09-07'].session === doneView && i['2026-09-07'].shuttle === undefined && Array.isArray(i['2026-09-10'].manual);
+})());
 check('outro/reel painters read the prize (static)', /wn\.prize/.test(fs.readFileSync(path.join(__dirname, '..', 'public', 'draw-video.js'), 'utf8')) && /seg\.prize/.test(fs.readFileSync(path.join(__dirname, '..', 'public', 'draw-video.js'), 'utf8')));
 
 console.log('\ndraw video: ' + pass + ' passed, ' + fail + ' failed');

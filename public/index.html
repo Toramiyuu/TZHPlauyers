@@ -50,7 +50,6 @@
   /* ── Lucky Draw hub: one accent per draw so the three stay distinct ─── */
   --dw-session:#0071e3;--dw-session-tint:rgba(0,113,227,.14);
   --dw-monthly:#5b4bd6;--dw-monthly-tint:rgba(91,75,214,.14);
-  --dw-shuttle:#0e6d8c;--dw-shuttle-tint:rgba(14,109,140,.14);
   --font-apple:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
   /* ── motion easing (animated lockscreen) ─── */
   --ease-out:cubic-bezier(.16,1,.3,1);--ease-soft:cubic-bezier(.4,0,.2,1);
@@ -71,9 +70,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .vh-right{display:flex;align-items:center;gap:clamp(10px,1.2vw,16px);flex-wrap:wrap;justify-content:flex-end}
 .vh-live{display:inline-flex;align-items:center;gap:7px;font-size:clamp(12px,1.3vw,14px);font-weight:500;color:var(--a-ink-2)}
 .vh-nav{display:flex;gap:8px;flex-wrap:wrap}
-.vh-nav #membersBtn,.vh-nav #lbBtn,.vh-nav #mdBoardBtn,.vh-nav #viewerJoinBtn,.vh-nav #td3Btn,.vh-nav #drawBtn{font-family:var(--font-apple);font-size:14px;font-weight:500;letter-spacing:-.01em;text-transform:none;padding:8px 16px;border-radius:980px;border:none;background:var(--a-card-2);color:var(--a-ink);cursor:pointer;transition:background .2s ease;display:inline-flex;align-items:center;gap:7px;min-height:36px;text-decoration:none}
-.vh-nav #membersBtn:hover,.vh-nav #lbBtn:hover,.vh-nav #mdBoardBtn:hover,.vh-nav #viewerJoinBtn:hover,.vh-nav #td3Btn:hover,.vh-nav #drawBtn:hover{background:#ececee;color:var(--a-ink)}
-.vh-nav #membersBtn .ic,.vh-nav #lbBtn .ic,.vh-nav #mdBoardBtn .ic,.vh-nav #viewerJoinBtn .ic,.vh-nav #td3Btn .ic,.vh-nav #drawBtn .ic{width:15px;height:15px;color:var(--a-ink-2)}
+.vh-nav #membersBtn,.vh-nav #lbBtn,.vh-nav #viewerJoinBtn,.vh-nav #td3Btn,.vh-nav #drawBtn{font-family:var(--font-apple);font-size:14px;font-weight:500;letter-spacing:-.01em;text-transform:none;padding:8px 16px;border-radius:980px;border:none;background:var(--a-card-2);color:var(--a-ink);cursor:pointer;transition:background .2s ease;display:inline-flex;align-items:center;gap:7px;min-height:36px;text-decoration:none}
+.vh-nav #membersBtn:hover,.vh-nav #lbBtn:hover,.vh-nav #viewerJoinBtn:hover,.vh-nav #td3Btn:hover,.vh-nav #drawBtn:hover{background:#ececee;color:var(--a-ink)}
+.vh-nav #membersBtn .ic,.vh-nav #lbBtn .ic,.vh-nav #viewerJoinBtn .ic,.vh-nav #td3Btn .ic,.vh-nav #drawBtn .ic{width:15px;height:15px;color:var(--a-ink-2)}
 /* 3D arena overlay — full-screen iframe host, toggled by enter3D()/exit3D() */
 #arena3d{position:fixed;inset:0;z-index:1200;background:#eef4fd;display:none}
 #arena3d.open{display:block}
@@ -529,15 +528,6 @@ body.in-3d #joinModal{z-index:1300}
 #notif{position:fixed;top:18px;right:18px;background:var(--green);color:#fff;padding:11px 18px;border-radius:var(--radius-md);font-size:var(--fs-sm);font-weight:600;opacity:0;transform:translateY(-8px);transition:opacity .25s ease,transform .25s ease;z-index:400;pointer-events:none;box-shadow:var(--shadow-md);letter-spacing:-.005em}
 #notif.show{opacity:1;transform:none}
 #notif.notif-warn{background:var(--warn)}
-#mdUndoToast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,0);display:none;align-items:center;gap:14px;background:var(--text);color:#fff;padding:11px 14px 11px 18px;border-radius:100px;font-size:var(--fs-sm);font-weight:600;z-index:460;box-shadow:var(--shadow-lg)}
-#mdUndoToast.show{display:flex;animation:md-undo-in .25s ease-out both}
-@keyframes md-undo-in{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
-@media(prefers-reduced-motion:reduce){#mdUndoToast.show{animation:none}}
-.md-undo-btn{background:var(--green);color:#fff;border:none;border-radius:100px;padding:7px 16px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;font-family:inherit;min-height:36px}
-.md-undo-btn:hover{background:var(--green-light)}
-.md-add-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.md-add-phone{max-width:150px}
-.md-add-tubes{max-width:88px;text-align:center}
 .divider{height:1px;background:var(--border);margin:14px 0}
 input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
@@ -703,14 +693,12 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .ck{color:var(--green-light);font-weight:700;font-size:14px}.da{color:var(--muted);font-size:16px}
 .vr5{color:var(--gold);font-weight:700}.vr10{color:var(--platinum);font-weight:700}.vbest{color:var(--diamond);font-weight:700}
 .members-footer{text-align:center;margin-top:20px;padding:12px 16px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);font-size:var(--fs-xs);color:var(--muted);font-weight:500;letter-spacing:0}
-#membersBtn,#lbBtn,#mdBoardBtn{padding:9px 18px;border-radius:100px;border:1px solid var(--border2);background:var(--card2);font-size:var(--fs-sm);font-weight:600;cursor:pointer;transition:var(--transition);font-family:inherit;min-height:38px;display:inline-flex;align-items:center;gap:7px;letter-spacing:-.005em}
+#membersBtn,#lbBtn{padding:9px 18px;border-radius:100px;border:1px solid var(--border2);background:var(--card2);font-size:var(--fs-sm);font-weight:600;cursor:pointer;transition:var(--transition);font-family:inherit;min-height:38px;display:inline-flex;align-items:center;gap:7px;letter-spacing:-.005em}
 #membersBtn{color:var(--accent)}
 #membersBtn:hover{background:var(--elev);border-color:var(--accent-line)}
-#membersBtn .ic,#lbBtn .ic,#mdBoardBtn .ic{width:15px;height:15px}
+#membersBtn .ic,#lbBtn .ic{width:15px;height:15px}
 #lbBtn{color:var(--green-light)}
 #lbBtn:hover{background:var(--elev);border-color:var(--green-line)}
-#mdBoardBtn{color:var(--diamond)}
-#mdBoardBtn:hover{background:var(--elev);border-color:var(--diamond-line)}
 .btable-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px}
 .btable-wrap::-webkit-scrollbar{height:4px}.btable-wrap::-webkit-scrollbar-track{background:var(--dark)}.btable-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 @media(max-width:600px){
@@ -737,7 +725,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   .btable td{padding:6px 5px}
   .btable td:first-child{font-size:10px}
   .members-footer{font-size:9.5px;padding:8px 10px;line-height:1.6;letter-spacing:0}
-  #membersBtn,#lbBtn,#mdBoardBtn{font-size:var(--fs-sm);padding:9px 16px}
+  #membersBtn,#lbBtn{font-size:var(--fs-sm);padding:9px 16px}
 }
 
 /* ── HERO GATE (kept minimal) ──────────── */
@@ -919,61 +907,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 
 /* ── MONTHLY LUCKY DRAW ───────────────────── */
 .md-summary{font-size:var(--fs-xs);font-weight:600;color:var(--green-light);background:var(--green-tint);border:1px solid var(--green-line);padding:2px 8px;border-radius:100px;margin-left:6px;white-space:nowrap}
-.md-prizes{display:flex;flex-direction:column;gap:8px;margin-top:10px}
-.md-prize-row{display:flex;align-items:center;gap:10px}
-.md-prize-rank{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0;border:1px solid}
-.md-rank-1{color:var(--gold);border-color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,transparent)}
-.md-rank-2{color:var(--silver);border-color:var(--silver);background:color-mix(in srgb,var(--silver) 16%,transparent)}
-.md-rank-3{color:var(--bronze);border-color:var(--bronze);background:color-mix(in srgb,var(--bronze) 14%,transparent)}
-.md-customers{display:flex;flex-direction:column;gap:6px;margin-top:10px}
-.md-cust{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md)}
-.md-cust-main{flex:1;min-width:0}
-.md-cust-name{font-size:var(--fs-base);font-weight:600;color:var(--text);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.md-cust-phone{font-size:var(--fs-xs);color:var(--muted)}
-.md-tokens{font-size:var(--fs-xs);font-weight:700;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);border:1px solid var(--accent-line);padding:2px 8px;border-radius:100px;white-space:nowrap}
 /* No nowrap: on a phone this line is wider than the space left beside the tube
    stepper, and it used to spill out of the row and be painted over mid-word
    ("0 tubes carr"). Wrapping keeps the whole sentence readable. */
-.md-leftover{font-size:10px;color:var(--muted)}
-.md-tube-step{display:flex;align-items:center;gap:4px}
-.md-tube-step button{width:26px;height:26px;border-radius:6px;border:1px solid var(--border2);background:var(--card);color:var(--text);font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
-.md-tube-step button:hover{border-color:var(--green);color:var(--green-light)}
-.md-tube-step input{width:44px;text-align:center;background:var(--dark);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:4px;font-size:var(--fs-sm);font-family:inherit}
-.md-cust-del{background:none;border:none;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0 2px;flex-shrink:0}
-.md-cust-del:hover,.md-cust-del.confirm{color:var(--red)}
-.md-winner{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);margin-top:8px}
-.md-winner-name{font-size:var(--fs-md);font-weight:700;color:var(--text)}
-.md-winner-prize{font-size:var(--fs-sm);color:var(--text-2)}
-.md-history-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-bottom:1px solid var(--border)}
-.md-history-row:last-child{border-bottom:none}
-.md-history-main{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
-.md-history-row.clickable{cursor:pointer;border-radius:var(--radius-md);transition:var(--transition)}
-.md-history-row.clickable:hover{background:var(--a-blue-tint)}
-.md-history-row.clickable:focus-visible{outline:2px solid var(--a-blue);outline-offset:-2px}
-.md-history-chev{flex-shrink:0;color:var(--muted);font-size:22px;line-height:1;transition:var(--transition)}
-.md-history-row.clickable:hover .md-history-chev{color:var(--a-blue);transform:translateX(2px)}
-.md-history-month{font-size:var(--fs-sm);font-weight:700;color:var(--green-light)}
-.md-history-winners{font-size:var(--fs-xs);color:var(--muted)}
-.md-empty{color:var(--muted);font-size:var(--fs-sm);padding:8px 0}
-#mdHistBody{max-height:60vh;overflow-y:auto;margin-top:4px}
-.md-hist-meta{font-size:var(--fs-xs);color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
-.md-cust{flex-wrap:wrap}
-.md-odds-input{max-width:74px;text-align:center}
-.md-odds-pct{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap}
-.md-cust-wins{display:flex;gap:4px;margin-top:3px;flex-basis:100%}
-.md-win-badge{font-size:10px;font-weight:800;padding:1px 7px;border-radius:100px;border:1px solid}
 .btn:disabled{opacity:.45;cursor:not-allowed}
-.md-lastspin{margin-top:10px;padding:10px 14px;border-radius:var(--radius-md);background:var(--card2);border:1px solid var(--border);font-size:var(--fs-base);color:var(--text-2)}
-.md-lastspin.win{border-color:var(--green-line);background:var(--green-tint);color:var(--text)}
 /* prize-draw board (viewer) */
-#mdBoardModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:350;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
-#mdBoardModal.open{display:flex}
-.mdb-sub{text-align:center;color:var(--muted);font-size:var(--fs-xs);margin-bottom:14px;letter-spacing:.04em}
-.mdb-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:6px}
-.mdb-name{flex:1;font-weight:600;color:var(--text);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mdb-wins{display:flex;gap:4px;flex-shrink:0}
-.mdb-spins{font-size:var(--fs-xs);font-weight:700;color:var(--green-light);background:var(--green-tint);border:1px solid var(--green-line);padding:2px 8px;border-radius:100px;white-space:nowrap}
-.mdb-empty{color:var(--muted);font-size:var(--fs-sm);text-align:center;padding:14px 0}
 /* Viewer last-winner badge */
 .viewer-last-winner{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 12px;border-radius:100px;border:1px solid rgba(240,180,41,.3);background:rgba(240,180,41,.07);font-size:var(--fs-sm);color:var(--accent);font-weight:600}
 .viewer-rank-chip{color:var(--text);font-weight:600}
@@ -1003,12 +941,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .picker-prize.rank-3 .rank-medal{color:var(--bronze);border-color:var(--bronze);background:color-mix(in srgb,var(--bronze) 14%,transparent)}
 
 /* ── MONTHLY DRAW — ADMIN ─────────────────── */
-.md-draw-buttons{display:flex;flex-direction:column;gap:8px;margin-top:4px}
-.md-draw-row{display:flex;align-items:center;gap:10px}
-.md-draw-row .md-prize-rank{flex-shrink:0}
-.md-draw-row .btn{flex:1;justify-content:center}
-.md-import-note{font-size:var(--fs-sm);color:var(--text-2);margin:8px 0 2px}
-.md-import-note.warn{color:var(--accent)}
 
 /* ── ADMIN DASHBOARD ──────────────────────── */
 /* Persistent header — mobile only (desktop uses the sidebar brand) */
@@ -1424,7 +1356,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .dh-chev{flex:none;color:var(--muted);font-size:22px;line-height:1}
 .dh-card[data-draw=session]{--dw:var(--dw-session);--dw-tint:var(--dw-session-tint)}
 .dh-card[data-draw=monthly]{--dw:var(--dw-monthly);--dw-tint:var(--dw-monthly-tint)}
-.dh-card[data-draw=shuttlecock]{--dw:var(--dw-shuttle);--dw-tint:var(--dw-shuttle-tint)}
 .dh-hub-note{margin-top:14px;font-size:var(--fs-xs);color:var(--muted);text-align:center;line-height:1.5}
 .dh-hub-note button{background:none;border:0;padding:0;font:inherit;color:var(--a-blue);font-weight:600;cursor:pointer;text-decoration:underline}
 /* pills */
@@ -1435,7 +1366,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .dh-status{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--dw,var(--a-blue));border-radius:var(--radius-md);padding:14px 16px;margin-bottom:12px}
 .dh-view[data-draw=session]{--dw:var(--dw-session);--dw-tint:var(--dw-session-tint)}
 .dh-view[data-draw=monthly]{--dw:var(--dw-monthly);--dw-tint:var(--dw-monthly-tint)}
-.dh-view[data-draw=shuttlecock]{--dw:var(--dw-shuttle);--dw-tint:var(--dw-shuttle-tint)}
 .dh-st-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .dh-st-when{font-size:var(--fs-lg);font-weight:700;letter-spacing:-.02em;color:var(--text);margin-top:3px}
 .dh-st-count{font-size:var(--fs-xl);font-weight:700;letter-spacing:-.02em;color:var(--dw,var(--a-blue));font-variant-numeric:tabular-nums}
@@ -1460,7 +1390,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .dh-how>summary::after{content:'+';font-size:18px;font-weight:400;color:var(--muted);line-height:1}
 .dh-how[open]>summary::after{content:'\2212'}
 .dh-how-body{padding:0 16px 14px;font-size:var(--fs-sm);line-height:1.55;color:var(--text-2)}
-.dh-prize-ranks{padding:0;margin-bottom:14px}
 /* ── Lucky Draw replay video modal (canvas render + MediaRecorder) ── */
 #drawVideoModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:460;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
 #drawVideoModal.open{display:flex}
@@ -1570,11 +1499,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   .admin-hdr{display:flex;padding-top:var(--sp-sm)}
   .admin-bottomnav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--card);border-top:1px solid var(--border2);padding:0 env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0)}
   /* Touch targets >=44px + >=16px inputs (no iOS zoom) for the new draw controls */
-  .md-tube-step button{width:44px;height:44px;font-size:20px}
-  .md-tube-step input{width:56px;height:44px;font-size:16px}
-  .md-cust-del{min-width:44px;min-height:44px;font-size:22px}
   .draw-rank-del{min-width:44px;min-height:44px}
-  .md-add-tubes,.md-add-phone,.draw-date-input,.draw-history-date-input{font-size:16px;min-height:44px}
   .md-undo-btn{min-height:44px}
   /* Payments: 44px targets, stacked Courts footer, full-width tier control */
   .crt-foot{flex-direction:column;align-items:stretch}
@@ -2678,7 +2603,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <button class="lb-close sd-close" onclick="closeDrawPage()" aria-label="Close Lucky Draw">&#x2715;</button>
     </div>
 
-    <!-- HUB: the three draws, each with its own entry rule, status and last winner -->
+    <!-- HUB: the two draws, each with its own entry rule, status and last winner -->
     <div class="dh-hub" id="drawHub"></div>
 
     <!-- DETAIL: one draw at a time. Same skeleton for all three —
@@ -2687,7 +2612,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <div class="dh-pills" id="drawPills" role="tablist" aria-label="Choose a draw">
         <button type="button" class="dh-pill" role="tab" data-draw="session" onclick="drawGo('session')">Session</button>
         <button type="button" class="dh-pill" role="tab" data-draw="monthly" onclick="drawGo('monthly')">Monthly</button>
-        <button type="button" class="dh-pill" role="tab" data-draw="shuttlecock" onclick="drawGo('shuttlecock')">Shuttlecock</button>
       </div>
 
       <!-- ── SESSION DRAW ── -->
@@ -2706,11 +2630,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <div class="ml-sec" id="drawPageMonthly"></div>
       </section>
 
-      <!-- ── SHUTTLECOCK (ballot) DRAW ── -->
-      <section class="dh-view" data-draw="shuttlecock" role="tabpanel" aria-label="Shuttlecock Draw" style="display:none">
-        <div class="dh-status-wrap" id="shStatusCard"></div>
-        <div class="ml-sec" id="drawPageShuttle"></div>
-      </section>
     </div>
   </div>
 </div>
@@ -2733,37 +2652,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   </div>
 </div>
 
-<!-- Lucky Draw / Shuttlecock (monthly) Draw shared reveal overlay (anonymous name-reel picker) -->
+<!-- Lucky Draw reveal overlay (anonymous name-reel picker) -->
 <div id="pickerOverlay" role="dialog" aria-modal="true" aria-labelledby="pickerTitle" onclick="handlePickerOverlayClick(event)">
   <div class="confetti-container" id="pickerConfetti"></div>
   <button id="pickerCloseBtn" onclick="hidePickerOverlay()" aria-label="Close draw">&#x2715;</button>
-  <div id="pickerTitle">Shuttlecock Lucky Draw</div>
+  <div id="pickerTitle">Lucky Draw</div>
   <div id="pickerPrize" class="picker-prize"></div>
   <div class="picker-stage">
     <div id="pickerName" class="picker-name" aria-live="polite" role="status">&nbsp;</div>
   </div>
   <div id="pickerSub" class="picker-sub"></div>
-</div>
-
-<!-- Shuttlecock (monthly) Prize Draw Board -->
-<div id="mdBoardModal" role="dialog" aria-modal="true" aria-labelledby="mdBoardTitle">
-  <div class="lb-box">
-    <button class="lb-close" onclick="closeMdBoard()" aria-label="Close prize draw board">&#x2715;</button>
-    <h2 class="lb-header" id="mdBoardTitle">Shuttlecock Prize Draw</h2>
-    <div id="mdBoardBody"></div>
-  </div>
-</div>
-
-<!-- Past month draw detail (admin: click a past month to see winners + prizes) -->
-<div id="mdHistModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="mdHistTitle"
-     onclick="if(event.target===this)closeMdHist()">
-  <div class="modal-box">
-    <h2 id="mdHistTitle">Past month</h2>
-    <div id="mdHistBody"></div>
-    <div class="modal-actions">
-      <button class="btn btn-primary btn-sm" onclick="closeMdHist()">Close</button>
-    </div>
-  </div>
 </div>
 
 <!-- Admin -->
@@ -3066,11 +2964,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <!-- ── ENGAGEMENT TAB ─────────────────────── -->
   <div class="admin-tab-panel" data-tab="engagement">
 
-  <!-- Session draws / Shuttlecock (monthly) sub-tabs -->
+  <!-- Session draw / Monthly draw sub-tabs -->
   <div class="ld-subtabs">
     <button class="ld-subtab active" data-sub="weekly" onclick="setLuckyTab('weekly')">Session draw</button>
     <button class="ld-subtab" data-sub="monthlylucky" onclick="setLuckyTab('monthlylucky')">Monthly draw</button>
-    <button class="ld-subtab" data-sub="monthly" onclick="setLuckyTab('monthly')">Shuttlecock draw</button>
   </div>
 
   <!-- ══ SESSION DRAWS (automatic per-session Lucky Draw) ══ -->
@@ -3211,64 +3108,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
   </div><!-- /monthly draws sub -->
 
-  <!-- ══ SHUTTLECOCK (MONTHLY) LUCKY DRAW ══ -->
-  <div class="ld-sub" data-sub="monthly" style="display:none">
-
-  <!-- Auto eligibility (attendance + payment) -->
-  <div class="admin-card">
-    <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span> Shuttlecock Draw enrolment</span>
-      <button class="btn btn-secondary btn-sm" onclick="recomputeMonthlyElig()"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 4v4h-4"/></svg> Recalculate</button></div>
-    <div class="admin-helper-text">Players are auto-enrolled when they attended <b>and</b> paid every required session of their regular day(s) this month. Click a player to see the exact record.</div>
-    <div id="monthlyEligBody"></div>
-  </div>
-
-  <!-- Month -->
-  <div class="admin-card">
-    <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg></span> <span id="mdMonthLabel">This month</span></span></div>
-    <div class="admin-helper-text">4 tubes = 1 token; leftover tubes carry to next month.</div>
-    <div class="admin-btn-row admin-mt">
-      <button class="btn btn-secondary btn-sm" onclick="closeMonth()"><svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg> Close month &amp; carry over</button>
-    </div>
-  </div>
-
-  <!-- Prizes -->
-  <div class="admin-card">
-    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span> Prizes</div>
-    <div class="admin-helper-text">The three prizes drawn each month, in order.</div>
-    <div class="md-prizes" id="mdPrizes"></div>
-  </div>
-
-  <!-- Participants (manual + import) -->
-  <div class="admin-card">
-    <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M16 19a4 4 0 0 0-8 0M12 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M5 20a3 3 0 0 1 3-3M19 20a3 3 0 0 0-3-3"/></svg></span> Participants</span><span class="md-summary" id="mdPoolSummary"></span></div>
-    <div class="admin-helper-text">Add players and their tube counts below (4 tubes = 1 token). You can also bulk-import a CSV &mdash; imported tubes are <strong>added</strong> to each person&#x2019;s current tubes; 0-token rows are skipped.</div>
-    <div class="md-add-row admin-mt">
-      <input id="mdAddName" class="admin-form-input admin-flex" type="text" placeholder="Name" onkeydown="if(event.key===&#x27;Enter&#x27;)addParticipantManual()">
-      <input id="mdAddPhone" class="admin-form-input md-add-phone" type="text" placeholder="Phone (optional)">
-      <input id="mdAddTubes" class="admin-form-input md-add-tubes" type="number" min="0" step="1" value="0" aria-label="Tubes">
-      <button class="btn btn-secondary btn-sm" onclick="addParticipantManual()">Add</button>
-    </div>
-    <div class="admin-btn-row admin-mt">
-      <label class="btn btn-ghost btn-sm" for="csvFileInput"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3v12M8 11l4 4 4-4M5 21h14"/></svg> Import CSV</label>
-      <input id="csvFileInput" type="file" accept=".csv,text/csv" style="display:none" onchange="importDrawCsv(this)">
-      <button class="btn btn-ghost btn-sm" onclick="clearParticipants()">Clear all</button>
-    </div>
-    <div id="mdImportSummary"></div>
-    <div class="md-customers" id="mdParticipants"></div>
-  </div>
-
-  <!-- Draw -->
-  <div class="admin-card">
-    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> Draw Winners</div>
-    <div class="admin-helper-text">Draw the prizes in order. Each winner is shuffled live on the viewer screen, then removed from the pool so nobody wins twice.</div>
-    <div class="md-draw-buttons" id="mdDrawButtons"></div>
-    <div id="mdResults"></div>
-    <div class="admin-btn-row admin-mt"><button class="btn btn-ghost btn-sm" onclick="clearMonthlyResults()">Clear winners (redo this month)</button></div>
-    <div class="divider"></div>
-    <div id="mdHistory"></div>
-  </div>
-
-  </div><!-- /monthly sub -->
   </div><!-- /engagement (lucky draw) tab -->
 
   <!-- ── SIGN-UPS TAB ────────────────────────── -->
@@ -3422,7 +3261,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <details class="help-sec"><summary>Payments</summary><div>The fee depends on how long each person stayed: <b>2h &middot; RM20</b> or <b>3h &middot; RM25</b>. The Session tab sets the default for the night; after <b>End of the day</b> every player in the line-up gets a row here at that default. Tap <b>2h</b> or <b>3h</b> on a row for early leavers, tap <b>Cash</b>, <b>TnG</b> or <b>DuitNow</b> as each person pays (one tap), or <b>Unpaid</b> to undo &mdash; paid rows drop to the bottom so whoever still owes stays at the top. Tap the amount for a one-off custom fee. Pressing End of the day again adds players who joined later and drops anyone you unticked in the meantime (unless they already paid), so the ticked line-up is always what counts. Switch to <b>By member</b> to see everyone&rsquo;s running balance across every night on record; tap a member for their points, total outstanding and a night-by-night breakdown, and settle any night right there. A night is never removed from history while someone on it still owes.</div></details>
       <details class="help-sec"><summary>Lucky Draw &mdash; Session draws</summary><div>Every Monday, Friday and Sunday session gets one automatic draw at <b>9:00 AM</b> four mornings later (Mon &rarr; Fri, Fri &rarr; Tue, Sun &rarr; Thu). A player is in it when they attended <b>and</b> their payment was marked paid before that time &mdash; so <b>End of the day</b> and the Payments tab decide who is eligible. Set how many winners are picked. Results are permanent and never re-run; if the scheduled draw did not happen, <b>Run draw now</b> applies the same rules. Players see the winners and the replay video on the public Lucky Draw page; who attended and who paid stays admin-only.</div></details>
       <details class="help-sec"><summary>Lucky Draw &mdash; Monthly draws</summary><div>A points draw once a month. Everyone who reaches the <b>points needed</b> (default 80) during the month is in it; points go back to zero for <b>everyone</b> when the month ends &mdash; winners, non-winners and anyone who never reached the threshold alike. Only the admin-only <b>lifetime</b> total on the Session tab keeps the full record. With the <b>automatic</b> switch on, the draw runs itself at <b>9:00 AM on the 1st</b> of the next month; switch it off to run it yourself. <b>Pull players</b> lists everyone at the threshold right now (untick anyone who should sit out), then <b>Run draw now</b> draws this month on the spot. Set how many winners are picked and the prize list &mdash; each prize picks the <b>place</b> it goes to (two prizes on the same place means that winner takes both). Each prize has a <b>quantity</b> (so one winner can take, say, 2 tubes of shuttlecocks), an optional <b>description</b>, and a photo; these show on the public Lucky Draw page, and the winner&rsquo;s prize (with quantity) in the replay video. One draw per month; results are permanent.</div></details>
-      <details class="help-sec"><summary>Lucky Draw &mdash; Shuttlecock</summary><div>The Shuttlecock Draw runs once a month. Players are auto-enrolled when they attended <b>and</b> paid every required session of their regular day this month. Click a player to see the exact record, or override it. You can still import a CSV ballot and run the prize draw as before.</div></details>
       <details class="help-sec"><summary>Sign-ups</summary><div>People who asked to join through the public form, newest first. Mark each one contacted once you&rsquo;ve reached out.</div></details>
       <details class="help-sec"><summary>Accounts</summary><div>Members sign in with a <b>login code</b> like <b>Thomas#123</b> and see their points, what they owe and their draw wins. Press <b>Assign codes to everyone</b> once, then tap a code to copy it and send it to that member. Tap a member&rsquo;s name (or <b>Manage</b>) to open their profile: their points, what they owe, their level and their login code are all there and all editable, and <b>Copy invite</b> puts the whole sign-in message on your clipboard. Phone + password sign-in still works for anyone who has one: approve requests, or open <b>Manage</b> &rarr; <b>Reveal</b> / temporary password to help with a forgotten password. Deleting an account keeps the player &mdash; it only removes the login.</div></details>
       <details class="help-sec"><summary>Settings</summary><div>Share the viewer link, set the daily <b>site access code</b>, change the admin password, pick the <b>phone shortcuts</b> (which tabs sit in the bottom bar on phones &mdash; up to 4, the rest live under More), choose which social game days appear on the public sign-up, and set <b>weekly regulars</b> &mdash; players who always come on a given day, added to the line-up automatically when the session date lands on that day.</div></details>
@@ -3456,11 +3294,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <span class="cb-cover">Admin</span>
 </button>
 <div id="notif"></div>
-<!-- Month-close Undo toast (mounted outside renderMonthlyTab's innerHTML so the 20s timer/handler survive poll re-renders) -->
-<div id="mdUndoToast" role="status" aria-live="polite">
-  <span id="mdUndoToastText"></span>
-  <button class="md-undo-btn" onclick="undoMonthRoll()">Undo</button>
-</div>
 
 <script src="monthly-draw.js"></script>
 <script src="phone.js"></script>
@@ -3626,7 +3459,6 @@ async function poll() {
   renderViewer();
   sdAfterPoll();
   checkForNewSpin(state.luckyDraw);
-  checkForNewMonthlyDraw(state.monthlyDraw);
   if (adminOpen) {
     // First poll after the panel opens (e.g. a reload that ran showAdmin() before
     // state had loaded): do one full renderAdmin() so the Settings-tab cards —
@@ -3640,7 +3472,6 @@ async function poll() {
     renderPaidPicker();
     renderDrawPool();
     renderDrawResult();
-    renderMonthlyTab();
     // Monthly (points) draw: only the live "who is at the threshold" list follows the poll.
     if (currentAdminTab === 'engagement' && currentLuckyTab === 'monthlylucky') renderMonthlyPool();
     // Keep the unread badge live every tick, but NOT the full list — re-rendering
@@ -4834,7 +4665,6 @@ function renderAdmin() {
   renderRoundList();
   renderPaidPicker();
   renderDrawPool();
-  renderMonthlyTab();
   renderSignupsBadge();
   renderEodStatus();
   if (currentAdminTab === 'payments') renderPaymentsTab();
@@ -5250,6 +5080,24 @@ async function toggleEndingSoon(courtIdx) {
 }
 
 // ── ROSTER & PLAYERS ─────────────────────────
+// The 2-second poll repaints the Players section whether or not anything
+// actually changed. Rewriting the markup swaps out the node under the cursor,
+// which restarts its hover transition (Chrome also leaves the fresh node
+// un-hovered until the mouse moves again) — so the roster cards' − / + buttons
+// dropped out of their blue hover fill on every tick and read as flashing.
+// Write to the DOM only when the markup differs from what is already on screen:
+// an unchanged tick then leaves the hovered button — and any in-progress inline
+// edit — completely alone. Anything that edits these nodes behind the renderer's
+// back (see startEditRosterName) must call invalidateHtmlCache, otherwise the
+// next real render is mistaken for a no-op and the edit never closes.
+function setHtmlIfChanged(el, html) {
+  if (!el || el.__htmlCache === html) return false;
+  el.innerHTML = html;
+  el.__htmlCache = html;
+  return true;
+}
+function invalidateHtmlCache(el) { if (el) el.__htmlCache = null; }
+
 function renderPlayersSection() {
   // Migration: existing deployments have players but no roster
   if (!state.roster) {
@@ -5270,7 +5118,6 @@ function renderPlayersSection() {
 
   const grid = document.getElementById('rosterGrid');
   if (!grid) return;
-  grid.innerHTML = '';
 
   // Filter the roster grid by the search box (name match, case-insensitive).
   const q = (document.getElementById('rosterSearch')?.value || '').trim().toLowerCase();
@@ -5315,10 +5162,13 @@ function renderPlayersSection() {
   if (listEl) listEl.style.display = 'none';
   if (guestStripEl) guestStripEl.style.display = '';
 
+  // Built as one string and handed to setHtmlIfChanged so a poll tick that
+  // changes nothing never touches the DOM (see the note above the helper).
+  const cards = [];
   if (!state.roster || state.roster.length === 0) {
-    grid.innerHTML = '<div style="color:var(--muted);font-size:13px;grid-column:1/-1;padding:6px 0">No roster players yet.</div>';
+    cards.push('<div style="color:var(--muted);font-size:13px;grid-column:1/-1;padding:6px 0">No roster players yet.</div>');
   } else if (visibleRoster.length === 0) {
-    grid.innerHTML = `<div style="color:var(--muted);font-size:13px;grid-column:1/-1;padding:6px 0">No players match "${escHtml(q)}".</div>`;
+    cards.push(`<div style="color:var(--muted);font-size:13px;grid-column:1/-1;padding:6px 0">No players match "${escHtml(q)}".</div>`);
   }
 
   // Number of ticked cards in the current view — labels the divider and
@@ -5331,36 +5181,31 @@ function renderPlayersSection() {
     // Drop a labeled separator between the "playing today" group and the rest,
     // only when both groups are actually present in this view.
     if (!isIn && !dividerPlaced && visiblePlayingCount > 0) {
-      const divider = document.createElement('div');
-      divider.className = 'roster-divider';
-      divider.setAttribute('aria-hidden', 'true');
-      divider.innerHTML = `<span class="roster-divider-label">Playing today &middot; ${visiblePlayingCount}</span>`;
-      grid.appendChild(divider);
+      cards.push(`<div class="roster-divider" aria-hidden="true"><span class="roster-divider-label">Playing today &middot; ${visiblePlayingCount}</span></div>`);
       dividerPlaced = true;
     }
-    const card = document.createElement('div');
-    card.className = 'rc' + (isIn ? ' in-session' : '');
-    card.innerHTML = `
-      <div class="rc-check">✓</div>
-      <button class="rc-del" id="rcdel_${rp.id}" onclick="event.stopPropagation();deleteRosterPlayer('${rp.id}',this)" title="Remove from roster" aria-label="Remove ${rp.name} from roster">×</button>
-      <div class="rc-photo" onclick="event.stopPropagation();document.getElementById('rcf_${rp.id}').click()">
-        ${avatarHTML(rp, 54)}
-        <div class="rc-photo-overlay"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg></div>
+    cards.push(`
+      <div class="rc${isIn ? ' in-session' : ''}" onclick="toggleRosterPlayer('${rp.id}')">
+        <div class="rc-check">✓</div>
+        <button class="rc-del" id="rcdel_${rp.id}" onclick="event.stopPropagation();deleteRosterPlayer('${rp.id}',this)" title="Remove from roster" aria-label="Remove ${rp.name} from roster">×</button>
+        <div class="rc-photo" onclick="event.stopPropagation();document.getElementById('rcf_${rp.id}').click()">
+          ${avatarHTML(rp, 54)}
+          <div class="rc-photo-overlay"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg></div>
+        </div>
+        <div class="rc-name" id="rcn_${rp.id}" onclick="event.stopPropagation();startEditRosterName('${rp.id}')">${escHtml(rp.name)}</div>
+        <input type="file" id="rcf_${rp.id}" accept="image/*" style="display:none" onchange="handleRosterPhoto('${rp.id}',this)">
+        <div class="rc-points" onclick="event.stopPropagation()">
+          <button class="rc-points-btn" onclick="event.stopPropagation();adjustPoints('${rp.id}',-1)" aria-label="Decrease points">&#x2212;</button>
+          <input class="rc-points-input" type="number" min="0" value="${rp.points||0}"
+            onclick="event.stopPropagation()" onblur="setPoints('${rp.id}',this.value)"
+            onkeydown="if(event.key==='Enter')this.blur();event.stopPropagation()">
+          <button class="rc-points-btn" onclick="event.stopPropagation();adjustPoints('${rp.id}',1)" aria-label="Increase points">+</button>
+        </div>
+        <div class="rc-sessions-ref">${sessionsAttended(rp.id)} sessions</div>
       </div>
-      <div class="rc-name" id="rcn_${rp.id}" onclick="event.stopPropagation();startEditRosterName('${rp.id}')">${escHtml(rp.name)}</div>
-      <input type="file" id="rcf_${rp.id}" accept="image/*" style="display:none" onchange="handleRosterPhoto('${rp.id}',this)">
-      <div class="rc-points" onclick="event.stopPropagation()">
-        <button class="rc-points-btn" onclick="event.stopPropagation();adjustPoints('${rp.id}',-1)" aria-label="Decrease points">&#x2212;</button>
-        <input class="rc-points-input" type="number" min="0" value="${rp.points||0}"
-          onclick="event.stopPropagation()" onblur="setPoints('${rp.id}',this.value)"
-          onkeydown="if(event.key==='Enter')this.blur();event.stopPropagation()">
-        <button class="rc-points-btn" onclick="event.stopPropagation();adjustPoints('${rp.id}',1)" aria-label="Increase points">+</button>
-      </div>
-      <div class="rc-sessions-ref">${sessionsAttended(rp.id)} sessions</div>
-    `;
-    card.onclick = () => toggleRosterPlayer(rp.id);
-    grid.appendChild(card);
+    `);
   });
+  setHtmlIfChanged(grid, cards.join(''));
 
   const guestStrip = document.getElementById('guestStrip');
   if (guestStrip) {
@@ -5533,6 +5378,10 @@ function startEditRosterName(id) {
   if (!el) return;
   const rp = (state.roster || []).find(r => r.id === id);
   if (!rp) return;
+  // Swapping the label for an input edits the grid behind setHtmlIfChanged's
+  // back. Drop the cache so that closing the editor with the name unchanged
+  // still repaints the card instead of being skipped as a no-op.
+  invalidateHtmlCache(document.getElementById('rosterGrid'));
   el.outerHTML = `<input class="rc-name-input" id="rcni_${id}" type="text" value="${escHtml(rp.name)}"
     onblur="saveRosterName('${id}',this.value)"
     onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape')renderPlayersSection()">`;
@@ -7240,483 +7089,6 @@ function logout() {
 // ── ADMIN TABS ────────────────────────────────
 let currentAdminTab = localStorage.getItem('adminTab') || 'session';
 
-// ── MONTHLY LUCKY DRAW (token ballot) ─────────
-function mdData() { return state.monthlyDraw || {}; }
-function mdRankLbl(r) { return r === 1 ? '1st' : r === 2 ? '2nd' : '3rd'; }
-function mdTokens(tubes) { return Math.floor((Number(tubes) || 0) / 4); }
-function currentMonthKey() { return todayISO().slice(0, 7); }
-function newParticipantId() { return 'mp' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); }
-
-// Month-roll state (page-session). Correctness for re-roll suppression rests on the
-// PERSISTED monthlyDraw.rollSuppressedMonth (F1); these are same-session helpers.
-let mdRolling = false;
-let mdPreCloseSnapshot = null;
-let mdUndoTimer = null;
-let lastAutoRolledFrom = null;
-
-function renderMonthlyTab() {
-  if (!state) return;
-  // Auto-roll only when the admin is actually viewing the Monthly tab (never from the
-  // public viewer / background poll on another tab). ensureMonthlyRoll is idempotent.
-  if (currentAdminTab === 'monthly') ensureMonthlyRoll();
-
-  const md = mdData();
-  const prizes = md.prizes || [];
-  const parts = md.participants || [];
-  const results = md.results || [];
-
-  // Month label
-  const ml = document.getElementById('mdMonthLabel');
-  if (ml) ml.textContent = md.month && window.MonthlyDraw ? MonthlyDraw.monthLabel(md.month) : (md.month || 'This month');
-
-  // Prizes editor (no odds — ballot model)
-  const pe = document.getElementById('mdPrizes');
-  if (pe) pe.innerHTML = [0, 1, 2].map(i => `
-      <div class="md-prize-row">
-        <span class="md-prize-rank md-rank-${i + 1}">${i + 1}</span>
-        <input class="admin-form-input admin-flex" id="mdPrize${i}" type="text" value="${escHtml(prizes[i] || '')}" placeholder="Prize ${i + 1}">
-      </div>`).join('') +
-    `<div class="admin-btn-row admin-mt"><button class="btn btn-secondary btn-sm" onclick="saveDrawPrizes()">Save prizes</button></div>`;
-
-  // Participants summary + list (tubes are the source of truth)
-  const totalTokens = parts.reduce((s, p) => s + (p.tokens != null ? p.tokens : mdTokens(p.tubes)), 0);
-  const sum = document.getElementById('mdPoolSummary');
-  if (sum) sum.textContent = parts.length ? `${parts.length} · ${totalTokens} token${totalTokens === 1 ? '' : 's'}` : '';
-
-  const pl = document.getElementById('mdParticipants');
-  if (pl) {
-    if (!parts.length) {
-      pl.innerHTML = '<div class="md-empty">No participants yet. Add one above, or import a CSV.</div>';
-    } else {
-      pl.innerHTML = parts.map(p => {
-        const tubes = Number(p.tubes) || 0;
-        const tokens = p.tokens != null ? p.tokens : mdTokens(tubes);
-        const leftover = tubes % 4;
-        const r = results.find(x => x.id === p.id);
-        const badge = r ? `<span class="md-win-badge md-rank-${r.rank}" title="${escHtml(r.prize || '')}">${mdRankLbl(r.rank)}</span>` : '';
-        return `<div class="md-cust"${r ? ' style="opacity:.7"' : ''}>
-          <div class="md-cust-main">
-            <div class="md-cust-name">${escHtml(p.name)} ${badge}</div>
-            ${p.phone ? `<div class="md-cust-phone">${escHtml(p.phone)}</div>` : ''}
-            <div class="md-leftover">${tokens} token${tokens === 1 ? '' : 's'} &middot; ${leftover} tube${leftover === 1 ? '' : 's'} carry over</div>
-          </div>
-          <div class="md-tube-step">
-            <button onclick="stepParticipantTubes('${p.id}',-1)" aria-label="Remove a tube from ${escHtml(p.name)}">&#8722;</button>
-            <input type="number" min="0" step="1" value="${tubes}" onchange="setParticipantTubes('${p.id}', this.value)" aria-label="Tubes for ${escHtml(p.name)}">
-            <button onclick="stepParticipantTubes('${p.id}',1)" aria-label="Add a tube to ${escHtml(p.name)}">+</button>
-          </div>
-          <button class="md-cust-del" onclick="removeParticipant('${p.id}')" title="Remove" aria-label="Remove ${escHtml(p.name)}">&#x00D7;</button>
-        </div>`;
-      }).join('');
-    }
-  }
-
-  renderDrawButtons();
-  renderMonthlyResults();
-  renderMonthlyHistory();
-}
-
-function renderDrawButtons() {
-  const el = document.getElementById('mdDrawButtons');
-  if (!el) return;
-  const md = mdData();
-  const prizes = md.prizes || [];
-  const results = md.results || [];
-  const wonIds = results.map(r => r.id);
-  const eligibleLeft = (md.participants || []).filter(p => wonIds.indexOf(p.id) === -1 && (p.tokens || 0) >= 1).length;
-  el.innerHTML = [0, 1, 2].map(i => {
-    const rank = i + 1;
-    const done = results.find(r => r.rank === rank);
-    const label = prizes[i] ? escHtml(prizes[i]) : `Prize ${rank}`;
-    if (done) {
-      return `<div class="md-draw-row">
-        <span class="md-prize-rank md-rank-${rank}">${rank}</span>
-        <button class="btn btn-secondary btn-sm" disabled>${mdRankLbl(rank)}: ${escHtml(done.name)}</button>
-      </div>`;
-    }
-    const isNext = results.length === i;
-    const disabled = !isNext || eligibleLeft < 1;
-    return `<div class="md-draw-row">
-      <span class="md-prize-rank md-rank-${rank}">${rank}</span>
-      <button class="btn btn-primary btn-sm" ${disabled ? 'disabled' : ''} onclick="drawPrize(${rank})">Draw ${mdRankLbl(rank)} &mdash; ${label}</button>
-    </div>`;
-  }).join('');
-  if ((md.participants || []).length && eligibleLeft < 1 && results.length < 3) {
-    el.innerHTML += `<div class="md-import-note warn">No eligible participants left to draw.</div>`;
-  }
-}
-
-function renderMonthlyResults() {
-  const el = document.getElementById('mdResults');
-  if (!el) return;
-  const results = mdData().results || [];
-  if (!results.length) { el.innerHTML = ''; return; }
-  el.innerHTML = '<div class="admin-subsection-label">Winners</div>' + results.slice().sort((a, b) => a.rank - b.rank).map(r => `
-    <div class="md-winner">
-      <span class="md-prize-rank md-rank-${r.rank}">${r.rank}</span>
-      <div class="md-cust-main">
-        <div class="md-winner-name">${escHtml(r.name)}</div>
-        <div class="md-winner-prize">${escHtml(r.prize || '')}</div>
-      </div>
-      ${r.phone ? `<span class="md-cust-phone">${escHtml(r.phone)}</span>` : ''}
-    </div>`).join('');
-  // Replay / download this month's draw as a video (once at least one prize is revealed).
-  const live = shuttleDrawEntries().find(e => e.live);
-  if (live && window.DrawVideo && DrawVideo.sourceFromShuttlecock(live)) el.innerHTML += sdVideoRowHtml('shuttle', live.key, true);
-}
-
-function renderMonthlyHistory() {
-  const el = document.getElementById('mdHistory');
-  if (!el) return;
-  const hist = mdData().history || [];
-  if (!hist.length) { el.innerHTML = '<div class="md-empty">No past months yet.</div>'; return; }
-  el.innerHTML = '<div class="admin-form-label">Past months</div>' + hist.map((d, i) => {
-    const winners = (d.winners || []).slice().sort((a, b) => a.rank - b.rank).map(w => `${escHtml(w.name)} (${mdRankLbl(w.rank)})`);
-    const sp = d.participants || [];
-    const carried = sp.reduce((s, p) => s + ((Number(p.tubes) || 0) % 4), 0);
-    const carriedNote = sp.length ? `${sp.length} participant${sp.length === 1 ? '' : 's'} &middot; ${carried} tube${carried === 1 ? '' : 's'} carried forward` : '';
-    return `<div class="md-history-row clickable" role="button" tabindex="0"
-      onclick="openMdHist(${i})"
-      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openMdHist(${i});}"
-      aria-label="View winners and prizes for ${escHtml(d.label || 'this month')}">
-      <div class="md-history-main">
-        <div class="md-history-month">${escHtml(d.label || '')}</div>
-        <div class="md-history-winners">${winners.length ? winners.join('  &middot;  ') : 'No winners'}</div>
-        ${carriedNote ? `<div class="md-history-winners">${carriedNote}</div>` : ''}
-      </div>
-      <span class="md-history-chev" aria-hidden="true">&rsaquo;</span>
-    </div>`;
-  }).join('');
-}
-
-function openMdHist(idx) {
-  const hist = mdData().history || [];
-  const d = hist[idx];
-  if (!d) return;
-  const lib = window.MonthlyDraw;
-  const sum = lib && lib.archiveSummary ? lib.archiveSummary(d)
-    : { label: d.label || '', winners: (d.winners || []).slice().sort((a, b) => a.rank - b.rank),
-        participantCount: (d.participants || []).length,
-        carriedTubes: (d.participants || []).reduce((s, p) => s + ((Number(p.tubes) || 0) % 4), 0) };
-  document.getElementById('mdHistTitle').textContent = sum.label || 'Past month';
-  const winHtml = sum.winners.length ? sum.winners.map(w => `
-    <div class="md-winner">
-      <span class="md-prize-rank md-rank-${w.rank}">${w.rank}</span>
-      <div class="md-cust-main">
-        <div class="md-winner-name">${escHtml(w.name)}</div>
-        <div class="md-winner-prize">${w.prize ? escHtml(w.prize) : 'No prize recorded'}</div>
-      </div>
-    </div>`).join('')
-    : '<div class="md-empty">No winners were drawn this month.</div>';
-  const pc = sum.participantCount;
-  const meta = pc
-    ? `<div class="md-hist-meta">${pc} participant${pc === 1 ? '' : 's'} &middot; ${sum.carriedTubes} tube${sum.carriedTubes === 1 ? '' : 's'} carried forward</div>`
-    : '';
-  // Archived months replay from their participant list (the ballot) + winners.
-  const ent = shuttleDrawEntries().find(e => !e.live && Number(e.at) === Number(d.at));
-  const replay = ent && window.DrawVideo && DrawVideo.sourceFromShuttlecock(ent) ? sdVideoRowHtml('shuttle', ent.key, true) : '';
-  document.getElementById('mdHistBody').innerHTML =
-    '<div class="admin-subsection-label">Winners</div>' + winHtml + meta + replay;
-  document.getElementById('mdHistModal').classList.add('open');
-}
-
-function closeMdHist() {
-  const m = document.getElementById('mdHistModal');
-  if (m) m.classList.remove('open');
-}
-
-async function saveDrawPrizes() {
-  const prizes = [0, 1, 2].map(i => { const el = document.getElementById('mdPrize' + i); return el ? el.value.trim() : ''; });
-  await refreshState();
-  const monthlyDraw = { ...mdData(), prizes };
-  await apiPost({ monthlyDraw });
-  state.monthlyDraw = monthlyDraw;
-  renderMonthlyTab();
-  notify('Prizes saved.');
-}
-
-function setImportNote(msg, warn) {
-  const el = document.getElementById('mdImportSummary');
-  if (el) el.innerHTML = msg ? `<div class="md-import-note ${warn ? 'warn' : ''}">${escHtml(msg)}</div>` : '';
-}
-
-function importDrawCsv(input) {
-  const file = input && input.files && input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async () => {
-    const lib = window.MonthlyDraw;
-    const parsed = lib ? lib.parseDrawCsv(String(reader.result || '')) : { participants: [], skipped: 0, error: 'no-lib' };
-    input.value = '';
-    if (parsed.error === 'no-name-column') { setImportNote('Could not find a "Name" column in that CSV.', true); return; }
-    if (parsed.error) { setImportNote('That file looks empty.', true); return; }
-    if (!parsed.participants.length) { setImportNote('No eligible participants — everyone had 0 tokens.', true); return; }
-    await refreshState();  // F7 — never merge onto a stale local copy
-    const md = mdData();
-    const incoming = parsed.participants.map(p => ({
-      name: p.name, phone: p.phone || '',
-      tubes: p.tubes != null ? p.tubes : (p.tokens || 0) * 4,
-    }));
-    // Additive merge by name(+phone): imported tubes are ADDED to each person's current tubes.
-    let participants = lib.mergeParticipants(md.participants || [], incoming, { add: true });
-    participants = participants.map(p => (p.id ? p : { ...p, id: newParticipantId() }));
-    const monthlyDraw = { ...md, participants };  // keep results/spin as-is (additive import)
-    await apiPost({ monthlyDraw });
-    state.monthlyDraw = monthlyDraw;
-    const addedTubes = incoming.reduce((s, p) => s + (Number(p.tubes) || 0), 0);
-    setImportNote(`Added ${incoming.length} from CSV (+${addedTubes} tubes)${parsed.skipped ? `, skipped ${parsed.skipped} with 0 tokens` : ''}.`, false);
-    renderMonthlyTab();
-    notify('CSV imported — tubes added.');
-  };
-  reader.onerror = () => setImportNote('Could not read that file.', true);
-  reader.readAsText(file);
-}
-
-async function addParticipantManual() {
-  const nameEl = document.getElementById('mdAddName');
-  const phoneEl = document.getElementById('mdAddPhone');
-  const tubesEl = document.getElementById('mdAddTubes');
-  const name = (nameEl ? nameEl.value : '').trim();
-  if (!name) { notify('Enter a name.', 'warn'); return; }
-  const phone = (phoneEl ? phoneEl.value : '').trim();
-  const tubes = Math.max(0, Math.floor(Number(tubesEl ? tubesEl.value : 0) || 0));
-  await refreshState();
-  const md = mdData();
-  const lib = window.MonthlyDraw;
-  // Additive merge: a matching name(+phone) sums tubes onto the existing person
-  // rather than creating a duplicate. Surface that so the behavior isn't a surprise.
-  const matched = lib && (md.participants || []).some(p => lib.matchParticipant(p, { name, phone }));
-  let participants = lib
-    ? lib.mergeParticipants(md.participants || [], [{ name, phone, tubes }], { add: true })
-    : [...(md.participants || []), { name, phone, tubes, tokens: mdTokens(tubes) }];
-  participants = participants.map(p => (p.id ? p : { ...p, id: newParticipantId() }));
-  const monthlyDraw = { ...md, participants };
-  await apiPost({ monthlyDraw });
-  state.monthlyDraw = monthlyDraw;
-  if (nameEl) nameEl.value = '';
-  if (phoneEl) phoneEl.value = '';
-  if (tubesEl) tubesEl.value = '0';
-  renderMonthlyTab();
-  notify(matched ? `Added ${tubes} tube(s) to ${name}.` : `Added ${name}.`);
-}
-
-async function setParticipantTubes(id, val, opts) {
-  const asDelta = !!(opts && opts.delta);
-  await refreshState();
-  const md = mdData();
-  const lib = window.MonthlyDraw;
-  const participants = (md.participants || []).map(p => {
-    if (p.id !== id) return p;
-    // For a stepper click, apply the delta to the freshly-refreshed tube count so a
-    // concurrent edit on another device isn't clobbered by a stale absolute value.
-    const base = asDelta ? (Number(p.tubes) || 0) + (Number(val) || 0) : (Number(val) || 0);
-    const tubes = Math.max(0, Math.floor(base));
-    return lib ? lib.withTokens({ ...p, tubes }) : { ...p, tubes, tokens: mdTokens(tubes) };
-  });
-  const monthlyDraw = { ...md, participants };
-  await apiPost({ monthlyDraw });
-  state.monthlyDraw = monthlyDraw;
-  renderMonthlyTab();
-}
-
-function stepParticipantTubes(id, delta) {
-  return setParticipantTubes(id, delta, { delta: true });
-}
-
-async function removeParticipant(id) {
-  await refreshState();
-  const md = mdData();
-  const participants = (md.participants || []).filter(p => p.id !== id);
-  const results = (md.results || []).filter(r => r.id !== id);
-  const monthlyDraw = { ...md, participants, results };
-  await apiPost({ monthlyDraw });
-  state.monthlyDraw = monthlyDraw;
-  renderMonthlyTab();
-}
-
-async function clearParticipants() {
-  await refreshState();
-  const monthlyDraw = { ...mdData(), participants: [], results: [], spin: null };
-  await apiPost({ monthlyDraw });
-  state.monthlyDraw = monthlyDraw;
-  setImportNote('', false);
-  renderMonthlyTab();
-}
-
-async function drawPrize(rank) {
-  const lib = window.MonthlyDraw;
-  if (!lib) return notify('Draw logic not loaded.', 'warn');
-  await refreshState();
-  const md = mdData();
-  const results = md.results || [];
-  if (results.find(r => r.rank === rank)) return notify('That prize is already drawn.', 'warn');
-  if (results.length !== rank - 1) return notify('Draw the prizes in order.', 'warn');
-  const live = md.spin;
-  if (live && clockNow() < live.startAt + live.durationMs) return notify('A draw is already in progress.', 'warn');
-  const wonIds = results.map(r => r.id);
-  const ballot = lib.buildBallot(md.participants || [], wonIds);
-  if (!ballot.length) return notify('No eligible participants left to draw.', 'warn');
-  const winnerIndex = lib.pickWinnerIndex(ballot.length, Math.random);
-  const winner = ballot[winnerIndex];
-  const prize = (md.prizes || [])[rank - 1] || '';
-  const startAt = clockNow() + 800;
-  const durationMs = 4500;
-  const spin = {
-    id: Date.now(), rank, prize,
-    entries: ballot.map(p => p.name), winnerIndex,
-    winnerId: winner.id, winnerName: winner.name,
-    startAt, durationMs,
-  };
-  // `pool` (the ballot's unique names) is kept so the draw can be replayed as a video.
-  const result = { rank, id: winner.id, name: winner.name, phone: winner.phone || '', prize, at: startAt + durationMs, pool: [...new Set(ballot.map(p => p.name))] };
-  const monthlyDraw = { ...md, spin, results: [...results, result] };
-  await apiPost({ monthlyDraw });
-  state.monthlyDraw = monthlyDraw;
-  checkForNewMonthlyDraw(monthlyDraw);
-  renderMonthlyTab();
-}
-
-async function clearMonthlyResults() {
-  await refreshState();
-  const monthlyDraw = { ...mdData(), results: [], spin: null };
-  await apiPost({ monthlyDraw });
-  state.monthlyDraw = monthlyDraw;
-  renderMonthlyTab();
-  notify('Winners cleared.');
-}
-
-// ── MONTH ROLL / CARRY-OVER ───────────────────
-// Auto-roll fires when the admin opens the Monthly tab in a new calendar month.
-// Idempotent + re-entrancy guarded; suppression after Undo is persisted (F1).
-function ensureMonthlyRoll() {
-  if (mdRolling) return;
-  const md = mdData();
-  const cur = currentMonthKey();
-  if (!md.month) {
-    // First run with no month: initialize without archiving.
-    mdRolling = true;
-    const monthlyDraw = { ...md, month: cur };
-    (async () => {
-      try { await apiPost({ monthlyDraw }); state.monthlyDraw = monthlyDraw; }
-      catch (e) { /* will retry next poll */ }
-      finally { mdRolling = false; renderMonthlyTab(); }
-    })();
-    return;
-  }
-  if (md.month < cur && md.month !== md.rollSuppressedMonth && md.month !== lastAutoRolledFrom) {
-    lastAutoRolledFrom = md.month;  // same-session de-dupe; persisted guard is rollSuppressedMonth
-    rollMonth(true);
-  }
-}
-
-async function rollMonth(isAuto) {
-  if (mdRolling) return;
-  mdRolling = true;  // set BEFORE the first await (F4)
-  try {
-    await refreshState();
-    const md = mdData();
-    // Re-validate staleness after refresh: a concurrent device may have already
-    // rolled this month. Auto-roll then becomes a no-op (avoids double-archiving
-    // an already-current/empty month). Manual close (isAuto=false) is unaffected.
-    if (isAuto && !(md.month && md.month < currentMonthKey())) return;
-    const lib = window.MonthlyDraw;
-    const closingMonth = md.month || currentMonthKey();
-    const label = lib ? lib.monthLabel(closingMonth) : closingMonth;
-    // Snapshot BEFORE any mutation, for Undo.
-    mdPreCloseSnapshot = JSON.parse(JSON.stringify(md));
-    // Archive participant snapshot from PRE-carry tubes/tokens (F8).
-    const results = md.results || [];
-    const winners = results.slice().sort((a, b) => a.rank - b.rank).map(r => ({ rank: r.rank, name: r.name, prize: r.prize }));
-    const snapParts = (md.participants || []).map(p => ({
-      name: p.name, phone: p.phone || '',
-      tubes: Number(p.tubes) || 0, tokens: p.tokens != null ? p.tokens : mdTokens(p.tubes),
-    }));
-    const archive = { month: closingMonth, label, at: clockNow(), winners, participants: snapParts };
-    const carried = lib ? lib.carryOverParticipants(md.participants || [])
-      : (md.participants || []).map(p => ({ ...p, tubes: (Number(p.tubes) || 0) % 4, tokens: 0 }));
-    const newMonth = isAuto ? currentMonthKey() : (lib ? lib.nextMonthKey(closingMonth) : closingMonth);
-    const history = [archive, ...(md.history || [])].slice(0, 36);
-    const monthlyDraw = { ...md, month: newMonth, rollSuppressedMonth: '', participants: carried, results: [], spin: null, history };
-    await apiPost({ monthlyDraw });
-    state.monthlyDraw = monthlyDraw;
-    renderMonthlyTab();
-    if (isAuto) showUndoToast(label);
-    else notify(`Closed ${label}.`);
-  } catch (e) {
-    notify('Could not close the month.', 'warn');
-  } finally {
-    mdRolling = false;
-  }
-}
-
-async function closeMonth() {
-  if (mdRolling) return;
-  await rollMonth(false);
-}
-
-async function undoMonthRoll() {
-  if (!mdPreCloseSnapshot) return;
-  const snap = mdPreCloseSnapshot;
-  // Persist suppression so a reload / 2nd device won't silently re-roll the restored month (F1).
-  const monthlyDraw = { ...JSON.parse(JSON.stringify(snap)), rollSuppressedMonth: snap.month };
-  await apiPost({ monthlyDraw });
-  state.monthlyDraw = monthlyDraw;
-  lastAutoRolledFrom = snap.month;
-  mdPreCloseSnapshot = null;
-  hideUndoToast();
-  renderMonthlyTab();
-  notify('Month close undone.');
-}
-
-function showUndoToast(label) {
-  const t = document.getElementById('mdUndoToast');
-  const txt = document.getElementById('mdUndoToastText');
-  if (!t) return;
-  if (txt) txt.textContent = 'Closed ' + label;
-  t.classList.add('show');
-  clearTimeout(mdUndoTimer);
-  mdUndoTimer = setTimeout(() => { hideUndoToast(); mdPreCloseSnapshot = null; }, 20000); // ~20s window
-}
-
-function hideUndoToast() {
-  const t = document.getElementById('mdUndoToast');
-  if (t) t.classList.remove('show');
-  clearTimeout(mdUndoTimer);
-}
-
-// ── MONTHLY DRAW BOARD (viewer-facing) ──
-function openMdBoard() { renderMdBoard(); const m = document.getElementById('mdBoardModal'); if (m) m.classList.add('open'); }
-function closeMdBoard() { const m = document.getElementById('mdBoardModal'); if (m) m.classList.remove('open'); }
-
-function renderMdBoard() {
-  const el = document.getElementById('mdBoardBody');
-  if (!el) return;
-  const md = (state && state.monthlyDraw) || {};
-  const parts = md.participants || [];
-  const results = md.results || [];
-  let html = '';
-  if (results.length) {
-    html += '<div class="mdb-sub">This month&#x2019;s winners</div>' + results.slice().sort((a, b) => a.rank - b.rank).map(r => `
-      <div class="mdb-row">
-        <span class="md-prize-rank md-rank-${r.rank}">${r.rank}</span>
-        <span class="mdb-name">${escHtml(r.name)} &mdash; ${escHtml(r.prize || '')}</span>
-      </div>`).join('');
-  }
-  if (!parts.length) { el.innerHTML = html || '<div class="mdb-empty">No entries yet.</div>'; return; }
-  const wonIds = results.map(r => r.id);
-  const sorted = [...parts].sort((a, b) => (b.tokens || 0) - (a.tokens || 0));
-  html += '<div class="mdb-sub">1 token for every 4 tubes purchased</div>' + sorted.map(c => {
-    const r = results.find(x => x.id === c.id);
-    const wb = r ? `<span class="md-win-badge md-rank-${r.rank}">${mdRankLbl(r.rank)}</span>` : '';
-    return `<div class="mdb-row">
-      <span class="mdb-name">${escHtml(c.name)}</span>
-      ${wb ? `<span class="mdb-wins">${wb}</span>` : ''}
-      <span class="mdb-spins">${c.tokens} token${c.tokens === 1 ? '' : 's'}</span>
-    </div>`;
-  }).join('');
-  el.innerHTML = html;
-}
-
 const ADMIN_TAB_TITLES = { session: 'Session', courts: 'Courts', payments: 'Payments', friendly: 'Friendly', engagement: 'Lucky Draw', signups: 'Sign-ups', accounts: 'Accounts', settings: 'Settings' };
 
 // ── Phone bottom bar ("shortcuts") ──────────────────────────────
@@ -7844,8 +7216,7 @@ function setAdminTab(name) {
   const titleEl = document.getElementById('adminMainTitle');
   if (titleEl) titleEl.textContent = ADMIN_TAB_TITLES[name] || '';
   updateAdminNavBadges();
-  if (name === 'monthly') renderMonthlyTab();
-  if (name === 'engagement') { renderMonthlyTab(); loadAdminOps().then(() => { if (currentLuckyTab === 'weekly') renderSessionDrawsAdmin(); if (currentLuckyTab === 'monthlylucky') renderMonthlyLuckyAdmin(); renderMonthlyElig(); }); }
+  if (name === 'engagement') { loadAdminOps().then(() => { if (currentLuckyTab === 'weekly') renderSessionDrawsAdmin(); if (currentLuckyTab === 'monthlylucky') renderMonthlyLuckyAdmin(); }); }
   if (name === 'signups') renderSignupsTab();
   // The Players list shows each player's lifetime total, which lives in the
   // admin-only ops cache rather than the public poll — paint, then refresh.
@@ -7951,13 +7322,12 @@ function setLuckyTab(sub) {
   document.querySelectorAll('.admin-tab-panel[data-tab="engagement"] .ld-sub').forEach(p => { p.style.display = (p.dataset.sub === sub) ? '' : 'none'; });
   if (sub === 'weekly') { renderSessionDrawsAdmin(); }
   if (sub === 'monthlylucky') { renderMonthlyLuckyAdmin(); }
-  if (sub === 'monthly') { renderMonthlyTab(); renderMonthlyElig(); }
 }
 
-// ── ADMIN: private ops cache (attendance / draw settings / eligibility / audit) ──
+// ── ADMIN: private ops cache (attendance / draw settings / audit) ──
 // This data never rides the public GET — the admin fetches it here with the
-// admin password. Payments, Session draws and Monthly eligibility all read it.
-let adminOps = { attendance: {}, drawSettings: null, monthlyEligibility: null, audit: [], lifetimePoints: null };
+// admin password. Payments and Session draws both read it.
+let adminOps = { attendance: {}, drawSettings: null, audit: [], lifetimePoints: null };
 const WD_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 async function loadAdminOps() {
@@ -7965,7 +7335,6 @@ async function loadAdminOps() {
   if (res === null || !res.ok) return adminOps;
   adminOps = {
     attendance: res.attendance || {}, drawSettings: res.drawSettings || null,
-    monthlyEligibility: res.monthlyEligibility || null,
     audit: res.audit || [],
     lifetimePoints: res.lifetimePoints || {},
   };
@@ -8017,7 +7386,7 @@ const sdBusy = new Set();
 function isDrawPageOpen() { const el = document.getElementById('drawPage'); return !!(el && el.classList.contains('open')); }
 
 // ── the three-way split ──────────────────────────────────────────────
-// #drawPage is a hub of three separate draws (Session / Monthly / Shuttlecock),
+// #drawPage is a hub of two separate draws (Session / Monthly),
 // each with its own page. Before this it was one scrolling column that mixed all
 // three — the header described the session draw, the prize photos belonged to
 // the monthly one, and the record at the bottom interleaved every kind.
@@ -8037,12 +7406,6 @@ const DRAW_ICONS = {
     + '<rect x="3" y="5" width="18" height="16" rx="2.5"/>'
     + '<path d="M3 9.5h18"/><path d="M8 3v3.5M16 3v3.5"/>'
     + '<path d="M12 12.4l.91 2.15 2.32.2-1.76 1.53.54 2.27L12 17.35l-2 1.2.53-2.27-1.76-1.53 2.32-.2z" fill="currentColor" stroke="none"/></svg>',
-  //   shuttlecock — feather skirt flaring from a solid cork, two ribs
-  shuttlecock: '<svg class="ic" viewBox="0 0 24 24">'
-    + '<path d="M8.9 13 6.1 5.7a13.5 13.5 0 0 1 11.8 0L15.1 13z"/>'
-    + '<path d="M8.9 13h6.2"/><path d="M10.6 4.9 11.2 13M13.4 4.9 12.8 13"/>'
-    + '<path d="M9.7 13v2.1a2.3 2.3 0 0 0 4.6 0V13z" fill="currentColor" stroke="none"/>'
-    + '<path d="M9.7 13v2.1a2.3 2.3 0 0 0 4.6 0V13"/></svg>',
 };
 let drawView = 'hub';
 // The signed-in member's own eligibility (POST accountDrawInfo). Token-gated and
@@ -8112,7 +7475,7 @@ function sdAfterPoll() {
   if (isDrawPageOpen() && sdPublic.locked) loadDrawPage(false, true);
 }
 
-/** The member's own standing in all three draws. Silent on failure — the page still works signed out. */
+/** The member's own standing in both draws. Silent on failure — the page still works signed out. */
 function drawFetchMine() {
   if (!acctSession || !acctSession.token) { drawMe = null; drawMeToken = null; return; }
   if (drawMeToken === acctSession.token && drawMe) return;
@@ -8157,7 +7520,6 @@ function renderDrawPage() {
   if (drawView === 'hub') renderDrawHub();
   else if (drawView === 'session') renderSessionDraw();
   else if (drawView === 'monthly') renderPublicMonthly();
-  else if (drawView === 'shuttlecock') renderPublicShuttle();
   drawTick();
 }
 function renderDrawHeader() {
@@ -8165,7 +7527,7 @@ function renderDrawHeader() {
   if (!t || !sub || !window.DrawHub) return;
   if (drawView === 'hub') {
     t.textContent = 'Lucky Draw';
-    sub.textContent = 'Three draws run here. Tap one to see how to get in and who has won.';
+    sub.textContent = 'Two draws run here. Tap one to see how to get in and who has won.';
     return;
   }
   t.textContent = DrawHub.kindName(drawView);
@@ -8186,7 +7548,6 @@ function renderDrawHub() {
   const now = clockNow();
   const sd = DrawHub.sessionStatus(sdPublic, drawMe, now);
   const ml = DrawHub.monthlyStatus(sdPublic.monthly, dhMyPoints(), now);
-  const sh = DrawHub.shuttleStatus(state && state.monthlyDraw, drawMe && drawMe.monthly, now);
   const html = [
     dhCardHtml('session', DrawHub.entryLine('session'), [
       dhCountChip(sd.drawAt, sd.due), dhPoolChip(sd.poolCount), dhMineChip(sd.mine),
@@ -8195,10 +7556,6 @@ function renderDrawHub() {
     dhCardHtml('monthly', DrawHub.entryLine('monthly', { threshold: drawThreshold() }), [
       ml ? dhCountChip(ml.drawAt, false) : '', ml ? dhPoolChip(ml.poolCount) : '', dhMineChip(ml && ml.mine),
       dhLastChip(DrawHub.latestMonthlyWin(sdPublic.monthly)),
-    ]),
-    dhCardHtml('shuttlecock', DrawHub.entryLine('shuttlecock'), [
-      dhPoolChip(sh.poolCount, 'enrolled'), dhMineChip(sh.mine),
-      dhLastChip(DrawHub.latestShuttleWin(shuttleDrawEntries())),
     ]),
   ].join('');
   el.innerHTML = html + (acctSession ? '' :
@@ -8281,13 +7638,6 @@ function dhPrizeStripHtml(prizes, opts) {
     + (Number(p.qty) > 1 ? '<span class="ml-tile-qty">×' + Number(p.qty) + '</span>' : '') + '</div>'
     + '<span>' + escHtml(o.nameOf ? o.nameOf(p, i) : String(p.name || '')) + '</span>'
     + (p.desc ? '<small>' + escHtml(p.desc) + '</small>' : '') + '</div>').join('') + '</div>';
-}
-/** Shuttlecock prizes are three plain strings (1st/2nd/3rd), not photo tiles. */
-function dhPrizeRanksHtml(prizes) {
-  const list = (prizes || []).map(x => String(x || '').trim());
-  if (!list.some(Boolean)) return '';
-  return '<div class="ml-wins dh-prize-ranks">' + list.map((name, i) => name
-    ? '<div class="ml-win"><span class="ml-win-rank">' + (i + 1) + '</span><span class="ml-win-name">' + escHtml(name) + '</span></div>' : '').join('') + '</div>';
 }
 /** Collapsed rules row, identical on all three pages. */
 function dhHowHtml(text) {
@@ -8401,10 +7751,9 @@ const sdCal = { pub: { y: 0, m: 0, sel: null, init: false }, adm: { y: 0, m: 0, 
 function sdCalState(admin) { return admin ? sdCal.adm : sdCal.pub; }
 function manualDrawEntries() { return window.DrawVideo ? DrawVideo.manualEntriesOf(state && state.luckyDraw, clockNow()) : []; }
 // Cards for the SESSION record: session views + the manual quick draws made on
-// those nights, interleaved newest first. Shuttlecock draws are NOT here — they
-// are a separate draw with their own page, listed by month (renderPublicShuttle).
-// While older sessions are still unloaded, manual draws older than the loaded
-// range wait too, so the order never jumps when "Show older sessions" appends.
+// those nights, interleaved newest first. While older sessions are still
+// unloaded, manual draws older than the loaded range wait too, so the order
+// never jumps when "Show older sessions" appends.
 function sdListItems(data, admin) {
   const cs = sdCalState(admin);
   const sessions = (data && data.sessions) || [];
@@ -8417,10 +7766,6 @@ function sdListItems(data, admin) {
   items.sort((a, b) => a.date === b.date ? (a.kind === b.kind ? b.at - a.at : KIND_ORDER[a.kind] - KIND_ORDER[b.kind]) : (a.date < b.date ? 1 : -1));
   return cs.sel ? items.filter(i => i.date === cs.sel) : items;
 }
-// Shuttlecock (ballot) draws: this month's revealed results + archived months, as
-// replayable entries (see DrawVideo.shuttlecockEntriesOf). They belong to the
-// Shuttlecock page only — one card per month, never on the session calendar.
-function shuttleDrawEntries() { return window.DrawVideo ? DrawVideo.shuttlecockEntriesOf(state && state.monthlyDraw, clockNow()) : []; }
 function renderDrawCalendar(container, data, admin) {
   if (!container || !window.DrawVideo) return;
   const cs = sdCalState(admin);
@@ -8429,7 +7774,7 @@ function renderDrawCalendar(container, data, admin) {
     const mo = DrawVideo.monthOf((sessions[0] && sessions[0].date) || (manualDrawEntries()[0] || {}).date) || DrawVideo.monthOf(serverToday());
     cs.y = mo.year; cs.m = mo.month0; cs.init = true;
   }
-  const idx = DrawVideo.indexDraws(sessions, manualDrawEntries(), []);
+  const idx = DrawVideo.indexDraws(sessions, manualDrawEntries());
   const grid = DrawVideo.monthGrid(cs.y, cs.m, 1);
   const today = serverToday();
   const a = admin ? 'true' : 'false';
@@ -8494,20 +7839,6 @@ function qdCardHtml(e) {
   html += replayable ? sdVideoRowHtml('manual', e.key) : '<div class="sd-foot"><span>No replay — this draw was made before replays were recorded.</span></div>';
   return html + '</div>';
 }
-// Shuttlecock draw card: the month's prize winners (chip = name + prize) and the replay.
-function shCardHtml(e) {
-  const winners = (e.winners || []).slice().sort((a, b) => (a.rank || 0) - (b.rank || 0));
-  const replayable = !!(window.DrawVideo && DrawVideo.sourceFromShuttlecock(e));
-  let html = '<div class="sd-card done sh" data-kind="shuttle" data-date="' + escHtml(e.date) + '">';
-  html += '<div class="sd-card-head"><div><div class="sd-date">Shuttlecock Draw' + (e.label ? ' · ' + escHtml(e.label) : '') + '</div>'
-    + '<div class="sd-when">' + (e.at ? 'Drawn ' + escHtml(SessionDraw.fmtDrawTime(e.at)) : escHtml(SessionDraw.fmtSessionDate(e.date))) + (e.live ? ' · this month' : '') + '</div></div>'
-    + '<span class="sd-status done">Shuttlecock</span></div>';
-  html += winners.length
-    ? '<div class="sd-winners">' + winners.map(w => '<span class="sd-win-chip"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg>' + escHtml(w.name) + '<small>' + escHtml(w.prize ? w.prize : ordinalLbl(w.rank)) + '</small></span>').join('') + '</div>'
-    : '<div class="sd-nowin">No winners.</div>';
-  html += replayable ? sdVideoRowHtml('shuttle', e.key) : '<div class="sd-foot"><span>No replay — this draw has no recorded ballot.</span></div>';
-  return html + '</div>';
-}
 
 // ── replay video modal ──
 let dvCtl = null, dvResult = null, dvSource = null, dvKey = null, dvAutoSave = false;
@@ -8521,10 +7852,6 @@ function sdFindSource(kind, key) {
   if (kind === 'monthly') {
     const v = ((sdPublic.monthly && sdPublic.monthly.months) || []).concat(mlAdmin.months || []).find(x => x.month === key && x.status === 'done');
     return v ? DrawVideo.sourceFromMonthly(v) : null;
-  }
-  if (kind === 'shuttle') {
-    const e = shuttleDrawEntries().find(x => x.key === key);
-    return e ? DrawVideo.sourceFromShuttlecock(e) : null;
   }
   const e = manualDrawEntries().find(x => x.key === key);
   return e ? DrawVideo.sourceFromManual(e) : null;
@@ -9160,9 +8487,9 @@ function mlCardHtml(v, admin) {
   return html + '</div>';
 }
 
-// ── public page sections: MONTHLY (points) and SHUTTLECOCK (ballot) ──
-// Each owns its whole page — status first, prizes, rules collapsed, then that
-// draw's own record. Neither shares a list or a calendar with the others.
+// ── public page section: MONTHLY (points) draw ──
+// It owns its whole page — status first, prizes, rules collapsed, then its own
+// record. It shares no list or calendar with the Session draw.
 function renderPublicMonthly() {
   const el = document.getElementById('drawPageMonthly'); if (!el || !window.MonthlyLucky) return;
   const m = sdPublic.monthly;
@@ -9192,36 +8519,6 @@ function renderPublicMonthly() {
   html += rest.length
     ? '<div class="sd-list">' + rest.map(v => mlCardHtml(Object.assign({ live: false }, v), false)).join('') + '</div>'
     : '<div class="acct-empty">No monthly draw has been run yet — the first one appears after this month closes.</div>';
-  el.innerHTML = html;
-}
-
-function renderPublicShuttle() {
-  const el = document.getElementById('drawPageShuttle'); if (!el || !window.DrawHub) return;
-  const md = (state && state.monthlyDraw) || {};
-  const st = DrawHub.shuttleStatus(md, drawMe && drawMe.monthly, clockNow());
-  const card = document.getElementById('shStatusCard');
-  if (card) {
-    const mine = st.mine
-      ? { tone: st.mine.tone, text: st.mine.text,
-          note: st.mine.required > 0 ? st.mine.attended + ' of ' + st.mine.required + ' sessions counted' : (st.mine.reason || '') }
-      : null;
-    card.innerHTML = dhStatusHtml({
-      label: 'Enrolled this month',
-      count: st.poolCount,
-      sub: escHtml((MonthlyLucky.monthLabel(st.month) || 'This month') + ' · the admin runs this draw once a month'),
-      mine,
-      bar: st.mine && st.mine.required > 0 ? { value: st.mine.attended, max: st.mine.required } : null,
-    });
-  }
-  let html = dhPrizeRanksHtml(md.prizes);
-  html += dhHowHtml('Play and pay every session of your regular day this month and you are enrolled automatically. '
-    + 'The admin draws the prizes once a month and the winners are revealed live on the viewer screen. '
-    + 'Points are not used here — this draw is about turning up.');
-  const entries = shuttleDrawEntries();
-  html += '<div class="md-sec-title sd-record-title">Record</div>';
-  html += entries.length
-    ? '<div class="sd-list">' + entries.map(e => shCardHtml(e)).join('') + '</div>'
-    : '<div class="acct-empty">No shuttlecock draw has been run yet.</div>';
   el.innerHTML = html;
 }
 
@@ -9792,56 +9089,6 @@ function pmMemTap(pid, date, tap) {
   pmWrite(pid, patch, x => Object.assign(x, Payments.applyPaid(Payments.applyMethod(x, patch.method, now), patch.paid, now, 'admin')), date);
 }
 
-// ── ADMIN: MONTHLY eligibility (auto enrolment) ──
-function currentEligMonth() { return serverTodayISO().slice(0, 7); }
-async function recomputeMonthlyElig() {
-  const res = await apiPost({ action: 'recomputeMonthly', month: currentEligMonth() });
-  if (res === null) return;
-  if (!res.ok) { notify(res.error || 'Could not recalculate.', 'warn'); return; }
-  await loadAdminOps(); renderMonthlyElig(); await refreshState();
-  notify('Eligibility recalculated.');
-}
-
-function renderMonthlyElig() {
-  const el = document.getElementById('monthlyEligBody'); if (!el) return;
-  const me = adminOps.monthlyEligibility;
-  if (!me || !me.players || !me.players.length) {
-    el.innerHTML = '<div class="acct-empty">No eligibility calculated yet. Click <b>Recalculate</b> to build this month’s list from attendance + payments.</div>';
-    return;
-  }
-  const recompLine = '<div class="me-recalc">Last recalculated ' + escHtml(fmtDateTime(me.computedAt)) + '</div>';
-  const rows = me.players.slice().sort((a, b) => (b.eligible - a.eligible) || a.name.localeCompare(b.name)).map(p => {
-    const eff = window.MonthlyEligibility ? MonthlyEligibility.effectiveEligible(p) : p.eligible;
-    const days = p.regularWeekdays.map(w => WD_SHORT[w]).join(', ');
-    return '<div class="me-row" onclick="toggleInline(\'me_' + p.playerId + '\')">'
-      + '<div class="me-main"><b>' + escHtml(p.name) + '</b><span class="me-sub">' + escHtml(days || '—') + ' · ' + p.attendedCount + '/' + p.requiredCount + '</span></div>'
-      + '<span class="st-badge ' + (eff ? 'ok' : 'bad') + '">' + (eff ? 'Eligible' : 'Not eligible') + '</span>'
-      + '</div>'
-      + '<div class="acct-inline me-detail" id="me_' + p.playerId + '" onclick="event.stopPropagation()">' + eligBreakdownHtml(p) + '</div>';
-  }).join('');
-  el.innerHTML = recompLine + '<div class="me-list">' + rows + '</div>';
-}
-
-function eligBreakdownHtml(p) {
-  const rows = (p.breakdown || []).map(b =>
-    '<tr><td>' + escHtml(fmtISO(b.date)) + '</td><td>' + (b.present ? 'Present' : 'Absent') + '</td><td>' + (b.paid ? 'Paid' : 'Unpaid') + '</td><td>' + (b.counted ? 'Counted' : 'Not counted') + '</td></tr>').join('');
-  const ov = p.override ? ('<div class="me-ov">Admin override: <b>' + (p.override.eligible ? 'Eligible' : 'Not eligible') + '</b>' + (p.override.reason ? ' — ' + escHtml(p.override.reason) : '') + '</div>') : '';
-  return (p.reason ? '<div class="me-reason">' + escHtml(p.reason) + '</div>' : '')
-    + '<table class="me-table"><thead><tr><th>Date</th><th>Attendance</th><th>Payment</th><th>Eligibility</th></tr></thead><tbody>' + (rows || '<tr><td colspan="4">No required sessions yet.</td></tr>') + '</tbody></table>'
-    + ov
-    + '<div class="admin-btn-row admin-mt"><button class="btn btn-secondary btn-sm" onclick="setEligOverride(\'' + p.playerId + '\',true)">Force eligible</button>'
-    + '<button class="btn btn-ghost btn-sm" onclick="setEligOverride(\'' + p.playerId + '\',false)">Force not eligible</button>'
-    + '<button class="btn btn-ghost btn-sm" onclick="setEligOverride(\'' + p.playerId + '\',null)">Clear override</button></div>';
-}
-
-async function setEligOverride(playerId, eligible) {
-  const res = await apiPost({ action: 'setMonthlyOverride', month: currentEligMonth(), playerId, eligible, reason: eligible === null ? '' : 'admin override' });
-  if (res === null) return;
-  if (!res.ok) { notify(res.error || 'Could not set override.', 'warn'); return; }
-  await loadAdminOps(); renderMonthlyElig(); await refreshState();
-  notify('Override updated.');
-}
-
 // ── NAVIGATION ───────────────────────────────
 function showAdmin() {
   window.__gatePreview = false;
@@ -10410,7 +9657,7 @@ const AUDIT_LABELS = {
   'draw.run': 'Session draw run (manual)', 'draw.settings': 'Winners per draw changed',
   'monthlyLucky.draw': 'Monthly draw run (manual)', 'monthlyLucky.settings': 'Monthly draw setting changed', 'monthlyLucky.prizes': 'Monthly draw prizes changed',
   'monthlyLucky.pool': 'Monthly draw pool changed', 'monthlyLucky.close': 'Month closed — points reset',
-  'weekly.draw': 'Weekly draw (retired)', 'weekly.settings': 'Weekly schedule (retired)', 'monthly.recompute': 'Shuttlecock draw recalculated', 'monthly.override': 'Shuttlecock draw override',
+  'weekly.draw': 'Weekly draw (retired)', 'weekly.settings': 'Weekly schedule (retired)',
   'account.register': 'Account requested', 'account.approve': 'Account approved', 'account.reject': 'Account rejected',
   'account.more_info': 'More info requested', 'account.password_reveal': 'Password revealed', 'account.temp_password': 'Temp password set',
   'account.password_change': 'Password changed', 'account.force_change': 'Force-change toggled', 'account.lock': 'Account locked',
@@ -11200,11 +10447,11 @@ function toggleRosterMore(id) {
 // session get a subtle blue tint.
 function renderRosterList(listEl, visibleRoster, sessionIds, q) {
   if (!state.roster || state.roster.length === 0) {
-    listEl.innerHTML = '<div class="rl-empty">No roster players yet.</div>';
+    setHtmlIfChanged(listEl, '<div class="rl-empty">No roster players yet.</div>');
     return;
   }
   if (!visibleRoster.length) {
-    listEl.innerHTML = `<div class="rl-empty">No players match "${escHtml(q)}".</div>`;
+    setHtmlIfChanged(listEl, `<div class="rl-empty">No players match "${escHtml(q)}".</div>`);
     return;
   }
   const phone = isRosterPhone();
@@ -11248,7 +10495,9 @@ function renderRosterList(listEl, visibleRoster, sessionIds, q) {
       </div>
     </div>`;
   }).join('');
-  listEl.innerHTML = `<div class="rl-head"><span>Player</span><span>Level</span><span>Girl</span><span>Mixed</span><span>Life</span><span>Pts</span></div>${rows}`;
+  // Same no-op guard as the Grid: an unchanged poll tick must not swap the row
+  // the cursor is resting on, or its − / + buttons blink out of their hover fill.
+  setHtmlIfChanged(listEl, `<div class="rl-head"><span>Player</span><span>Level</span><span>Girl</span><span>Mixed</span><span>Life</span><span>Pts</span></div>${rows}`);
 }
 
 // ── MANUAL POINTS ────────────────────────────────────────────────────────────
@@ -11947,8 +11196,6 @@ function closeOpenOverlays() {
   const isOpen = id => { const el = document.getElementById(id); return el && el.classList.contains('open'); };
   if (isOpen('membersModal')) { closeMembersModal(); closed = true; }
   if (isOpen('lbModal'))      { closeLbModal();      closed = true; }
-  if (isOpen('mdBoardModal')) { closeMdBoard();      closed = true; }
-  if (isOpen('mdHistModal'))  { closeMdHist();       closed = true; }
   if (isOpen('historyModal')) { closeHistoryModal(); closed = true; }
   if (isOpen('moreSheet'))    { closeMoreSheet();    closed = true; }
   if (isOpen('joinModal'))    { closeJoinModal();    closed = true; }
@@ -11973,34 +11220,10 @@ let pickerRaf = null;
 let pickerAutoHideTimer = null;
 let pickerSafetyTimer = null;
 // Which draw currently owns the single #pickerOverlay ('engagement'|'monthly'|null).
-// poll() fires checkForNewSpin + checkForNewMonthlyDraw every tick; this serializes them (F2).
-let activeRevealKind = null;
-
-function checkForNewMonthlyDraw(md) {
-  const spin = md && md.spin;
-  if (!spin || !spin.id) return;
-  if (spin.id === lastDrawSpinId) return;
-  const now = clockNow();
-  const finishedAt = spin.startAt + spin.durationMs;
-  if (now > finishedAt + SPIN_GRACE_MS) { lastDrawSpinId = spin.id; return; } // stale — consume silently
-  // Serialize against an engagement reveal that currently owns the overlay (F2).
-  if (activeRevealKind && activeRevealKind !== 'monthly') return;
-  lastDrawSpinId = spin.id;
-  activeRevealKind = 'monthly';
-  if (pickerRaf) { cancelAnimationFrame(pickerRaf); pickerRaf = null; }
-  showPickerOverlay(spin);
-  if (prefersReducedMotion() || now >= finishedAt) { displayPickerWinner(spin); return; }
-  animatePicker(spin);
-  // Safety net: requestAnimationFrame pauses in background tabs, so guarantee the
-  // winner reveal + auto-hide fire on wall-clock time even if the shuffle stalls.
-  clearTimeout(pickerSafetyTimer);
-  pickerSafetyTimer = setTimeout(() => displayPickerWinner(spin), Math.max(0, finishedAt - now) + 120);
-}
-
 function showPickerOverlay(spin) {
   document.getElementById('pickerOverlay').classList.add('active');
   const titleEl = document.getElementById('pickerTitle');
-  if (titleEl) titleEl.textContent = (spin && spin.title) || 'Shuttlecock Lucky Draw';
+  if (titleEl) titleEl.textContent = (spin && spin.title) || 'Lucky Draw';
   const prizeEl = document.getElementById('pickerPrize');
   if (prizeEl) {
     const rank = (spin && spin.rank) || 1;
@@ -12010,7 +11233,7 @@ function showPickerOverlay(spin) {
     if (spin && spin.noPrize) {
       prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${escHtml(ordinalLbl(rank))} Winner</span>`;
     } else {
-      prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${mdRankLbl(rank)} Prize${spin && spin.prize ? ' &mdash; ' + escHtml(spin.prize) : ''}</span>`;
+      prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${escHtml(ordinalLbl(rank))} Prize${spin && spin.prize ? ' &mdash; ' + escHtml(spin.prize) : ''}</span>`;
     }
   }
   const nameEl = document.getElementById('pickerName');
@@ -12583,7 +11806,6 @@ function closeMyDraw() { document.getElementById('myDrawModal').classList.remove
 function renderMyDraw(data) {
   const body = document.getElementById('myDrawBody'); if (!body) return;
   let html = '';
-  const m = data.monthly;
   html += '<div class="md-sec-title">This month</div>';
   // Points-based Monthly draw: how close this member is to the threshold.
   const mlLite = (state && state.monthlyLucky) || null;
@@ -12594,14 +11816,6 @@ function renderMyDraw(data) {
     html += '<div class="st-details"><div><span>Monthly draw</span><b>' + (pts >= t ? '<span class="st-badge ok">In the draw</span>' : escHtml((t - pts) + ' more point' + (t - pts === 1 ? '' : 's') + ' to enter')) + '</b></div>'
       + '<div><span>Points this month</span><b>' + pts + ' / ' + t + '</b></div></div>';
   }
-  if (m) {
-    html += '<div class="st-details"><div><span>Shuttlecock draw</span><b>'
-      + (m.eligible ? '<span class="st-badge ok">Enrolled</span>' : '<span class="st-badge bad">Not enrolled</span>') + '</b></div>'
-      + '<div><span>Sessions counted</span><b>' + (m.attendedCount || 0) + '/' + (m.requiredCount || 0) + '</b></div></div>';
-    if (!m.eligible && m.reason) html += '<div class="st-reason">' + escHtml(m.reason) + '</div>';
-  } else {
-    html += '<div class="acct-empty">Shuttlecock draw eligibility hasn’t been calculated yet.</div>';
-  }
   html += '<div class="md-sec-title">My recent sessions</div>';
   if (data.weekly && data.weekly.length) {
     html += '<div class="st-details">' + data.weekly.map(w => '<div><span>' + escHtml(fmtISOYear(w.date)) + '</span><b>'
@@ -12610,19 +11824,8 @@ function renderMyDraw(data) {
   } else {
     html += '<div class="acct-empty">No recent session records yet.</div>';
   }
-  html += '<div class="md-sec-title">Shuttlecock draw winners</div>' + publicWinnersHtml();
   html += '<div class="admin-btn-row admin-mt" style="justify-content:center"><button class="btn btn-secondary btn-sm" type="button" onclick="closeMyDraw();openDrawPage()">Open the Lucky Draw page</button></div>';
   body.innerHTML = html;
-}
-
-function publicWinnersHtml() {
-  const items = [];
-  const md = (state && state.monthlyDraw) || {};
-  (md.results || []).forEach(r => items.push({ at: r.at || 0, label: 'Shuttlecock — ' + (r.prize || ''), name: r.name }));
-  items.sort((a, b) => b.at - a.at);
-  const top = items.slice(0, 8);
-  if (!top.length) return '<div class="acct-empty">No winners yet.</div>';
-  return '<div class="st-details">' + top.map(i => '<div><span>' + escHtml(i.label) + '</span><b>' + escHtml(i.name) + '</b></div>').join('') + '</div>';
 }
 
 // ── change password (self-service, optionally forced) ──

@@ -46,7 +46,6 @@ const DEFAULT_STATE = {
   sessions: {},
   feeTier: Payments.DEFAULT_TIER,
   luckyDraw: { entries: [], paid: [], drawDate: null, spin: null, results: [], history: [] },
-  monthlyDraw: { month: '', rollSuppressedMonth: '', prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'], participants: [], results: [], spin: null, history: [] },
   socialGames: [
     { id: 'sg-fri', day: 'Friday', weekday: 5, time: '9–11pm', enabled: true },
     { id: 'sg-sun', day: 'Sunday', weekday: 0, time: '9–11pm', enabled: true },
@@ -57,7 +56,6 @@ const DEFAULT_STATE = {
   attendance: {},
   drawSettings: { winners: SD.DEFAULT_WINNERS },
   sessionDrawAt: SD.scheduledDrawAt(todayISO()),
-  monthlyEligibility: null,
   lifetimePoints: {}, // permanent { playerId: total } — the month close never touches it
   audit: [],
 };
@@ -180,7 +178,6 @@ app.post('/api/state', async (req, res) => {
       ok: true,
       attendance: state.attendance || {},
       drawSettings: { winners: SD.winnersOf(state.drawSettings) },
-      monthlyEligibility: state.monthlyEligibility || null,
       audit: Array.isArray(state.audit) ? state.audit.slice(0, 300) : [],
       feeTier: Payments.tierOf(state.feeTier),
       sessionDate: state.sessionDate || null,

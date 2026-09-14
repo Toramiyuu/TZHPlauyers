@@ -110,13 +110,29 @@ check('test draw falls back to the roster when tonight has nobody', fn('runTestD
 check('test cards: badge, "not saved" footer, test video source', fn('sdCardHtml').includes("v.test ? 'test'") && fn('sdCardHtml').includes('Test draw · not saved') && fn('sdFindSource').includes("kind === 'test'"));
 check('public page retries a failed load once, then offers Try again', fn('loadDrawPage').includes('sdRetried') && fn('loadDrawPage').includes('onclick="loadDrawPage(false)"'));
 
-// ── Shuttlecock Draw rename (2026-09-11: the monthly draw is now labelled "Shuttlecock") ──
-check('Lucky Draw sub-tab reads "Shuttlecock draw" (data-sub stays monthly)', /data-sub="monthly" onclick="setLuckyTab\('monthly'\)">Shuttlecock draw<\/button>/.test(html));
-check('reveal overlay defaults to "Shuttlecock Lucky Draw"', html.includes('<div id="pickerTitle">Shuttlecock Lucky Draw</div>') && fn('showPickerOverlay').includes("|| 'Shuttlecock Lucky Draw'"));
-check('board title, enrolment card and help drawer are renamed', html.includes('id="mdBoardTitle">Shuttlecock Prize Draw</h2>') && html.includes('Shuttlecock Draw enrolment</span>') && /Lucky Draw &mdash; Shuttlecock<\/summary>/.test(html));
-check('player-facing copy is renamed', fn('renderMyDraw').includes('<span>Shuttlecock draw</span>') && fn('renderMyDraw').includes('Shuttlecock draw winners') && fn('publicWinnersHtml').includes("'Shuttlecock — '"));
-check('no user-visible "Monthly Lucky Draw" label remains', !/Monthly Lucky Draw|Monthly Prize Draw/.test(html)
-  && !/data-sub="monthly" onclick="setLuckyTab\('monthly'\)">Monthly</.test(html));
-check('month semantics copy is untouched', html.includes('Close month &amp; carry over') && html.includes('id="mdHistTitle">Past month</h2>'));
+// ── Shuttlecock Draw REMOVED (2026-09) ──────────────────────────────────
+// The admin-run monthly ballot is gone: no sub-tab, no enrolment card, no prize
+// board, no public page, no member-facing copy. Stored records are left dormant
+// in Redis (see test-state-normalize.js) but must never surface in the UI again.
+check('no Shuttlecock sub-tab, enrolment card, prize board or past-month modal',
+  !/data-sub="monthly"/.test(html) && !html.includes('Shuttlecock Draw enrolment')
+  && !html.includes('mdBoardModal') && !html.includes('mdHistModal') && !html.includes('mdBoardBtn'));
+check('no Shuttlecock entry on the public Lucky Draw hub',
+  !html.includes('data-draw="shuttlecock"') && !html.includes('drawPageShuttle') && !html.includes('shStatusCard'));
+check('the ballot state key is never read in the browser again', !/state\.monthlyDraw|monthlyEligibility/.test(html));
+check('no Shuttlecock renderer survives',
+  !/function (renderPublicShuttle|shCardHtml|shuttleDrawEntries|publicWinnersHtml|renderMonthlyTab|renderMonthlyElig|openMdBoard|openMdHist)\b/.test(html));
+check('the member page no longer claims Shuttlecock enrolment or winners',
+  !fn('renderMyDraw').includes('Shuttlecock') && fn('renderMyDraw').includes('Monthly draw'));
+// The reveal overlay is SHARED with the manual quick draw, so it stays — but
+// under a neutral title, and using the ordinal helper that handles ranks > 3.
+check('shared reveal overlay kept, retitled, and rank label fixed',
+  html.includes('<div id="pickerTitle">Lucky Draw</div>') && fn('showPickerOverlay').includes("|| 'Lucky Draw'")
+  && !/mdRankLbl/.test(html) && fn('showPickerOverlay').includes('ordinalLbl(rank)'));
+check('the two remaining draws are intact',
+  /data-sub="weekly" onclick="setLuckyTab\('weekly'\)">Session draw</.test(html)
+  && /data-sub="monthlylucky" onclick="setLuckyTab\('monthlylucky'\)">Monthly draw</.test(html));
+check('the word "shuttlecock" survives only as a prize/points example, never as a draw',
+  !/Shuttlecock Draw|Shuttlecock draw|Shuttlecock Lucky Draw|Shuttlecock Prize/.test(html));
 
 process.exit(fail ? 1 : 0);

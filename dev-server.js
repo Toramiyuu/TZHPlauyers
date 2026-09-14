@@ -88,7 +88,6 @@ STORE = {
     [String(other2)]: ['p2', 'p5', 'p7'],
   },
   luckyDraw: { entries: [], paid: [], drawDate: todayIso, spin: null, results: [], history: [] },
-  monthlyDraw: { month: '', rollSuppressedMonth: '', prizes: [], participants: [], results: [], spin: null, history: [] },
   socialGames: [
     { id: 'sg-fri', day: 'Friday', weekday: 5, time: '9–11pm', enabled: true },
     { id: 'sg-sun', day: 'Sunday', weekday: 0, time: '9–11pm', enabled: true },
@@ -129,11 +128,6 @@ STORE = {
     pointsMonth: thisMonth, pool: null,
     closed: { [lastMonth]: { month: lastMonth, closedAt: Date.now() - 864e5, points, names } },
   };
-  // One Shuttlecock ballot result (with its pool) so that draw can be replayed too.
-  const parts = STORE.roster.slice(0, 6).map((r, i) => ({ id: 'mp' + i, name: r.name, phone: '', tubes: 4 * (i + 1), tokens: i + 1 }));
-  STORE.monthlyDraw = { month: thisMonth, rollSuppressedMonth: '', prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'],
-    participants: parts, spin: null, history: [],
-    results: [{ rank: 1, id: 'mp2', name: parts[2].name, phone: '', prize: '1 Tube of new G2 Shuttlecock', at: Date.now() - 3600e3, pool: parts.map((p) => p.name) }] };
 })();
 
 // ── Seed the last three draw-day nights so the Lucky Draw page has content ──

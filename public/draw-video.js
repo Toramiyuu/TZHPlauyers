@@ -5,8 +5,7 @@
  * public/session-draw.js: eligible names, seed, winners), the manual quick
  * draw (history entries that carry each winner's pool), the points-based
  * Monthly draw (public/monthly-lucky.js record: eligible names, seed, winners
- * + prizes) and the Shuttlecock ballot draw (state.monthlyDraw results/history,
- * with the ballot names as the pool and the prize each rank won). The replay is rendered
+ * + prizes). The replay is rendered
  * on a <canvas> in the viewer's browser and captured with MediaRecorder into an
  * MP4 (Safari, Chrome 126+) or WebM — nothing is uploaded or stored server-side,
  * and because the reel is driven by a seeded PRNG the same draw always produces
@@ -199,61 +198,6 @@
       verified: !!view.verified, test: false,
     };
   }
-  /**
-   * Shuttlecock ballot draw → source. `entry` comes from shuttlecockEntriesOf():
-   * the live month's results or an archived month, winners [{rank,name,prize,pool?}].
-   * The pool is the ballot's unique names (stored per result since 2026-09; for
-   * older results the month's participant list stands in). No pool → null.
-   */
-  function sourceFromShuttlecock(entry) {
-    if (!entry || !isValidISO(entry.date)) return null;
-    const winners = (entry.winners || []).filter((w) => w && w.name).slice().sort((a, b) => (a.rank || 0) - (b.rank || 0));
-    if (!winners.length) return null;
-    const first = winners.find((w) => Array.isArray(w.pool) && w.pool.length);
-    const pool = first ? first.pool.map(String) : (Array.isArray(entry.pool) ? entry.pool.map(String) : []);
-    if (!pool.length) return null;
-    const at = Number(entry.at) || 0;
-    return {
-      kind: 'shuttle', date: entry.date, month: entry.month || '', key: entry.key || ('shuttle:' + entry.date + ':' + at),
-      title: 'Shuttlecock Draw', subtitle: String(entry.label || fmtLongDate(entry.date)),
-      when: at ? 'Drawn ' + fmtDrawTime(at) : '',
-      pool,
-      winners: winners.map((w) => ({ rank: Number(w.rank) || 0, name: String(w.name), prize: String(w.prize || ''), pool: Array.isArray(w.pool) && w.pool.length ? w.pool.map(String) : undefined })),
-      seed: 'shuttle:' + entry.date + ':' + at + ':' + winners.map((w) => w.name).join('|'),
-      method: 'Ballot draw',
-      note: pool.length + ' in the ballot',
-      verified: false,
-    };
-  }
-  /**
-   * Every Shuttlecock draw the page can list, newest first: the live month's
-   * results (only prizes already revealed, i.e. `at` <= nowMs) plus the archived
-   * months. Live results without a stored pool fall back to the participants.
-   */
-  function shuttlecockEntriesOf(md, nowMs) {
-    const out = [];
-    if (!md || typeof md !== 'object') return out;
-    const now = nowMs != null ? Number(nowMs) : Date.now();
-    const isoOf = (ms) => new Date(Number(ms) + MYT_OFFSET_MS).toISOString().slice(0, 10);
-    const labelOf = (m) => { const x = /^(\d{4})-(\d{2})$/.exec(String(m || '')); return x && MONTHS_LONG[+x[2] - 1] ? MONTHS_LONG[+x[2] - 1] + ' ' + x[1] : ''; };
-    const results = (Array.isArray(md.results) ? md.results : []).filter((r) => r && r.name && (Number(r.at) || 0) <= now && Number(r.at) > 0);
-    if (results.length) {
-      const at = Math.max.apply(null, results.map((r) => Number(r.at) || 0));
-      const parts = (Array.isArray(md.participants) ? md.participants : []).map((p) => String((p && p.name) || '')).filter(Boolean);
-      out.push({ date: isoOf(at), at, live: true, month: md.month || '', label: labelOf(md.month), key: 'shuttle:' + (md.month || isoOf(at)) + ':live', pool: parts,
-        winners: results.map((r) => ({ rank: r.rank, name: r.name, prize: r.prize || '', pool: Array.isArray(r.pool) ? r.pool.slice() : undefined })) });
-    }
-    (Array.isArray(md.history) ? md.history : []).forEach((h, i) => {
-      if (!h || !(Number(h.at) > 0)) return;
-      const at = Number(h.at);
-      const parts = (Array.isArray(h.participants) ? h.participants : []).map((p) => String((p && p.name) || '')).filter(Boolean);
-      const winners = (h.winners || []).filter((w) => w && w.name).map((w) => ({ rank: w.rank, name: w.name, prize: w.prize || '', pool: Array.isArray(w.pool) ? w.pool.slice() : undefined }));
-      if (!winners.length) return;
-      out.push({ date: isoOf(at), at, live: false, month: h.month || '', label: h.label || labelOf(h.month), key: 'shuttle:' + (h.month || isoOf(at)) + ':' + i, pool: parts, winners });
-    });
-    return out.sort((a, b) => (a.date === b.date ? b.at - a.at : (a.date < b.date ? 1 : -1)));
-  }
-
   // ── the replay script (pure, deterministic) ──────────────────────────
   /** Decelerating swap schedule like the live reel; a name never repeats back-to-back. */
   function reelSwaps(names, durationMs, rng) {
@@ -349,12 +293,11 @@
     return { year, month0, label: monthLabel(year, month0), cells, weekdays };
   }
   /** {iso: {session: view|null, manual: [entries]}} for calendar marks and day filtering. */
-  function indexDraws(sessions, manual, shuttle) {
+  function indexDraws(sessions, manual) {
     const idx = {};
-    const slot = (d) => (idx[d] = idx[d] || { session: null, manual: [], shuttle: [] });
+    const slot = (d) => (idx[d] = idx[d] || { session: null, manual: [] });
     (sessions || []).forEach((v) => { if (v && isValidISO(v.date)) slot(v.date).session = v; });
     (manual || []).forEach((e) => { if (e && isValidISO(e.date)) slot(e.date).manual.push(e); });
-    (shuttle || []).forEach((e) => { if (e && isValidISO(e.date)) slot(e.date).shuttle.push(e); });
     return idx;
   }
 
@@ -373,7 +316,6 @@
   function filenameFor(source, mime) {
     const s = source || {};
     if (s.kind === 'monthly') return 'TZH-Monthly-Draw-' + (s.month || (isValidISO(s.date) ? s.date : 'replay')) + '.' + extFor(mime);
-    if (s.kind === 'shuttle') return 'TZH-Shuttlecock-Draw-' + (s.month || (isValidISO(s.date) ? s.date : 'replay')) + '.' + extFor(mime);
     return 'TZH-Lucky-Draw-' + (isValidISO(s.date) ? s.date : 'replay') + (s.kind === 'manual' ? '-quick-draw' : '') + '.' + extFor(mime);
   }
 
@@ -472,7 +414,7 @@
     const blockH = rowsUsed * rowH + Math.max(0, rowsUsed - 1) * gap;
     const h = Math.min(maxH, 210 + blockH + 60);
     card(ctx, x, y, w, h, 36);
-    text(ctx, src.kind === 'manual' ? 'IN THE POOL' : src.kind === 'shuttle' ? 'IN THE BALLOT' : 'IN THE DRAW', W / 2, y + 72, { weight: 700, px: 28, color: THEME.blue, spacing: '6px' });
+    text(ctx, src.kind === 'manual' ? 'IN THE POOL' : 'IN THE DRAW', W / 2, y + 72, { weight: 700, px: 28, color: THEME.blue, spacing: '6px' });
     text(ctx, pool.length + ' player' + (pool.length === 1 ? '' : 's'), W / 2, y + 146, { weight: 800, px: 64, color: THEME.ink });
     const oy = y + 210;
     lay.chips.forEach((c) => {
@@ -522,7 +464,7 @@
     ctx.fillText(f.name, 0, 0);
     ctx.restore();
     text(ctx, locked ? 'WINNER' : 'DRAWING A WINNER', W / 2, y + h + 72, { weight: 700, px: 28, color: locked ? THEME.blue : THEME.ink3, spacing: '6px' });
-    if (seg.prize) { // what this rank wins (monthly + shuttlecock draws)
+    if (seg.prize) { // what this rank wins (monthly draw)
       fitFont(ctx, seg.prize, 700, 40, 26, w - 80);
       ctx.fillStyle = locked ? THEME.ink : THEME.ink2; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(seg.prize, W / 2, y + h + (locked ? 130 : 200));
@@ -659,7 +601,7 @@
   return {
     WIDTH, HEIGHT, FPS, TIMING, MIME_PREFS, CONFETTI_COLORS, THEME,
     isValidISO, ordinal, fmtLongDate, fmtDrawTime, fmtBytes, prng,
-    sourceFromSession, sourceFromManual, manualEntriesOf, sourceFromMonthly, sourceFromShuttlecock, shuttlecockEntriesOf,
+    sourceFromSession, sourceFromManual, manualEntriesOf, sourceFromMonthly,
     reelSwaps, buildScript, frameAt, chipLayout,
     monthOf, shiftMonth, monthStartISO, monthLabel, monthGrid, indexDraws,
     canRecord, pickMimeType, extFor, filenameFor,

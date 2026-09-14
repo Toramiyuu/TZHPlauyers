@@ -223,7 +223,7 @@ check('a no-op edit moves neither', src.includes('if (built.prev !== built.next)
 check('the response hands the new lifetime total back to the client', src.includes('lifetime: lifetimeOf(state.lifetimePoints, built.player.id)'));
 
 // ── client ──
-check('the ops cache starts with lifetimePoints null — "not fetched", not zero', html.includes("let adminOps = { attendance: {}, drawSettings: null, monthlyEligibility: null, audit: [], lifetimePoints: null };"));
+check('the ops cache starts with lifetimePoints null — "not fetched", not zero', html.includes("let adminOps = { attendance: {}, drawSettings: null, audit: [], lifetimePoints: null };"));
 check('loadAdminOps stores what the server sent', fn('loadAdminOps').includes('lifetimePoints: res.lifetimePoints || {}'));
 check('an unfetched ledger renders an em-dash, not a wrong 0', (() => {
   const f = fn('lifetimePointsFor'), l = fn('lifetimePointsLabel');

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
-/* The three-way Lucky Draw split (2026-09-13).
+/* The Lucky Draw hub (2026-09-13; Shuttlecock removed 2026-09-14).
  *
  * Part 1 — pure logic in public/draw-hub.js: the countdown, the entry lines that
- *          tell Monthly and Shuttlecock apart, each draw's status card and the
+ *          name each draw's entry rule, each draw's status card and the
  *          "last winner" line on the hub cards. `nowMs` is always injected.
  * Part 2 — the session-draw prize line (public/session-draw.js + the
  *          setDrawSettings handler), which is set independently of the winner
  *          count so saving one never resets the other.
- * Part 3 — static assertions on public/index.html: the hub + three detail views
+ * Part 3 — static assertions on public/index.html: the hub + both detail views
  *          exist, the router is wired, and no draw's record leaks into another's.
  */
 'use strict';
@@ -33,12 +33,14 @@ const fn = (n) => extractFn(n, html);
 const NOW = Date.UTC(2026, 8, 13, 4, 0); // Sun 13 Sep 2026, 12:00 MYT
 
 // ── kinds + entry lines ──
-check('three kinds, in hub order', DH.KINDS.join(',') === 'session,monthly,shuttlecock');
+check('two kinds, in hub order', DH.KINDS.join(',') === 'session,monthly');
 check('every kind is named', DH.KINDS.every(k => DH.kindName(k).endsWith('Draw')) && DH.kindName('nope') === '');
 check('isKind guards the router', DH.isKind('session') && !DH.isKind('hub') && !DH.isKind('') && !DH.isKind(null));
-check('entry lines separate the two monthly draws', DH.entryLine('monthly', { threshold: 80 }) === 'Reach 80 points in a month'
-  && DH.entryLine('shuttlecock') === 'Attend and pay every session of your regular day'
+check('every kind states how you get in', DH.entryLine('monthly', { threshold: 80 }) === 'Reach 80 points in a month'
   && DH.entryLine('session') === 'Play and pay a session');
+check('the removed Shuttlecock draw is not a kind any more',
+  !DH.isKind('shuttlecock') && DH.kindName('shuttlecock') === '' && DH.entryLine('shuttlecock') === ''
+  && DH.shuttleStatus === undefined && DH.latestShuttleWin === undefined);
 check('entry line falls back when the threshold is unknown', DH.entryLine('monthly') === 'Reach the points target in a month' && DH.entryLine('monthly', { threshold: 0 }).includes('points target'));
 
 // ── countdown ──
@@ -95,31 +97,12 @@ check('monthlyStatus: signed out has no personal line', DH.monthlyStatus(monthly
 check('monthlyStatus: a manual month has nothing to count down to', DH.monthlyStatus(Object.assign({}, monthly, { auto: false }), 58, NOW).drawAt === 0);
 check('monthlyStatus: no payload -> null (page shows the not-set-up note)', DH.monthlyStatus(null, 10, NOW) === null);
 
-// ── shuttlecock status ──
-const md = {
-  month: '2026-09', prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', ''],
-  participants: [{ id: 'a', name: 'Al' }, { id: 'b', name: 'Bo' }, { id: 'c', name: '' }],
-  results: [{ rank: 1, name: 'Bo', prize: 'Tube', at: NOW - DH.HOUR }, { rank: 2, name: 'Al', prize: 'Strings', at: NOW + DH.HOUR }],
-};
-let sh = DH.shuttleStatus(md, { eligible: true, attendedCount: 4, requiredCount: 4 }, NOW);
-check('shuttleStatus: enrolment count skips blank names', sh.poolCount === 2 && sh.month === '2026-09');
-check('shuttleStatus: only revealed results count as drawn', sh.drawnCount === 1);
-check('shuttleStatus: enrolled member', sh.mine.tone === 'ok' && sh.mine.attended === 4 && sh.mine.required === 4);
-check('shuttleStatus: short member keeps the reason', (() => { const m = DH.shuttleStatus(md, { eligible: false, attendedCount: 2, requiredCount: 4, reason: 'Missed 1 Monday' }, NOW).mine; return m.tone === 'warn' && m.attended === 2 && m.reason === 'Missed 1 Monday'; })());
-check('shuttleStatus: signed out / not computed -> no personal line', DH.shuttleStatus(md, null, NOW).mine === null);
-check('shuttleStatus: junk never throws', (() => { const e = DH.shuttleStatus(null, null, NOW); return e.poolCount === 0 && e.drawnCount === 0; })());
-
 // ── last winner ──
 check('winnerLine: one name, then "+ N more"', DH.winnerLine(['Ah Sheng']) === 'Ah Sheng' && DH.winnerLine(['Ah Sheng', 'Karine']) === 'Ah Sheng + 1 more' && DH.winnerLine(['A', 'B', 'C']) === 'A + 2 more');
 check('winnerLine: blanks are dropped', DH.winnerLine(['', '  ', 'Bo']) === 'Bo' && DH.winnerLine([]) === '' && DH.winnerLine(null) === '');
 check('latestSessionWin: newest drawn night only', (() => { const w = DH.latestSessionWin(sessions); return w.date === '2026-09-07' && w.names.join(',') === 'Ah Sheng,Karine'; })());
 check('latestSessionWin: nothing drawn yet -> null', DH.latestSessionWin(sessions.filter(s => s.status !== 'done')) === null && DH.latestSessionWin(null) === null);
 check('latestMonthlyWin: newest closed month', DH.latestMonthlyWin(monthly).names.join(',') === 'Karine,Ong Yi' && DH.latestMonthlyWin({ months: [] }) === null);
-check('latestShuttleWin: newest ballot', (() => {
-  const w = DH.latestShuttleWin([{ at: NOW - DH.DAY, label: 'Aug 2026', winners: [{ name: 'Al' }] }, { at: NOW - DH.HOUR, label: 'Sep 2026', winners: [{ name: 'Bo' }, { name: 'Cy' }] }]);
-  return w.label === 'Sep 2026' && DH.winnerLine(w.names) === 'Bo + 1 more';
-})());
-
 // ══ 2. the session-draw prize line ═══════════════════════════════════
 check('prizeOf trims, collapses whitespace and clamps', SD.prizeOf({ prize: '  A tube   of shuttles ' }) === 'A tube of shuttles'
   && SD.prizeOf({ prize: 'x'.repeat(200) }).length === SD.MAX_PRIZE_LEN
@@ -156,17 +139,18 @@ check('prizeOf trims, collapses whitespace and clamps', SD.prizeOf({ prize: '  A
   // ══ 3. static wiring ═══════════════════════════════════════════════
   check('draw-hub.js is loaded as a UMD lib after draw-video.js', html.indexOf('<script src="/draw-video.js"></script>') < html.indexOf('<script src="/draw-hub.js"></script>'));
   check('hub container + three detail sections exist', html.includes('id="drawHub"') && html.includes('id="drawDetail"')
-    && /<section class="dh-view" data-draw="session"/.test(html) && /<section class="dh-view" data-draw="monthly"/.test(html) && /<section class="dh-view" data-draw="shuttlecock"/.test(html));
-  check('three pills, one per draw, in hub order', (() => {
-    const a = html.indexOf('class="dh-pill" role="tab" data-draw="session"'), b = html.indexOf('class="dh-pill" role="tab" data-draw="monthly"'), c = html.indexOf('class="dh-pill" role="tab" data-draw="shuttlecock"');
-    return a > 0 && b > a && c > b;
+    && /<section class="dh-view" data-draw="session"/.test(html) && /<section class="dh-view" data-draw="monthly"/.test(html)
+    && !/data-draw="shuttlecock"/.test(html));
+  check('two pills, one per draw, in hub order', (() => {
+    const a = html.indexOf('class="dh-pill" role="tab" data-draw="session"'), b = html.indexOf('class="dh-pill" role="tab" data-draw="monthly"');
+    return a > 0 && b > a;
   })());
   check('back arrow returns to the hub and hides there', html.includes('id="drawBackBtn" onclick="drawGo(\'hub\')"') && fn('drawGo').includes("back.style.display = v === 'hub' ? 'none' : ''"));
   check('drawGo toggles views + pills and is guarded by DrawHub.isKind', fn('drawGo').includes('DrawHub.isKind(view)') && fn('drawGo').includes('.dh-view') && fn('drawGo').includes('.dh-pill'));
-  check('per-draw deep links: #draw, #draw/session, #draw/monthly, #draw/shuttlecock', fn('drawHashFor').includes("'#draw/' + view") && fn('drawViewFromHash').includes('DrawHub.isKind(m[1])') && fn('openDrawPage').includes('drawViewFromHash()'));
+  check('per-draw deep links: #draw, #draw/session, #draw/monthly', fn('drawHashFor').includes("'#draw/' + view") && fn('drawViewFromHash').includes('DrawHub.isKind(m[1])') && fn('openDrawPage').includes('drawViewFromHash()'));
   check('renderDrawPage dispatches one view at a time', (() => {
     const f = fn('renderDrawPage');
-    return f.includes("drawView === 'hub'") && f.includes('renderDrawHub()') && f.includes('renderSessionDraw()') && f.includes('renderPublicMonthly()') && f.includes('renderPublicShuttle()');
+    return f.includes("drawView === 'hub'") && f.includes('renderDrawHub()') && f.includes('renderSessionDraw()') && f.includes('renderPublicMonthly()');
   })());
   check('header renames itself per draw', fn('renderDrawHeader').includes('DrawHub.kindName(drawView)') && fn('renderDrawHeader').includes('DrawHub.entryLine(drawView'));
   check('hub cards carry entry line, countdown, pool, personal status and last winner', (() => {
@@ -181,14 +165,13 @@ check('prizeOf trims, collapses whitespace and clamps', SD.prizeOf({ prize: '  A
     return f.includes('dhStatusHtml(') && f.includes('dhPrizeLineHtml(st.prize)') && html.includes('<details class="dh-how"><summary>How it works</summary>');
   })());
   check('Session Draw shows the admin-written prize line', fn('dhPrizeLineHtml').includes('Winners get') && fn('renderSessionDraw').includes('st.prize'));
-  check('Shuttlecock prizes render as a ranked list (they are plain strings)', fn('renderPublicShuttle').includes('dhPrizeRanksHtml(md.prizes)') && fn('dhPrizeRanksHtml').includes('ml-win-rank'));
-  check('each draw has its own record, none shared', fn('renderSessionDraw').includes("getElementById('drawPageCal')") && fn('renderPublicMonthly').includes('mlCardHtml(') && fn('renderPublicShuttle').includes('shCardHtml(e)'));
-  check('the session calendar no longer mixes in shuttlecock draws', fn('renderDrawCalendar').includes('DrawVideo.indexDraws(sessions, manualDrawEntries(), [])') && !fn('renderDrawCalendar').includes('sdc-dot sh'));
+  check('each draw has its own record, none shared', fn('renderSessionDraw').includes("getElementById('drawPageCal')") && fn('renderPublicMonthly').includes('mlCardHtml('));
+  check('the session calendar carries sessions + quick draws only', fn('renderDrawCalendar').includes('DrawVideo.indexDraws(sessions, manualDrawEntries())') && !fn('renderDrawCalendar').includes('sdc-dot sh'));
   check('quick draws stay in the session record, clearly labelled', fn('sdListItems').includes("kind: 'manual'") && fn('qdCardHtml').includes('Quick draw') && fn('renderDrawCalendar').includes('Quick draw'));
   check('admin: prize input posts setDrawSettings with prize only', html.includes('id="sdPrizeInput"') && fn('setDrawPrize').includes("action: 'setDrawSettings', prize: next") && !fn('setDrawPrize').includes('winners:'));
   check('admin: prize input is clamped client-side and re-read from drawSettings', fn('setDrawPrize').includes('SessionDraw.MAX_PRIZE_LEN') && fn('sdAdminPrize').includes('adminOps.drawSettings') && fn('renderSessionDrawsAdmin').includes('sdAdminPrize()'));
   check('admin: saving winners no longer wipes the cached prize', fn('setDrawWinners').includes("Object.assign({}, adminOps.drawSettings || {}, { winners: n })"));
 
-  console.log(`\ndraw hub (3-way split): ${pass} passed, ${fail} failed`);
+  console.log(`\ndraw hub: ${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);
 })();

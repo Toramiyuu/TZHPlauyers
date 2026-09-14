@@ -138,8 +138,9 @@ const set = (s, body, now) => H.handlePaymentAdminAction(s, Object.assign({ acti
   check('weekly setAttendance unpaid: paidAt cleared, payment kept', e.paid === false && e.payment.paidAt === null && e.payment.fee === 25);
   W.handleWeeklyAdminAction(s, { action: 'setAttendance', date: DATE, playerId: 'p1', present: false });
   check('weekly setAttendance present-only: payment untouched', s.attendance[DATE].entries.p1.payment.fee === 25);
-  // paid change feeds monthly eligibility recompute (same hook as attendance)
-  check('paid change recomputed monthly eligibility', s.monthlyEligibility && s.monthlyEligibility.month === '2026-09');
+  // The Shuttlecock eligibility recompute this used to trigger was removed with
+  // that draw (2026-09); a paid change must now touch nothing but the record.
+  check('paid change no longer builds an eligibility cache', s.monthlyEligibility === undefined);
 }
 
 // ── 4. amount follows tier unless overridden ──

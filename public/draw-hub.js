@@ -1,13 +1,13 @@
 /*
- * draw-hub.js — pure view-model logic for the three-way Lucky Draw split.
+ * draw-hub.js — pure view-model logic for the Lucky Draw hub.
  *
- * The Lucky Draw page is a hub of three separate draws, each with its own page:
+ * The Lucky Draw page is a hub of two separate draws, each with its own page:
  *
- *   session      — every session night. Play and pay within the window; winners
- *                  are drawn automatically at 09:00 MYT (see session-draw.js).
- *   monthly      — reach the points threshold in a calendar month (monthly-lucky.js).
- *   shuttlecock  — the ballot draw run by the admin once a month; players are
- *                  auto-enrolled by full attendance + payment of their regular day.
+ *   session  — every session night. Play and pay within the window; winners are
+ *              drawn automatically at 09:00 MYT (see session-draw.js).
+ *   monthly  — reach the points threshold in a calendar month (monthly-lucky.js).
+ *
+ * A third draw (Shuttlecock, an admin-run monthly ballot) was removed in 2026-09.
  *
  * Everything here is pure: inputs are the payloads the page already holds
  * (GET /api/draws, the public state poll, the member's own `accountDrawInfo`)
@@ -21,14 +21,12 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  const KINDS = ['session', 'monthly', 'shuttlecock'];
+  const KINDS = ['session', 'monthly'];
   // Display name + the one-line "how you get in" that rides every card and
-  // header. Monthly and Shuttlecock BOTH run monthly, so the entry line is the
-  // only thing that tells them apart at a glance — it is never optional.
+  // header, so a card never states only its name.
   const META = {
     session: { key: 'session', name: 'Session Draw', short: 'Session', entry: 'Play and pay a session' },
     monthly: { key: 'monthly', name: 'Monthly Draw', short: 'Monthly', entry: 'Reach the points target in a month' },
-    shuttlecock: { key: 'shuttlecock', name: 'Shuttlecock Draw', short: 'Shuttlecock', entry: 'Attend and pay every session of your regular day' },
   };
 
   const MINUTE = 60000, HOUR = 3600000, DAY = 86400000;
@@ -140,31 +138,6 @@
     };
   }
 
-  /**
-   * The Shuttlecock ballot. It has no scheduled instant — the admin runs it once
-   * a month — so the card leads with enrolment instead of a countdown.
-   */
-  function shuttleStatus(md, meMonthly, nowMs) {
-    const d = md && typeof md === 'object' ? md : {};
-    const now = num(nowMs, 0);
-    const drawn = arr(d.results).filter((r) => r && r.name && num(r.at, 0) > 0 && num(r.at, 0) <= now);
-    let mine = null;
-    if (meMonthly) {
-      const attended = num(meMonthly.attendedCount, 0), required = num(meMonthly.requiredCount, 0);
-      mine = meMonthly.eligible
-        ? { tone: 'ok', text: 'Enrolled', attended, required, reason: '' }
-        : { tone: 'warn', text: 'Not enrolled yet', attended, required, reason: meMonthly.reason || '' };
-    }
-    return {
-      kind: 'shuttlecock',
-      month: d.month || '',
-      poolCount: arr(d.participants).filter((p) => p && p.name).length,
-      drawnCount: drawn.length,
-      prizes: arr(d.prizes),
-      mine,
-    };
-  }
-
   // ── "last winner" for the hub cards ──────────────────────────────────
   /** "Ah Sheng" / "Ah Sheng + 2 more" — social proof that the draws pay out. */
   function winnerLine(names) {
@@ -189,18 +162,10 @@
     return { names: arr(v.lists.winners).map((w) => w && w.name).filter(Boolean), label: v.label || '', at: num(v.drawnAt, 0) };
   }
 
-  function latestShuttleWin(entries) {
-    const list = arr(entries).filter((e) => e && arr(e.winners).length);
-    if (!list.length) return null;
-    list.sort((a, b) => num(b.at, 0) - num(a.at, 0));
-    const e = list[0];
-    return { names: arr(e.winners).map((w) => w && w.name).filter(Boolean), label: e.label || '', at: num(e.at, 0) };
-  }
-
   return {
     KINDS, META, MINUTE, HOUR, DAY,
     isKind, kindName, entryLine, countdownText, poolLine,
-    nextSession, sessionMine, sessionStatus, monthlyStatus, shuttleStatus,
-    winnerLine, latestSessionWin, latestMonthlyWin, latestShuttleWin,
+    nextSession, sessionMine, sessionStatus, monthlyStatus,
+    winnerLine, latestSessionWin, latestMonthlyWin,
   };
 });

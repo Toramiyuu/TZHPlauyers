@@ -113,5 +113,40 @@ check('.rl-pts-inp has a focus ring and no !important', html.includes('.rl-pts-i
 check('.rl-pt-step is keyboard focusable with a visible ring', html.includes('.rl-pt-step:focus-visible{outline:2px solid var(--a-blue,#0071e3);outline-offset:1px}'));
 check('phone: the 22px steppers are hidden and the box fills the column', html.includes('.rl-pt-step{display:none}') && html.includes('.rl-pts-inp{width:100%;padding:8px 2px}'));
 
+// ── the − / + buttons must hold their hover state through a poll tick ──
+// The 2s poll repaints the Players section unconditionally. Rewriting identical
+// markup swapped out the button under the cursor, restarting its hover
+// transition twice a tick — the steppers visibly flashed while being hovered.
+// Both roster views now write only when the markup actually changed.
+const cache = new Function(`
+  ${fn('setHtmlIfChanged')}
+  ${fn('invalidateHtmlCache')}
+  return { setHtmlIfChanged, invalidateHtmlCache };
+`)();
+const el = { innerHTML: '', writes: 0 };
+Object.defineProperty(el, 'innerHTML', {
+  get() { return this._h || ''; },
+  set(v) { this._h = v; this.writes++; },
+});
+el.writes = 0;
+check('the first render writes', cache.setHtmlIfChanged(el, '<div>a</div>') === true && el.writes === 1);
+check('an identical repaint does not touch the DOM', cache.setHtmlIfChanged(el, '<div>a</div>') === false && el.writes === 1);
+check('repeated identical repaints stay no-ops (a hovered button is never replaced)', (() => {
+  for (let i = 0; i < 10; i++) cache.setHtmlIfChanged(el, '<div>a</div>');
+  return el.writes === 1;
+})());
+check('changed markup still repaints', cache.setHtmlIfChanged(el, '<div>b</div>') === true && el.writes === 2 && el.innerHTML === '<div>b</div>');
+check('invalidating forces the next identical render through', (() => {
+  cache.invalidateHtmlCache(el);
+  return cache.setHtmlIfChanged(el, '<div>b</div>') === true && el.writes === 3;
+})());
+check('a missing element is a safe no-op', cache.setHtmlIfChanged(null, '<div>a</div>') === false);
+const rps = fn('renderPlayersSection');
+check('the Grid builds one string and routes it through the guard', rps.includes('setHtmlIfChanged(grid, cards.join(\'\'))') && !rps.includes("grid.innerHTML = ''"));
+check('the Grid card keeps its tap-to-add handler after the move to markup', rps.includes('onclick="toggleRosterPlayer(\'${rp.id}\')"') && !rps.includes('card.onclick'));
+check('the List view routes through the guard too', fn('renderRosterList').includes('setHtmlIfChanged(listEl,') && !fn('renderRosterList').includes('listEl.innerHTML ='));
+check('inline name editing drops the cache, so closing an unchanged edit still repaints', fn('startEditRosterName').includes("invalidateHtmlCache(document.getElementById('rosterGrid'))"));
+check('the hovered stepper fill is the Apple blue, not the old green', html.includes('.rc-points-btn:hover{background:var(--green);border-color:var(--green);color:#fff}') && html.includes('--green:#0071e3;'));
+
 console.log(`\ntest-roster-points: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

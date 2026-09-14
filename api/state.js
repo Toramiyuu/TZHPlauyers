@@ -93,12 +93,6 @@ const DEFAULT_STATE = {
   // session; "End of the day" (lib/payments.js) generates payment records at this tier.
   feeTier: Payments.DEFAULT_TIER,
   luckyDraw: { entries: [], paid: [], drawDate: todayISO(), spin: null, results: [], history: [] },
-  monthlyDraw: { month: '', rollSuppressedMonth: '', prizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'], participants: [], results: [], spin: null, history: [] },
-  shopCustomers: [],
-  monthlyDraws: [],
-  drawPrizes: ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'],
-  drawOdds: { first: 0.01, second: 0.03, third: 0.05 },
-  monthlySpin: null,
   socialGames: [
     { id: 'sg-fri', day: 'Friday', weekday: 5, time: '9–11pm', enabled: true },
     { id: 'sg-sun', day: 'Sunday', weekday: 0, time: '9–11pm', enabled: true },
@@ -124,8 +118,6 @@ const DEFAULT_STATE = {
   // Scheduled draw instant (epoch ms) for the LIVE session day, stamped when the
   // day is created (applySessionDateChange); null on days that never draw.
   sessionDrawAt: SD.scheduledDrawAt(todayISO()),
-  // Auto-computed Monthly Lucky Draw eligibility cache (feeds monthlyDraw.participants).
-  monthlyEligibility: null,
   // ── points-based Monthly Lucky Draw (2026-09) ──
   // Settings + the month the roster points belong to + the pulled pool + closed-month
   // snapshots. Written ONLY through the monthly draw actions (lib/monthly-lucky.js);
@@ -139,16 +131,18 @@ const DEFAULT_STATE = {
   audit: [],
 };
 
-const DEFAULT_MD_PRIZES = ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'];
 
 // Full public GET projection: redactState() already strips the accounts array;
-// on top of that we strip attendance, audit, and the full monthlyEligibility
-// breakdown (all contain other players' private attendance/payment data).
-// `weeklyDraws` / `weeklySettings` are legacy keys from the retired Weekly draw;
-// they are dropped here too so an old blob's per-player name lists never leak.
+// on top of that we strip attendance and audit (both contain other players'
+// private attendance/payment data).
+// `weeklyDraws` / `weeklySettings` (retired Weekly draw) and `monthlyDraw` /
+// `monthlyEligibility` (the Shuttlecock ballot, removed 2026-09) are legacy keys.
+// An existing blob is NOT rewritten to drop them — the records are simply left
+// dormant — so they are stripped here to keep old per-player name lists from
+// leaking and off the 2s poll.
 // Session draw results are served by GET /api/draws (site-code gated), not here.
 function publicProjection(current) {
-  const { attendance, audit, monthlyEligibility, weeklyDraws, weeklySettings, ...safe } = redactState(current);
+  const { attendance, audit, monthlyDraw, monthlyEligibility, weeklyDraws, weeklySettings, ...safe } = redactState(current);
   return liteMonthlyLucky(safe);
 }
 // Both polls (public GET + admin auth ping) carry only the LIGHT monthly-draw
@@ -162,12 +156,8 @@ function liteMonthlyLucky(s) {
   return Object.assign({}, rest, { monthlyLucky: ML.liteOf(s && s.monthlyLucky, todayISO()) });
 }
 
-// Tokens per tubes (1 per 4). Inlined here (not require('../public/monthly-draw.js'))
-// to avoid any Vercel function-bundling path surprise — keep it trivial.
-function mdDrawTokens(tubes) { return Math.floor((Number(tubes) || 0) / 4); }
-
-// Gracefully migrate the luckyDraw + monthlyDraw sub-objects of an arbitrary (possibly
-// old) saved blob to the 2026-06-28 draw-overhaul shape. Additive and tolerant — never
+// Gracefully migrate the luckyDraw sub-object of an arbitrary (possibly old)
+// saved blob to the 2026-06-28 draw-overhaul shape. Additive and tolerant — never
 // throws on malformed input; the legacy luckyDraw.lastWinner field is simply ignored.
 function normalizeDrawState(current) {
   current = current || {};
@@ -187,25 +177,6 @@ function normalizeDrawState(current) {
     if (!Array.isArray(ld.paid)) ld.paid = [];
     ld.paid = pruneExpiredPaid(ld.paid, todayISO());
     // legacy `lastWinner` (if present) is intentionally ignored
-  }
-
-  if (!current.monthlyDraw || typeof current.monthlyDraw !== 'object') {
-    current.monthlyDraw = { month: '', rollSuppressedMonth: '', prizes: DEFAULT_MD_PRIZES.slice(), participants: [], results: [], spin: null, history: [] };
-  }
-  {
-    const md = current.monthlyDraw;
-    if (!Array.isArray(md.prizes)) md.prizes = DEFAULT_MD_PRIZES.slice();
-    if (typeof md.month !== 'string') md.month = '';
-    if (typeof md.rollSuppressedMonth !== 'string') md.rollSuppressedMonth = '';
-    if (!Array.isArray(md.participants)) md.participants = [];
-    md.participants = md.participants.map((p) => {
-      p = p || {};
-      const tubes = (p.tubes != null) ? (Number(p.tubes) || 0) : ((Number(p.tokens) || 0) * 4);
-      return Object.assign({}, p, { tubes, tokens: mdDrawTokens(tubes) });
-    });
-    if (!Array.isArray(md.results)) md.results = [];
-    if (md.spin === undefined) md.spin = null;
-    if (!Array.isArray(md.history)) md.history = [];
   }
 
   return current;
@@ -776,11 +747,6 @@ const handler = async function handler(req, res) {
       normalizeDrawState(current);
       if (!current.roster) current.roster = DEFAULT_ROSTER;
       if (current.roster) current.roster = current.roster.map(r => r.points !== undefined ? r : { ...r, points: 0 });
-      if (!Array.isArray(current.shopCustomers)) current.shopCustomers = [];
-      if (!Array.isArray(current.monthlyDraws)) current.monthlyDraws = [];
-      if (!Array.isArray(current.drawPrizes)) current.drawPrizes = ['1 Tube of new G2 Shuttlecock', 'Premium Stringing Service', 'Premium Sports Socks'];
-      if (!current.drawOdds || typeof current.drawOdds !== 'object') current.drawOdds = { first: 0.01, second: 0.03, third: 0.05 };
-      if (current.monthlySpin === undefined) current.monthlySpin = null;
       if (!Array.isArray(current.socialGames)) current.socialGames = DEFAULT_STATE.socialGames.map(g => ({ ...g }));
       if (!Array.isArray(current.signups)) current.signups = [];
       // Weekly regulars: a plain weekday->ids object. Coerce anything else (old
@@ -798,7 +764,6 @@ const handler = async function handler(req, res) {
       // Session draw settings + the live day's scheduled draw instant.
       current.drawSettings = { winners: SD.winnersOf(current.drawSettings), prize: SD.prizeOf(current.drawSettings) };
       if (current.sessionDrawAt === undefined) current.sessionDrawAt = SD.scheduledDrawAt(current.sessionDate);
-      if (current.monthlyEligibility === undefined) current.monthlyEligibility = null;
       // Monthly (points) draw: repair old/odd blobs; a missing pointsMonth means "this month".
       current.monthlyLucky = ML.normalize(current.monthlyLucky, todayISO());
       // Lifetime points: seed/repair the map (stripped again by publicProjection —
@@ -996,13 +961,12 @@ const handler = async function handler(req, res) {
     }
 
     // Admin fetch of the full private ops data (attendance / drawSettings /
-    // monthlyEligibility / audit / lifetime points) — kept out of public GET.
+    // audit / lifetime points) — kept out of public GET.
     if (updates.action === 'adminGetOps') {
       return res.json({
         ok: true,
         attendance: state.attendance || {},
         drawSettings: { winners: SD.winnersOf(state.drawSettings), prize: SD.prizeOf(state.drawSettings) },
-        monthlyEligibility: state.monthlyEligibility || null,
         audit: Array.isArray(state.audit) ? state.audit.slice(0, 300) : [],
         feeTier: Payments.tierOf(state.feeTier),
         sessionDate: state.sessionDate || null,

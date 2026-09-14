@@ -30,7 +30,7 @@ const fn = (name) => extractFn(name, html);
 
 // ── wiring ──
 check('monthly-lucky.js is loaded after session-draw.js (it borrows the shuffle)', html.indexOf('<script src="/session-draw.js"></script>') < html.indexOf('<script src="/monthly-lucky.js"></script>') && html.indexOf('<script src="/monthly-lucky.js"></script>') < html.indexOf('<script src="/draw-video.js"></script>'));
-check('sub-tab order + names match the public page: Session draw · Monthly draw · Shuttlecock draw', (() => { const a = html.indexOf('data-sub="weekly" onclick="setLuckyTab(\'weekly\')">Session draw<'); const b = html.indexOf('data-sub="monthlylucky" onclick="setLuckyTab(\'monthlylucky\')">Monthly draw<'); const c = html.indexOf('data-sub="monthly" onclick="setLuckyTab(\'monthly\')">Shuttlecock draw<'); return a > 0 && b > a && c > b; })());
+check('sub-tab order + names match the public page: Session draw · Monthly draw', (() => { const a = html.indexOf('data-sub="weekly" onclick="setLuckyTab(\'weekly\')">Session draw<'); const b = html.indexOf('data-sub="monthlylucky" onclick="setLuckyTab(\'monthlylucky\')">Monthly draw<'); return a > 0 && b > a && !/data-sub="monthly"/.test(html); })());
 check('panel exists and starts hidden', /<div class="ld-sub" data-sub="monthlylucky" style="display:none">/.test(html));
 check('setLuckyTab + setAdminTab render the monthly admin', fn('setLuckyTab').includes("if (sub === 'monthlylucky') { renderMonthlyLuckyAdmin(); }") && fn('setAdminTab').includes("if (currentLuckyTab === 'monthlylucky') renderMonthlyLuckyAdmin()"));
 check('poll only refreshes the light pool list while the tab is open', fn('poll').includes("currentLuckyTab === 'monthlylucky') renderMonthlyPool()") && !fn('poll').includes('loadMonthlyAdmin'));
@@ -113,17 +113,16 @@ check('winner row lists every prize of that place, each with its own photo',
 check('a winner row from an older record still renders from the single prize string',
   (cardFn(doneView, true).match(/ml-win-prize/g) || []).length === 2);
 check('public prize tiles: label with qty, a ×N badge on the picture, the description under it', fn('renderPublicMonthly').includes('nameOf: MonthlyLucky.prizeLabel') && fn('dhPrizeStripHtml').includes('ml-tile-qty') && fn('dhPrizeStripHtml').includes("p.desc ? '<small>' + escHtml(p.desc) + '</small>'"));
-check('replay lookup knows monthly + shuttle sources', fn('sdFindSource').includes("kind === 'monthly'") && fn('sdFindSource').includes('DrawVideo.sourceFromMonthly(v)') && fn('sdFindSource').includes("kind === 'shuttle'") && fn('sdFindSource').includes('DrawVideo.sourceFromShuttlecock(e)'));
+check('replay lookup knows the monthly source (and no longer the shuttle one)', fn('sdFindSource').includes("kind === 'monthly'") && fn('sdFindSource').includes('DrawVideo.sourceFromMonthly(v)') && !fn('sdFindSource').includes("kind === 'shuttle'"));
 check('member widget shows points-to-threshold progress', fn('renderMyDraw').includes('Points this month') && fn('renderMyDraw').includes('MonthlyLucky.isThreshold('));
 
-// ── Shuttlecock draws can record ──
-check('Shuttlecock drawPrize stores the ballot pool on each result', fn('drawPrize').includes('pool: [...new Set(ballot.map(p => p.name))]'));
-check('Shuttlecock winners list + past-month modal offer the replay', fn('renderMonthlyResults').includes("sdVideoRowHtml('shuttle', live.key, true)") && fn('openMdHist').includes("sdVideoRowHtml('shuttle', ent.key, true)"));
-check('Shuttlecock draws are OFF the session record: own page, own month list', !fn('sdListItems').includes("kind: 'shuttle'") && !fn('renderDrawList').includes('shCardHtml') && !fn('renderDrawCalendar').includes('shuttleDrawEntries()') && !html.includes('.sdc-dot.sh{')
-  && html.includes('id="drawPageShuttle"') && fn('renderPublicShuttle').includes('shuttleDrawEntries()') && fn('renderPublicShuttle').includes('shCardHtml(e)'));
-const shFn = new Function('escHtml', 'SessionDraw', 'ordinalLbl', 'DrawVideo', 'sdVideoRowHtml', 'window', fn('shCardHtml') + '\nreturn shCardHtml;')(ctx.escHtml, SD, (n) => n + 'th', require('../public/draw-video.js'), ctx.sdVideoRowHtml, { DrawVideo: require('../public/draw-video.js') });
-const shCard = shFn({ date: '2026-09-20', at: Date.UTC(2026, 8, 20, 12, 0), key: 'shuttle:2026-09:live', label: 'September 2026', live: true, pool: ['Al', 'Bo'], winners: [{ rank: 1, name: 'Bo', prize: 'Tube', pool: ['Al', 'Bo'] }] });
-check('shuttle card: title, month, winner chip with prize, replay row', shCard.includes('Shuttlecock Draw · September 2026') && shCard.includes('>Bo<small>Tube</small>') && shCard.includes('data-kind="shuttle" data-key="shuttle:2026-09:live"'));
+// ── Shuttlecock draw removed (2026-09): the Monthly draw must be untouched ──
+check('the Monthly (points) draw keeps its own admin tab, prizes, pool and record',
+  /<div class="ld-sub" data-sub="monthlylucky"/.test(html) && html.includes('id="mlPrizes"') && html.includes('id="mlAdminList"'));
+check('no Shuttlecock renderer, state key or CSS dot is left behind',
+  !/renderPublicShuttle|shCardHtml|shuttleDrawEntries|drawPageShuttle|state\.monthlyDraw/.test(html) && !html.includes('.sdc-dot.sh{'));
+check('the session record still carries its own sessions + quick draws',
+  fn('sdListItems').includes("kind: 'session'") && fn('sdListItems').includes("kind: 'manual'") && !fn('sdListItems').includes("kind: 'shuttle'"));
 
 console.log('monthly lucky ui: ' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);
