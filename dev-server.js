@@ -109,7 +109,7 @@ STORE = {
       rejectedBy: null, rejectedAt: null, rejectedReason: null, moreInfoMsg: null, moreInfoAt: null, playerId: 'p1', playerHint: 'Desmond',
       name: 'Desmond', token: null, source: 'code', code: 'Desmond#456', codeKey: 'desmond456', codeUpdatedAt: 0, codeFails: 0, codeFailAt: null, codeLastLoginAt: null },
   ],
-  drawSettings: { winners: 2 },
+  drawSettings: { winners: 2, prize: 'A tube of shuttlecocks, collected at your next session' },
   sessionDrawAt: SD.scheduledDrawAt(todayIso),
 };
 

@@ -129,8 +129,9 @@ check('the head carries a labelled back pill and the Session/Monthly switch',
   && /<div class="dh-pills" id="drawPills"[^>]*>\s*<button type="button" class="dh-pill" role="tab" data-draw="session"/.test(html));
 check('both are hidden on the hub itself, where there is nothing to go back to',
   fn('drawGo').includes("pills.style.display = v === 'hub' ? 'none' : ''") && fn('drawGo').includes('page.dataset.view = v'));
-check('the Monthly page leads with standing, then prizes, then the record',
-  /class="dh-view ml-page" data-draw="monthly"/.test(html) && html.includes('id="drawPageMonthlyPrizes"') && html.includes('class="mlp-record ml-sec" id="drawPageMonthly"') && html.includes('class="mlp-how" id="drawPageMonthlyHow"') && html.includes('class="mlp-side"')
+check('the Monthly page leads with standing, then prizes, then the record, then the rules',
+  /<section class="dh-view dh-page" data-draw="monthly"/.test(html) && html.includes('class="dhp-win" id="drawPageMonthlyPrizes"')
+  && html.includes('class="dhp-record ml-sec" id="drawPageMonthly"') && html.includes('class="dhp-how" id="drawPageMonthlyHow"') && html.includes('class="dhp-side"')
   && fn('renderPublicMonthly').includes('big: st.mine') && fn('dhStatusHtml').includes('dh-st-big'));
 check('the rules are stated openly on this page, not behind a toggle', fn('dhHowHtml').includes('dh-howcard') && fn('renderPublicMonthly').includes('MonthlyLucky.howItWorksText('));
 check('the record has its own calendar — a year of months, not the session day grid',

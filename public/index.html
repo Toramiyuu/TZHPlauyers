@@ -1402,22 +1402,19 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .dh-bar span{display:block;height:100%;background:var(--dw,var(--a-blue));border-radius:3px}
 /* the member's own number, read at arm's length (Monthly: points vs the target) */
 .dh-st-big{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;margin-top:12px;padding-top:14px;border-top:1px solid var(--border)}
-.dh-st-big b{font-size:clamp(36px,9vw,44px);font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--dw,var(--a-blue));font-variant-numeric:tabular-nums}
-.dh-st-big span{font-size:var(--fs-md);font-weight:600;color:var(--text-2)}
-/* prize line (session) + collapsed rules */
-.dh-prize{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--radius-md);background:var(--dw-tint,var(--a-blue-tint));margin-bottom:12px;font-size:var(--fs-sm);color:var(--text)}
-.dh-prize .ic{width:18px;height:18px;flex:none;color:var(--dw,var(--a-blue))}
-.dh-prize b{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dw,var(--a-blue))}
-.dh-how{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:14px;overflow:hidden}
-.dh-how>summary{padding:13px 16px;font-size:var(--fs-sm);font-weight:600;color:var(--text);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.dh-how>summary::-webkit-details-marker{display:none}
-.dh-how>summary::after{content:'+';font-size:18px;font-weight:400;color:var(--muted);line-height:1}
-.dh-how[open]>summary::after{content:'\2212'}
-.dh-how-body{padding:0 16px 14px;font-size:var(--fs-sm);line-height:1.55;color:var(--text-2)}
-/* Monthly states its rules openly instead of behind a toggle — it is the one
-   thing a first-time visitor has to read to know how to get in. */
+.dh-st-big>b{font-size:clamp(36px,9vw,44px);font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--dw,var(--a-blue));font-variant-numeric:tabular-nums}
+.dh-st-big>span{font-size:var(--fs-md);font-weight:600;color:var(--text-2)}
+/* Session's prize: one admin-written line, so it is a card rather than the
+   picture-led cards Monthly needs. Same shell, same eyebrow. */
+.dh-prize{display:flex;align-items:center;gap:14px;padding:16px;border-radius:var(--radius-md);background:var(--card);border:1px solid var(--border);margin-bottom:14px;color:var(--text)}
+.dh-prize-ic{flex:none;width:44px;height:44px;border-radius:var(--radius-md);background:var(--dw-tint,var(--a-blue-tint));color:var(--dw,var(--a-blue));display:flex;align-items:center;justify-content:center}
+.dh-prize .ic{width:22px;height:22px;flex:none}
+.dh-prize-txt{min-width:0;font-size:var(--fs-lg);font-weight:700;letter-spacing:-.02em;line-height:1.25}
+.dh-prize-none{font-weight:500;font-size:var(--fs-sm);color:var(--muted);letter-spacing:0}
+/* Rules are stated openly on both pages — the one thing a first-time visitor
+   has to read to know how to get in. */
 .dh-howcard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:14px}
-.dh-howcard .dh-how-body{padding:0;margin:8px 0 0}
+.dh-how-body{font-size:var(--fs-sm);line-height:1.55;color:var(--text-2);margin:8px 0 0}
 /* ── Lucky Draw replay video modal (canvas render + MediaRecorder) ── */
 #drawVideoModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:460;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
 #drawVideoModal.open{display:flex}
@@ -1540,17 +1537,18 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   .ml-prize-tile{flex:none}
   .ml-tile-count,.ml-tile-next,.ml-prize-dots,.ml-prize-hint{display:none}
 }
-/* ── Monthly page layout ──
-   Phone: where I stand · what I can win · who has won. Wide screen: prizes across
-   the top, standing + rules on the left, the record on the right. */
-.ml-page{display:flex;flex-direction:column}
-.mlp-side{display:contents} /* phone: status and rules order themselves around the prizes */
-.mlp-status{order:1}
-.mlp-prizes{order:2}
-.mlp-record{order:3}
-.mlp-how{order:4}
-.mlp-prize-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-.mlp-prize-head small{font-size:var(--fs-xs);font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted)}
+/* ── Draw page layout (both draws) ──
+   Phone: where I stand · what I can win · who has won · the rules. Wide screen:
+   standing + rules on the left, the record on the right — and on Monthly, whose
+   prizes are cards rather than one line, those span the top. */
+.dh-page{display:flex;flex-direction:column}
+.dhp-side{display:contents} /* phone: the side blocks order themselves around the record */
+.dhp-status{order:1}
+.dhp-win{order:2}
+.dhp-record{order:3}
+.dhp-how{order:4}
+.dhp-sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.dhp-sec-head small{font-size:var(--fs-xs);font-weight:500;letter-spacing:0;text-transform:none;color:var(--muted)}
 .ml-record-hint{margin-top:12px;padding:14px 16px;border-radius:var(--radius-md);background:var(--card);border:1px solid var(--border);font-size:var(--fs-sm);color:var(--muted)}
 .ml-sec{margin-bottom:16px}
 /* ── Lucky Draw · wide screen ──
@@ -1565,11 +1563,13 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   #drawPage:not([data-view=hub]) .dh-head-ic{display:flex}
 }
 @media(min-width:1000px){
-  #drawPage[data-view=monthly] .sd-page{max-width:1160px}
-  #drawPage[data-view=monthly] .ml-page{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);column-gap:28px;align-items:start}
-  #drawPage[data-view=monthly] .mlp-prizes{grid-column:1/-1;grid-row:1}
-  #drawPage[data-view=monthly] .mlp-side{display:block;grid-column:1;grid-row:2}
-  #drawPage[data-view=monthly] .mlp-record{grid-column:2;grid-row:2}
+  #drawPage:not([data-view=hub]) .sd-page{max-width:1160px}
+  #drawPage:not([data-view=hub]) .dh-page{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);column-gap:28px;align-items:start}
+  #drawPage:not([data-view=hub]) .dhp-side{display:block;grid-column:1}
+  #drawPage:not([data-view=hub]) .dhp-record{grid-column:2}
+  /* Session's prize is one line, so it rides the side column; Monthly's cards span the top. */
+  #drawPage[data-view=monthly] .dhp-win{grid-column:1/-1;grid-row:1}
+  #drawPage[data-view=monthly] .dhp-side,#drawPage[data-view=monthly] .dhp-record{grid-row:2}
 }
 .ml-line{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:var(--fs-sm);color:var(--text-2);padding:8px 0}
 @media(max-width:520px){.ml-prize-main{flex:1 1 100%;order:4}.ml-prize-tools{margin-left:auto}}
@@ -2699,31 +2699,36 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <!-- HUB: the two draws, each with its own entry rule, status and last winner -->
     <div class="dh-hub" id="drawHub"></div>
 
-    <!-- DETAIL: one draw at a time. Same skeleton for both —
-         status first, prizes, rules, then that draw's own record. -->
+    <!-- DETAIL: one draw at a time. Both pages are the same four blocks, read in
+         the order that matters on a phone (where I stand · what I can win · who
+         has won · the rules) and split into two columns on a wide screen. -->
     <div class="dh-detail" id="drawDetail" style="display:none">
 
       <!-- ── SESSION DRAW ── -->
-      <section class="dh-view" data-draw="session" role="tabpanel" aria-label="Session Draw" style="display:none">
-        <div class="dh-status-wrap" id="sdStatusCard"></div>
-        <details class="dh-how"><summary>How it works</summary><div class="dh-how-body" id="drawPageHow"></div></details>
-        <div class="md-sec-title sd-record-title">Record</div>
-        <div class="sd-cal" id="drawPageCal"></div>
-        <div class="sd-list" id="drawPageList"><div class="acct-empty">Loading&hellip;</div></div>
-        <div class="sd-more" id="drawPageMore" style="display:none"><button class="btn btn-secondary btn-sm" onclick="loadDrawPage(true)">Show older sessions</button></div>
+      <section class="dh-view dh-page" data-draw="session" role="tabpanel" aria-label="Session Draw" style="display:none">
+        <div class="dhp-side">
+          <div class="dh-status-wrap dhp-status" id="sdStatusCard"></div>
+          <div class="dhp-win" id="drawPagePrize"></div>
+          <div class="dh-howcard dhp-how"><div class="dh-st-label">How it works</div><p class="dh-how-body" id="drawPageHow"></p></div>
+        </div>
+        <div class="dhp-record">
+          <div class="md-sec-title sd-record-title">Record</div>
+          <div class="sd-cal" id="drawPageCal"></div>
+          <div class="sd-list" id="drawPageList"><div class="acct-empty">Loading&hellip;</div></div>
+          <div class="sd-more" id="drawPageMore" style="display:none"><button class="btn btn-secondary btn-sm" onclick="loadDrawPage(true)">Show older sessions</button></div>
+        </div>
       </section>
 
       <!-- ── MONTHLY (points) DRAW ──
-           Three blocks. On a phone they read top to bottom in the order that
-           matters (where am I · what can I win · who has won); on a wide screen
-           the prizes span the top and the other two sit side by side. -->
-      <section class="dh-view ml-page" data-draw="monthly" role="tabpanel" aria-label="Monthly Draw" style="display:none">
-        <div class="mlp-prizes" id="drawPageMonthlyPrizes"></div>
-        <div class="mlp-side">
-          <div class="dh-status-wrap mlp-status" id="mlStatusCard"></div>
-          <div class="mlp-how" id="drawPageMonthlyHow"></div>
+           Same four blocks; the prizes are cards rather than one line, so on a
+           wide screen they span the top instead of sitting in the side column. -->
+      <section class="dh-view dh-page" data-draw="monthly" role="tabpanel" aria-label="Monthly Draw" style="display:none">
+        <div class="dhp-win" id="drawPageMonthlyPrizes"></div>
+        <div class="dhp-side">
+          <div class="dh-status-wrap dhp-status" id="mlStatusCard"></div>
+          <div class="dhp-how" id="drawPageMonthlyHow"></div>
         </div>
-        <div class="mlp-record ml-sec" id="drawPageMonthly"></div>
+        <div class="dhp-record ml-sec" id="drawPageMonthly"></div>
       </section>
 
     </div>
@@ -7697,16 +7702,17 @@ function dhMineIcon(tone) {
 }
 
 // ── the shared "status first" card at the top of every draw page ──
-// o: { label, when, count, sub, big:{value,unit}, mine, bar:{value,max} }
+// o: { label, when, count, sub, big:{value|html, unit}, mine, bar:{value,max} }
 function dhStatusHtml(o) {
   let html = '<div class="dh-status">';
   html += '<div class="dh-st-label">' + escHtml(o.label || '') + '</div>';
   if (o.count != null) html += '<div class="dh-st-count">' + escHtml(String(o.count)) + '</div>';
   if (o.when) html += '<div class="dh-st-when">' + o.when + '</div>';
   if (o.sub) html += '<div class="dh-st-sub">' + o.sub + '</div>';
-  // The member's own number, big enough to read at arm's length (Monthly: points
-  // this month against the target). Sits under a rule, above the bar it fills.
-  if (o.big) html += '<div class="dh-st-big"><b>' + escHtml(String(o.big.value)) + '</b><span>' + escHtml(o.big.unit || '') + '</span></div>';
+  // The one number worth reading at arm's length — Monthly: points this month
+  // against the target; Session: the countdown. Sits under a rule, above the bar
+  // it fills. `html` carries markup (the ticking countdown), `value` plain text.
+  if (o.big) html += '<div class="dh-st-big"><b>' + (o.big.html || escHtml(String(o.big.value))) + '</b><span>' + escHtml(o.big.unit || '') + '</span></div>';
   if (o.bar && Number(o.bar.max) > 0) {
     const pct = Math.max(0, Math.min(100, Math.round((Number(o.bar.value) || 0) / Number(o.bar.max) * 100)));
     html += '<div class="dh-bar"><span style="width:' + pct + '%"></span></div>';
@@ -7728,11 +7734,19 @@ function dhSubLine(at, poolCount, word) {
   if (pool) parts.push(escHtml(pool));
   return parts.join(' · ');
 }
-/** The prize banner (Session's admin-written line; the other two use photo tiles). */
-function dhPrizeLineHtml(text) {
-  if (!text) return '';
-  return '<div class="dh-prize"><svg class="ic" viewBox="0 0 24 24"><path d="M20 8H4v4h16zM12 8v13M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 8S9.5 3 7.5 4.5 9 8 12 8zM12 8s2.5-5 4.5-3.5S15 8 12 8z"/></svg>'
-    + '<span><b>Winners get</b>' + escHtml(text) + '</span></div>';
+/**
+ * Session's prize block: the eyebrow, how many winners, and the one line the
+ * admin wrote. Monthly's prizes are photo cards (dhPrizeStripHtml) because it
+ * has a prize per place; this draw has one prize and no picture, so it is a
+ * single card rather than a card that would be mostly empty space.
+ */
+function dhPrizeCardHtml(text, winners) {
+  const head = '<div class="md-sec-title dhp-sec-head"><span>Winners get</span>'
+    + '<small>' + escHtml(sdWinnersLabel(winners)) + ' will be picked</small></div>';
+  const body = '<div class="dh-prize"><span class="dh-prize-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M20 8H4v4h16zM12 8v13M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 8S9.5 3 7.5 4.5 9 8 12 8zM12 8s2.5-5 4.5-3.5S15 8 12 8z"/></svg></span>'
+    + '<span class="dh-prize-txt' + (text ? '' : ' dh-prize-none') + '">'
+    + escHtml(text || 'The prize for this session has not been announced yet.') + '</span></div>';
+  return head + body;
 }
 /**
  * The Monthly prize cards: one card per prize, each showing the place it goes to,
@@ -7785,13 +7799,19 @@ function renderSessionDraw() {
   if (card) {
     const mine = st.mine ? Object.assign({}, st.mine) : null;
     if (mine && st.date) mine.note = SessionDraw.fmtSessionDate(st.date);
+    // The countdown is this draw's headline number (Monthly's is the member's
+    // points). It re-times in place with every other [data-draw-at] on the page.
+    const counting = !!st.drawAt && !st.due;
     card.innerHTML = dhStatusHtml({
       label: st.due ? 'Drawing now' : 'Next draw',
       when: st.drawAt ? escHtml(SessionDraw.fmtDrawTime(st.drawAt)) : 'After the next session',
-      sub: st.drawAt ? dhSubLine(st.due ? 0 : st.drawAt, st.poolCount) : '',
+      sub: escHtml(DrawHub.poolLine(st.poolCount)),
+      big: counting ? { html: '<span data-draw-at="' + st.drawAt + '">' + escHtml(DrawHub.countdownText(clockNow(), st.drawAt)) + '</span>', unit: 'until the draw' } : null,
       mine,
-    }) + dhPrizeLineHtml(st.prize);
+    });
   }
+  const prize = document.getElementById('drawPagePrize');
+  if (prize) prize.innerHTML = dhPrizeCardHtml(st.prize, sdPublic.winnersPerDraw);
   const how = document.getElementById('drawPageHow');
   if (how) how.textContent = SessionDraw.howItWorksText(sdPublic.winnersPerDraw);
   renderDrawCalendar(document.getElementById('drawPageCal'), sdPublic, false);
@@ -8650,7 +8670,7 @@ function renderPublicMonthly() {
   if (prizeEl) {
     const winners = Number(m.winners) || 0;
     prizeEl.innerHTML = (m.prizes || []).length
-      ? '<div class="md-sec-title mlp-prize-head"><span>This month’s prizes</span>'
+      ? '<div class="md-sec-title dhp-sec-head"><span>This month’s prizes</span>'
         + (winners ? '<small>' + winners + ' winner' + (winners === 1 ? '' : 's') + ' will be picked</small>' : '') + '</div>'
         + '<div class="ml-prize-wrap">' + dhPrizeStripHtml(m.prizes) + mlPrizeNavHtml(m.prizes) + '</div>'
       : '';

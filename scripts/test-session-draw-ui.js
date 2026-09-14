@@ -38,6 +38,21 @@ check('page data comes from /api/draws with the site code, not the 2s poll', fn(
 check('page refreshes every 30s while open and stops on close', fn('openDrawPage').includes('30000') && fn('closeDrawPage').includes('clearInterval(sdPublicTimer)'));
 check('locked response shows a site-code hint instead of an error', fn('loadDrawPage').includes('res.locked') && /site code/.test(fn('loadDrawPage')));
 check('how-it-works copy comes from the shared module', fn('renderSessionDraw').includes('SessionDraw.howItWorksText(sdPublic.winnersPerDraw)'));
+
+// ── the page itself (rebuilt 2026-09-14 to match the Monthly page) ──
+check('same four blocks as Monthly, in the same order', /<section class="dh-view dh-page" data-draw="session"/.test(html)
+  && html.includes('class="dh-status-wrap dhp-status" id="sdStatusCard"') && html.includes('class="dhp-win" id="drawPagePrize"')
+  && html.includes('class="dh-howcard dhp-how"') && /<div class="dhp-record">/.test(html));
+check('the record (calendar, list, older button) is one block, so it can be a column',
+  (() => { const a = html.indexOf('<div class="dhp-record">'), b = html.indexOf('id="drawPageCal"'), c = html.indexOf('id="drawPageMore"'); return a > -1 && a < b && b < c; })());
+check('the countdown is the headline number and keeps ticking',
+  fn('renderSessionDraw').includes('const counting = !!st.drawAt && !st.due') && fn('renderSessionDraw').includes("unit: 'until the draw'")
+  && fn('renderSessionDraw').includes('data-draw-at="') && fn('drawTick').includes('[data-draw-at]'));
+check('a due draw drops the countdown instead of counting down from zero', fn('renderSessionDraw').includes("label: st.due ? 'Drawing now' : 'Next draw'") && fn('renderSessionDraw').includes('!st.due'));
+check('the prize is its own card with the winner count, and says so when unset',
+  fn('renderSessionDraw').includes("getElementById('drawPagePrize')") && fn('dhPrizeCardHtml').includes('sdWinnersLabel(winners)')
+  && fn('dhPrizeCardHtml').includes('has not been announced yet') && fn('dhPrizeCardHtml').includes('dh-prize-none'));
+check('the rules are open on the page, not behind a toggle', /<p class="dh-how-body" id="drawPageHow">/.test(html) && !html.includes('<details class="dh-how"'));
 check('"My Lucky Draw" links to the public page and no longer claims weekly wins', fn('renderMyDraw').includes('openDrawPage()') && !fn('renderMyDraw').includes('Won!'));
 
 // ── admin sub-tab ──

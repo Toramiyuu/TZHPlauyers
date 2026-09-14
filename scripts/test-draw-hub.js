@@ -160,11 +160,19 @@ check('prizeOf trims, collapses whitespace and clamps', SD.prizeOf({ prize: '  A
   check('countdowns re-time in place every second while open', fn('drawTick').includes('[data-draw-at]') && fn('drawTick').includes('DrawHub.countdownText(') && fn('openDrawPage').includes('drawTickTimer = setInterval') && fn('closeDrawPage').includes('clearInterval(drawTickTimer)'));
   check('personal status comes from the token-gated accountDrawInfo, not the poll', fn('drawFetchMine').includes("acctPost('accountDrawInfo'") && !fn('poll').includes('drawFetchMine') && fn('openDrawPage').includes('drawFetchMine()'));
   check('signed-out visitors are offered a sign-in instead of a fake status', fn('dhStatusHtml').includes('!acctSession') && fn('dhStatusHtml').includes('openAuthModal()'));
-  check('each page leads with status, then prizes, then collapsed rules', (() => {
-    const f = fn('renderSessionDraw');
-    return f.includes('dhStatusHtml(') && f.includes('dhPrizeLineHtml(st.prize)') && html.includes('<details class="dh-how"><summary>How it works</summary>');
+  check('both pages are the same four blocks: standing, prize, record, rules', (() => {
+    const f = fn('renderSessionDraw'), m = fn('renderPublicMonthly');
+    const blocks = (s) => ['dhp-status', 'dhp-win', 'dhp-record', 'dhp-how'].every((c) => s.includes(c));
+    return f.includes('dhStatusHtml(') && f.includes('dhPrizeCardHtml(st.prize') && m.includes('dhStatusHtml(') && m.includes('dhPrizeStripHtml(')
+      && /<section class="dh-view dh-page" data-draw="session"/.test(html) && /<section class="dh-view dh-page" data-draw="monthly"/.test(html)
+      && blocks(html) && !html.includes('<details class="dh-how"');
   })());
-  check('Session Draw shows the admin-written prize line', fn('dhPrizeLineHtml').includes('Winners get') && fn('renderSessionDraw').includes('st.prize'));
+  check('Session Draw shows the admin-written prize line, with how many winners', fn('dhPrizeCardHtml').includes('Winners get') && fn('dhPrizeCardHtml').includes('sdWinnersLabel(winners)') && fn('renderSessionDraw').includes('dhPrizeCardHtml(st.prize'));
+  check('Session Draw leads with the countdown, re-timed in place like every other one', (() => {
+    const f = fn('renderSessionDraw');
+    return f.includes('const counting = !!st.drawAt && !st.due') && f.includes('data-draw-at="') && f.includes("unit: 'until the draw'")
+      && f.includes('DrawHub.countdownText(clockNow(), st.drawAt)') && fn('dhStatusHtml').includes('o.big.html') && fn('drawTick').includes('[data-draw-at]');
+  })());
   check('each draw has its own record, none shared', fn('renderSessionDraw').includes("getElementById('drawPageCal')") && fn('renderPublicMonthly').includes('mlCardHtml('));
   check('the session calendar carries sessions + quick draws only', fn('renderDrawCalendar').includes('DrawVideo.indexDraws(sessions, manualDrawEntries())') && !fn('renderDrawCalendar').includes('sdc-dot sh'));
   check('quick draws stay in the session record, clearly labelled', fn('sdListItems').includes("kind: 'manual'") && fn('qdCardHtml').includes('Quick draw') && fn('renderDrawCalendar').includes('Quick draw'));
