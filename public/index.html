@@ -207,10 +207,16 @@ body.in-3d #joinModal{z-index:1300}
 @media(max-width:560px){
   .round-list-header{gap:0}
   .rl-hdr-match{display:none}
-  .round-row-header{flex-wrap:wrap;row-gap:8px;column-gap:8px}
+  .round-row-header{flex-wrap:wrap;row-gap:5px;column-gap:8px;padding:9px 12px 11px}
   .rl{min-width:0;flex:1}
-  .rsummary{order:5;flex:1 0 100%;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.5}
-  .rs-m{display:flex;align-items:baseline;gap:2px}
+  /* Indent the match lines past the live dot so they hang under the round
+     label, and tighten the leading — three matches is a tall block otherwise. */
+  .rsummary{order:5;flex:1 0 100%;padding-left:17px;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.4}
+  /* Each match is a block with a hanging indent, so one that is too long to fit
+     wraps as ordinary text under its court chip. As a flex row the two teams
+     were pushed to opposite edges with the "v" stranded in the gap between. */
+  .rs-m{display:block;padding-left:24px;text-indent:-24px}
+  .rs-c{display:inline-block;min-width:19px;text-indent:0}
   .rs-t{white-space:normal}
   .rs-sep{display:none}
 }
@@ -239,14 +245,26 @@ body.in-3d #joinModal{z-index:1300}
 }
 /* Inside a Friendly matchup pod the callout is a block strip, not a flex slot. */
 .fr-matchup .pair-warn{min-width:0;max-width:none;margin-top:8px}
-/* Mobile: stack the two teams; each team's two slots split the width evenly. */
+/* Mobile: stack the two teams; each team's two slots split the width evenly.
+   Each court also becomes its own card. Stacked flat, a "Court 3" heading sat
+   8px above the teams it titled and 14px below the previous court's Team B
+   slots — near-equal gaps, so it read as a trailer to the court above. */
 @media(max-width:640px){
+  .court-editor{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px;margin-bottom:10px}
+  .court-editor h4{margin-bottom:12px}
+  /* The plain balance chip is card2 too — lift it off the card it now sits on
+     (the .off amber / .mx pink chips keep their own tint). */
+  .court-editor .court-balance:not(.off):not(.mx){background:var(--card)}
   .selectors-row{flex-direction:column;align-items:stretch;gap:10px}
   .team-block{flex-direction:column;align-items:stretch;gap:6px}
   .team-slots{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
   .team-slots .pslot{min-width:0;max-width:none;width:100%}
   .rl-team-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-  .selectors-row>.vs-small{align-self:center;padding:2px 0}
+  /* VS spans the width as a labelled rule instead of floating centred: the row
+     gap is then the only space above and below it, so it reads symmetrical
+     rather than glued to Team A with a hole under it. */
+  .selectors-row>.vs-small{align-self:stretch;display:flex;align-items:center;gap:10px;padding:0;font-size:10px;letter-spacing:.1em}
+  .selectors-row>.vs-small::before,.selectors-row>.vs-small::after{content:"";flex:1;height:1px;background:var(--border2)}
 }
 
 /* ── PLAYER PICKER (searchable popover; replaces the native <select>) ── */
@@ -7226,9 +7244,21 @@ function closePwModal() {
   document.getElementById('pwModal').classList.remove('open');
 }
 
+// Only a 401 means the password was wrong. A dropped connection, a 500 from the
+// state store or a 404 from a stale/partial deploy all used to surface as
+// "Incorrect password.", which sends you off retyping a password that was right
+// all along — so each of those now says what actually happened.
+function pwFail(msg) {
+  const el = document.getElementById('pwError');
+  el.textContent = msg || 'Incorrect password.';
+  el.style.display = 'block';
+}
+
 function submitPassword() {
-  const pwd = document.getElementById('pwInput').value;
-  if (!pwd) { document.getElementById('pwError').style.display = 'block'; return; }
+  // Trimmed: a phone keyboard's autocomplete and a paste both like to append a
+  // trailing space, which is invisible in a password field and 401s for real.
+  const pwd = document.getElementById('pwInput').value.trim();
+  if (!pwd) { pwFail('Enter the admin password.'); return; }
   fetch('/api/state', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -7240,11 +7270,13 @@ function submitPassword() {
       if (data && data.state) state = data.state;
       closePwModal();
       showAdmin();
+    } else if (r.status === 401) {
+      pwFail('Incorrect password.');
     } else {
-      document.getElementById('pwError').style.display = 'block';
+      pwFail(`Server error (HTTP ${r.status}) — the password was not checked.`);
     }
   }).catch(() => {
-    document.getElementById('pwError').style.display = 'block';
+    pwFail('Could not reach the server. Check your connection and try again.');
   });
 }
 

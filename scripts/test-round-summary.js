@@ -74,11 +74,18 @@ check('player names are escaped — they land in innerHTML', (() => {
 
 // ── CSS ──
 const i = html.lastIndexOf('@media(max-width:560px){', html.indexOf('.rl-hdr-match{display:none}'));
-const mq = html.slice(i, i + 900);
-check('the round row is allowed to wrap on phones', mq.includes('.round-row-header{flex-wrap:wrap;row-gap:8px;column-gap:8px}'));
+const mq = html.slice(i, html.indexOf('\n}', i));
+check('the round row is allowed to wrap on phones', /\.round-row-header\{flex-wrap:wrap;row-gap:\d+px;column-gap:\d+px/.test(mq));
 check('the summary takes a full line of its own, ordered last', mq.includes('.rsummary{order:5;flex:1 0 100%;'));
+// The live dot sits before the label on line 1; without the indent the match
+// lines started under the dot instead of under "Round 1".
+check('the match lines hang under the round label, not the live dot', /\.rsummary\{order:5;flex:1 0 100%;padding-left:1[5-9]px/.test(mq));
 check('the summary stops truncating once it has a line to itself', mq.includes('white-space:normal;overflow:visible;text-overflow:clip'));
-check('each match goes on its own line', mq.includes('.rs-m{display:flex;align-items:baseline;gap:2px}'));
+check('each match goes on its own line', mq.includes('.rs-m{display:block;'));
+// Flexed, the two teams were justified to opposite edges of the row with the
+// "v" stranded in the middle; a hanging indent wraps them as ordinary text.
+check('a long match wraps under its court chip, not around it',
+  /\.rs-m\{display:block;padding-left:(\d+)px;text-indent:-\1px\}/.test(mq) && mq.includes('.rs-c{display:inline-block;min-width:19px;text-indent:0}'));
 check('the inline separator is dropped once matches are stacked', mq.includes('.rs-sep{display:none}'));
 check('the MATCH heading is dropped — nothing lines up under it when stacked', mq.includes('.rl-hdr-match{display:none}'));
 check('the round label stops reserving a fixed width', mq.includes('.rl{min-width:0;flex:1}'));
