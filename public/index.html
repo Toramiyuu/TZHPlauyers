@@ -1386,13 +1386,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .dhc-prize{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-md);background:var(--dw-tint);font-size:var(--fs-md);font-weight:700;color:var(--text)}
 .dhc-prize .ic{width:22px;height:22px;flex:none;color:var(--dw)}
 .dhc-prize b{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dw)}
-.dhc-prows{display:flex;flex-direction:column;gap:8px}
-.dhc-prow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-md);background:var(--dw-tint);min-width:0}
-.dhc-pthumb{flex:none;width:40px;height:40px;border-radius:var(--radius-sm);overflow:hidden;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted)}
-.dhc-pthumb img{width:100%;height:100%;object-fit:cover;display:block}
-.dhc-pthumb .ic{width:18px;height:18px}
-.dhc-pname{flex:1;min-width:0;font-size:var(--fs-md);font-weight:700;letter-spacing:-.01em;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dhc-pmore{font-size:var(--fs-xs);color:var(--muted);padding-left:2px}
 .dhc-prog{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-size:var(--fs-sm);font-weight:600;color:var(--text)}
 .dhc-prog>span:last-child{font-weight:400;color:var(--muted);white-space:nowrap}
 .dhc-prog b{font-weight:600;color:var(--text-2)}
@@ -1404,6 +1397,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 /* the rotating prize hero */
 .dhc-hero-photo{display:flex;flex-direction:column}
 .dhc-shot{position:relative;width:100%;aspect-ratio:16/10;background:var(--card2);display:flex;align-items:center;justify-content:center;overflow:hidden}
+/* Session stacks the photo under its countdown panel — both are tinted, so the picture needs an edge. */
+.dhc-hero-count+.dhc-hero-photo .dhc-shot{border-top:1px solid var(--border)}
 .dhc-shot-layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .5s ease}
 .dhc-shot-layer.on{opacity:1}
 .dhc-shot-layer img{width:100%;height:100%;object-fit:cover;display:block}
@@ -7756,40 +7751,26 @@ function dhCardHtml(kind, hero, body) {
 }
 function dhSessionCardHtml(st) {
   const counting = !!st.drawAt && !st.due;
+  const prizes = dhHeroPrizes('session');
   const hero = '<div class="dhc-hero dhc-hero-count">'
     + '<div class="dh-st-label">' + (st.due ? 'Drawing now' : 'Next draw') + '</div>'
     + '<div class="dhc-when">' + escHtml(st.drawAt ? SessionDraw.fmtDrawTime(st.drawAt) : 'After the next session') + '</div>'
     + (counting ? '<div class="dhc-big"><b data-draw-at="' + st.drawAt + '">' + escHtml(DrawHub.countdownText(clockNow(), st.drawAt)) + '</b><span>to go</span></div>' : '')
-    + '</div>';
+    + '</div>'
+    // The prize gets the same big rotating picture as the Monthly card — the
+    // countdown says when, this says what for.
+    + (prizes.length ? dhHeroPhotoHtml(prizes, 'session') : '');
   const mine = st.mine ? Object.assign({}, st.mine, st.date ? { note: SessionDraw.fmtSessionDate(st.date) } : {}) : null;
-  const body = dhPrizeRowsHtml(sdPublic.sessionPrizes, st.prize)
+  const body = (prizes.length ? '' : dhPrizeLineHtml(st.prize))
     + dhMineRowHtml(mine)
     + dhMetaRowHtml([dhPoolChip(st.poolCount), dhLastChip(DrawHub.latestSessionWin(sdPublic.sessions)), dhWinnersChip(st.winners)]);
   return dhCardHtml('session', hero, body);
 }
-/**
- * What a Session winner takes home, on the hub card: one row per prize with its
- * photo and the place it goes to. Falls back to the admin's one-line version
- * while no prizes are listed, so a club that never fills the list still reads.
- */
-function dhPrizeRowsHtml(prizes, line) {
-  const list = (prizes || []).filter(Boolean);
-  if (!list.length) {
-    return line ? '<div class="dhc-prize"><svg class="ic" viewBox="0 0 24 24"><path d="M20 8H4v4h16zM12 8v13M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 8S9.5 3 7.5 4.5 9 8 12 8zM12 8s2.5-5 4.5-3.5S15 8 12 8z"/></svg>'
-      + '<span><b>Winners get</b>' + escHtml(line) + '</span></div>' : '';
-  }
-  const shown = list.slice(0, 3);
-  let html = '<div class="dhc-prows"><div class="dh-st-label">Winners get</div>';
-  html += shown.map((p, i) => {
-    const place = SessionDraw.placeOf(p, i);
-    return '<div class="dhc-prow"><span class="dhc-pthumb">'
-      + (p.photo ? '<img src="' + p.photo + '" alt="">'
-        : '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l4.5-4.5 3.5 3.5 3-2.5L20 18"/></svg>')
-      + '</span><span class="ml-tile-place' + (place === 1 ? ' first' : '') + '">' + escHtml(mlOrdinal(place)) + '</span>'
-      + '<span class="dhc-pname">' + escHtml(SessionDraw.prizeLabel(p)) + '</span></div>';
-  }).join('');
-  if (list.length > shown.length) html += '<div class="dhc-pmore">+ ' + (list.length - shown.length) + ' more</div>';
-  return html + '</div>';
+/** The admin's one-line prize, for a club that has not listed prizes yet. */
+function dhPrizeLineHtml(line) {
+  if (!line) return '';
+  return '<div class="dhc-prize"><svg class="ic" viewBox="0 0 24 24"><path d="M20 8H4v4h16zM12 8v13M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 8S9.5 3 7.5 4.5 9 8 12 8zM12 8s2.5-5 4.5-3.5S15 8 12 8z"/></svg>'
+    + '<span><b>Winners get</b>' + escHtml(line) + '</span></div>';
 }
 function dhMonthlyCardHtml(ml) {
   if (!ml) return dhCardHtml('monthly', '<div class="dhc-hero dhc-hero-count"><div class="dh-st-label">Monthly</div><div class="dhc-when">Not set up yet</div></div>', '');
@@ -7806,7 +7787,7 @@ function dhMonthlyCardHtml(ml) {
   }
   body += dhMineRowHtml(ml.mine)
     + dhMetaRowHtml([dhPoolChip(ml.poolCount, 'at the target'), dhLastChip(DrawHub.latestMonthlyWin(sdPublic.monthly)), dhWinnersChip(ml.winners)]);
-  return dhCardHtml('monthly', dhHeroPhotoHtml(ml.prizes), body);
+  return dhCardHtml('monthly', dhHeroPhotoHtml(ml.prizes, 'monthly'), body);
 }
 /** The member's own standing, the one line they came for. Nothing when signed out. */
 function dhMineRowHtml(mine) {
@@ -7837,18 +7818,20 @@ function dhWinnersChip(n) {
 // the hub shows by changing a prize photo — there is no second place to keep it
 // up to date. Prizes with no photo still take a turn as a labelled placeholder,
 // so an unset photo is visible rather than silently skipped.
-let dhHeroIdx = 0, dhHeroTimer = null;
+const dhHeroIdx = { session: 0, monthly: 0 };
+let dhHeroTimer = null;
 const DH_HERO_MS = 5000;
 
-function dhHeroPhotoHtml(prizes) {
+function dhHeroPhotoHtml(prizes, kind) {
   const list = (prizes || []).filter(Boolean);
+  const k = escHtml(kind || 'monthly');
   if (!list.length) {
-    return '<div class="dhc-hero dhc-hero-photo"><div class="dhc-shot"><span class="ml-tile-ph">'
+    return '<div class="dhc-hero dhc-hero-photo" data-hero-kind="' + k + '"><div class="dhc-shot"><span class="ml-tile-ph">'
       + '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l4.5-4.5 3.5 3.5 3-2.5L20 18"/></svg>'
       + 'Prizes are not set yet</span></div></div>';
   }
   const shots = list.map((p, i) => {
-    const place = MonthlyLucky.placeOf(p, i);
+    const place = SessionDraw.placeOf(p, i);
     const inner = p.photo ? '<img src="' + p.photo + '" alt="">'
       : '<span class="ml-tile-ph"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l4.5-4.5 3.5 3.5 3-2.5L20 18"/></svg>'
         + escHtml(mlOrdinal(place) + ' place prize photo') + '</span>';
@@ -7857,42 +7840,49 @@ function dhHeroPhotoHtml(prizes) {
   // The dots sit in the caption band, not on the photo: over a real photograph a
   // dot is only legible with a scrim, and the band is always the same colour.
   const dots = list.length > 1 ? '<div class="dhc-hero-dots">' + list.map((p, i) =>
-    '<button type="button" class="ml-dot" data-hero-dot="' + i + '" onclick="dhHeroGo(' + i + ')" aria-label="Prize ' + (i + 1) + '"></button>').join('') + '</div>' : '';
-  return '<div class="dhc-hero dhc-hero-photo"><div class="dhc-shot">' + shots + '</div>'
-    + '<div class="dhc-cap"><div class="dhc-cap-main" id="dhHeroCap"></div>' + dots + '</div></div>';
+    '<button type="button" class="ml-dot" data-hero-dot="' + i + '" onclick="dhHeroGo(\'' + k + '\',' + i + ')" aria-label="Prize ' + (i + 1) + '"></button>').join('') + '</div>' : '';
+  return '<div class="dhc-hero dhc-hero-photo" data-hero-kind="' + k + '"><div class="dhc-shot">' + shots + '</div>'
+    + '<div class="dhc-cap"><div class="dhc-cap-main"></div>' + dots + '</div></div>';
 }
-/** Paint slide i: one photo visible, the caption and dots following it. */
-function dhHeroGo(i) {
-  const page = document.getElementById('drawHub'); if (!page) return;
-  const layers = page.querySelectorAll('[data-hero]');
+/** The prizes a hero is showing — each draw holds its own list. */
+function dhHeroPrizes(kind) {
+  const list = kind === 'session' ? sdPublic.sessionPrizes : (sdPublic.monthly && sdPublic.monthly.prizes);
+  return (list || []).filter(Boolean);
+}
+/** Paint slide i of one card: one photo visible, the caption and dots following it. */
+function dhHeroGo(kind, i) {
+  const hero = document.querySelector('#drawHub [data-hero-kind="' + kind + '"]'); if (!hero) return;
+  const layers = hero.querySelectorAll('[data-hero]');
   if (!layers.length) return;
   const idx = ((Number(i) || 0) % layers.length + layers.length) % layers.length;
-  dhHeroIdx = idx;
+  dhHeroIdx[kind] = idx;
   layers.forEach(l => l.classList.toggle('on', Number(l.dataset.hero) === idx));
-  page.querySelectorAll('[data-hero-dot]').forEach(d => {
+  hero.querySelectorAll('[data-hero-dot]').forEach(d => {
     const on = Number(d.dataset.heroDot) === idx;
     d.classList.toggle('on', on);
     d.setAttribute('aria-current', on ? 'true' : 'false');
   });
-  const cap = document.getElementById('dhHeroCap');
-  const prizes = ((sdPublic.monthly && sdPublic.monthly.prizes) || []).filter(Boolean);
-  const p = prizes[idx];
+  const cap = hero.querySelector('.dhc-cap-main');
+  const p = dhHeroPrizes(kind)[idx];
   if (cap && p) {
-    const place = MonthlyLucky.placeOf(p, idx);
+    const place = SessionDraw.placeOf(p, idx);
     cap.innerHTML = '<span class="ml-tile-place' + (place === 1 ? ' first' : '') + '">' + escHtml(mlOrdinal(place) + ' place') + '</span>'
-      + '<span class="dhc-cap-txt"><b>' + escHtml(MonthlyLucky.prizeLabel(p)) + '</b>'
+      + '<span class="dhc-cap-txt"><b>' + escHtml(SessionDraw.prizeLabel(p)) + '</b>'
       + (p.desc ? '<small>' + escHtml(p.desc) + '</small>' : '') + '</span>';
   }
 }
-/** Re-apply after a render, and keep the rotation running only while the hub is up. */
+/** Re-apply every hero after a render, and keep them turning only while the hub is up. */
 function dhHeroSync() {
-  const layers = document.querySelectorAll('#drawHub [data-hero]');
   clearInterval(dhHeroTimer); dhHeroTimer = null;
-  if (!layers.length) return;
-  dhHeroGo(Math.min(dhHeroIdx, layers.length - 1));
-  if (layers.length > 1) dhHeroTimer = setInterval(() => {
+  const heroes = Array.from(document.querySelectorAll('#drawHub [data-hero-kind]'))
+    .map(el => ({ kind: el.dataset.heroKind, n: el.querySelectorAll('[data-hero]').length }))
+    .filter(h => h.n > 0);
+  if (!heroes.length) return;
+  heroes.forEach(h => dhHeroGo(h.kind, Math.min(dhHeroIdx[h.kind] || 0, h.n - 1)));
+  // One clock for both cards: two independent timers would drift into a flicker.
+  if (heroes.some(h => h.n > 1)) dhHeroTimer = setInterval(() => {
     if (!isDrawPageOpen() || drawView !== 'hub') { clearInterval(dhHeroTimer); dhHeroTimer = null; return; }
-    dhHeroGo(dhHeroIdx + 1);
+    heroes.forEach(h => { if (h.n > 1) dhHeroGo(h.kind, (dhHeroIdx[h.kind] || 0) + 1); });
   }, DH_HERO_MS);
 }
 function dhMineIcon(tone) {

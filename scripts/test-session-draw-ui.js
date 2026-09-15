@@ -65,9 +65,15 @@ check('the page shows the listed prizes as cards, the one-line prize only while 
   fn('renderSessionDraw').includes('dhPrizeCardHtml(st.prize, sdPublic.winnersPerDraw, sdPublic.sessionPrizes)')
   && fn('dhPrizeCardHtml').includes('if (list.length) return head') && fn('dhPrizeCardHtml').includes('dhPrizeStripHtml(list)')
   && fn('dhPrizeCardHtml').includes('has not been announced yet'));
-check('the hub card lists what winners get, with the photo and the place',
-  fn('dhSessionCardHtml').includes('dhPrizeRowsHtml(sdPublic.sessionPrizes, st.prize)') && fn('dhPrizeRowsHtml').includes('SessionDraw.placeOf(p, i)')
-  && fn('dhPrizeRowsHtml').includes('dhc-pthumb') && fn('dhPrizeRowsHtml').includes('SessionDraw.prizeLabel(p)') && fn('dhPrizeRowsHtml').includes('more'));
+check('the hub card shows the prize as big as Monthly does: the same rotating photo hero',
+  fn('dhSessionCardHtml').includes("dhHeroPrizes('session')") && fn('dhSessionCardHtml').includes("dhHeroPhotoHtml(prizes, 'session')")
+  && fn('dhHeroPrizes').includes('sdPublic.sessionPrizes') && fn('dhHeroGo').includes('data-hero-kind=')
+  && fn('dhHeroSync').includes('[data-hero-kind]'));
+check('the countdown keeps its panel above the photo — when, then what for',
+  (() => { const f = fn('dhSessionCardHtml'); return f.indexOf('dhc-hero-count') < f.indexOf("dhHeroPhotoHtml(prizes, 'session')"); })());
+check('the one-line prize shows only while no prizes are listed', fn('dhSessionCardHtml').includes("prizes.length ? '' : dhPrizeLineHtml(st.prize)") && fn('dhPrizeLineHtml').includes('Winners get'));
+check('each card keeps its own slide, and one clock turns both', /const dhHeroIdx = \{ session: 0, monthly: 0 \}/.test(html)
+  && fn('dhHeroGo').includes('dhHeroIdx[kind] = idx') && (fn('dhHeroSync').match(/setInterval/g) || []).length === 1);
 check('both prize carousels are scoped to the view on screen (ids would collide)',
   fn('mlPrizeStripEl').includes("'.dh-view[data-draw=\"' + drawView + '\"] .ml-prize-strip'") && !fn('mlPrizeTiles').includes('getElementById'));
 check('a session prize photo never rides the 2 s poll', (() => {

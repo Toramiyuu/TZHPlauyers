@@ -160,17 +160,17 @@ check('prizeOf trims, collapses whitespace and clamps', SD.prizeOf({ prize: '  A
   check('each hub card leads with its own hero: the Session countdown, the Monthly prize', (() => {
     const f = fn('renderDrawHub'), sc = fn('dhSessionCardHtml'), mc = fn('dhMonthlyCardHtml');
     return f.includes('dhSessionCardHtml(sd)') && f.includes('dhMonthlyCardHtml(ml)')
-      && sc.includes('dhc-hero-count') && sc.includes('data-draw-at="') && mc.includes('dhHeroPhotoHtml(ml.prizes)');
+      && sc.includes('dhc-hero-count') && sc.includes('data-draw-at="') && mc.includes("dhHeroPhotoHtml(ml.prizes, 'monthly')");
   })());
   check('hub cards carry the entry line, the pool, the personal standing, the last winner and the winner count', (() => {
     const shell = fn('dhCardHtml'), sc = fn('dhSessionCardHtml'), mc = fn('dhMonthlyCardHtml');
     return shell.includes('DrawHub.entryLine(kind') && shell.includes('drawGo(') && sc.includes('dhPoolChip(') && sc.includes('dhLastChip(')
       && sc.includes('dhWinnersChip(') && sc.includes('dhMineRowHtml(mine)') && sc.includes('SessionDraw.fmtSessionDate(st.date)') && mc.includes('dhMineRowHtml(ml.mine)') && mc.includes('dhWinnersChip(');
   })());
-  check('the Monthly hero rotates through the prize photos the admin sets, and pauses off the hub', (() => {
+  check('both heroes rotate through the prize photos the admin sets, and pause off the hub', (() => {
     const h = fn('dhHeroPhotoHtml'), go = fn('dhHeroGo'), sync = fn('dhHeroSync');
-    return h.includes('MonthlyLucky.placeOf(p, i)') && h.includes('dhHeroGo(') && go.includes('sdPublic.monthly && sdPublic.monthly.prizes')
-      && go.includes('MonthlyLucky.prizeLabel(p)') && sync.includes('setInterval') && sync.includes("drawView !== 'hub'")
+    return h.includes('SessionDraw.placeOf(p, i)') && h.includes('dhHeroGo(') && fn('dhHeroPrizes').includes('sdPublic.monthly && sdPublic.monthly.prizes')
+      && go.includes('SessionDraw.prizeLabel(p)') && sync.includes('setInterval') && sync.includes("drawView !== 'hub'")
       && fn('closeDrawPage').includes('clearInterval(dhHeroTimer)') && fn('renderDrawHub').includes('dhHeroSync()');
   })());
   check('a prize with no photo still takes its turn, labelled', fn('dhHeroPhotoHtml').includes("' place prize photo'") && fn('dhHeroPhotoHtml').includes('Prizes are not set yet'));
