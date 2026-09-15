@@ -55,6 +55,10 @@ check('helper + help drawer explain the place picker, quantity and description',
   html.includes('Each prize says which place it <b>goes to</b>') && html.includes('that winner takes both')
   && html.includes('Set a quantity to give several of the <em>same</em> item') && html.includes('Each prize has a <b>quantity</b>'));
 
+check('the prize photos are named as the Lucky Draw hub picture, where they are edited',
+  html.includes('class="admin-helper-text mlp-photo-note"') && html.includes('take turns as the big picture')
+  && html.includes('onclick="openDrawPage(\'hub\')"'));
+
 // ── pool + manual draw ──
 check('Pull button posts pullMonthlyPool and shows the threshold in its label', fn('pullMonthlyPool').includes("action: 'pullMonthlyPool'") && fn('renderMonthlySettings').includes("'Pull players with ' + s.threshold + '+ points'"));
 check('pool rows can be removed / put back via setMonthlyPoolRemoved', fn('renderMonthlyPool').includes('setMonthlyPoolRemoved(') && fn('setMonthlyPoolRemoved').includes("action: 'setMonthlyPoolRemoved', playerId: id, removed: !!removed"));
@@ -124,10 +128,10 @@ check('phones page through the prizes: per-card counter + arrow, dots under the 
 check('a 30 s background refresh does not jump the carousel back to the first prize', fn('renderPublicMonthly').includes('mlPrizeSync(true)') && fn('mlPrizeSync').includes("mlPrizeGo(Math.min(mlPrizeIdx, tiles.length - 1), true)"));
 
 // ── the page shell: back to the hub, the draw switch, the record calendar ──
-check('the head carries a labelled back pill and the Session/Monthly switch',
-  html.includes('id="drawBackBtn" onclick="drawGo(\'hub\')"') && html.includes('<span class="dh-back-txt">All draws</span>')
+check('the head carries the back pill and the Session/Monthly switch',
+  html.includes('id="drawBackBtn" onclick="drawBack()"') && html.includes('<span class="dh-back-txt" id="drawBackTxt">')
   && /<div class="dh-pills" id="drawPills"[^>]*>\s*<button type="button" class="dh-pill" role="tab" data-draw="session"/.test(html));
-check('both are hidden on the hub itself, where there is nothing to go back to',
+check('the switch is hidden on the hub, where there is nothing to switch between',
   fn('drawGo').includes("pills.style.display = v === 'hub' ? 'none' : ''") && fn('drawGo').includes('page.dataset.view = v'));
 check('the Monthly page leads with standing, then prizes, then the record, then the rules',
   /<section class="dh-view dh-page" data-draw="monthly"/.test(html) && html.includes('class="dhp-win" id="drawPageMonthlyPrizes"')

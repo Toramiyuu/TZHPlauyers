@@ -145,7 +145,11 @@ check('prizeOf trims, collapses whitespace and clamps', SD.prizeOf({ prize: '  A
     const a = html.indexOf('class="dh-pill" role="tab" data-draw="session"'), b = html.indexOf('class="dh-pill" role="tab" data-draw="monthly"');
     return a > 0 && b > a;
   })());
-  check('back arrow returns to the hub and hides there', html.includes('id="drawBackBtn" onclick="drawGo(\'hub\')"') && fn('drawGo').includes("back.style.display = v === 'hub' ? 'none' : ''"));
+  check('one head chevron, one level up: out of the page from the hub, back to it from a draw', (() => {
+    const b = fn('drawBack');
+    return html.includes('id="drawBackBtn" onclick="drawBack()"') && b.includes('closeDrawPage()') && b.includes("drawGo('hub')")
+      && fn('drawGo').includes("backTxt.textContent = v === 'hub' ? 'Court display' : 'All draws'");
+  })());
   check('drawGo toggles views + pills and is guarded by DrawHub.isKind', fn('drawGo').includes('DrawHub.isKind(view)') && fn('drawGo').includes('.dh-view') && fn('drawGo').includes('.dh-pill'));
   check('per-draw deep links: #draw, #draw/session, #draw/monthly', fn('drawHashFor').includes("'#draw/' + view") && fn('drawViewFromHash').includes('DrawHub.isKind(m[1])') && fn('openDrawPage').includes('drawViewFromHash()'));
   check('renderDrawPage dispatches one view at a time', (() => {
@@ -153,10 +157,24 @@ check('prizeOf trims, collapses whitespace and clamps', SD.prizeOf({ prize: '  A
     return f.includes("drawView === 'hub'") && f.includes('renderDrawHub()') && f.includes('renderSessionDraw()') && f.includes('renderPublicMonthly()');
   })());
   check('header renames itself per draw', fn('renderDrawHeader').includes('DrawHub.kindName(drawView)') && fn('renderDrawHeader').includes('DrawHub.entryLine(drawView'));
-  check('hub cards carry entry line, countdown, pool, personal status and last winner', (() => {
-    const f = fn('renderDrawHub');
-    return f.includes('DrawHub.entryLine(') && f.includes('dhCountChip(') && f.includes('dhPoolChip(') && f.includes('dhMineChip(') && f.includes('dhLastChip(');
+  check('each hub card leads with its own hero: the Session countdown, the Monthly prize', (() => {
+    const f = fn('renderDrawHub'), sc = fn('dhSessionCardHtml'), mc = fn('dhMonthlyCardHtml');
+    return f.includes('dhSessionCardHtml(sd)') && f.includes('dhMonthlyCardHtml(ml)')
+      && sc.includes('dhc-hero-count') && sc.includes('data-draw-at="') && mc.includes('dhHeroPhotoHtml(ml.prizes)');
   })());
+  check('hub cards carry the entry line, the pool, the personal standing, the last winner and the winner count', (() => {
+    const shell = fn('dhCardHtml'), sc = fn('dhSessionCardHtml'), mc = fn('dhMonthlyCardHtml');
+    return shell.includes('DrawHub.entryLine(kind') && shell.includes('drawGo(') && sc.includes('dhPoolChip(') && sc.includes('dhLastChip(')
+      && sc.includes('dhWinnersChip(') && sc.includes('dhMineRowHtml(mine)') && sc.includes('SessionDraw.fmtSessionDate(st.date)') && mc.includes('dhMineRowHtml(ml.mine)') && mc.includes('dhWinnersChip(');
+  })());
+  check('the Monthly hero rotates through the prize photos the admin sets, and pauses off the hub', (() => {
+    const h = fn('dhHeroPhotoHtml'), go = fn('dhHeroGo'), sync = fn('dhHeroSync');
+    return h.includes('MonthlyLucky.placeOf(p, i)') && h.includes('dhHeroGo(') && go.includes('sdPublic.monthly && sdPublic.monthly.prizes')
+      && go.includes('MonthlyLucky.prizeLabel(p)') && sync.includes('setInterval') && sync.includes("drawView !== 'hub'")
+      && fn('closeDrawPage').includes('clearInterval(dhHeroTimer)') && fn('renderDrawHub').includes('dhHeroSync()');
+  })());
+  check('a prize with no photo still takes its turn, labelled', fn('dhHeroPhotoHtml').includes("' place prize photo'") && fn('dhHeroPhotoHtml').includes('Prizes are not set yet'));
+  check('the hub greets a signed-in member by name', fn('renderDrawHeader').includes('acctSession.name') && html.includes('id="drawWhoami"'));
   check('countdowns re-time in place every second while open', fn('drawTick').includes('[data-draw-at]') && fn('drawTick').includes('DrawHub.countdownText(') && fn('openDrawPage').includes('drawTickTimer = setInterval') && fn('closeDrawPage').includes('clearInterval(drawTickTimer)'));
   check('personal status comes from the token-gated accountDrawInfo, not the poll', fn('drawFetchMine').includes("acctPost('accountDrawInfo'") && !fn('poll').includes('drawFetchMine') && fn('openDrawPage').includes('drawFetchMine()'));
   check('signed-out visitors are offered a sign-in instead of a fake status', fn('dhStatusHtml').includes('!acctSession') && fn('dhStatusHtml').includes('openAuthModal()'));
