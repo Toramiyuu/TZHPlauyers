@@ -52,6 +52,29 @@ check('a due draw drops the countdown instead of counting down from zero', fn('r
 check('the prize is its own card with the winner count, and says so when unset',
   fn('renderSessionDraw').includes("getElementById('drawPagePrize')") && fn('dhPrizeCardHtml').includes('sdWinnersLabel(winners)')
   && fn('dhPrizeCardHtml').includes('has not been announced yet') && fn('dhPrizeCardHtml').includes('dh-prize-none'));
+// ── prizes (2026-09-15: the same list, editor and cards as the Monthly draw) ──
+check('the admin gets the same Prizes card, saving through setDrawPrizes',
+  html.includes('id="sdPrizesCard"') && html.includes('class="ml-prizes" id="sdPrizes"') && html.includes('id="sdPrizesSaveBtn"')
+  && html.includes("onclick=\"addPrize('session')\"") && html.includes("onclick=\"savePrizes('session')\"")
+  && /session: \{ box: 'sdPrizes'[^}]*action: 'setDrawPrizes'/.test(html));
+check('the editor seeds from the admin fetch (the only copy with photos), never the poll',
+  fn('sdAdminPrizes').includes('sdAdmin.sessionPrizes') && !fn('sdAdminPrizes').includes('state.drawSettings')
+  && fn('sdSeedPrizeDraft').includes('prizeDrafts.session = prizes.map(prizeRow)') && fn('sdSeedPrizeDraft').includes('prizeDirty.session')
+  && fn('loadAdminDraws').includes('sdSeedPrizeDraft()') && fn('savePrizes').includes('sdAdmin.sessionPrizes ='));
+check('the page shows the listed prizes as cards, the one-line prize only while the list is empty',
+  fn('renderSessionDraw').includes('dhPrizeCardHtml(st.prize, sdPublic.winnersPerDraw, sdPublic.sessionPrizes)')
+  && fn('dhPrizeCardHtml').includes('if (list.length) return head') && fn('dhPrizeCardHtml').includes('dhPrizeStripHtml(list)')
+  && fn('dhPrizeCardHtml').includes('has not been announced yet'));
+check('the hub card lists what winners get, with the photo and the place',
+  fn('dhSessionCardHtml').includes('dhPrizeRowsHtml(sdPublic.sessionPrizes, st.prize)') && fn('dhPrizeRowsHtml').includes('SessionDraw.placeOf(p, i)')
+  && fn('dhPrizeRowsHtml').includes('dhc-pthumb') && fn('dhPrizeRowsHtml').includes('SessionDraw.prizeLabel(p)') && fn('dhPrizeRowsHtml').includes('more'));
+check('both prize carousels are scoped to the view on screen (ids would collide)',
+  fn('mlPrizeStripEl').includes("'.dh-view[data-draw=\"' + drawView + '\"] .ml-prize-strip'") && !fn('mlPrizeTiles').includes('getElementById'));
+check('a session prize photo never rides the 2 s poll', (() => {
+  const st = fs.readFileSync(path.join(__dirname, '..', 'api', 'state.js'), 'utf8');
+  return st.includes('SD.litePrizes(draw.prizes)') && st.includes('prizes: SD.prizesOf(current.drawSettings)');
+})());
+
 check('the rules are open on the page, not behind a toggle', /<p class="dh-how-body" id="drawPageHow">/.test(html) && !html.includes('<details class="dh-how"'));
 check('"My Lucky Draw" links to the public page and no longer claims weekly wins', fn('renderMyDraw').includes('openDrawPage()') && !fn('renderMyDraw').includes('Won!'));
 

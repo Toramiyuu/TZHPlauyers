@@ -114,7 +114,7 @@ const DEFAULT_STATE = {
   // ── automatic per-session Lucky Draw (2026-09) ──
   // Winners per draw (admin-configurable). The schedule itself is a fixed table in
   // public/session-draw.js; results live in the separate `court-draws` Redis hash.
-  drawSettings: { winners: SD.DEFAULT_WINNERS, prize: '' },
+  drawSettings: { winners: SD.DEFAULT_WINNERS, prize: '', prizes: [] },
   // Scheduled draw instant (epoch ms) for the LIVE session day, stamped when the
   // day is created (applySessionDateChange); null on days that never draw.
   sessionDrawAt: SD.scheduledDrawAt(todayISO()),
@@ -153,7 +153,13 @@ function publicProjection(current) {
 // adminGetOps ops cache) rather than a field that appears and vanishes every 2s.
 function liteMonthlyLucky(s) {
   const { lifetimePoints, ...rest } = s || {};
-  return Object.assign({}, rest, { monthlyLucky: ML.liteOf(s && s.monthlyLucky, todayISO()) });
+  // Session prize photos are just as bulky as the monthly ones: the poll carries
+  // the list (names/places, so the viewer can say what is on offer) without them.
+  const draw = rest.drawSettings || {};
+  return Object.assign({}, rest, {
+    monthlyLucky: ML.liteOf(s && s.monthlyLucky, todayISO()),
+    drawSettings: Object.assign({}, draw, { prizes: SD.litePrizes(draw.prizes) }),
+  });
 }
 
 // Gracefully migrate the luckyDraw sub-object of an arbitrary (possibly old)
@@ -762,7 +768,7 @@ const handler = async function handler(req, res) {
       delete current.weeklyDraws;
       delete current.weeklySettings;
       // Session draw settings + the live day's scheduled draw instant.
-      current.drawSettings = { winners: SD.winnersOf(current.drawSettings), prize: SD.prizeOf(current.drawSettings) };
+      current.drawSettings = { winners: SD.winnersOf(current.drawSettings), prize: SD.prizeOf(current.drawSettings), prizes: SD.prizesOf(current.drawSettings) };
       if (current.sessionDrawAt === undefined) current.sessionDrawAt = SD.scheduledDrawAt(current.sessionDate);
       // Monthly (points) draw: repair old/odd blobs; a missing pointsMonth means "this month".
       current.monthlyLucky = ML.normalize(current.monthlyLucky, todayISO());
@@ -966,7 +972,7 @@ const handler = async function handler(req, res) {
       return res.json({
         ok: true,
         attendance: state.attendance || {},
-        drawSettings: { winners: SD.winnersOf(state.drawSettings), prize: SD.prizeOf(state.drawSettings) },
+        drawSettings: { winners: SD.winnersOf(state.drawSettings), prize: SD.prizeOf(state.drawSettings), prizes: SD.prizesOf(state.drawSettings) },
         audit: Array.isArray(state.audit) ? state.audit.slice(0, 300) : [],
         feeTier: Payments.tierOf(state.feeTier),
         sessionDate: state.sessionDate || null,

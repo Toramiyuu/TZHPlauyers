@@ -43,14 +43,14 @@ check('how-it-works copy comes from the shared module', fn('renderMonthlySetting
 check('"Open public page" opens the Monthly Draw page itself', html.includes('onclick="openDrawPage(\'monthly\')"') && fn('openDrawPage').includes('drawGo(section === undefined ? drawViewFromHash() : section)') && fn('drawGo').includes('DrawHub.isKind(view)'));
 
 // ── prizes ──
-check('prize rows: photo button, name input, reorder, remove; hidden file input', html.includes('id="mlPrizePhotoInput" type="file" accept="image/*"') && fn('renderMonthlyPrizes').includes('pickMonthlyPrizePhoto(') && fn('renderMonthlyPrizes').includes('setMonthlyPrizeName(') && fn('renderMonthlyPrizes').includes('moveMonthlyPrize(') && fn('renderMonthlyPrizes').includes('removeMonthlyPrize('));
-check('photos are compressed client-side (fit 480, JPEG, size-capped) and validated before save', fn('compressPrizePhoto').includes('const max = 480') && fn('compressPrizePhoto').includes("toDataURL('image/jpeg'") && fn('compressPrizePhoto').includes('MonthlyLucky.MAX_PHOTO_BYTES') && fn('monthlyPrizePhotoPicked').includes('MonthlyLucky.isPhoto(photo)'));
-check('Save prizes posts the whole ordered list and refuses empty names', fn('saveMonthlyPrizes').includes("action: 'setMonthlyPrizes', prizes: list") && fn('saveMonthlyPrizes').includes('Every prize needs a name'));
-check('a background refresh never wipes unsaved prize edits', fn('loadMonthlyAdmin').includes('if (!mlPrizeDirty) mlPrizeDraft ='));
-check('typing a prize name does not re-render (keeps focus)', !fn('setMonthlyPrizeName').includes('renderMonthlyPrizes()'));
-check('prize rows: quantity (1..99 number) + description inputs, wired without re-render', fn('renderMonthlyPrizes').includes('setMonthlyPrizeQty(') && fn('renderMonthlyPrizes').includes('setMonthlyPrizeDesc(') && fn('renderMonthlyPrizes').includes('type="number" inputmode="numeric" min="\' + MonthlyLucky.MIN_PRIZE_QTY') && fn('renderMonthlyPrizes').includes('maxlength="\' + MonthlyLucky.MAX_PRIZE_DESC') && !fn('setMonthlyPrizeQty').includes('renderMonthlyPrizes()') && !fn('setMonthlyPrizeDesc').includes('renderMonthlyPrizes()'));
-check('Save prizes sends qty (blank = 1) + trimmed desc and refuses a bad quantity', fn('saveMonthlyPrizes').includes('MonthlyLucky.DEFAULT_PRIZE_QTY : Number(p.qty)') && fn('saveMonthlyPrizes').includes("desc: String(p.desc || '').trim()") && fn('saveMonthlyPrizes').includes('MonthlyLucky.isPrizeQty(p.qty)'));
-check('prize drafts (load + save + add) keep qty/desc', fn('loadMonthlyAdmin').includes('.map(mlPrizeRow)') && fn('saveMonthlyPrizes').includes('.map(mlPrizeRow)') && fn('mlPrizeRow').includes('MonthlyLucky.isPrizeQty(Number(p.qty))') && fn('addMonthlyPrize').includes("qty: MonthlyLucky.DEFAULT_PRIZE_QTY, desc: ''"));
+check('prize rows: photo button, name input, reorder, remove; one hidden file input for both draws', html.includes('id="mlPrizePhotoInput" type="file" accept="image/*"') && (html.match(/id="mlPrizePhotoInput"/g) || []).length === 1 && fn('renderPrizeEditor').includes('pickPrizePhoto(') && fn('renderPrizeEditor').includes('setPrizeName(') && fn('renderPrizeEditor').includes('movePrize(') && fn('renderPrizeEditor').includes('removePrize('));
+check('photos are compressed client-side (fit 480, JPEG, size-capped) and validated before save', fn('compressPrizePhoto').includes('const max = 480') && fn('compressPrizePhoto').includes("toDataURL('image/jpeg'") && fn('compressPrizePhoto').includes('SessionDraw.MAX_PHOTO_BYTES') && fn('prizePhotoPicked').includes('SessionDraw.isPhoto(photo)'));
+check('Save prizes posts the whole ordered list to that draw\u2019s action and refuses empty names', fn('savePrizes').includes('action: own.action, prizes: list') && fn('savePrizes').includes('Every prize needs a name') && /monthly: \{ box: 'mlPrizes'[^}]*action: 'setMonthlyPrizes'/.test(html) && /session: \{ box: 'sdPrizes'[^}]*action: 'setDrawPrizes'/.test(html));
+check('a background refresh never wipes unsaved prize edits', fn('loadMonthlyAdmin').includes('if (!prizeDirty.monthly) prizeDrafts.monthly =') && fn('sdSeedPrizeDraft').includes('prizeDirty.session'));
+check('typing a prize name does not re-render (keeps focus)', !fn('setPrizeName').includes('renderPrizeEditor('));
+check('prize rows: quantity (1..99 number) + description inputs, wired without re-render', fn('renderPrizeEditor').includes('setPrizeQty(') && fn('renderPrizeEditor').includes('setPrizeDesc(') && fn('renderPrizeEditor').includes('type="number" inputmode="numeric" min="\' + SessionDraw.MIN_PRIZE_QTY') && fn('renderPrizeEditor').includes('maxlength="\' + SessionDraw.MAX_PRIZE_DESC') && !fn('setPrizeQty').includes('renderPrizeEditor(') && !fn('setPrizeDesc').includes('renderPrizeEditor('));
+check('Save prizes sends qty (blank = 1) + trimmed desc and refuses a bad quantity', fn('savePrizes').includes('SessionDraw.DEFAULT_PRIZE_QTY : Number(p.qty)') && fn('savePrizes').includes("desc: String(p.desc || '').trim()") && fn('savePrizes').includes('SessionDraw.isPrizeQty(p.qty)'));
+check('prize drafts (load + save + add) keep qty/desc', fn('loadMonthlyAdmin').includes('.map(prizeRow)') && fn('savePrizes').includes('.map(prizeRow)') && fn('prizeRow').includes('SessionDraw.isPrizeQty(Number(p.qty))') && fn('addPrize').includes("qty: SessionDraw.DEFAULT_PRIZE_QTY, desc: ''"));
 check('helper + help drawer explain the place picker, quantity and description',
   html.includes('Each prize says which place it <b>goes to</b>') && html.includes('that winner takes both')
   && html.includes('Set a quantity to give several of the <em>same</em> item') && html.includes('Each prize has a <b>quantity</b>'));
@@ -91,21 +91,21 @@ check('live month card: "This month", no Run button (the pool card has it), elig
 check('Monthly Draw page is rendered from /api/draws → monthly', html.includes('id="drawPageMonthly"') && fn('renderDrawPage').includes('renderPublicMonthly()') && fn('renderPublicMonthly').includes('sdPublic.monthly') && fn('renderPublicMonthly').includes('dhPrizeStripHtml(m.prizes') && fn('dhPrizeStripHtml').includes('ml-prize-strip'));
 // ── one place, several prizes ──
 check('prize editor: every row has a "Goes to" place picker and shows that place as its badge',
-  fn('renderMonthlyPrizes').includes('setMonthlyPrizePlace') && fn('renderMonthlyPrizes').includes('mlPlaceOptions(MonthlyLucky.placeOf(p, i))')
-  && fn('renderMonthlyPrizes').includes("'<span class=\"ml-win-rank\">' + MonthlyLucky.placeOf(p, i)"));
+  fn('renderPrizeEditor').includes('setPrizePlace') && fn('renderPrizeEditor').includes('mlPlaceOptions(SessionDraw.placeOf(p, i), kind)')
+  && fn('renderPrizeEditor').includes("'<span class=\"ml-win-rank\">' + SessionDraw.placeOf(p, i)"));
 check('prize editor: warns when a prize points past the last winner',
-  fn('renderMonthlyPrizes').includes('ml-prize-warn') && fn('renderMonthlyPrizes').includes('mlWinnerCount()'));
+  fn('renderPrizeEditor').includes('ml-prize-warn') && fn('renderPrizeEditor').includes('prizeWinnerCount(kind)'));
 check('mlOrdinal reads 1st/2nd/3rd/4th and the teens', (() => {
   const f = new Function(fn('mlOrdinal') + '; return mlOrdinal;')();
   return f(1) === '1st' && f(2) === '2nd' && f(3) === '3rd' && f(4) === '4th' && f(11) === '11th' && f(12) === '12th' && f(13) === '13th';
 })());
 check('mlPlaceOptions offers every place up to the winner count and selects the current one', (() => {
-  const f = new Function('mlWinnerCount', 'mlOrdinal', fn('mlPlaceOptions') + '; return mlPlaceOptions;')(() => 3, (n) => n + 'x');
+  const f = new Function('prizeWinnerCount', 'mlOrdinal', fn('mlPlaceOptions') + '; return mlPlaceOptions;')(() => 3, (n) => n + 'x');
   const html = f(2);
   return (html.match(/<option/g) || []).length === 3 && html.includes('value="2" selected');
 })());
 check('mlPlaceOptions keeps a place parked beyond the winner count', (() => {
-  const f = new Function('mlWinnerCount', 'mlOrdinal', fn('mlPlaceOptions') + '; return mlPlaceOptions;')(() => 2, (n) => n + 'x');
+  const f = new Function('prizeWinnerCount', 'mlOrdinal', fn('mlPlaceOptions') + '; return mlPlaceOptions;')(() => 2, (n) => n + 'x');
   return (f(5).match(/<option/g) || []).length === 5;
 })());
 const multiCard = cardFn(Object.assign({}, doneView, { prizes: [{ id: 'x', name: 'Racket', photo: 'data:image/jpeg;base64,QQ==' }, { id: 'y', name: 'Tube', photo: 'data:image/jpeg;base64,Qg==' }],
@@ -117,7 +117,7 @@ check('winner row lists every prize of that place, each with its own photo',
 check('a winner row from an older record still renders from the single prize string',
   (cardFn(doneView, true).match(/ml-win-prize/g) || []).length === 2);
 check('public prize cards: place badge, how many of it, a ×N badge on the picture, the description under it',
-  fn('dhPrizeStripHtml').includes('MonthlyLucky.placeOf(p, i)') && fn('dhPrizeStripHtml').includes('ml-tile-place')
+  fn('dhPrizeStripHtml').includes('SessionDraw.placeOf(p, i)') && fn('dhPrizeStripHtml').includes('ml-tile-place')
   && fn('dhPrizeStripHtml').includes(' of these') && fn('dhPrizeStripHtml').includes('ml-tile-qty')
   && fn('dhPrizeStripHtml').includes("p.desc ? '<small>' + escHtml(p.desc) + '</small>'"));
 check('a prize with no photo still reads as a card (placeholder, not a blank box)', fn('dhPrizeStripHtml').includes('ml-tile-ph') && fn('dhPrizeStripHtml').includes("' place prize'"));

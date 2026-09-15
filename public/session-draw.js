@@ -109,6 +109,76 @@
     return typeof v === 'string' ? v.trim().replace(/\s+/g, ' ').slice(0, MAX_PRIZE_LEN) : '';
   }
 
+  // ── prizes (shared by BOTH draws) ────────────────────────────────────
+  // A prize is { id, name, qty, desc, place, photo }. It lives here, in the lower
+  // module, because the Session and Monthly draws hold the same kind of list and
+  // must clean it the same way — monthly-lucky.js re-exports every name below, so
+  // MonthlyLucky.normalizePrizes and SessionDraw.normalizePrizes are one function.
+  const MAX_PRIZES = 12, MAX_PRIZE_NAME = 60, MAX_PRIZE_DESC = 200;
+  const DEFAULT_PRIZE_QTY = 1, MIN_PRIZE_QTY = 1, MAX_PRIZE_QTY = 99;
+  const MAX_PHOTO_BYTES = 200 * 1024;   // data-URL length cap for one prize photo
+
+  function isPrizeQty(n) { return Number.isInteger(n) && n >= MIN_PRIZE_QTY && n <= MAX_PRIZE_QTY; }
+  function isPhoto(s) { return typeof s === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s) && s.length <= MAX_PHOTO_BYTES; }
+  function newPrizeId(seedStr) {
+    // Deterministic-friendly: callers pass an id when they have one; this is only for brand-new rows.
+    return 'pz' + String(seedStr || Date.now().toString(36)) + Math.random().toString(36).slice(2, 6);
+  }
+  /** Which place a prize goes to. Several prizes may share one place; a prize
+   *  saved before this existed keeps its old positional meaning (row 1 -> 1st). */
+  function isPlace(n) { return Number.isInteger(n) && n >= 1 && n <= MAX_PRIZES; }
+  function placeOf(p, index) {
+    const n = p && p.place != null ? Number(p.place) : NaN;
+    return isPlace(n) ? n : (Number(index) || 0) + 1;
+  }
+  /** Clean prize list: trimmed names (required), qty 1..MAX_PRIZE_QTY (default 1), trimmed optional desc, optional photo, stable ids, max MAX_PRIZES. */
+  function normalizePrizes(list) {
+    const out = [];
+    const seen = new Set();
+    (Array.isArray(list) ? list : []).forEach((p, i) => {
+      if (!p || typeof p !== 'object' || out.length >= MAX_PRIZES) return;
+      const name = String(p.name == null ? '' : p.name).trim().slice(0, MAX_PRIZE_NAME);
+      if (!name) return;
+      let id = typeof p.id === 'string' && /^[A-Za-z0-9_-]{2,40}$/.test(p.id) ? p.id : ('pz' + (i + 1));
+      while (seen.has(id)) id += 'x';
+      seen.add(id);
+      const qty = isPrizeQty(Number(p.qty)) ? Number(p.qty) : DEFAULT_PRIZE_QTY;
+      const desc = String(p.desc == null ? '' : p.desc).trim().slice(0, MAX_PRIZE_DESC);
+      out.push({ id, name, qty, desc, place: placeOf(p, out.length), photo: isPhoto(p.photo) ? p.photo : null });
+    });
+    return out;
+  }
+  /** Display label for a prize: "Name" or "3 × Name" when the quantity is above one. */
+  function prizeLabel(p) {
+    if (!p || typeof p !== 'object') return '';
+    const name = String(p.name == null ? '' : p.name).trim();
+    const qty = isPrizeQty(Number(p.qty)) ? Number(p.qty) : DEFAULT_PRIZE_QTY;
+    return !name ? '' : qty > 1 ? qty + ' × ' + name : name;
+  }
+  /**
+   * What the server accepts as a prize list, for either draw. Returns the first
+   * problem in words the admin can act on, so a rejected save says why.
+   * @returns {{ok:boolean, error:string}}
+   */
+  function validatePrizeList(list) {
+    if (!Array.isArray(list)) return { ok: false, error: 'Send the prize list.' };
+    if (list.length > MAX_PRIZES) return { ok: false, error: 'At most ' + MAX_PRIZES + ' prizes.' };
+    for (const p of list) {
+      if (!p || typeof p !== 'object') return { ok: false, error: 'Invalid prize.' };
+      if (!String(p.name == null ? '' : p.name).trim()) return { ok: false, error: 'Every prize needs a name.' };
+      if (String(p.name).trim().length > MAX_PRIZE_NAME) return { ok: false, error: 'Prize names are limited to ' + MAX_PRIZE_NAME + ' characters.' };
+      if (p.qty != null && p.qty !== '' && !isPrizeQty(Number(p.qty))) return { ok: false, error: 'Quantity must be a whole number from ' + MIN_PRIZE_QTY + ' to ' + MAX_PRIZE_QTY + '.' };
+      if (p.desc != null && typeof p.desc !== 'string') return { ok: false, error: 'Invalid prize description.' };
+      if (p.desc != null && String(p.desc).trim().length > MAX_PRIZE_DESC) return { ok: false, error: 'Prize descriptions are limited to ' + MAX_PRIZE_DESC + ' characters.' };
+      if (p.photo != null && p.photo !== '' && !isPhoto(p.photo)) return { ok: false, error: 'A prize photo must be a JPEG/PNG/WebP under ' + Math.round(MAX_PHOTO_BYTES / 1024) + ' KB.' };
+    }
+    return { ok: true, error: '' };
+  }
+  /** The session draw's own prize list, cleaned. Empty when the admin has set none. */
+  function prizesOf(settings) { return normalizePrizes(settings && settings.prizes); }
+  /** Prize photos are bulky; the 2 s poll carries the list without them. */
+  function litePrizes(list) { return normalizePrizes(list).map((p) => Object.assign({}, p, { photo: null })); }
+
   // ── lists ────────────────────────────────────────────────────────────
   function entriesOf(day) {
     const e = day && day.entries;
@@ -461,6 +531,8 @@
 
   return {
     DRAW_SCHEDULE, DRAW_TIME, PAY_WINDOW_DAYS, DRAW_EPOCH, DEFAULT_WINNERS, MIN_WINNERS, MAX_WINNERS, MAX_PRIZE_LEN, ALGORITHM, RECORD_VERSION, TIME_ZONE,
+    MAX_PRIZES, MAX_PRIZE_NAME, MAX_PRIZE_DESC, DEFAULT_PRIZE_QTY, MIN_PRIZE_QTY, MAX_PRIZE_QTY, MAX_PHOTO_BYTES,
+    isPrizeQty, isPhoto, newPrizeId, isPlace, placeOf, normalizePrizes, prizeLabel, validatePrizeList, prizesOf, litePrizes,
     WEEKDAY_NAMES, WEEKDAY_SHORT,
     isValidISO, isoWeekday, addDaysISO, mytInstant,
     drawWeekdayFor, isDrawDay, drawDateFor, scheduledDrawAt, isWinnersCount, winnersOf,

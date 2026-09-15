@@ -132,6 +132,33 @@ function freshState() {
   const mon3 = await store.get(MON);
   check('next draw uses the new winner count (3 eligible, N=3 -> 3 winners, no shortfall)', mon3.winnersWanted === 3 && mon3.winners.length === 3 && mon3.shortfall === false);
 
+  // ── setDrawPrizes (the prizes on offer; same shape as the Monthly ones) ──
+  s = freshState(); store = D.memoryDrawStore();
+  r = await D.handleSessionDrawAdminAction(s, { action: 'setDrawPrizes', prizes: 'nope' }, opts(1));
+  check('setDrawPrizes needs a list', r.status === 400 && r.body.error === 'Send the prize list.');
+  r = await D.handleSessionDrawAdminAction(s, { action: 'setDrawPrizes', prizes: [{ name: '  ' }] }, opts(1));
+  check('setDrawPrizes refuses a nameless prize', r.status === 400 && r.body.error === 'Every prize needs a name.');
+  r = await D.handleSessionDrawAdminAction(s, { action: 'setDrawPrizes', prizes: [{ name: 'Tube', qty: 0 }] }, opts(1));
+  check('setDrawPrizes refuses a bad quantity', r.status === 400 && /Quantity must be/.test(r.body.error));
+  r = await D.handleSessionDrawAdminAction(s, { action: 'setDrawPrizes', prizes: [{ name: 'Tube', photo: 'http://x/y.png' }] }, opts(1));
+  check('setDrawPrizes refuses a photo that is not an inline image', r.status === 400 && /JPEG\/PNG\/WebP/.test(r.body.error));
+  r = await D.handleSessionDrawAdminAction(s, { action: 'setDrawPrizes', prizes: [
+    { name: '  Tube of shuttlecocks ', qty: 2, desc: '  Twelve shuttles ', place: 1 },
+    { name: 'Overgrip pack', place: 2 },
+  ] }, opts(1));
+  check('setDrawPrizes saves a cleaned list + audit', r.status === 200 && r.changed
+    && s.drawSettings.prizes.length === 2 && s.drawSettings.prizes[0].name === 'Tube of shuttlecocks'
+    && s.drawSettings.prizes[0].qty === 2 && s.drawSettings.prizes[0].desc === 'Twelve shuttles'
+    && s.drawSettings.prizes[1].place === 2 && s.drawSettings.prizes[1].qty === 1
+    && s.audit[0].action === 'draw.prizes' && s.audit[0].newValue.join() === ['2 × Tube of shuttlecocks', 'Overgrip pack'].join());
+  check('prizes never disturb the winner count or the prize line', s.drawSettings.winners === 2 && s.drawSettings.prize === '');
+  r = await D.handleSessionDrawAdminAction(s, { action: 'setDrawSettings', winners: 3 }, opts(2));
+  check('saving winners keeps the prize list', r.status === 200 && s.drawSettings.prizes.length === 2);
+  r = await D.handleSessionDrawAdminAction(s, { action: 'setDrawSettings', prize: 'A tube' }, opts(3));
+  check('saving the prize line keeps the prize list', r.status === 200 && s.drawSettings.prize === 'A tube' && s.drawSettings.prizes.length === 2);
+  r = await D.buildDrawsView(s, store, { nowMs: MON_AT + 1000, offsetHours: 8 });
+  check('the page payload carries the prizes beside the line', r.sessionPrize === 'A tube' && r.sessionPrizes.map((p) => p.name).join() === 'Tube of shuttlecocks,Overgrip pack');
+
   // ── getDraws (admin list) ──
   r = await D.handleSessionDrawAdminAction(s, { action: 'getDraws' }, opts(MON_AT + 1000));
   check('getDraws lists newest first with winnersPerDraw', r.status === 200 && r.body.winnersPerDraw === 3 && r.body.sessions.map((v) => v.date).join() === [LIVE, MON, FRI].join() && r.changed === false);

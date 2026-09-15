@@ -1386,6 +1386,13 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .dhc-prize{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-md);background:var(--dw-tint);font-size:var(--fs-md);font-weight:700;color:var(--text)}
 .dhc-prize .ic{width:22px;height:22px;flex:none;color:var(--dw)}
 .dhc-prize b{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dw)}
+.dhc-prows{display:flex;flex-direction:column;gap:8px}
+.dhc-prow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-md);background:var(--dw-tint);min-width:0}
+.dhc-pthumb{flex:none;width:40px;height:40px;border-radius:var(--radius-sm);overflow:hidden;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.dhc-pthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.dhc-pthumb .ic{width:18px;height:18px}
+.dhc-pname{flex:1;min-width:0;font-size:var(--fs-md);font-weight:700;letter-spacing:-.01em;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dhc-pmore{font-size:var(--fs-xs);color:var(--muted);padding-left:2px}
 .dhc-prog{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-size:var(--fs-sm);font-weight:600;color:var(--text)}
 .dhc-prog>span:last-child{font-weight:400;color:var(--muted);white-space:nowrap}
 .dhc-prog b{font-weight:600;color:var(--text-2)}
@@ -1566,20 +1573,20 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .ml-tile-img img{width:100%;height:100%;object-fit:cover;display:block}
 .ml-tile-ph{position:absolute;inset:10px;border:1px dashed var(--border2);border-radius:var(--radius-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:var(--fs-sm);font-weight:500;text-align:center;padding:0 12px}
 .ml-tile-ph .ic{width:26px;height:26px}
-.ml-tile-qty{position:absolute;top:10px;left:10px;padding:3px 9px;border-radius:100px;background:var(--dw-monthly);color:#fff;font-size:11px;font-weight:800;line-height:1.4}
+.ml-tile-qty{position:absolute;top:10px;left:10px;padding:3px 9px;border-radius:100px;background:var(--dw,var(--dw-monthly));color:#fff;font-size:11px;font-weight:800;line-height:1.4}
 .ml-tile-count{position:absolute;top:10px;right:10px;padding:4px 11px;border-radius:100px;background:var(--card);border:1px solid var(--border);color:var(--text-2);font-size:12px;font-weight:600;line-height:1.4}
 .ml-tile-next{position:absolute;top:50%;right:10px;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow-sm);color:var(--text);font-size:22px;line-height:1;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.ml-tile-next:hover{border-color:var(--dw-monthly);color:var(--dw-monthly)}
+.ml-tile-next:hover{border-color:var(--dw,var(--dw-monthly));color:var(--dw,var(--dw-monthly))}
 .ml-tile-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .ml-tile-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.ml-tile-place{padding:3px 10px;border-radius:100px;background:var(--dw-monthly-tint);color:var(--dw-monthly);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
-.ml-tile-place.first{background:var(--dw-monthly);color:#fff}
+.ml-tile-place{padding:3px 10px;border-radius:100px;background:var(--dw-tint,var(--dw-monthly-tint));color:var(--dw,var(--dw-monthly));font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.ml-tile-place.first{background:var(--dw,var(--dw-monthly));color:#fff}
 .ml-tile-of{font-size:var(--fs-xs);color:var(--muted)}
 .ml-tile-name{font-size:var(--fs-lg);font-weight:700;letter-spacing:-.02em;color:var(--text);line-height:1.2}
 .ml-prize-tile small{font-size:var(--fs-sm);font-weight:400;color:var(--text-2);line-height:1.45}
 .ml-prize-dots{display:flex;align-items:center;justify-content:center;gap:7px;padding:2px 0 8px}
 .ml-dot{width:9px;height:9px;padding:0;border:0;border-radius:50%;background:var(--border2);cursor:pointer;transition:var(--transition)}
-.ml-dot.on{width:26px;border-radius:100px;background:var(--dw-monthly)}
+.ml-dot.on{width:26px;border-radius:100px;background:var(--dw,var(--dw-monthly))}
 .ml-prize-hint{font-size:var(--fs-xs);color:var(--muted);text-align:center;padding-bottom:4px}
 @media(min-width:700px){
   .ml-prize-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;overflow:visible}
@@ -3123,6 +3130,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   </div>
 
   <!-- ══ SESSION DRAWS (automatic per-session Lucky Draw) ══ -->
+  <!-- One hidden picker for BOTH prize editors (see renderPrizeEditor). -->
+  <input id="mlPrizePhotoInput" type="file" accept="image/*" style="display:none" onchange="prizePhotoPicked(this)">
+
   <div class="ld-sub" data-sub="weekly">
 
     <!-- Fixed schedule + winners setting -->
@@ -3147,7 +3157,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <input id="sdPrizeInput" type="text" maxlength="80" class="admin-form-input sd-prize-input" placeholder="e.g. A tube of shuttlecocks" onchange="setDrawPrize(this.value)" aria-label="What session draw winners get">
         <span class="pm-save-state" id="sdPrizeSaveState"></span>
       </div>
-      <div class="admin-helper-text">Leave empty to show no prize line on the public page.</div>
+      <div class="admin-helper-text">A single line, used only while the <b>Prizes</b> list below is empty. List the prizes instead to show them with photos.</div>
       <!-- Dry run: same rules/shuffle/card/video as the real draw, never saved -->
       <div class="sd-test">
         <div class="sd-test-row">
@@ -3155,6 +3165,19 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
           <span class="admin-helper-text sd-test-help">Dry run with tonight&#x2019;s line-up: the same rules, shuffle, card and video as the real draw. Nothing is saved.</span>
         </div>
         <div id="sdTestPanel"></div>
+      </div>
+    </div>
+
+    <!-- Prizes: the same editor and the same prize shape as the Monthly draw -->
+    <div class="admin-card" id="sdPrizesCard">
+      <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span> Prizes</span><span class="pm-save-state" id="sdPrizesSaveState"></span></div>
+      <div class="admin-helper-text">Each prize says which place it <b>goes to</b> &mdash; new rows fill 1st, 2nd, 3rd in turn. Point two rows at the same place and that winner takes both. Set a quantity to give several of the <em>same</em> item, and add a short description if you like. Tap the square to add a photo.</div>
+      <div class="admin-helper-text mlp-photo-note sd-photo-note"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l4.5-4.5 3.5 3.5 3-2.5L20 18"/></svg>
+        <span>These are what members see on the <b>Session Draw</b> page and on the Lucky Draw hub &mdash; a card each, with the photo. They are what is on offer now: a past draw&rsquo;s record keeps its winners&rsquo; names only. <button type="button" class="ml-photo-link" onclick="openDrawPage('session')">See the page</button></span></div>
+      <div class="ml-prizes" id="sdPrizes"><div class="acct-empty">Loading&hellip;</div></div>
+      <div class="admin-btn-row admin-mt">
+        <button class="btn btn-ghost btn-sm" type="button" onclick="addPrize('session')"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add prize</button>
+        <button class="btn btn-secondary btn-sm" type="button" id="sdPrizesSaveBtn" onclick="savePrizes('session')">Save prizes</button>
       </div>
     </div>
 
@@ -3234,10 +3257,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <span>These photos are what members see. They take turns as the big picture on the <b>Lucky Draw</b> page, and each one shows again beside its prize. Change a photo here and the page changes with it. <button type="button" class="ml-photo-link" onclick="openDrawPage('hub')">See the page</button></span></div>
       <div class="ml-prizes" id="mlPrizes"></div>
       <div class="admin-btn-row admin-mt">
-        <button class="btn btn-ghost btn-sm" type="button" onclick="addMonthlyPrize()"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add prize</button>
-        <button class="btn btn-secondary btn-sm" type="button" id="mlPrizeSaveBtn" onclick="saveMonthlyPrizes()">Save prizes</button>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="addPrize('monthly')"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add prize</button>
+        <button class="btn btn-secondary btn-sm" type="button" id="mlPrizeSaveBtn" onclick="savePrizes('monthly')">Save prizes</button>
       </div>
-      <input id="mlPrizePhotoInput" type="file" accept="image/*" style="display:none" onchange="monthlyPrizePhotoPicked(this)">
     </div>
 
     <!-- Who is in this month + manual draw -->
@@ -7740,11 +7762,34 @@ function dhSessionCardHtml(st) {
     + (counting ? '<div class="dhc-big"><b data-draw-at="' + st.drawAt + '">' + escHtml(DrawHub.countdownText(clockNow(), st.drawAt)) + '</b><span>to go</span></div>' : '')
     + '</div>';
   const mine = st.mine ? Object.assign({}, st.mine, st.date ? { note: SessionDraw.fmtSessionDate(st.date) } : {}) : null;
-  const body = (st.prize ? '<div class="dhc-prize"><svg class="ic" viewBox="0 0 24 24"><path d="M20 8H4v4h16zM12 8v13M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 8S9.5 3 7.5 4.5 9 8 12 8zM12 8s2.5-5 4.5-3.5S15 8 12 8z"/></svg>'
-    + '<span><b>Winners get</b>' + escHtml(st.prize) + '</span></div>' : '')
+  const body = dhPrizeRowsHtml(sdPublic.sessionPrizes, st.prize)
     + dhMineRowHtml(mine)
     + dhMetaRowHtml([dhPoolChip(st.poolCount), dhLastChip(DrawHub.latestSessionWin(sdPublic.sessions)), dhWinnersChip(st.winners)]);
   return dhCardHtml('session', hero, body);
+}
+/**
+ * What a Session winner takes home, on the hub card: one row per prize with its
+ * photo and the place it goes to. Falls back to the admin's one-line version
+ * while no prizes are listed, so a club that never fills the list still reads.
+ */
+function dhPrizeRowsHtml(prizes, line) {
+  const list = (prizes || []).filter(Boolean);
+  if (!list.length) {
+    return line ? '<div class="dhc-prize"><svg class="ic" viewBox="0 0 24 24"><path d="M20 8H4v4h16zM12 8v13M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 8S9.5 3 7.5 4.5 9 8 12 8zM12 8s2.5-5 4.5-3.5S15 8 12 8z"/></svg>'
+      + '<span><b>Winners get</b>' + escHtml(line) + '</span></div>' : '';
+  }
+  const shown = list.slice(0, 3);
+  let html = '<div class="dhc-prows"><div class="dh-st-label">Winners get</div>';
+  html += shown.map((p, i) => {
+    const place = SessionDraw.placeOf(p, i);
+    return '<div class="dhc-prow"><span class="dhc-pthumb">'
+      + (p.photo ? '<img src="' + p.photo + '" alt="">'
+        : '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l4.5-4.5 3.5 3.5 3-2.5L20 18"/></svg>')
+      + '</span><span class="ml-tile-place' + (place === 1 ? ' first' : '') + '">' + escHtml(mlOrdinal(place)) + '</span>'
+      + '<span class="dhc-pname">' + escHtml(SessionDraw.prizeLabel(p)) + '</span></div>';
+  }).join('');
+  if (list.length > shown.length) html += '<div class="dhc-pmore">+ ' + (list.length - shown.length) + ' more</div>';
+  return html + '</div>';
 }
 function dhMonthlyCardHtml(ml) {
   if (!ml) return dhCardHtml('monthly', '<div class="dhc-hero dhc-hero-count"><div class="dh-st-label">Monthly</div><div class="dhc-when">Not set up yet</div></div>', '');
@@ -7895,26 +7940,31 @@ function dhSubLine(at, poolCount, word) {
  * has a prize per place; this draw has one prize and no picture, so it is a
  * single card rather than a card that would be mostly empty space.
  */
-function dhPrizeCardHtml(text, winners) {
+function dhPrizeCardHtml(text, winners, prizes) {
+  const list = (prizes || []).filter(Boolean);
   const head = '<div class="md-sec-title dhp-sec-head"><span>Winners get</span>'
     + '<small>' + escHtml(sdWinnersLabel(winners)) + ' will be picked</small></div>';
+  // Listed prizes win: they say which place gets what, and they carry photos.
+  if (list.length) return head + '<div class="ml-prize-wrap">' + dhPrizeStripHtml(list) + mlPrizeNavHtml(list) + '</div>';
   const body = '<div class="dh-prize"><span class="dh-prize-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M20 8H4v4h16zM12 8v13M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 8S9.5 3 7.5 4.5 9 8 12 8zM12 8s2.5-5 4.5-3.5S15 8 12 8z"/></svg></span>'
     + '<span class="dh-prize-txt' + (text ? '' : ' dh-prize-none') + '">'
     + escHtml(text || 'The prize for this session has not been announced yet.') + '</span></div>';
   return head + body;
 }
+
 /**
- * The Monthly prize cards: one card per prize, each showing the place it goes to,
- * how many of it a winner gets, its picture, name and description. On a wide
+ * The prize cards for a draw: one card per prize, each showing the place it goes
+ * to, how many of it a winner gets, its picture, name and description. On a wide
  * screen they sit side by side; on a phone the strip is a snap carousel driven by
- * the dots / arrow below it (mlPrizeStep).
+ * the dots / arrow below it (mlPrizeStep). Both draws hold the same prize shape,
+ * so both pages use this.
  */
 function dhPrizeStripHtml(prizes) {
   const list = (prizes || []).filter(Boolean);
   if (!list.length) return '';
   const n = list.length;
-  return '<div class="ml-prize-strip" id="mlPrizeStrip" onscroll="mlPrizeSync()">' + list.map((p, i) => {
-    const place = MonthlyLucky.placeOf(p, i);
+  return '<div class="ml-prize-strip" onscroll="mlPrizeSync()">' + list.map((p, i) => {
+    const place = SessionDraw.placeOf(p, i);
     const qty = Number(p.qty) > 1 ? Number(p.qty) : 1;
     return '<article class="ml-prize-tile" data-idx="' + i + '">'
       + '<div class="ml-tile-img">'
@@ -7966,7 +8016,7 @@ function renderSessionDraw() {
     });
   }
   const prize = document.getElementById('drawPagePrize');
-  if (prize) prize.innerHTML = dhPrizeCardHtml(st.prize, sdPublic.winnersPerDraw);
+  if (prize) { prize.innerHTML = dhPrizeCardHtml(st.prize, sdPublic.winnersPerDraw, sdPublic.sessionPrizes); mlPrizeSync(true); }
   const how = document.getElementById('drawPageHow');
   if (how) how.textContent = SessionDraw.howItWorksText(sdPublic.winnersPerDraw);
   renderDrawCalendar(document.getElementById('drawPageCal'), sdPublic, false);
@@ -8268,6 +8318,17 @@ function sdAdminPrize() {
   const v = state && state.drawSettings && state.drawSettings.prize;
   return typeof v === 'string' ? v : '';
 }
+/** The session prize list to edit. It comes from the admin `getDraws` fetch,
+ *  which is the only client copy WITH photos — the 2 s poll strips them, and
+ *  saving a poll-shaped list back would wipe every photo. Null until it lands. */
+function sdAdminPrizes() { return Array.isArray(sdAdmin.sessionPrizes) ? sdAdmin.sessionPrizes : null; }
+/** Seed the editor from a fresh fetch, unless the admin has unsaved edits. */
+function sdSeedPrizeDraft() {
+  const prizes = sdAdminPrizes();
+  if (!prizes || prizeDirty.session) return;
+  prizeDrafts.session = prizes.map(prizeRow);
+  renderPrizeEditor('session');
+}
 function renderSessionDrawsAdmin() {
   if (!window.SessionDraw) return;
   const n = sdAdminWinners();
@@ -8277,6 +8338,7 @@ function renderSessionDrawsAdmin() {
   if (prize && document.activeElement !== prize) prize.value = sdAdminPrize();
   const how = document.getElementById('sdAdminHow');
   if (how) how.textContent = SessionDraw.howItWorksText(n) + SD_ADMIN_NOTE;
+  sdSeedPrizeDraft();   // paint from the last fetch; the one below refreshes it
   loadAdminDraws(false);
 }
 // The prize line is stored beside `winners` on drawSettings, but each is sent on
@@ -8307,6 +8369,7 @@ async function loadAdminDraws(more) {
   if (res === null) return;
   if (!res.ok) { list.innerHTML = '<div class="acct-empty">' + escHtml(res.error || 'Could not load the draws.') + '</div>'; return; }
   sdAdmin = Object.assign({}, res, { sessions: more ? sdAdmin.sessions.concat(res.sessions || []) : (res.sessions || []) });
+  sdSeedPrizeDraft();
   renderSessionDrawsAdminView();
 }
 function renderSessionDrawsAdminView() {
@@ -8376,9 +8439,6 @@ async function runDrawNow(date) {
 // eligible names once drawn — never points). The 2s poll only carries the light
 // settings (state.monthlyLucky without photos/snapshots).
 let mlAdmin = { settings: null, pointsMonth: '', months: [], pool: null, loaded: false };
-let mlPrizeDraft = null;      // local prize edits until "Save prizes"
-let mlPrizeDirty = false;
-let mlPhotoTarget = null;     // prize id waiting for a photo pick
 let mlConfirmMonth = null;    // month awaiting the inline "Yes, draw now"
 const mlBusy = new Set();
 
@@ -8407,13 +8467,13 @@ async function loadMonthlyAdmin() {
   if (!res.ok) { list.innerHTML = '<div class="acct-empty">' + escHtml(res.error || 'Could not load the monthly draws.') + '</div>'; return; }
   if (res.serverTime) clockOffset = res.serverTime - Date.now();
   mlAdmin = { settings: res.settings || null, pointsMonth: res.pointsMonth || '', months: res.months || [], pool: res.pool || null, loaded: true };
-  if (!mlPrizeDirty) mlPrizeDraft = ((mlAdmin.settings && mlAdmin.settings.prizes) || []).map(mlPrizeRow);
+  if (!prizeDirty.monthly) prizeDrafts.monthly = ((mlAdmin.settings && mlAdmin.settings.prizes) || []).map(prizeRow);
   if (res.closedMonths && res.closedMonths.length) {
     notify(res.closedMonths.map(m => MonthlyLucky.monthLabel(m)).join(', ') + ' closed — everyone starts again from 0 points.', 'ok', 7000);
     refreshState().catch(() => {});
   }
   renderMonthlySettings();
-  renderMonthlyPrizes();
+  renderPrizeEditor('monthly');
   renderMonthlyPool();
   renderMonthlyAdminList();
 }
@@ -8484,60 +8544,82 @@ function mlFlash(id, kind) {
 }
 
 // ── prizes: ordered list with name + quantity + description + photo, saved as one list ──
-function mlPrizeRow(p, i) { return { id: p.id, name: p.name || '', qty: MonthlyLucky.isPrizeQty(Number(p.qty)) ? Number(p.qty) : MonthlyLucky.DEFAULT_PRIZE_QTY, desc: p.desc || '', place: MonthlyLucky.placeOf(p, i), photo: p.photo || null }; }
+// ── PRIZE EDITOR (shared by both draws) ───────────────────────────────
+// One editor, two owners: Monthly (state.monthlyLucky.prizes, saved with
+// setMonthlyPrizes) and Session (state.drawSettings.prizes, setDrawPrizes). The
+// prize itself is the same object in both — see SessionDraw.normalizePrizes —
+// so the rows, the photo pipeline and the place picker are written once and the
+// `kind` decides which draft, which ids and which action.
+const PRIZE_OWNERS = {
+  monthly: { box: 'mlPrizes', save: 'mlPrizeSaveBtn', state: 'mlPrizeSaveState', action: 'setMonthlyPrizes' },
+  session: { box: 'sdPrizes', save: 'sdPrizesSaveBtn', state: 'sdPrizesSaveState', action: 'setDrawPrizes' },
+};
+const prizeDrafts = { monthly: null, session: null };   // local edits until "Save prizes"
+const prizeDirty = { monthly: false, session: false };
+let mlPhotoTarget = null;     // "kind|prizeId" waiting for a photo pick
+
+function prizeOwner(kind) { return PRIZE_OWNERS[kind] || PRIZE_OWNERS.monthly; }
+function prizeRow(p, i) { return { id: p.id, name: p.name || '', qty: SessionDraw.isPrizeQty(Number(p.qty)) ? Number(p.qty) : SessionDraw.DEFAULT_PRIZE_QTY, desc: p.desc || '', place: SessionDraw.placeOf(p, i), photo: p.photo || null }; }
+function prizeList(kind) { return prizeDrafts[kind] || []; }
 // How many winners the draw will pick — the unsaved input wins, as everywhere else.
-function mlWinnerCount() {
+function prizeWinnerCount(kind) {
+  if (kind === 'session') {
+    const inp = document.getElementById('sdWinnersInput');
+    return inp && SessionDraw.isWinnersCount(Number(inp.value)) ? Number(inp.value) : sdAdminWinners();
+  }
   const inp = document.getElementById('mlWinnersInput');
   return inp && MonthlyLucky.isWinnersCount(Number(inp.value)) ? Number(inp.value) : mlSettings().winners;
 }
-function mlPrizeList() { return mlPrizeDraft || []; }
-function renderMonthlyPrizes() {
-  const el = document.getElementById('mlPrizes'); if (!el) return;
-  const list = mlPrizeList();
+function renderPrizeEditor(kind) {
+  const own = prizeOwner(kind);
+  const el = document.getElementById(own.box); if (!el) return;
+  const list = prizeList(kind);
+  const k = escHtml(kind);
   if (!list.length) {
     el.innerHTML = '<div class="acct-empty">No prizes yet — add the first one.</div>';
   } else {
     el.innerHTML = list.map((p, i) => {
       const id = escHtml(p.id);
+      const ref = "'" + k + "','" + id + "'";
       return '<div class="ml-prize" data-id="' + id + '">'
-        + '<span class="ml-win-rank">' + MonthlyLucky.placeOf(p, i) + '</span>'
-        + '<button type="button" class="ml-prize-photo" onclick="pickMonthlyPrizePhoto(\'' + id + '\')" aria-label="' + (p.photo ? 'Change' : 'Add') + ' photo for prize ' + (i + 1) + '">'
+        + '<span class="ml-win-rank">' + SessionDraw.placeOf(p, i) + '</span>'
+        + '<button type="button" class="ml-prize-photo" onclick="pickPrizePhoto(' + ref + ')" aria-label="' + (p.photo ? 'Change' : 'Add') + ' photo for prize ' + (i + 1) + '">'
         + (p.photo ? '<img src="' + p.photo + '" alt="">' : '<svg class="ic" viewBox="0 0 24 24"><path d="M4 7h3l2-2h6l2 2h3v12H4z"/><circle cx="12" cy="13" r="3.5"/></svg>') + '</button>'
         + '<div class="ml-prize-main">'
-        + '<div class="ml-prize-line"><input class="admin-form-input" type="text" maxlength="' + MonthlyLucky.MAX_PRIZE_NAME + '" placeholder="Prize ' + (i + 1) + ' name" value="' + escHtml(p.name) + '" oninput="setMonthlyPrizeName(\'' + id + '\', this.value)" aria-label="Prize ' + (i + 1) + ' name">'
-        + '<label class="ml-prize-qty"><span>Qty</span><input class="admin-form-input" type="number" inputmode="numeric" min="' + MonthlyLucky.MIN_PRIZE_QTY + '" max="' + MonthlyLucky.MAX_PRIZE_QTY + '" step="1" value="' + escHtml(String(p.qty == null ? MonthlyLucky.DEFAULT_PRIZE_QTY : p.qty)) + '" oninput="setMonthlyPrizeQty(\'' + id + '\', this.value)" aria-label="Prize ' + (i + 1) + ' quantity"></label>'
-        + '<label class="ml-prize-qty ml-prize-place"><span>Goes to</span><select class="admin-form-input" onchange="setMonthlyPrizePlace(\'' + id + '\', this.value)" aria-label="Prize ' + (i + 1) + ' goes to which winner">'
-        + mlPlaceOptions(MonthlyLucky.placeOf(p, i)) + '</select></label></div>'
-        + (MonthlyLucky.placeOf(p, i) > mlWinnerCount() ? '<div class="ml-prize-warn">There is no ' + mlOrdinal(MonthlyLucky.placeOf(p, i)) + ' winner — raise the winner count or this prize is not given.</div>' : '')
-        + '<input class="admin-form-input ml-prize-desc" type="text" maxlength="' + MonthlyLucky.MAX_PRIZE_DESC + '" placeholder="Description (optional) — brand, model, what is included" value="' + escHtml(p.desc || '') + '" oninput="setMonthlyPrizeDesc(\'' + id + '\', this.value)" aria-label="Prize ' + (i + 1) + ' description">'
-        + (p.photo ? '<button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="clearMonthlyPrizePhoto(\'' + id + '\')">Remove photo</button>' : '') + '</div>'
+        + '<div class="ml-prize-line"><input class="admin-form-input" type="text" maxlength="' + SessionDraw.MAX_PRIZE_NAME + '" placeholder="Prize ' + (i + 1) + ' name" value="' + escHtml(p.name) + '" oninput="setPrizeName(' + ref + ', this.value)" aria-label="Prize ' + (i + 1) + ' name">'
+        + '<label class="ml-prize-qty"><span>Qty</span><input class="admin-form-input" type="number" inputmode="numeric" min="' + SessionDraw.MIN_PRIZE_QTY + '" max="' + SessionDraw.MAX_PRIZE_QTY + '" step="1" value="' + escHtml(String(p.qty == null ? SessionDraw.DEFAULT_PRIZE_QTY : p.qty)) + '" oninput="setPrizeQty(' + ref + ', this.value)" aria-label="Prize ' + (i + 1) + ' quantity"></label>'
+        + '<label class="ml-prize-qty ml-prize-place"><span>Goes to</span><select class="admin-form-input" onchange="setPrizePlace(' + ref + ', this.value)" aria-label="Prize ' + (i + 1) + ' goes to which winner">'
+        + mlPlaceOptions(SessionDraw.placeOf(p, i), kind) + '</select></label></div>'
+        + (SessionDraw.placeOf(p, i) > prizeWinnerCount(kind) ? '<div class="ml-prize-warn">There is no ' + mlOrdinal(SessionDraw.placeOf(p, i)) + ' winner — raise the winner count or this prize is not given.</div>' : '')
+        + '<input class="admin-form-input ml-prize-desc" type="text" maxlength="' + SessionDraw.MAX_PRIZE_DESC + '" placeholder="Description (optional) — brand, model, what is included" value="' + escHtml(p.desc || '') + '" oninput="setPrizeDesc(' + ref + ', this.value)" aria-label="Prize ' + (i + 1) + ' description">'
+        + (p.photo ? '<button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="clearPrizePhoto(' + ref + ')">Remove photo</button>' : '') + '</div>'
         + '<div class="ml-prize-tools">'
-        + '<button type="button" class="btn btn-ghost btn-sm" onclick="moveMonthlyPrize(\'' + id + '\',-1)"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move prize ' + (i + 1) + ' up">&uarr;</button>'
-        + '<button type="button" class="btn btn-ghost btn-sm" onclick="moveMonthlyPrize(\'' + id + '\',1)"' + (i === list.length - 1 ? ' disabled' : '') + ' aria-label="Move prize ' + (i + 1) + ' down">&darr;</button>'
-        + '<button type="button" class="btn btn-ghost btn-sm" onclick="removeMonthlyPrize(\'' + id + '\')" aria-label="Remove prize ' + (i + 1) + '">&#x2715;</button>'
+        + '<button type="button" class="btn btn-ghost btn-sm" onclick="movePrize(' + ref + ',-1)"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move prize ' + (i + 1) + ' up">&uarr;</button>'
+        + '<button type="button" class="btn btn-ghost btn-sm" onclick="movePrize(' + ref + ',1)"' + (i === list.length - 1 ? ' disabled' : '') + ' aria-label="Move prize ' + (i + 1) + ' down">&darr;</button>'
+        + '<button type="button" class="btn btn-ghost btn-sm" onclick="removePrize(' + ref + ')" aria-label="Remove prize ' + (i + 1) + '">&#x2715;</button>'
         + '</div></div>';
     }).join('');
   }
-  const btn = document.getElementById('mlPrizeSaveBtn');
-  if (btn) { btn.disabled = !mlPrizeDirty; btn.textContent = mlPrizeDirty ? 'Save prizes' : 'Saved'; }
+  const btn = document.getElementById(own.save);
+  if (btn) { btn.disabled = !prizeDirty[kind]; btn.textContent = prizeDirty[kind] ? 'Save prizes' : 'Saved'; }
 }
-function markPrizesDirty() { mlPrizeDirty = true; renderMonthlyPrizes(); }
-function addMonthlyPrize() {
-  if (mlPrizeList().length >= MonthlyLucky.MAX_PRIZES) { notify('At most ' + MonthlyLucky.MAX_PRIZES + ' prizes.', 'warn'); return; }
-  mlPrizeDraft = mlPrizeList().concat([{ id: MonthlyLucky.newPrizeId(Date.now().toString(36)), name: '', qty: MonthlyLucky.DEFAULT_PRIZE_QTY, desc: '',
-    place: Math.min(mlPrizeList().length + 1, MonthlyLucky.MAX_PRIZES), photo: null }]);
-  markPrizesDirty();
-  const inputs = document.querySelectorAll('#mlPrizes .ml-prize input[type="text"]');
+function markPrizesDirty(kind) { prizeDirty[kind] = true; renderPrizeEditor(kind); }
+function addPrize(kind) {
+  if (prizeList(kind).length >= SessionDraw.MAX_PRIZES) { notify('At most ' + SessionDraw.MAX_PRIZES + ' prizes.', 'warn'); return; }
+  prizeDrafts[kind] = prizeList(kind).concat([{ id: SessionDraw.newPrizeId(Date.now().toString(36)), name: '', qty: SessionDraw.DEFAULT_PRIZE_QTY, desc: '',
+    place: Math.min(prizeList(kind).length + 1, SessionDraw.MAX_PRIZES), photo: null }]);
+  markPrizesDirty(kind);
+  const inputs = document.querySelectorAll('#' + prizeOwner(kind).box + ' .ml-prize input[type="text"]');
   const last = inputs[inputs.length - 1]; if (last) last.focus();
 }
 // Typing never re-renders the list (that would steal focus): flip the dirty flag + button only.
-function mlPrizeTouched() {
-  if (!mlPrizeDirty) { mlPrizeDirty = true; const btn = document.getElementById('mlPrizeSaveBtn'); if (btn) { btn.disabled = false; btn.textContent = 'Save prizes'; } }
+function prizeTouched(kind) {
+  if (!prizeDirty[kind]) { prizeDirty[kind] = true; const btn = document.getElementById(prizeOwner(kind).save); if (btn) { btn.disabled = false; btn.textContent = 'Save prizes'; } }
 }
-function setMonthlyPrizeName(id, value) {
-  const p = mlPrizeList().find(x => x.id === id); if (!p) return;
+function setPrizeName(kind, id, value) {
+  const p = prizeList(kind).find(x => x.id === id); if (!p) return;
   p.name = value;
-  mlPrizeTouched();
+  prizeTouched(kind);
 }
 // "1st", "2nd", "3rd", "4th"… for the place picker and its warning.
 function mlOrdinal(n) {
@@ -8547,51 +8629,52 @@ function mlOrdinal(n) {
 }
 // Offer every place the draw will actually fill, plus the one already chosen
 // (so a prize parked beyond the winner count keeps its setting until changed).
-function mlPlaceOptions(place) {
-  const max = Math.max(mlWinnerCount(), Number(place) || 1);
+function mlPlaceOptions(place, kind) {
+  const max = Math.max(prizeWinnerCount(kind || 'monthly'), Number(place) || 1);
   let out = '';
   for (let n = 1; n <= max; n++) out += '<option value="' + n + '"' + (n === Number(place) ? ' selected' : '') + '>' + mlOrdinal(n) + '</option>';
   return out;
 }
-function setMonthlyPrizePlace(id, value) {
-  const p = mlPrizeList().find(x => x.id === id); if (!p) return;
+function setPrizePlace(kind, id, value) {
+  const p = prizeList(kind).find(x => x.id === id); if (!p) return;
   const n = Math.round(Number(value));
-  if (!MonthlyLucky.isPlace(n)) return;
+  if (!SessionDraw.isPlace(n)) return;
   p.place = n;
-  markPrizesDirty();
+  markPrizesDirty(kind);
 }
-function setMonthlyPrizeQty(id, value) {
-  const p = mlPrizeList().find(x => x.id === id); if (!p) return;
+function setPrizeQty(kind, id, value) {
+  const p = prizeList(kind).find(x => x.id === id); if (!p) return;
   p.qty = String(value).trim() === '' ? '' : Number(value); // '' while the admin is mid-edit; validated on save
-  mlPrizeTouched();
+  prizeTouched(kind);
 }
-function setMonthlyPrizeDesc(id, value) {
-  const p = mlPrizeList().find(x => x.id === id); if (!p) return;
+function setPrizeDesc(kind, id, value) {
+  const p = prizeList(kind).find(x => x.id === id); if (!p) return;
   p.desc = value;
-  mlPrizeTouched();
+  prizeTouched(kind);
 }
-function moveMonthlyPrize(id, delta) {
-  const l = mlPrizeList(); const i = l.findIndex(x => x.id === id); const j = i + delta;
+function movePrize(kind, id, delta) {
+  const l = prizeList(kind); const i = l.findIndex(x => x.id === id); const j = i + delta;
   if (i < 0 || j < 0 || j >= l.length) return;
   const t = l[i]; l[i] = l[j]; l[j] = t;
-  markPrizesDirty();
+  markPrizesDirty(kind);
 }
-function removeMonthlyPrize(id) { mlPrizeDraft = mlPrizeList().filter(x => x.id !== id); markPrizesDirty(); }
-function clearMonthlyPrizePhoto(id) { const p = mlPrizeList().find(x => x.id === id); if (p) { p.photo = null; markPrizesDirty(); } }
-function pickMonthlyPrizePhoto(id) {
-  mlPhotoTarget = id;
+function removePrize(kind, id) { prizeDrafts[kind] = prizeList(kind).filter(x => x.id !== id); markPrizesDirty(kind); }
+function clearPrizePhoto(kind, id) { const p = prizeList(kind).find(x => x.id === id); if (p) { p.photo = null; markPrizesDirty(kind); } }
+function pickPrizePhoto(kind, id) {
+  mlPhotoTarget = kind + '|' + id;
   const inp = document.getElementById('mlPrizePhotoInput'); if (inp) { inp.value = ''; inp.click(); }
 }
-async function monthlyPrizePhotoPicked(input) {
+async function prizePhotoPicked(input) {
   const file = input && input.files && input.files[0];
   if (!file || !mlPhotoTarget) return;
-  const p = mlPrizeList().find(x => x.id === mlPhotoTarget); mlPhotoTarget = null;
+  const [kind, id] = mlPhotoTarget.split('|'); mlPhotoTarget = null;
+  const p = prizeList(kind).find(x => x.id === id);
   if (!p) return;
   let photo;
   try { photo = await compressPrizePhoto(file); } catch (e) { notify('Could not read that image.', 'warn'); return; }
-  if (!MonthlyLucky.isPhoto(photo)) { notify('That photo is too large — try a smaller image.', 'warn'); return; }
+  if (!SessionDraw.isPhoto(photo)) { notify('That photo is too large — try a smaller image.', 'warn'); return; }
   p.photo = photo;
-  markPrizesDirty();
+  markPrizesDirty(kind);
 }
 // Fit inside 480x480 (keeps the aspect ratio — product shots are rarely square),
 // JPEG, stepping the quality down until it fits the server's size cap.
@@ -8608,7 +8691,7 @@ function compressPrizePhoto(file) {
         const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
         let q = 0.82, out = canvas.toDataURL('image/jpeg', q);
-        while (out.length > MonthlyLucky.MAX_PHOTO_BYTES && q > 0.4) { q -= 0.1; out = canvas.toDataURL('image/jpeg', q); }
+        while (out.length > SessionDraw.MAX_PHOTO_BYTES && q > 0.4) { q -= 0.1; out = canvas.toDataURL('image/jpeg', q); }
         resolve(out);
       };
       img.src = e.target.result;
@@ -8616,23 +8699,29 @@ function compressPrizePhoto(file) {
     reader.readAsDataURL(file);
   });
 }
-async function saveMonthlyPrizes() {
-  const list = mlPrizeList().map((p, i) => ({ id: p.id, name: String(p.name || '').trim(), qty: p.qty === '' || p.qty == null ? MonthlyLucky.DEFAULT_PRIZE_QTY : Number(p.qty), desc: String(p.desc || '').trim(), place: MonthlyLucky.placeOf(p, i), photo: p.photo || null }));
+async function savePrizes(kind) {
+  const own = prizeOwner(kind);
+  const list = prizeList(kind).map((p, i) => ({ id: p.id, name: String(p.name || '').trim(), qty: p.qty === '' || p.qty == null ? SessionDraw.DEFAULT_PRIZE_QTY : Number(p.qty), desc: String(p.desc || '').trim(), place: SessionDraw.placeOf(p, i), photo: p.photo || null }));
   if (list.some(p => !p.name)) { notify('Every prize needs a name — or remove the empty row.', 'warn'); return; }
-  if (list.some(p => !MonthlyLucky.isPrizeQty(p.qty))) { notify('Quantity must be a whole number from ' + MonthlyLucky.MIN_PRIZE_QTY + ' to ' + MonthlyLucky.MAX_PRIZE_QTY + '.', 'warn'); return; }
-  const btn = document.getElementById('mlPrizeSaveBtn'); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  if (list.some(p => !SessionDraw.isPrizeQty(p.qty))) { notify('Quantity must be a whole number from ' + SessionDraw.MIN_PRIZE_QTY + ' to ' + SessionDraw.MAX_PRIZE_QTY + '.', 'warn'); return; }
+  const btn = document.getElementById(own.save); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
   let res;
-  try { res = await apiPost({ action: 'setMonthlyPrizes', prizes: list }); } catch (e) { res = { error: 'Network error — check your connection.' }; }
+  try { res = await apiPost({ action: own.action, prizes: list }); } catch (e) { res = { error: 'Network error — check your connection.' }; }
   if (res === null) return;
-  if (!res.ok) { notify(res.error || 'Could not save the prizes.', 'warn'); mlFlash('mlPrizeSaveState', 'err'); if (btn) { btn.disabled = false; btn.textContent = 'Save prizes'; } return; }
-  mlPrizeDirty = false;
-  mlPrizeDraft = (res.prizes || []).map(mlPrizeRow);
-  if (mlAdmin.settings) mlAdmin.settings.prizes = mlPrizeDraft.map(p => Object.assign({}, p));
-  mlFlash('mlPrizeSaveState', 'ok');
+  if (!res.ok) { notify(res.error || 'Could not save the prizes.', 'warn'); mlFlash(own.state, 'err'); if (btn) { btn.disabled = false; btn.textContent = 'Save prizes'; } return; }
+  prizeDirty[kind] = false;
+  prizeDrafts[kind] = (res.prizes || []).map(prizeRow);
+  if (kind === 'session') {
+    sdAdmin.sessionPrizes = prizeDrafts.session.map(p => Object.assign({}, p));
+  } else if (mlAdmin.settings) {
+    mlAdmin.settings.prizes = prizeDrafts.monthly.map(p => Object.assign({}, p));
+  }
+  mlFlash(own.state, 'ok');
   notify('Prizes saved.');
-  renderMonthlyPrizes();
-  loadMonthlyAdmin(); // the pending month's card shows the new prize list
+  renderPrizeEditor(kind);
+  if (kind === 'monthly') loadMonthlyAdmin(); // the pending month's card shows the new prize list
 }
+
 
 // ── pool: who is at the threshold, "Pull", curation, "Run draw now" ──
 function mlPool() { const p = mlAdmin.pool; return p && p.month === mlMonth() && p.pulledAt ? p : null; }
@@ -8901,13 +8990,16 @@ function mlCalPick(month) {
 function mlPrizeNavHtml(prizes) {
   const n = (prizes || []).filter(Boolean).length;
   if (n < 2) return '';
-  return '<div class="ml-prize-dots" id="mlPrizeDots">' + Array.from({ length: n }, (_, i) =>
+  return '<div class="ml-prize-dots">' + Array.from({ length: n }, (_, i) =>
     '<button type="button" class="ml-dot" onclick="mlPrizeGo(' + i + ')" aria-label="Prize ' + (i + 1) + '"></button>').join('') + '</div>'
     + '<div class="ml-prize-hint">Tap the arrow or a dot for the next prize</div>';
 }
-function mlPrizeTiles() { const s = document.getElementById('mlPrizeStrip'); return s ? Array.from(s.children) : []; }
+/** The strip of the view on screen — both draw pages carry one, ids would collide. */
+function mlPrizeStripEl() { return document.querySelector('.dh-view[data-draw="' + drawView + '"] .ml-prize-strip'); }
+function mlPrizeDotsEl() { return document.querySelector('.dh-view[data-draw="' + drawView + '"] .ml-prize-dots'); }
+function mlPrizeTiles() { const s = mlPrizeStripEl(); return s ? Array.from(s.children) : []; }
 function mlPrizeGo(i, instant) {
-  const strip = document.getElementById('mlPrizeStrip'); const tiles = mlPrizeTiles();
+  const strip = mlPrizeStripEl(); const tiles = mlPrizeTiles();
   if (!strip || !tiles.length) return;
   const idx = Math.max(0, Math.min(tiles.length - 1, Number(i) || 0));
   mlPrizeIdx = idx;
@@ -8918,7 +9010,7 @@ function mlPrizeGo(i, instant) {
 function mlPrizeStep(d) { const n = mlPrizeTiles().length; if (n) mlPrizeGo((mlPrizeIdx + (Number(d) || 0) + n) % n); }
 /** Follows a finger-swipe: nearest tile to the current scroll position wins. */
 function mlPrizeSync(restore) {
-  const strip = document.getElementById('mlPrizeStrip'); const tiles = mlPrizeTiles();
+  const strip = mlPrizeStripEl(); const tiles = mlPrizeTiles();
   if (!strip || !tiles.length) return;
   if (restore) { mlPrizeGo(Math.min(mlPrizeIdx, tiles.length - 1), true); return; }
   let best = 0, bestD = Infinity;
@@ -8927,7 +9019,7 @@ function mlPrizeSync(restore) {
   mlPrizeMarks();
 }
 function mlPrizeMarks() {
-  const dots = document.getElementById('mlPrizeDots');
+  const dots = mlPrizeDotsEl();
   if (!dots) return;
   Array.from(dots.children).forEach((b, i) => {
     b.classList.toggle('on', i === mlPrizeIdx);

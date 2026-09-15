@@ -38,9 +38,10 @@
   const DRAW_TIME = '09:00';            // wall-clock (Asia/Kuala_Lumpur) on the 1st of the next month
   const DEFAULT_THRESHOLD = 80, MIN_THRESHOLD = 1, MAX_THRESHOLD = 10000;
   const DEFAULT_WINNERS = 3, MIN_WINNERS = 1, MAX_WINNERS = 20;
-  const MAX_PRIZES = 12, MAX_PRIZE_NAME = 60, MAX_PRIZE_DESC = 200;
-  const DEFAULT_PRIZE_QTY = 1, MIN_PRIZE_QTY = 1, MAX_PRIZE_QTY = 99;
-  const MAX_PHOTO_BYTES = 200 * 1024;   // data-URL length cap for one prize photo
+  // Prizes are the same thing in both draws, so the list lives in session-draw.js
+  // (the lower module) and is re-exported here — one normalizer, one photo rule.
+  const { MAX_PRIZES, MAX_PRIZE_NAME, MAX_PRIZE_DESC, DEFAULT_PRIZE_QTY, MIN_PRIZE_QTY, MAX_PRIZE_QTY, MAX_PHOTO_BYTES,
+    isPrizeQty, isPhoto, newPrizeId, isPlace, placeOf, normalizePrizes, prizeLabel, validatePrizeList } = SD;
   const KEEP_CLOSED_MONTHS = 12;
   const ALGORITHM = 'sfc32-fisher-yates-v1';
   const RECORD_VERSION = 1;
@@ -101,43 +102,6 @@
   // ── settings ─────────────────────────────────────────────────────────
   function isWinnersCount(n) { return Number.isInteger(n) && n >= MIN_WINNERS && n <= MAX_WINNERS; }
   function isThreshold(n) { return Number.isInteger(n) && n >= MIN_THRESHOLD && n <= MAX_THRESHOLD; }
-  function isPrizeQty(n) { return Number.isInteger(n) && n >= MIN_PRIZE_QTY && n <= MAX_PRIZE_QTY; }
-  function isPhoto(s) { return typeof s === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s) && s.length <= MAX_PHOTO_BYTES; }
-  function newPrizeId(seedStr) {
-    // Deterministic-friendly: callers pass an id when they have one; this is only for brand-new rows.
-    return 'pz' + String(seedStr || Date.now().toString(36)) + Math.random().toString(36).slice(2, 6);
-  }
-  /** Which place a prize goes to. Several prizes may share one place; a prize
-   *  saved before this existed keeps its old positional meaning (row 1 -> 1st). */
-  function isPlace(n) { return Number.isInteger(n) && n >= 1 && n <= MAX_PRIZES; }
-  function placeOf(p, index) {
-    const n = p && p.place != null ? Number(p.place) : NaN;
-    return isPlace(n) ? n : (Number(index) || 0) + 1;
-  }
-  /** Clean prize list: trimmed names (required), qty 1..MAX_PRIZE_QTY (default 1), trimmed optional desc, optional photo, stable ids, max MAX_PRIZES. */
-  function normalizePrizes(list) {
-    const out = [];
-    const seen = new Set();
-    (Array.isArray(list) ? list : []).forEach((p, i) => {
-      if (!p || typeof p !== 'object' || out.length >= MAX_PRIZES) return;
-      const name = String(p.name == null ? '' : p.name).trim().slice(0, MAX_PRIZE_NAME);
-      if (!name) return;
-      let id = typeof p.id === 'string' && /^[A-Za-z0-9_-]{2,40}$/.test(p.id) ? p.id : ('pz' + (i + 1));
-      while (seen.has(id)) id += 'x';
-      seen.add(id);
-      const qty = isPrizeQty(Number(p.qty)) ? Number(p.qty) : DEFAULT_PRIZE_QTY;
-      const desc = String(p.desc == null ? '' : p.desc).trim().slice(0, MAX_PRIZE_DESC);
-      out.push({ id, name, qty, desc, place: placeOf(p, out.length), photo: isPhoto(p.photo) ? p.photo : null });
-    });
-    return out;
-  }
-  /** Display label for a prize: "Name" or "3 × Name" when the quantity is above one. */
-  function prizeLabel(p) {
-    if (!p || typeof p !== 'object') return '';
-    const name = String(p.name == null ? '' : p.name).trim();
-    const qty = isPrizeQty(Number(p.qty)) ? Number(p.qty) : DEFAULT_PRIZE_QTY;
-    return !name ? '' : qty > 1 ? qty + ' × ' + name : name;
-  }
   /** Validated settings from state.monthlyLucky (defaults for anything missing/junk). */
   function settingsOf(state) {
     const ml = state && state.monthlyLucky && typeof state.monthlyLucky === 'object' ? state.monthlyLucky : {};
@@ -432,7 +396,7 @@
   return {
     DRAW_TIME, DEFAULT_THRESHOLD, MIN_THRESHOLD, MAX_THRESHOLD, DEFAULT_WINNERS, MIN_WINNERS, MAX_WINNERS, MAX_PRIZES, MAX_PRIZE_NAME, MAX_PRIZE_DESC, DEFAULT_PRIZE_QTY, MIN_PRIZE_QTY, MAX_PRIZE_QTY, MAX_PHOTO_BYTES, KEEP_CLOSED_MONTHS, ALGORITHM, RECORD_VERSION,
     isMonthKey, monthKeyOf, monthLabel, shiftMonthKey, nextMonthKey, prevMonthKey, yearOf, monthYearGrid, drawDateFor, scheduledDrawAt, monthOfInstant, isoOfInstant,
-    isWinnersCount, isThreshold, isPrizeQty, isPhoto, newPrizeId, normalizePrizes, prizeLabel, settingsOf, normalize, liteOf,
+    isWinnersCount, isThreshold, isPrizeQty, isPhoto, newPrizeId, normalizePrizes, prizeLabel, validatePrizeList, settingsOf, normalize, liteOf,
     eligibleFromRoster, eligibleFromSnapshot, applyRemoved, buildPool, poolStaleIds,
     closeDue, closeIfDue,
     buildDrawResult, verifyDrawResult, awardsOf, placeOf, isPlace, playersFor, monthCandidates, viewOf, buildView, publicMonthView,

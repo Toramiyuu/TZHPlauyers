@@ -189,5 +189,29 @@ check('countsLine', S.countsLine({ attended: 20, paid: 18, eligible: 18, winners
   check('testDrawResult: empty input → no winners, no crash', S.testDrawResult({ date: '2026-09-10', day: null, lineup: [], winnersWanted: 2, seed: SEED, nowMs: now }).rec.counts.attended === 0);
 }
 
+// ── prizes (the list both draws share; Monthly re-exports these) ──
+check('prizesOf cleans the list: names required, qty/desc/place defaulted, ids kept', (() => {
+  const out = S.prizesOf({ prizes: [{ id: 'a1', name: '  Tube  ', qty: '3', desc: '  twelve  ' }, { name: '' }, { name: 'Grip', place: 2, photo: 'http://x' }] });
+  return out.length === 2 && out[0].id === 'a1' && out[0].name === 'Tube' && out[0].qty === 3 && out[0].desc === 'twelve'
+    && out[0].place === 1 && out[0].photo === null && out[1].place === 2 && out[1].qty === 1;
+})());
+check('prizesOf survives junk', S.prizesOf(null).length === 0 && S.prizesOf({ prizes: 'x' }).length === 0 && S.prizesOf({}).length === 0);
+check('prizeLabel folds the quantity into the name', S.prizeLabel({ name: 'Tube', qty: 2 }) === '2 × Tube' && S.prizeLabel({ name: 'Tube' }) === 'Tube' && S.prizeLabel(null) === '');
+check('litePrizes keeps the list but drops the photos (the 2 s poll)', (() => {
+  const photo = 'data:image/jpeg;base64,QUJD';
+  const lite = S.litePrizes([{ name: 'Tube', photo }, { name: 'Grip' }]);
+  return lite.length === 2 && lite[0].name === 'Tube' && lite[0].photo === null && S.isPhoto(photo);
+})());
+check('validatePrizeList speaks the admin\'s language, first problem wins', (() => {
+  const cases = [[null, 'Send the prize list.'], [[{ name: '' }], 'Every prize needs a name.'],
+    [[{ name: 'x'.repeat(61) }], 'Prize names are limited to 60 characters.'],
+    [[{ name: 'Tube', qty: 0 }], 'Quantity must be a whole number from 1 to 99.'],
+    [[{ name: 'Tube', desc: 'd'.repeat(201) }], 'Prize descriptions are limited to 200 characters.'],
+    [[{ name: 'Tube', photo: 'nope' }], 'A prize photo must be a JPEG/PNG/WebP under 200 KB.']];
+  return cases.every(([list, err]) => S.validatePrizeList(list).error === err) && S.validatePrizeList([{ name: 'Tube' }]).ok;
+})());
+check('too many prizes is refused, and normalize caps it too', S.validatePrizeList(new Array(13).fill({ name: 'x' })).error === 'At most 12 prizes.'
+  && S.normalizePrizes(new Array(20).fill(0).map((_, i) => ({ name: 'p' + i }))).length === 12);
+
 console.log(`\nsession draw (pure): ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
