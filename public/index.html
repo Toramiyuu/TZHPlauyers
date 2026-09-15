@@ -1376,6 +1376,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .dhc-hero{background:var(--dw-tint)}
 .dhc-hero-count{padding:18px 20px 20px}
 .dhc-when{font-size:var(--fs-lg);font-weight:700;letter-spacing:-.02em;color:var(--text);margin-top:3px}
+.dhc-when-sub{font-size:var(--fs-sm);color:var(--muted);margin-top:6px}
 .dhc-big{display:flex;align-items:baseline;flex-wrap:wrap;gap:8px;margin-top:8px}
 .dhc-big>b{font-size:clamp(40px,10vw,56px);font-weight:700;letter-spacing:-.035em;line-height:1;color:var(--dw);font-variant-numeric:tabular-nums}
 .dhc-big>span{font-size:var(--fs-md);font-weight:600;color:var(--text-2)}
@@ -7774,20 +7775,27 @@ function dhPrizeLineHtml(line) {
 }
 function dhMonthlyCardHtml(ml) {
   if (!ml) return dhCardHtml('monthly', '<div class="dhc-hero dhc-hero-count"><div class="dh-st-label">Monthly</div><div class="dhc-when">Not set up yet</div></div>', '');
-  const when = ml.drawAt
-    ? 'Draws in <b data-draw-at="' + ml.drawAt + '">' + escHtml(DrawHub.countdownText(clockNow(), ml.drawAt)) + '</b>'
-    : 'Drawn by the admin';
+  // Same panel as the Session card: when the draw happens, then how long that is.
+  // A month with the automatic draw off has no instant to count down to, so it
+  // says who runs it instead.
+  const hero = '<div class="dhc-hero dhc-hero-count">'
+    + '<div class="dh-st-label">' + (ml.drawAt ? 'Next draw' : 'This month') + '</div>'
+    + '<div class="dhc-when">' + escHtml(ml.drawAt ? SessionDraw.fmtDrawTime(ml.drawAt) : (ml.label || '')) + '</div>'
+    + (ml.drawAt
+      ? '<div class="dhc-big"><b data-draw-at="' + ml.drawAt + '">' + escHtml(DrawHub.countdownText(clockNow(), ml.drawAt)) + '</b><span>to go</span></div>'
+      : '<div class="dhc-when-sub">Drawn by the admin when the month closes</div>')
+    + '</div>' + dhHeroPhotoHtml(ml.prizes, 'monthly');
   let body = '';
   if (ml.mine) {
-    body += '<div class="dhc-prog"><span>' + escHtml(ml.mine.points + ' of ' + ml.mine.threshold + ' points this month') + '</span><span>' + when + '</span></div>';
+    body += '<div class="dhc-prog"><span>' + escHtml(ml.mine.points + ' of ' + ml.mine.threshold + ' points this month') + '</span></div>';
     const pct = Math.max(0, Math.min(100, Math.round(ml.mine.points / (ml.mine.threshold || 1) * 100)));
     body += '<div class="dh-bar"><span style="width:' + pct + '%"></span></div>';
-  } else {
-    body += '<div class="dhc-prog"><span>' + escHtml(ml.threshold ? 'Reach ' + ml.threshold + ' points this month' : 'Reach the points target') + '</span><span>' + when + '</span></div>';
   }
+  // Signed out there is no progress to show, and the entry line under the name
+  // already states the target — a second "Reach 80 points" would just repeat it.
   body += dhMineRowHtml(ml.mine)
     + dhMetaRowHtml([dhPoolChip(ml.poolCount, 'at the target'), dhLastChip(DrawHub.latestMonthlyWin(sdPublic.monthly)), dhWinnersChip(ml.winners)]);
-  return dhCardHtml('monthly', dhHeroPhotoHtml(ml.prizes, 'monthly'), body);
+  return dhCardHtml('monthly', hero, body);
 }
 /** The member's own standing, the one line they came for. Nothing when signed out. */
 function dhMineRowHtml(mine) {

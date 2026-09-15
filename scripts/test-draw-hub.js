@@ -157,10 +157,12 @@ check('prizeOf trims, collapses whitespace and clamps', SD.prizeOf({ prize: '  A
     return f.includes("drawView === 'hub'") && f.includes('renderDrawHub()') && f.includes('renderSessionDraw()') && f.includes('renderPublicMonthly()');
   })());
   check('header renames itself per draw', fn('renderDrawHeader').includes('DrawHub.kindName(drawView)') && fn('renderDrawHeader').includes('DrawHub.entryLine(drawView'));
-  check('each hub card leads with its own hero: the Session countdown, the Monthly prize', (() => {
+  check('both hub cards lead the same way: the big countdown, then the big prize photo', (() => {
     const f = fn('renderDrawHub'), sc = fn('dhSessionCardHtml'), mc = fn('dhMonthlyCardHtml');
+    const leads = (x) => x.includes('dhc-hero-count') && x.includes('data-draw-at="') && x.includes("<span>to go</span>")
+      && x.indexOf('dhc-hero-count') < x.indexOf('dhHeroPhotoHtml');
     return f.includes('dhSessionCardHtml(sd)') && f.includes('dhMonthlyCardHtml(ml)')
-      && sc.includes('dhc-hero-count') && sc.includes('data-draw-at="') && mc.includes("dhHeroPhotoHtml(ml.prizes, 'monthly')");
+      && leads(sc) && leads(mc) && sc.includes("dhHeroPhotoHtml(prizes, 'session')") && mc.includes("dhHeroPhotoHtml(ml.prizes, 'monthly')");
   })());
   check('hub cards carry the entry line, the pool, the personal standing, the last winner and the winner count', (() => {
     const shell = fn('dhCardHtml'), sc = fn('dhSessionCardHtml'), mc = fn('dhMonthlyCardHtml');
@@ -175,6 +177,10 @@ check('prizeOf trims, collapses whitespace and clamps', SD.prizeOf({ prize: '  A
   })());
   check('a prize with no photo still takes its turn, labelled', fn('dhHeroPhotoHtml').includes("' place prize photo'") && fn('dhHeroPhotoHtml').includes('Prizes are not set yet'));
   check('the hub greets a signed-in member by name', fn('renderDrawHeader').includes('acctSession.name') && html.includes('id="drawWhoami"'));
+  check('a month with the automatic draw off says who runs it instead of counting down',
+    fn('dhMonthlyCardHtml').includes("ml.drawAt ? 'Next draw' : 'This month'") && fn('dhMonthlyCardHtml').includes('Drawn by the admin when the month closes'));
+  check('the points line belongs to the member, not to a stranger reading the hub',
+    fn('dhMonthlyCardHtml').includes('if (ml.mine)') && fn('dhMonthlyCardHtml').includes('points this month') && !fn('dhMonthlyCardHtml').includes("'Reach ' + ml.threshold"));
   check('countdowns re-time in place every second while open', fn('drawTick').includes('[data-draw-at]') && fn('drawTick').includes('DrawHub.countdownText(') && fn('openDrawPage').includes('drawTickTimer = setInterval') && fn('closeDrawPage').includes('clearInterval(drawTickTimer)'));
   check('personal status comes from the token-gated accountDrawInfo, not the poll', fn('drawFetchMine').includes("acctPost('accountDrawInfo'") && !fn('poll').includes('drawFetchMine') && fn('openDrawPage').includes('drawFetchMine()'));
   check('signed-out visitors are offered a sign-in instead of a fake status', fn('dhStatusHtml').includes('!acctSession') && fn('dhStatusHtml').includes('openAuthModal()'));
