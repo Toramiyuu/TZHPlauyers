@@ -43,8 +43,10 @@ check('how-it-works copy comes from the shared module', fn('renderMonthlySetting
 check('"Open public page" opens the Monthly Draw page itself', html.includes('onclick="openDrawPage(\'monthly\')"') && fn('openDrawPage').includes('drawGo(section === undefined ? drawViewFromHash() : section)') && fn('drawGo').includes('DrawHub.isKind(view)'));
 
 // ── prizes ──
-check('prize rows: photo button, name input, reorder, remove; one hidden file input for both draws', html.includes('id="mlPrizePhotoInput" type="file" accept="image/*"') && (html.match(/id="mlPrizePhotoInput"/g) || []).length === 1 && fn('renderPrizeEditor').includes('pickPrizePhoto(') && fn('renderPrizeEditor').includes('setPrizeName(') && fn('renderPrizeEditor').includes('movePrize(') && fn('renderPrizeEditor').includes('removePrize('));
-check('photos are compressed client-side (fit 480, JPEG, size-capped) and validated before save', fn('compressPrizePhoto').includes('const max = 480') && fn('compressPrizePhoto').includes("toDataURL('image/jpeg'") && fn('compressPrizePhoto').includes('SessionDraw.MAX_PHOTO_BYTES') && fn('prizePhotoPicked').includes('SessionDraw.isPhoto(photo)'));
+check('prize rows: name input, quantity, place, description, reorder, remove', fn('renderPrizeEditor').includes('setPrizeName(') && fn('renderPrizeEditor').includes('setPrizeQty(') && fn('renderPrizeEditor').includes('setPrizePlace(') && fn('renderPrizeEditor').includes('setPrizeDesc(') && fn('renderPrizeEditor').includes('movePrize(') && fn('renderPrizeEditor').includes('removePrize('));
+check('no picture anywhere in the prize editor: no uploader, no compressor, no stored bytes',
+  !html.includes('mlPrizePhotoInput') && !html.includes('compressPrizePhoto') && !html.includes('pickPrizePhoto')
+  && !html.includes('clearPrizePhoto') && fn('savePrizes').includes('photo: null') && fn('prizeRow').includes('photo: null'));
 check('Save prizes posts the whole ordered list to that draw\u2019s action and refuses empty names', fn('savePrizes').includes('action: own.action, prizes: list') && fn('savePrizes').includes('Every prize needs a name') && /monthly: \{ box: 'mlPrizes'[^}]*action: 'setMonthlyPrizes'/.test(html) && /session: \{ box: 'sdPrizes'[^}]*action: 'setDrawPrizes'/.test(html));
 check('a background refresh never wipes unsaved prize edits', fn('loadMonthlyAdmin').includes('if (!prizeDirty.monthly) prizeDrafts.monthly =') && fn('sdSeedPrizeDraft').includes('prizeDirty.session'));
 check('typing a prize name does not re-render (keeps focus)', !fn('setPrizeName').includes('renderPrizeEditor('));
@@ -55,9 +57,9 @@ check('helper + help drawer explain the place picker, quantity and description',
   html.includes('Each prize says which place it <b>goes to</b>') && html.includes('that winner takes both')
   && html.includes('Set a quantity to give several of the <em>same</em> item') && html.includes('Each prize has a <b>quantity</b>'));
 
-check('the prize photos say where they show — the draw page, not the hub — next to where they are edited',
-  html.includes('class="admin-helper-text mlp-photo-note"') && html.includes('one beside each prize')
-  && html.includes('names the prizes without the picture') && html.includes('onclick="openDrawPage(\'monthly\')"'));
+check('the prize note says where the names turn up for members, next to where they are edited',
+  html.includes('class="admin-helper-text mlp-photo-note"') && html.includes('a card each on the <b>Monthly Draw</b> page')
+  && html.includes('a line each on the Lucky Draw hub') && html.includes('onclick="openDrawPage(\'monthly\')"'));
 
 // ── pool + manual draw ──
 check('Pull button posts pullMonthlyPool and shows the threshold in its label', fn('pullMonthlyPool').includes("action: 'pullMonthlyPool'") && fn('renderMonthlySettings').includes("'Pull players with ' + s.threshold + '+ points'"));
@@ -73,7 +75,7 @@ const doneView = { month: '2026-09', label: 'September 2026', status: 'done', me
   counts: { eligible: 3, winners: 2 }, prizes: [{ id: 'x', name: 'Racket', photo: 'data:image/jpeg;base64,QUJD' }, { id: 'y', name: 'Socks', photo: null }],
   lists: { eligible: [{ id: 'p1', name: 'Alice <b>', points: 120 }, { id: 'p2', name: 'Bob', points: 80 }, { id: 'p3', name: 'Cara', points: 95 }], winners: [{ rank: 1, id: 'p3', name: 'Cara', prizeId: 'x', prize: 'Racket' }, { rank: 2, id: 'p1', name: 'Alice <b>', prizeId: 'y', prize: 'Socks' }] } };
 let card = cardFn(doneView, true);
-check('done card: label, status, winners with prize + photo, replay row, seed + verified', card.includes('September 2026') && card.includes('>Drawn<') && card.includes('ml-win-name">Cara<') && card.includes('ml-win-prize">Racket<') && card.includes('ml-win-photo') && card.includes('data-kind="monthly" data-key="2026-09"') && card.includes('Seed abcdef01') && card.includes('verified ✓'));
+check('done card: label, status, winners with their prize, replay row, seed + verified', card.includes('September 2026') && card.includes('>Drawn<') && card.includes('ml-win-name">Cara<') && card.includes('ml-win-prize">Racket<') && !card.includes('ml-win-photo') && card.includes('data-kind="monthly" data-key="2026-09"') && card.includes('Seed abcdef01') && card.includes('verified ✓'));
 check('done card escapes names and marks winners in the eligible list with points', card.includes('Alice &lt;b&gt;') && !card.includes('Alice <b>') && card.includes('sd-win-tag">Winner<') && card.includes('120 pts'));
 const publicCard = cardFn(Object.assign({ live: false }, doneView), false);
 check('public card: no points, no eligible list, still winners + replay', !publicCard.includes(' pts') && !publicCard.includes('sd-names-wrap') && publicCard.includes('ml-win-prize">Socks<') && publicCard.includes('data-kind="monthly"'));
@@ -111,16 +113,18 @@ check('mlPlaceOptions keeps a place parked beyond the winner count', (() => {
 const multiCard = cardFn(Object.assign({}, doneView, { prizes: [{ id: 'x', name: 'Racket', photo: 'data:image/jpeg;base64,QQ==' }, { id: 'y', name: 'Tube', photo: 'data:image/jpeg;base64,Qg==' }],
   lists: { eligible: doneView.lists.eligible, winners: [{ rank: 1, id: 'p3', name: 'Cara', prizeId: 'x', prize: 'Racket + 2 × Tube',
     prizes: [{ id: 'x', label: 'Racket', desc: 'Yonex' }, { id: 'y', label: '2 × Tube', desc: '' }] }] } }), true);
-check('winner row lists every prize of that place, each with its own photo',
+check('winner row lists every prize of that place, by name, with no thumbnail',
   (multiCard.match(/ml-win-prize/g) || []).length === 2 && multiCard.includes('>Racket<') && multiCard.includes('>2 × Tube<')
-  && (multiCard.match(/class="ml-win-photo"/g) || []).length === 2 && multiCard.includes('ml-win-photos'));
+  && !multiCard.includes('ml-win-photo') && !multiCard.includes('<img'));
 check('a winner row from an older record still renders from the single prize string',
   (cardFn(doneView, true).match(/ml-win-prize/g) || []).length === 2);
-check('public prize cards: place badge, how many of it, a ×N badge on the picture, the description under it',
+check('public prize cards: place badge, how many of it, the name, the description under it',
   fn('dhPrizeStripHtml').includes('SessionDraw.placeOf(p, i)') && fn('dhPrizeStripHtml').includes('ml-tile-place')
-  && fn('dhPrizeStripHtml').includes(' of these') && fn('dhPrizeStripHtml').includes('ml-tile-qty')
+  && fn('dhPrizeStripHtml').includes(' of these') && fn('dhPrizeStripHtml').includes('ml-tile-name')
   && fn('dhPrizeStripHtml').includes("p.desc ? '<small>' + escHtml(p.desc) + '</small>'"));
-check('a prize with no photo still reads as a card (placeholder, not a blank box)', fn('dhPrizeStripHtml').includes('ml-tile-ph') && fn('dhPrizeStripHtml').includes("' place prize'"));
+check('a prize card carries no picture at all: no img, no placeholder frame',
+  !fn('dhPrizeStripHtml').includes('<img') && !fn('dhPrizeStripHtml').includes('p.photo')
+  && !fn('dhPrizeStripHtml').includes('ml-tile-img') && !html.includes('.ml-tile-img{'));
 check('phones page through the prizes: per-card counter + arrow, dots under the strip, swipe keeps up',
   fn('dhPrizeStripHtml').includes('ml-tile-count') && fn('dhPrizeStripHtml').includes('mlPrizeStep(1)')
   && fn('mlPrizeNavHtml').includes('mlPrizeGo(') && fn('dhPrizeStripHtml').includes('onscroll="mlPrizeSync()"')
