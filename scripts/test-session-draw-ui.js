@@ -142,6 +142,17 @@ const pubPendHtml = sdCardHtml(pendView, false);
 check('public pending card: count + pay-before only, no names', !pubPendHtml.includes('sd-names-wrap') && !pubPendHtml.includes('sd-stats') && !pubPendHtml.includes('Alice') && pubPendHtml.includes('1 in the draw so far · Pay before Thu 10 Sep · 9:00 AM'));
 check('pending card: "Eligible so far" open, status Pending, pay-before hint', /<details class="sd-names-wrap" open><summary><span>Eligible so far/.test(pendHtml) && pendHtml.includes('>Pending<') && pendHtml.includes('Pay before Thu 10 Sep · 9:00 AM'));
 const dueView = SD.viewOf({ date: '2026-09-07', drawAt: MON_AT, day: null, lineup: [{ id: 'a', name: 'Alice' }] }, null, MON_AT + 1000, { winners: 2 });
+// The date is the jump to that night's money — admin only, never on a test card.
+check('admin card heading opens that night in Payments', doneHtml.includes("openPaymentsForNight('2026-09-07')") && doneHtml.includes('class="sd-date sd-date-link"'));
+check('a member sees the date as plain text, not a link', !pubDoneHtml.includes('openPaymentsForNight') && pubDoneHtml.includes('<div class="sd-date">'));
+check('a test draw has no night to open', (() => {
+  const t = sdCardHtml(Object.assign({}, doneView, { test: true }), true);
+  return !t.includes('openPaymentsForNight') && t.includes('<div class="sd-date">');
+})());
+check('openPaymentsForNight lands on that night, By night, at the top of the tab',
+  fn('openPaymentsForNight').includes('pmDate = date') && fn('openPaymentsForNight').includes("pmView = 'night'")
+  && fn('openPaymentsForNight').includes("setAdminTab('payments')") && fn('openPaymentsForNight').includes('window.scrollTo')
+  && fn('renderPaymentsTab').includes('if (!pmDate) pmDate ='));
 check('due + pending card in admin mode shows Run draw now; public does not', sdCardHtml(dueView, true).includes("runDrawNow('2026-09-07')") && !sdCardHtml(dueView, false).includes('runDrawNow') && sdCardHtml(dueView, true).includes('Draw pending'));
 
 console.log(`\nsession draw ui: ${pass} passed, ${fail} failed`);

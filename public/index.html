@@ -1327,6 +1327,12 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .sd-card.done{border-color:var(--a-blue-2)}
 .sd-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:12px 14px 10px}
 .sd-date{font-weight:700;color:var(--text);font-size:var(--fs-md)}
+/* The admin heading is a link to that night's payments — underlined on hover only,
+   so a list of cards still reads as headings rather than a wall of links. */
+.sd-date-link{display:inline-flex;align-items:center;gap:4px;padding:0;border:0;background:none;font-family:inherit;text-align:left;cursor:pointer}
+.sd-date-link .ic{width:15px;height:15px;flex:none;color:var(--muted);transition:var(--transition)}
+.sd-date-link:hover{color:var(--a-blue);text-decoration:underline}
+.sd-date-link:hover .ic{color:var(--a-blue);transform:translateX(2px)}
 .sd-when{font-size:var(--fs-xs);color:var(--muted);margin-top:2px}
 .sd-status{flex:none;font-size:12px;font-weight:600;padding:3px 10px;border-radius:100px;border:1px solid var(--border2);color:var(--text-2);white-space:nowrap}
 .sd-status.done{background:var(--a-blue-tint);border-color:transparent;color:var(--a-blue)}
@@ -8046,7 +8052,15 @@ function sdCardHtml(v, admin) {
   const lists = v.lists || {};
   const statusCls = v.test ? 'test' : (done ? 'done' : (v.due ? 'due' : 'pending'));
   let html = '<div class="sd-card ' + escHtml(v.status) + (v.test ? ' test' : '') + '" data-date="' + escHtml(v.date) + '">';
-  html += '<div class="sd-card-head"><div><div class="sd-date">' + escHtml(SessionDraw.fmtSessionDate(v.date)) + '</div>'
+  // The date is the way to that night's money: a card reading "0 paid" is exactly
+  // when an admin wants the Payments tab, so the heading opens it on that night.
+  // A member has no Payments tab, and a test draw has no night, so both stay plain text.
+  const dateTxt = escHtml(SessionDraw.fmtSessionDate(v.date));
+  const dateEl = (admin && !v.test)
+    ? '<button type="button" class="sd-date sd-date-link" onclick="openPaymentsForNight(\'' + escHtml(v.date) + '\')" title="Open this night in Payments">'
+      + dateTxt + '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>'
+    : '<div class="sd-date">' + dateTxt + '</div>';
+  html += '<div class="sd-card-head"><div>' + dateEl
     + '<div class="sd-when">' + (done ? 'Drawn ' + escHtml(SessionDraw.fmtDrawTime(v.drawnAt)) : 'Draw ' + escHtml(SessionDraw.fmtDrawTime(v.drawAt))) + '</div></div>'
     + '<span class="sd-status ' + statusCls + '">' + escHtml(SessionDraw.statusLabel(v)) + '</span></div>';
   if (done) {
@@ -9447,6 +9461,22 @@ function pmResetFee(pid) {
 // Tap → popup: name, points (+ tier), total outstanding, then the breakdown — owing nights
 // newest first, each with the same one-tap Unpaid/Cash/TnG/DuitNow control as the nightly
 // list — and the paid history collapsed underneath. Business rules: Payments.memberLedger().
+/**
+ * Open the Payments tab on one night — the jump from a draw record ("0 paid")
+ * to the list where that gets fixed. Forces the By night view, since By member
+ * has no night to land on, and setAdminTab does the rendering + ops refresh.
+ */
+function openPaymentsForNight(date) {
+  if (!date) return;
+  pmDate = date;
+  pmEditFee = null;
+  pmView = 'night';
+  try { localStorage.setItem('pmView', 'night'); } catch (e) {}
+  setAdminTab('payments');
+  // The page scrolls, not a pane: land at the top of the tab rather than at
+  // whatever height the draw list was scrolled to.
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+}
 function pmSetView(v) {
   v = v === 'member' ? 'member' : 'night';
   if (v === pmView) return;
