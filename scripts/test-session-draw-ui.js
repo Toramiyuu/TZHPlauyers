@@ -65,15 +65,13 @@ check('the page shows the listed prizes as cards, the one-line prize only while 
   fn('renderSessionDraw').includes('dhPrizeCardHtml(st.prize, sdPublic.winnersPerDraw, sdPublic.sessionPrizes)')
   && fn('dhPrizeCardHtml').includes('if (list.length) return head') && fn('dhPrizeCardHtml').includes('dhPrizeStripHtml(list)')
   && fn('dhPrizeCardHtml').includes('has not been announced yet'));
-check('the hub card shows the prize as big as Monthly does: the same rotating photo hero',
-  fn('dhSessionCardHtml').includes("dhHeroPrizes('session')") && fn('dhSessionCardHtml').includes("dhHeroPhotoHtml(prizes, 'session')")
-  && fn('dhHeroPrizes').includes('sdPublic.sessionPrizes') && fn('dhHeroGo').includes('data-hero-kind=')
-  && fn('dhHeroSync').includes('[data-hero-kind]'));
-check('the countdown keeps its panel above the photo — when, then what for',
-  (() => { const f = fn('dhSessionCardHtml'); return f.indexOf('dhc-hero-count') < f.indexOf("dhHeroPhotoHtml(prizes, 'session')"); })());
-check('the one-line prize shows only while no prizes are listed', fn('dhSessionCardHtml').includes("prizes.length ? '' : dhPrizeLineHtml(st.prize)") && fn('dhPrizeLineHtml').includes('Winners get'));
-check('each card keeps its own slide, and one clock turns both', /const dhHeroIdx = \{ session: 0, monthly: 0 \}/.test(html)
-  && fn('dhHeroGo').includes('dhHeroIdx[kind] = idx') && (fn('dhHeroSync').match(/setInterval/g) || []).length === 1);
+check('the hub card names the prizes in words, the photos stay on the draw page',
+  fn('dhSessionCardHtml').includes('sdPublic.sessionPrizes') && fn('dhSessionCardHtml').includes('dhPrizeListHtml(prizes)')
+  && !fn('dhSessionCardHtml').includes('dhHeroPhotoHtml') && !html.includes('dhc-hero-photo'));
+check('the countdown keeps its panel above the prize line — when, then what for',
+  (() => { const f = fn('dhSessionCardHtml'); return f.indexOf('dhc-hero-count') < f.indexOf('dhPrizeListHtml(prizes)'); })());
+check('the one-line prize shows only while no prizes are listed', fn('dhSessionCardHtml').includes("prizes.length ? dhPrizeListHtml(prizes) : dhPrizeLineHtml(st.prize)") && fn('dhPrizeLineHtml').includes('Winners get'));
+check('nothing on the hub rotates: no slide index, no hero clock', !/dhHeroIdx/.test(html) && !/DH_HERO_MS/.test(html) && !/dhHeroSync/.test(html));
 check('both prize carousels are scoped to the view on screen (ids would collide)',
   fn('mlPrizeStripEl').includes("'.dh-view[data-draw=\"' + drawView + '\"] .ml-prize-strip'") && !fn('mlPrizeTiles').includes('getElementById'));
 check('a session prize photo never rides the 2 s poll', (() => {

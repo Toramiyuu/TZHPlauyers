@@ -139,9 +139,22 @@
   /** Malaysia-local ISO date of an instant — the raw calendar day, NOT the night. */
   function localDate(nowMs, offsetHours) { return localParts(nowMs, offsetHours).date; }
 
+  /**
+   * Is this date worth a tap on a date strip? Nobody plays on a Tuesday, so a
+   * Tuesday holds nothing to open and the calendars grey it out. The escape
+   * hatch is `hasRecord`: a date that already carries something (a saved
+   * session, payments, the night being shown) stays reachable whatever weekday
+   * it fell on, so a one-off game night — or an old ghost date — is never
+   * locked away behind a disabled button.
+   */
+  function isPickableDate(iso, hasRecord) {
+    if (!isValidISO(iso)) return false;
+    return isGameDay(iso) || !!hasRecord;
+  }
+
   return {
     GAME_START_HOUR, DEFAULT_OFFSET_HOURS,
-    isValidISO, isGameDay, localParts, localDate,
+    isValidISO, isGameDay, isPickableDate, localParts, localDate,
     prevGameDay, nextGameDay, gameDayOnOrBefore,
     currentNight, owningNight, isStrayDate,
     nextSessionDate, canStartTonight,

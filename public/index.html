@@ -593,8 +593,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .cal-strip-col{display:flex;flex-direction:column;align-items:center;gap:7px;flex-shrink:0}
 .cal-strip-name{font-size:11px;font-weight:700;color:rgba(0,0,0,.55);text-transform:uppercase;letter-spacing:.05em}
 .cal-strip-btn{width:40px;height:40px;border-radius:50%;border:none;background:transparent;color:var(--text);font-size:var(--fs-sm);font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;position:relative;flex-direction:column}
-.cal-strip-btn:hover:not(.s-sel){background:rgba(0,0,0,.1)}
+.cal-strip-btn:hover:not(.s-sel):not(:disabled){background:rgba(0,0,0,.1)}
 .cal-strip-btn.s-sel{background:var(--green);color:#fff}
+/* Off nights (anything but Mon/Fri/Sun with nothing on it): visible, not pressable. */
+.cal-strip-btn.s-off{color:var(--muted);opacity:.45;cursor:default;font-weight:500}
+.cal-strip-col:has(.s-off) .cal-strip-name{opacity:.45}
 .cal-strip-dot{width:4px;height:4px;border-radius:50%;position:absolute;bottom:2px;left:50%;transform:translateX(-50%)}
 .cal-strip-btn.s-today:not(.s-sel) .cal-strip-dot{background:var(--green-light)}
 .cal-strip-btn.s-has:not(.s-sel) .cal-strip-dot{background:var(--green-light)}
@@ -1388,8 +1391,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .dh-whoami b{font-weight:600;color:var(--text)}
 .sd-head>.lb-close{order:3}
 /* ── hub cards ──
-   One card per draw, each led by the thing worth looking at: Session's countdown
-   on a tinted panel, Monthly's prize photo. Stacked on a phone, side by side from
+   One card per draw, each led by the same thing: the countdown on a tinted
+   panel, then the prize in words. Stacked on a phone, side by side from
    900px up. */
 .dh-hub{display:flex;flex-direction:column;gap:16px}
 .dhc{display:flex;flex-direction:column;border-radius:var(--radius-md);background:var(--card);border:1px solid var(--border);overflow:hidden;transition:var(--transition)}
@@ -1418,22 +1421,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .dhc-go{width:100%;justify-content:center;margin-top:2px;padding:14px;font-size:var(--fs-md);font-weight:600;border-radius:var(--radius-md)}
 .dhc[data-draw=monthly] .dhc-go{background:var(--dw);border-color:var(--dw)}
 .dhc[data-draw=monthly] .dhc-go:hover{background:#4c3dc4;border-color:#4c3dc4}
-/* the rotating prize hero */
-.dhc-hero-photo{display:flex;flex-direction:column}
-.dhc-shot{position:relative;width:100%;aspect-ratio:16/10;background:var(--card2);display:flex;align-items:center;justify-content:center;overflow:hidden}
-/* Session stacks the photo under its countdown panel — both are tinted, so the picture needs an edge. */
-.dhc-hero-count+.dhc-hero-photo .dhc-shot{border-top:1px solid var(--border)}
-.dhc-shot-layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .5s ease}
-.dhc-shot-layer.on{opacity:1}
-.dhc-shot-layer img{width:100%;height:100%;object-fit:cover;display:block}
-.dhc-hero-dots{display:flex;align-items:center;gap:7px;flex:none}
-.dhc-hero-dots .ml-dot{background:var(--border2);box-shadow:var(--shadow-sm)}
-.dhc-hero-dots .ml-dot.on{background:var(--dw)}
-.dhc-cap{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 20px 14px;min-height:62px;box-sizing:border-box}
-.dhc-cap-main{display:flex;align-items:flex-start;gap:12px;min-width:0;flex:1}
-.dhc-cap-txt{min-width:0;display:flex;flex-direction:column;gap:2px}
-.dhc-cap-txt b{font-size:var(--fs-md);font-weight:700;letter-spacing:-.01em;color:var(--text);line-height:1.2}
-.dhc-cap-txt small{font-size:var(--fs-sm);color:var(--text-2);line-height:1.35}
+/* the prize list on a card: one line per place, no pictures */
+.dhc-prize-list{display:flex;flex-direction:column;gap:4px;min-width:0}
+.dhc-prize-list>span{display:flex;gap:8px;min-width:0;font-size:var(--fs-sm);font-weight:600;color:var(--text);line-height:1.35}
+.dhc-prize-list>span>i{flex:none;min-width:26px;font-style:normal;font-weight:700;color:var(--dw)}
+.dhc-prize-list>span>em{min-width:0;font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dh-card-ic{flex:none;width:44px;height:44px;border-radius:var(--radius-md);background:var(--dw-tint);color:var(--dw);display:flex;align-items:center;justify-content:center}
 .dh-card-ic .ic{width:22px;height:22px}
 .dh-card-entry{font-size:var(--fs-sm);color:var(--muted);line-height:1.4}
@@ -3197,7 +3189,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span> Prizes</span><span class="pm-save-state" id="sdPrizesSaveState"></span></div>
       <div class="admin-helper-text">Each prize says which place it <b>goes to</b>: new rows fill 1st, 2nd, 3rd in turn. Point two rows at the same place and that winner takes both. Set a quantity to give several of the <em>same</em> item, and add a short description if you like. Tap the square to add a photo.</div>
       <div class="admin-helper-text mlp-photo-note sd-photo-note"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l4.5-4.5 3.5 3.5 3-2.5L20 18"/></svg>
-        <span>These are what members see on the <b>Session Draw</b> page and on the Lucky Draw hub, a card each, with the photo. They are what is on offer now: a past draw&rsquo;s record keeps its winners&rsquo; names only. <button type="button" class="ml-photo-link" onclick="openDrawPage('session')">See the page</button></span></div>
+        <span>These are what members see on the <b>Session Draw</b> page, a card each, with the photo. The Lucky Draw hub names them without the picture. They are what is on offer now: a past draw&rsquo;s record keeps its winners&rsquo; names only. <button type="button" class="ml-photo-link" onclick="openDrawPage('session')">See the page</button></span></div>
       <div class="ml-prizes" id="sdPrizes"><div class="acct-empty">Loading&hellip;</div></div>
       <div class="admin-btn-row admin-mt">
         <button class="btn btn-ghost btn-sm" type="button" onclick="addPrize('session')"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add prize</button>
@@ -3278,7 +3270,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span> Prizes</span><span class="pm-save-state" id="mlPrizeSaveState"></span></div>
       <div class="admin-helper-text">Each prize says which place it <b>goes to</b>: new rows fill 1st, 2nd, 3rd in turn. Point two rows at the same place and that winner takes both. Set a quantity to give several of the <em>same</em> item, and add a short description if you like. Tap the square to add a photo.</div>
       <div class="admin-helper-text mlp-photo-note"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l4.5-4.5 3.5 3.5 3-2.5L20 18"/></svg>
-        <span>These photos are what members see. They take turns as the big picture on the <b>Lucky Draw</b> page, and each one shows again beside its prize. Change a photo here and the page changes with it. <button type="button" class="ml-photo-link" onclick="openDrawPage('hub')">See the page</button></span></div>
+        <span>These photos are what members see on the <b>Monthly Draw</b> page, one beside each prize. The Lucky Draw hub names the prizes without the picture. Change a photo here and the page changes with it. <button type="button" class="ml-photo-link" onclick="openDrawPage('monthly')">See the page</button></span></div>
       <div class="ml-prizes" id="mlPrizes"></div>
       <div class="admin-btn-row admin-mt">
         <button class="btn btn-ghost btn-sm" type="button" onclick="addPrize('monthly')"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add prize</button>
@@ -7077,12 +7069,20 @@ function renderCalendar() {
     if (iso === todayStr) cls.push('s-today');
     if (sessions[iso]) cls.push('s-has');
     if (iso === selectedCalDate) cls.push('s-sel');
+    // Games are Mon/Fri/Sun: an empty Tuesday has no session to show and no
+    // business being created, so it is greyed out rather than left to open an
+    // empty panel. A date that already holds a session stays pressable.
+    const pickable = !window.Night || Night.isPickableDate(iso, !!sessions[iso] || iso === selectedCalDate);
+    if (!pickable) cls.push('s-off');
     btn.className = cls.join(' ');
     btn.textContent = d;
+    btn.disabled = !pickable;
+    if (!pickable) btn.title = 'No games on ' + WEEKDAY_NAMES[dayOfWeek] + 's';
     btn.onclick = () => selectCalDate(iso);
 
-    // dot for today or has-session
-    if (iso === todayStr || sessions[iso] || iso === selectedCalDate) {
+    // dot for today or has-session — never on a greyed-out night, where it would
+    // promise something to open that is not there
+    if (pickable && (iso === todayStr || sessions[iso] || iso === selectedCalDate)) {
       const dot = document.createElement('span');
       dot.className = 'cal-strip-dot';
       btn.appendChild(dot);
@@ -7725,7 +7725,6 @@ function closeDrawPage() {
   el.classList.remove('open');
   clearInterval(sdPublicTimer); sdPublicTimer = null;
   clearInterval(drawTickTimer); drawTickTimer = null;
-  clearInterval(dhHeroTimer); dhHeroTimer = null;
   if (/^#draw(\/|$)/.test(window.location.hash || '')) { try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) { /* ignore */ } }
 }
 // Called from poll() once the site is unlocked: honours a shared "#draw" link and
@@ -7808,9 +7807,9 @@ function drawTick() {
 
 // ── hub ──
 // Two cards, one per draw, each leading with the thing that draws the eye: the
-// Session countdown, and the Monthly prize itself. The prize photo rotates
-// through the prizes the admin has set (Lucky Draw > Monthly draws > Prizes) —
-// there is no separate hub image to keep in sync.
+// countdown to the next draw, then the prizes in words. The pictures belong to
+// each draw's own page, one card per prize — the hub is the way in, not the
+// shop window.
 function renderDrawHub() {
   const el = document.getElementById('drawHub'); if (!el || !window.DrawHub) return;
   const now = clockNow();
@@ -7818,7 +7817,6 @@ function renderDrawHub() {
   const ml = DrawHub.monthlyStatus(sdPublic.monthly, dhMyPoints(), now);
   el.innerHTML = dhSessionCardHtml(sd) + dhMonthlyCardHtml(ml) + (acctSession ? '' :
     '<div class="dh-hub-note">Signed in members see whether they are in each draw. <button type="button" onclick="closeDrawPage();openAuthModal()">Sign in</button></div>');
-  dhHeroSync();
 }
 /** Card shell: a hero panel, then the draw's name, its own body, and the way in. */
 function dhCardHtml(kind, hero, body) {
@@ -7832,17 +7830,16 @@ function dhCardHtml(kind, hero, body) {
 }
 function dhSessionCardHtml(st) {
   const counting = !!st.drawAt && !st.due;
-  const prizes = dhHeroPrizes('session');
+  const prizes = (sdPublic.sessionPrizes || []).filter(Boolean);
   const hero = '<div class="dhc-hero dhc-hero-count">'
     + '<div class="dh-st-label">' + (st.due ? 'Drawing now' : 'Next draw') + '</div>'
     + '<div class="dhc-when">' + escHtml(st.drawAt ? SessionDraw.fmtDrawTime(st.drawAt) : 'After the next session') + '</div>'
     + (counting ? '<div class="dhc-big"><b data-draw-at="' + st.drawAt + '">' + escHtml(DrawHub.countdownText(clockNow(), st.drawAt)) + '</b><span>to go</span></div>' : '')
-    + '</div>'
-    // The prize gets the same big rotating picture as the Monthly card — the
-    // countdown says when, this says what for.
-    + (prizes.length ? dhHeroPhotoHtml(prizes, 'session') : '');
+    + '</div>';
   const mine = st.mine ? Object.assign({}, st.mine, st.date ? { note: SessionDraw.fmtSessionDate(st.date) } : {}) : null;
-  const body = (prizes.length ? '' : dhPrizeLineHtml(st.prize))
+  // The countdown says when; the prize line says what for. Listed prizes name a
+  // place each, so they beat the admin's one-liner when both exist.
+  const body = (prizes.length ? dhPrizeListHtml(prizes) : dhPrizeLineHtml(st.prize))
     + dhMineRowHtml(mine)
     + dhMetaRowHtml([dhPoolChip(st.poolCount), dhLastChip(DrawHub.latestSessionWin(sdPublic.sessions)), dhWinnersChip(st.winners)]);
   return dhCardHtml('session', hero, body);
@@ -7864,8 +7861,8 @@ function dhMonthlyCardHtml(ml) {
     + (ml.drawAt
       ? '<div class="dhc-big"><b data-draw-at="' + ml.drawAt + '">' + escHtml(DrawHub.countdownText(clockNow(), ml.drawAt)) + '</b><span>to go</span></div>'
       : '<div class="dhc-when-sub">Drawn by the admin when the month closes</div>')
-    + '</div>' + dhHeroPhotoHtml(ml.prizes, 'monthly');
-  let body = '';
+    + '</div>';
+  let body = dhPrizeListHtml(ml.prizes);
   if (ml.mine) {
     body += '<div class="dhc-prog"><span>' + escHtml(ml.mine.points + ' of ' + ml.mine.threshold + ' points this month') + '</span></div>';
     const pct = Math.max(0, Math.min(100, Math.round(ml.mine.points / (ml.mine.threshold || 1) * 100)));
@@ -7901,77 +7898,18 @@ function dhWinnersChip(n) {
   return k ? '<span class="dh-card-last">' + k + ' winner' + (k === 1 ? '' : 's') + ' will be picked</span>' : '';
 }
 
-// ── the Monthly hero: the prizes themselves, rotating ──
-// The photos are the ones on state.monthlyLucky.prizes, so an admin changes what
-// the hub shows by changing a prize photo — there is no second place to keep it
-// up to date. Prizes with no photo still take a turn as a labelled placeholder,
-// so an unset photo is visible rather than silently skipped.
-const dhHeroIdx = { session: 0, monthly: 0 };
-let dhHeroTimer = null;
-const DH_HERO_MS = 5000;
-
-function dhHeroPhotoHtml(prizes, kind) {
-  const list = (prizes || []).filter(Boolean);
-  const k = escHtml(kind || 'monthly');
-  if (!list.length) {
-    return '<div class="dhc-hero dhc-hero-photo" data-hero-kind="' + k + '"><div class="dhc-shot"><span class="ml-tile-ph">'
-      + '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l4.5-4.5 3.5 3.5 3-2.5L20 18"/></svg>'
-      + 'Prizes are not set yet</span></div></div>';
-  }
-  const shots = list.map((p, i) => {
-    const place = SessionDraw.placeOf(p, i);
-    const inner = p.photo ? '<img src="' + p.photo + '" alt="">'
-      : '<span class="ml-tile-ph"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l4.5-4.5 3.5 3.5 3-2.5L20 18"/></svg>'
-        + escHtml(mlOrdinal(place) + ' place prize photo') + '</span>';
-    return '<span class="dhc-shot-layer" data-hero="' + i + '">' + inner + '</span>';
-  }).join('');
-  // The dots sit in the caption band, not on the photo: over a real photograph a
-  // dot is only legible with a scrim, and the band is always the same colour.
-  const dots = list.length > 1 ? '<div class="dhc-hero-dots">' + list.map((p, i) =>
-    '<button type="button" class="ml-dot" data-hero-dot="' + i + '" onclick="dhHeroGo(\'' + k + '\',' + i + ')" aria-label="Prize ' + (i + 1) + '"></button>').join('') + '</div>' : '';
-  return '<div class="dhc-hero dhc-hero-photo" data-hero-kind="' + k + '"><div class="dhc-shot">' + shots + '</div>'
-    + '<div class="dhc-cap"><div class="dhc-cap-main"></div>' + dots + '</div></div>';
-}
-/** The prizes a hero is showing — each draw holds its own list. */
-function dhHeroPrizes(kind) {
-  const list = kind === 'session' ? sdPublic.sessionPrizes : (sdPublic.monthly && sdPublic.monthly.prizes);
-  return (list || []).filter(Boolean);
-}
-/** Paint slide i of one card: one photo visible, the caption and dots following it. */
-function dhHeroGo(kind, i) {
-  const hero = document.querySelector('#drawHub [data-hero-kind="' + kind + '"]'); if (!hero) return;
-  const layers = hero.querySelectorAll('[data-hero]');
-  if (!layers.length) return;
-  const idx = ((Number(i) || 0) % layers.length + layers.length) % layers.length;
-  dhHeroIdx[kind] = idx;
-  layers.forEach(l => l.classList.toggle('on', Number(l.dataset.hero) === idx));
-  hero.querySelectorAll('[data-hero-dot]').forEach(d => {
-    const on = Number(d.dataset.heroDot) === idx;
-    d.classList.toggle('on', on);
-    d.setAttribute('aria-current', on ? 'true' : 'false');
-  });
-  const cap = hero.querySelector('.dhc-cap-main');
-  const p = dhHeroPrizes(kind)[idx];
-  if (cap && p) {
-    const place = SessionDraw.placeOf(p, idx);
-    cap.innerHTML = '<span class="ml-tile-place' + (place === 1 ? ' first' : '') + '">' + escHtml(mlOrdinal(place) + ' place') + '</span>'
-      + '<span class="dhc-cap-txt"><b>' + escHtml(SessionDraw.prizeLabel(p)) + '</b>'
-      + (p.desc ? '<small>' + escHtml(p.desc) + '</small>' : '') + '</span>';
-  }
-}
-/** Re-apply every hero after a render, and keep them turning only while the hub is up. */
-function dhHeroSync() {
-  clearInterval(dhHeroTimer); dhHeroTimer = null;
-  const heroes = Array.from(document.querySelectorAll('#drawHub [data-hero-kind]'))
-    .map(el => ({ kind: el.dataset.heroKind, n: el.querySelectorAll('[data-hero]').length }))
-    .filter(h => h.n > 0);
-  if (!heroes.length) return;
-  heroes.forEach(h => dhHeroGo(h.kind, Math.min(dhHeroIdx[h.kind] || 0, h.n - 1)));
-  // One clock for both cards: two independent timers would drift into a flicker.
-  if (heroes.some(h => h.n > 1)) dhHeroTimer = setInterval(() => {
-    if (!isDrawPageOpen() || drawView !== 'hub') { clearInterval(dhHeroTimer); dhHeroTimer = null; return; }
-    heroes.forEach(h => { if (h.n > 1) dhHeroGo(h.kind, (dhHeroIdx[h.kind] || 0) + 1); });
-  }, DH_HERO_MS);
+// ── the prize line on a hub card ──
+// Both cards say what is on offer in words. The prizes are the ones the admin
+// set (Lucky Draw > the draw > Prizes), so there is nothing second to keep in
+// sync; the pictures live on the draw's own page, where there is room for them.
+function dhPrizeListHtml(prizes) {
+  const list = (prizes || []).filter(Boolean)
+    .map((p, i) => ({ place: SessionDraw.placeOf(p, i), label: SessionDraw.prizeLabel(p) }))
+    .filter(x => x.label);
+  if (!list.length) return '';
+  return '<div class="dhc-prize"><svg class="ic" viewBox="0 0 24 24"><path d="M20 8H4v4h16zM12 8v13M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 8S9.5 3 7.5 4.5 9 8 12 8zM12 8s2.5-5 4.5-3.5S15 8 12 8z"/></svg>'
+    + '<span class="dhc-prize-list">' + list.map(x =>
+      '<span><i>' + escHtml(mlOrdinal(x.place)) + '</i><em>' + escHtml(x.label) + '</em></span>').join('') + '</span></div>';
 }
 function dhMineIcon(tone) {
   if (tone === 'ok') return '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5 5-5.5"/></svg>';
@@ -9293,9 +9231,16 @@ function renderPmCalendar() {
     if (has.has(iso)) cls.push('s-has');
     else if (sessions[iso]) cls.push('s-sess');
     if (iso === pmDate) cls.push('s-sel');
+    // Nobody plays outside Mon/Fri/Sun, so an empty off-day has no night to
+    // settle: it is greyed out. Anything already recorded there stays pressable.
+    const wd = WeeklyDraw.isoWeekday(iso);
+    const pickable = !window.Night || Night.isPickableDate(iso, has.has(iso) || !!sessions[iso] || iso === pmDate || iso === live);
+    if (!pickable) cls.push('s-off');
     const dot = (iso === live || has.has(iso) || sessions[iso] || iso === pmDate) ? '<span class="cal-strip-dot"></span>' : '';
-    html += '<div class="cal-strip-col"><span class="cal-strip-name">' + letters[WeeklyDraw.isoWeekday(iso)] + '</span>'
-      + '<button type="button" class="' + cls.join(' ') + '" onclick="pmSelectDate(\'' + iso + '\')" aria-label="' + iso + '"' + (iso === pmDate ? ' aria-current="date"' : '') + '>' + d + dot + '</button></div>';
+    html += '<div class="cal-strip-col"><span class="cal-strip-name">' + letters[wd] + '</span>'
+      + '<button type="button" class="' + cls.join(' ') + '" onclick="pmSelectDate(\'' + iso + '\')" aria-label="' + iso + '"'
+      + (pickable ? '' : ' disabled title="No games on ' + WEEKDAY_NAMES[wd] + 's"')
+      + (iso === pmDate ? ' aria-current="date"' : '') + '>' + d + dot + '</button></div>';
   }
   strip.innerHTML = html;
   const wrap = strip.parentElement;

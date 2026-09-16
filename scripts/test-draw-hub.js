@@ -157,25 +157,30 @@ check('prizeOf trims, collapses whitespace and clamps', SD.prizeOf({ prize: '  A
     return f.includes("drawView === 'hub'") && f.includes('renderDrawHub()') && f.includes('renderSessionDraw()') && f.includes('renderPublicMonthly()');
   })());
   check('header renames itself per draw', fn('renderDrawHeader').includes('DrawHub.kindName(drawView)') && fn('renderDrawHeader').includes('DrawHub.entryLine(drawView'));
-  check('both hub cards lead the same way: the big countdown, then the big prize photo', (() => {
+  check('both hub cards lead the same way: the big countdown, then the prize in words', (() => {
     const f = fn('renderDrawHub'), sc = fn('dhSessionCardHtml'), mc = fn('dhMonthlyCardHtml');
     const leads = (x) => x.includes('dhc-hero-count') && x.includes('data-draw-at="') && x.includes("<span>to go</span>")
-      && x.indexOf('dhc-hero-count') < x.indexOf('dhHeroPhotoHtml');
+      && x.indexOf('dhc-hero-count') < x.indexOf('dhPrizeListHtml');
     return f.includes('dhSessionCardHtml(sd)') && f.includes('dhMonthlyCardHtml(ml)')
-      && leads(sc) && leads(mc) && sc.includes("dhHeroPhotoHtml(prizes, 'session')") && mc.includes("dhHeroPhotoHtml(ml.prizes, 'monthly')");
+      && leads(sc) && leads(mc) && sc.includes('dhPrizeListHtml(prizes)') && mc.includes('dhPrizeListHtml(ml.prizes)');
   })());
   check('hub cards carry the entry line, the pool, the personal standing, the last winner and the winner count', (() => {
     const shell = fn('dhCardHtml'), sc = fn('dhSessionCardHtml'), mc = fn('dhMonthlyCardHtml');
     return shell.includes('DrawHub.entryLine(kind') && shell.includes('drawGo(') && sc.includes('dhPoolChip(') && sc.includes('dhLastChip(')
       && sc.includes('dhWinnersChip(') && sc.includes('dhMineRowHtml(mine)') && sc.includes('SessionDraw.fmtSessionDate(st.date)') && mc.includes('dhMineRowHtml(ml.mine)') && mc.includes('dhWinnersChip(');
   })());
-  check('both heroes rotate through the prize photos the admin sets, and pause off the hub', (() => {
-    const h = fn('dhHeroPhotoHtml'), go = fn('dhHeroGo'), sync = fn('dhHeroSync');
-    return h.includes('SessionDraw.placeOf(p, i)') && h.includes('dhHeroGo(') && fn('dhHeroPrizes').includes('sdPublic.monthly && sdPublic.monthly.prizes')
-      && go.includes('SessionDraw.prizeLabel(p)') && sync.includes('setInterval') && sync.includes("drawView !== 'hub'")
-      && fn('closeDrawPage').includes('clearInterval(dhHeroTimer)') && fn('renderDrawHub').includes('dhHeroSync()');
+  check('no picture rides the hub: no photo hero, no rotation timer', (() => {
+    const sc = fn('dhSessionCardHtml'), mc = fn('dhMonthlyCardHtml'), list = fn('dhPrizeListHtml');
+    return !html.includes('dhHeroPhotoHtml') && !html.includes('dhHeroTimer') && !html.includes('dhc-shot')
+      && !sc.includes('<img') && !mc.includes('<img') && !list.includes('<img') && !list.includes('p.photo');
   })());
-  check('a prize with no photo still takes its turn, labelled', fn('dhHeroPhotoHtml').includes("' place prize photo'") && fn('dhHeroPhotoHtml').includes('Prizes are not set yet'));
+  check('the prize line names every place, quantity and all', (() => {
+    const f = fn('dhPrizeListHtml');
+    return f.includes('SessionDraw.placeOf(p, i)') && f.includes('SessionDraw.prizeLabel(p)') && f.includes('mlOrdinal(x.place)')
+      && f.includes("if (!list.length) return ''");
+  })());
+  check('a session with no listed prizes falls back to the admin one-liner',
+    fn('dhSessionCardHtml').includes("prizes.length ? dhPrizeListHtml(prizes) : dhPrizeLineHtml(st.prize)"));
   check('the hub greets a signed-in member by name', fn('renderDrawHeader').includes('acctSession.name') && html.includes('id="drawWhoami"'));
   check('a month with the automatic draw off says who runs it instead of counting down',
     fn('dhMonthlyCardHtml').includes("ml.drawAt ? 'Next draw' : 'This month'") && fn('dhMonthlyCardHtml').includes('Drawn by the admin when the month closes'));

@@ -55,9 +55,9 @@ check('helper + help drawer explain the place picker, quantity and description',
   html.includes('Each prize says which place it <b>goes to</b>') && html.includes('that winner takes both')
   && html.includes('Set a quantity to give several of the <em>same</em> item') && html.includes('Each prize has a <b>quantity</b>'));
 
-check('the prize photos are named as the Lucky Draw hub picture, where they are edited',
-  html.includes('class="admin-helper-text mlp-photo-note"') && html.includes('take turns as the big picture')
-  && html.includes('onclick="openDrawPage(\'hub\')"'));
+check('the prize photos say where they show — the draw page, not the hub — next to where they are edited',
+  html.includes('class="admin-helper-text mlp-photo-note"') && html.includes('one beside each prize')
+  && html.includes('names the prizes without the picture') && html.includes('onclick="openDrawPage(\'monthly\')"'));
 
 // ── pool + manual draw ──
 check('Pull button posts pullMonthlyPool and shows the threshold in its label', fn('pullMonthlyPool').includes("action: 'pullMonthlyPool'") && fn('renderMonthlySettings').includes("'Pull players with ' + s.threshold + '+ points'"));

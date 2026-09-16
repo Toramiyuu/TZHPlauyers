@@ -139,6 +139,22 @@ check('the night is still October at 1 Nov noon', Night.currentNight(myt(NOV_SUN
 eq('Sun 1 Nov 19:59 is still the October night', Night.currentNight(myt(NOV_SUN, 19, 59)), OCT_FRI);
 eq('Sun 1 Nov 20:00 starts a November night', Night.currentNight(myt(NOV_SUN, 20, 0)), NOV_SUN);
 
+// ── 7b. isPickableDate: which days a calendar strip lets you tap ─────
+// Games are Mon/Fri/Sun, so every other night is dead weight on a date strip.
+// The exception is a date that already holds something: an old off-day session
+// or the night on screen must stay reachable, never locked behind a grey button.
+check('Friday can be picked', Night.isPickableDate(FRI, false));
+check('Sunday can be picked', Night.isPickableDate(SUN, false));
+check('Monday can be picked', Night.isPickableDate(MON, false));
+check('an empty Saturday cannot be picked', !Night.isPickableDate(SAT, false));
+check('an empty Tuesday cannot be picked', !Night.isPickableDate(TUE, false));
+check('an empty Wednesday cannot be picked', !Night.isPickableDate(WED, false));
+check('an empty Thursday cannot be picked', !Night.isPickableDate(THU, false));
+check('a Saturday that holds a session CAN be picked', Night.isPickableDate(SAT, true));
+check('a Wednesday one-off game night stays reachable', Night.isPickableDate(WED, true));
+check('a game day is pickable with or without a record', Night.isPickableDate(FRI, true));
+check('garbage date is never pickable', !Night.isPickableDate('nonsense', true));
+
 // ── 8. defensive ─────────────────────────────────────────────────────
 eq('garbage date is not a game day', Night.isGameDay('nonsense'), false);
 eq('garbage date has no owning night', Night.owningNight('nonsense'), null);
@@ -186,6 +202,12 @@ check('off-day notice element exists', /id="sessionOffDayWarn"/.test(HTML));
 check('off-day notice is driven by isGameDay', /Night\.isGameDay\(date\)/.test(HTML));
 check('night controls render from the session-date section', /renderNightControls\(date\)/.test(HTML));
 // The 2s admin poll runs through this render — it must not stomp live edits.
+// Date strips: the Session History one and the Payments one both grey out the
+// off nights rather than open an empty panel on a Tuesday.
+check('history strip greys out off nights', /Night\.isPickableDate\(iso, !!sessions\[iso\]/.test(HTML) && /btn\.disabled = !pickable/.test(HTML));
+check('payments strip greys out off nights', /Night\.isPickableDate\(iso, has\.has\(iso\)/.test(HTML) && / disabled title="No games on /.test(HTML));
+check('both strips still open a date that holds something', /iso === selectedCalDate\)/.test(HTML) && /iso === pmDate \|\| iso === live\)/.test(HTML));
+check('an off night is styled as off, not invisible', /\.cal-strip-btn\.s-off\{/.test(HTML));
 check('night controls use the no-op repaint guard', /setHtmlIfChanged\(btn/.test(HTML) && /setHtmlIfChanged\(warn/.test(HTML));
 
 // ── 11. the cron actually fires on the night boundary ────────────────
