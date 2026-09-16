@@ -34,7 +34,7 @@ check('sub-tab order + names match the public page: Session draw · Monthly draw
 check('panel exists and starts hidden', /<div class="ld-sub" data-sub="monthlylucky" style="display:none">/.test(html));
 check('setLuckyTab + setAdminTab render the monthly admin', fn('setLuckyTab').includes("if (sub === 'monthlylucky') { renderMonthlyLuckyAdmin(); }") && fn('setAdminTab').includes("if (currentLuckyTab === 'monthlylucky') renderMonthlyLuckyAdmin()"));
 check('poll only refreshes the light pool list while the tab is open', fn('poll').includes("currentLuckyTab === 'monthlylucky') renderMonthlyPool()") && !fn('poll').includes('loadMonthlyAdmin'));
-check('help drawer + audit labels cover the feature', /Lucky Draw &mdash; Monthly draws<\/summary>/.test(html) && html.includes("'monthlyLucky.close': 'Month closed — points reset'") && html.includes("'monthlyLucky.draw':"));
+check('help drawer + audit labels cover the feature', /Lucky Draw: Monthly draws<\/summary>/.test(html) && html.includes("'monthlyLucky.close': 'Month closed, points reset'") && html.includes("'monthlyLucky.draw':"));
 
 // ── settings card ──
 check('automatic switch is a real switch posting setMonthlySettings', /id="mlAutoToggle" type="button" role="switch"/.test(html) && fn('toggleMonthlyAuto').includes('saveMonthlySettings({ auto: !s.auto }') && fn('saveMonthlySettings').includes("action: 'setMonthlySettings'"));

@@ -75,11 +75,11 @@ check('linked + settled: not red, reads Settled', settledRow.includes('class="ac
 check('no records yet', settledFactory({ id: 'a2', name: 'Bee', hasPlayer: true, playerId: 'p2' }).includes('No records yet</b>'));
 check('unlinked account renders nothing extra', withPts({ id: 'a3', name: 'Cy', hasPlayer: false, playerId: null }) === '' && withPts({ id: 'a4', name: 'Di', hasPlayer: true, playerId: null }) === '');
 const missingRoster = factory(() => null, () => ({ name: 'x' }), Payments, { attendance }, { roster: [] }, { Payments })({ id: 'a1', name: 'Alex', hasPlayer: true, playerId: 'p1' });
-check('roster player missing: points show a dash, ledger still available', missingRoster.includes('<span>Points <b>&mdash;</b></span>') && missingRoster.includes('RM25 · 1 night'));
+check('roster player missing: points show a dash, ledger still available', missingRoster.includes('<span>Points <b>&ndash;</b></span>') && missingRoster.includes('RM25 · 1 night'));
 const noState = factory(() => { throw new Error('must not be called'); }, () => ({ name: 'x' }), Payments, { attendance }, null, { Payments })({ id: 'a1', name: 'Alex', hasPlayer: true, playerId: 'p1' });
-check('before the first poll (state null) the roster is not dereferenced', noState.includes('<b>&mdash;</b>'));
+check('before the first poll (state null) the roster is not dereferenced', noState.includes('<b>&ndash;</b>'));
 // Lifetime points: admin-only, from the ops cache, never from state.roster.
-check('lifetime shows an em-dash until the ops cache has been fetched', owingRow.includes('Lifetime <b>&mdash;</b>'));
+check('lifetime shows a dash until the ops cache has been fetched', owingRow.includes('Lifetime <b>&ndash;</b>'));
 const withLife = factory((pid) => ({ id: 'p1', name: 'Alex', points: 1240 }), () => ({ name: 'Gold' }), Payments,
   { attendance, lifetimePoints: { p1: 3480 } }, { roster: [] }, { Payments })({ id: 'a1', name: 'Alex', hasPlayer: true, playerId: 'p1' });
 check('lifetime renders the fetched total, grouped', withLife.includes('Lifetime <b>3,480</b>'));

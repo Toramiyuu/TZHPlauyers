@@ -1144,6 +1144,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 /* End of the day modal */
 .eod-tier{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-sm);flex-wrap:wrap;margin:var(--sp-md) 0}
 .eod-warn{background:rgba(205,125,44,.12);border:1px solid rgba(205,125,44,.35);color:var(--warn);border-radius:var(--radius-sm);padding:9px 12px;font-size:var(--fs-sm);margin-bottom:var(--sp-sm)}
+/* Night boundary (public/night.js): start a game night before the 20:00 auto-roll,
+   and flag a session date on a day nobody plays. */
+.night-start{margin:var(--sp-sm) 0;width:100%}
+.night-offday{margin:var(--sp-sm) 0 0}
+@media(min-width:641px){.night-start{width:auto}}
 .eod-result{font-size:var(--fs-md);font-weight:600;color:var(--text);margin:0 0 var(--sp-xs)}
 .eod-result-sub{font-size:var(--fs-sm);color:var(--muted)}
 /* Payments tab — mobile-first list */
@@ -2265,7 +2270,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 <div id="guestModal" class="modal-overlay">
   <div class="modal-box">
     <h2>Add Guest</h2>
-    <p class="modal-desc">Plays today only — not saved to roster.</p>
+    <p class="modal-desc">Plays today only. Not saved to roster.</p>
     <input id="guestNameInput" class="modal-input" type="text" placeholder="Guest name"
       onkeydown="if(event.key==='Enter')confirmAddGuest()">
     <div class="modal-actions">
@@ -2280,7 +2285,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <div class="modal-box">
     <h2 id="eodTitle">End of the day</h2>
     <div id="eodConfirm">
-      <p class="modal-desc">Creates one payment record per player in tonight&rsquo;s line-up at the default fee. Anyone who left after 2 hours can be switched to <b>2h</b> on their row in the payment list. Pressing it again adds anyone who joined later and removes anyone you unticked since &mdash; unless they already paid. Existing records are otherwise untouched.</p>
+      <p class="modal-desc">Creates one payment record per player in tonight&rsquo;s line-up at the default fee. Anyone who left after 2 hours can be switched to <b>2h</b> on their row in the payment list. Pressing it again adds anyone who joined later and removes anyone you unticked since, unless they already paid. Existing records are otherwise untouched.</p>
       <div class="st-details">
         <div><span>Session</span><b id="eodDate"></b></div>
         <div><span>Players</span><b id="eodCount"></b></div>
@@ -2688,7 +2693,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       </table></div>
     </div>
 
-    <div class="members-footer">The more you play, the more you earn — thank you for being part of the TZH Sports Club family.</div>
+    <div class="members-footer">The more you play, the more you earn. Thank you for being part of the TZH Sports Club family.</div>
   </div>
 </div>
 
@@ -2719,7 +2724,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div id="courtsDisplay"></div>
     <div id="upNextPanel" class="upnext-panel" style="display:none"></div>
   </div>
-  <div class="viewer-footer"><span>TZH Badminton — Live Court Display</span><span id="viewerFootStats"></span></div>
+  <div class="viewer-footer"><span>TZH Badminton | Live Court Display</span><span id="viewerFootStats"></span></div>
 </div>
 
 <!-- Friendly Games · Red vs Blue — full-screen kinetic takeover of the viewer.
@@ -2735,7 +2740,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
      Three.js cost) and pulls the same live /api/state the 2D viewer shows.
      The arena's own "Normal view" button posts a message handled below. -->
 <div id="arena3d" aria-hidden="true">
-  <iframe id="arenaFrame" title="TZH Badminton — 3D arena view"></iframe>
+  <iframe id="arenaFrame" title="TZH Badminton 3D arena view"></iframe>
 </div>
 
 <!-- Leaderboard Modal -->
@@ -2906,11 +2911,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <div class="admin-card">
     <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg></span> Session Date</div>
     <div id="sessionDateDisplay" class="admin-date-display"></div>
+    <!-- A night is owned by the day it STARTED (public/night.js), so the live
+         session stays on the last night played until the next one begins. This
+         starts it early when play begins before the 20:00 auto-boundary. -->
+    <button type="button" class="btn btn-primary btn-sm night-start" id="startTonightBtn" style="display:none" onclick="startTonight()"></button>
     <div class="admin-btn-row">
       <input id="sessionDateInput" type="date" class="admin-form-input">
       <button class="btn btn-primary btn-sm" onclick="setSessionDate()">Set Date</button>
       <button class="btn btn-ghost btn-sm" onclick="openHistoryModal()">View History →</button>
     </div>
+    <div class="eod-warn night-offday" id="sessionOffDayWarn" style="display:none"></div>
     <!-- Session fee tier: what "End of the day" charges every player tonight -->
     <div class="fee-row">
       <span class="admin-form-label">Default session fee</span>
@@ -2971,7 +2981,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <div class="court-select-chips" id="courtSelectChips" role="group" aria-label="Select which courts are active"></div>
       <button class="btn btn-secondary btn-sm" onclick="saveActiveCourts()">Save</button>
     </div>
-    <div class="court-select-hint">Tick the courts your games are on today &mdash; e.g. just 3 &amp; 4. Court numbers show on the viewer.</div>
+    <div class="court-select-hint">Tick the courts your games are on today, e.g. just 3 &amp; 4. Court numbers show on the viewer.</div>
 
     <!-- Quick round nav -->
     <div class="quick-nav admin-mt">
@@ -2993,7 +3003,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     </div>
 
     <!-- Up Next override editor -->
-    <div class="admin-subsection-label">Up Next — Override</div>
+    <div class="admin-subsection-label">Up Next: Override</div>
     <div id="upNextEditor"></div>
 
     <div class="divider"></div>
@@ -3058,7 +3068,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       </div>
     </div>
     <div class="cal-strip-wrap pm-cal-wrap"><div class="cal-strip" id="pmCalGrid"></div></div>
-    <div class="pm-date-line"><span id="pmDateLabel">&mdash;</span><span class="pm-save-state" id="pmSaveState" aria-live="polite"></span></div>
+    <div class="pm-date-line"><span id="pmDateLabel">&ndash;</span><span class="pm-save-state" id="pmSaveState" aria-live="polite"></span></div>
     <div class="pm-stats" id="pmStats"></div>
     <!-- List filter: same dropdown style as the Session tab's sort control -->
     <div class="pm-toolbar">
@@ -3084,7 +3094,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
   <div class="admin-card">
     <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M14.5 3.5 21 10l-2 2-6.5-6.5zM9.5 3.5 3 10l2 2 6.5-6.5M12 12l-7 7M12 12l7 7"/></svg></span> Friendly Games</div>
-    <div class="admin-helper-text">Run a special Red vs Blue team match. Turn it on and the live viewer switches to the Red vs Blue scoreboard for everyone watching &mdash; turn it off to go back to the normal court display.</div>
+    <div class="admin-helper-text">Run a special Red vs Blue team match. Turn it on and the live viewer switches to the Red vs Blue scoreboard for everyone watching. Turn it off to go back to the normal court display.</div>
     <div class="fr-master">
       <div class="fr-master-txt"><strong>Red vs Blue mode</strong><span>Takes over the viewer with the team match display</span></div>
       <div style="display:flex;align-items:center;gap:12px">
@@ -3185,9 +3195,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <!-- Prizes: the same editor and the same prize shape as the Monthly draw -->
     <div class="admin-card" id="sdPrizesCard">
       <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span> Prizes</span><span class="pm-save-state" id="sdPrizesSaveState"></span></div>
-      <div class="admin-helper-text">Each prize says which place it <b>goes to</b> &mdash; new rows fill 1st, 2nd, 3rd in turn. Point two rows at the same place and that winner takes both. Set a quantity to give several of the <em>same</em> item, and add a short description if you like. Tap the square to add a photo.</div>
+      <div class="admin-helper-text">Each prize says which place it <b>goes to</b>: new rows fill 1st, 2nd, 3rd in turn. Point two rows at the same place and that winner takes both. Set a quantity to give several of the <em>same</em> item, and add a short description if you like. Tap the square to add a photo.</div>
       <div class="admin-helper-text mlp-photo-note sd-photo-note"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l4.5-4.5 3.5 3.5 3-2.5L20 18"/></svg>
-        <span>These are what members see on the <b>Session Draw</b> page and on the Lucky Draw hub &mdash; a card each, with the photo. They are what is on offer now: a past draw&rsquo;s record keeps its winners&rsquo; names only. <button type="button" class="ml-photo-link" onclick="openDrawPage('session')">See the page</button></span></div>
+        <span>These are what members see on the <b>Session Draw</b> page and on the Lucky Draw hub, a card each, with the photo. They are what is on offer now: a past draw&rsquo;s record keeps its winners&rsquo; names only. <button type="button" class="ml-photo-link" onclick="openDrawPage('session')">See the page</button></span></div>
       <div class="ml-prizes" id="sdPrizes"><div class="acct-empty">Loading&hellip;</div></div>
       <div class="admin-btn-row admin-mt">
         <button class="btn btn-ghost btn-sm" type="button" onclick="addPrize('session')"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Add prize</button>
@@ -3208,7 +3218,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <!-- Manual quick draw (legacy paid-pool spin, preserved) -->
     <details class="admin-card ld-quick-card">
       <summary class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> Manual quick draw<span class="ld-quick-hint">tick paid players &amp; spin on the spot</span></summary>
-      <div class="admin-helper-text" id="paidHint">Tick each player who has paid, build a pool, then spin to pick winners — revealed live on the viewer.</div>
+      <div class="admin-helper-text" id="paidHint">Tick each player who has paid, build a pool, then spin to pick winners, revealed live on the viewer.</div>
       <div class="paid-picker" id="paidPicker"></div>
       <div class="draw-pool-header admin-mt"><span class="admin-form-label">Pool</span><span class="draw-pool-count" id="drawPoolCount" style="display:none"></span></div>
       <div class="draw-pool" id="drawPool"></div>
@@ -3226,7 +3236,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <input id="drawDateInput" type="date" class="admin-form-input draw-date-input" onchange="setDrawDate(this.value)" aria-label="Draw date">
         <span class="draw-date-readable" id="drawDateReadable"></span>
       </div>
-      <button class="btn btn-primary admin-spin-btn" id="spinBtn" onclick="spinDraw()"><svg class="ic" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4z"/><path d="M9 6v12"/></svg> <span id="spinBtnLabel">Spin &mdash; pick 1st winner</span></button>
+      <button class="btn btn-primary admin-spin-btn" id="spinBtn" onclick="spinDraw()"><svg class="ic" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4z"/><path d="M9 6v12"/></svg> <span id="spinBtnLabel">Spin: pick 1st winner</span></button>
       <div id="drawResult"></div>
     </details>
 
@@ -3266,7 +3276,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <!-- Prizes: ordered list, each with a name + photo -->
     <div class="admin-card" id="mlPrizesCard">
       <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span> Prizes</span><span class="pm-save-state" id="mlPrizeSaveState"></span></div>
-      <div class="admin-helper-text">Each prize says which place it <b>goes to</b> &mdash; new rows fill 1st, 2nd, 3rd in turn. Point two rows at the same place and that winner takes both. Set a quantity to give several of the <em>same</em> item, and add a short description if you like. Tap the square to add a photo.</div>
+      <div class="admin-helper-text">Each prize says which place it <b>goes to</b>: new rows fill 1st, 2nd, 3rd in turn. Point two rows at the same place and that winner takes both. Set a quantity to give several of the <em>same</em> item, and add a short description if you like. Tap the square to add a photo.</div>
       <div class="admin-helper-text mlp-photo-note"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l4.5-4.5 3.5 3.5 3-2.5L20 18"/></svg>
         <span>These photos are what members see. They take turns as the big picture on the <b>Lucky Draw</b> page, and each one shows again beside its prize. Change a photo here and the page changes with it. <button type="button" class="ml-photo-link" onclick="openDrawPage('hub')">See the page</button></span></div>
       <div class="ml-prizes" id="mlPrizes"></div>
@@ -3335,7 +3345,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   </div>
   <details class="admin-card">
     <summary class="admin-card-title" style="cursor:pointer"><span><svg class="ic" viewBox="0 0 24 24"><path d="M12 8v4l3 2M21 12a9 9 0 1 1-9-9 9 9 0 0 1 9 9z"/></svg></span> Activity log</summary>
-    <div class="admin-helper-text">Every admin change to attendance, payments, draws, and accounts — most recent first.</div>
+    <div class="admin-helper-text">Every admin change to attendance, payments, draws, and accounts. Most recent first.</div>
     <div id="auditList"></div>
   </details>
   </div><!-- /accounts tab -->
@@ -3346,7 +3356,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <!-- Share -->
   <div class="admin-card">
     <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M9 15l6-6M10.5 6.5l1.2-1.2a4 4 0 0 1 5.7 5.7l-1.2 1.2M13.5 17.5l-1.2 1.2a4 4 0 0 1-5.7-5.7l1.2-1.2"/></svg></span> Share Viewer Link</div>
-    <p class="admin-helper-text">Send this to players — opens live court display:</p>
+    <p class="admin-helper-text">Send this to players. Opens live court display:</p>
     <div class="link-box" id="shareLink"></div>
     <div class="admin-btn-row admin-mt">
       <button class="btn btn-secondary btn-sm" onclick="copyLink()">Copy Link</button>
@@ -3367,7 +3377,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div class="admin-mt">
       <button class="btn btn-ghost btn-sm admin-remove-btn" onclick="removeSiteCode()">Remove code (open site to all)</button>
     </div>
-    <div class="admin-helper-text admin-mt">See exactly what players see when they don't have today's code — this won't sign you out.</div>
+    <div class="admin-helper-text admin-mt">See exactly what players see when they don't have today's code. This won't sign you out.</div>
     <div class="admin-mt">
       <button class="btn btn-secondary btn-sm" onclick="previewLockscreen()">Preview lockscreen</button>
     </div>
@@ -3446,14 +3456,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <div class="help-body">
     <button class="help-tour-btn" onclick="startTour()"><span class="help-tour-row"><svg class="ic" viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg> Start the guided tour</span><span class="help-tour-sub">A 2-minute walkthrough of every tab</span></button>
     <div class="help-sec-list">
-      <details class="help-sec"><summary>Session</summary><div>Set tonight&rsquo;s date and tap players to add them to the line-up. In the <b>List</b> view, the <b>Level</b> picker (1.0&ndash;7.0) and the <b>Girl</b> &amp; <b>Mixed</b> toggles set a player&rsquo;s rating and who plays mixed doubles &mdash; these drive level-balanced match generation. <b>Pts</b> is this month&rsquo;s points (+2 a session, editable by hand) and goes back to zero for <b>everyone</b> when the month ends &mdash; whether or not they made the Monthly draw. <b>Life</b> next to it is their lifetime total: every point they have ever earned, never reset. Members never see it; it is on the Players list, the Accounts rows and the Payments member popup, for you only.</div></details>
+      <details class="help-sec"><summary>Session</summary><div>Set tonight&rsquo;s date and tap players to add them to the line-up. In the <b>List</b> view, the <b>Level</b> picker (1.0&ndash;7.0) and the <b>Girl</b> &amp; <b>Mixed</b> toggles set a player&rsquo;s rating and who plays mixed doubles, and these drive level-balanced match generation. <b>Pts</b> is this month&rsquo;s points (+2 a session, editable by hand) and goes back to zero for <b>everyone</b> when the month ends, whether or not they made the Monthly draw. <b>Life</b> next to it is their lifetime total: every point they have ever earned, never reset. Members never see it; it is on the Players list, the Accounts rows and the Payments member popup, for you only.</div></details>
       <details class="help-sec"><summary>Courts</summary><div>Build rounds, choose which courts are active, and manage who&rsquo;s resting. Each court&rsquo;s current match shows live on the viewer screen. When play ends, press <b>End of the day</b> (bottom of the tab) to create tonight&rsquo;s payment records.</div></details>
-      <details class="help-sec"><summary>Payments</summary><div>The fee depends on how long each person stayed: <b>2h &middot; RM20</b> or <b>3h &middot; RM25</b>. The Session tab sets the default for the night; after <b>End of the day</b> every player in the line-up gets a row here at that default. Tap <b>2h</b> or <b>3h</b> on a row for early leavers, tap <b>Cash</b>, <b>TnG</b> or <b>DuitNow</b> as each person pays (one tap), or <b>Unpaid</b> to undo &mdash; paid rows drop to the bottom so whoever still owes stays at the top. Tap the amount for a one-off custom fee. Pressing End of the day again adds players who joined later and drops anyone you unticked in the meantime (unless they already paid), so the ticked line-up is always what counts. Switch to <b>By member</b> to see everyone&rsquo;s running balance across every night on record; tap a member for their points, total outstanding and a night-by-night breakdown, and settle any night right there. A night is never removed from history while someone on it still owes.</div></details>
-      <details class="help-sec"><summary>Lucky Draw &mdash; Session draws</summary><div>Every Monday, Friday and Sunday session gets one automatic draw at <b>9:00 AM</b> three mornings later (Mon &rarr; Thu, Fri &rarr; Mon, Sun &rarr; Wed). A player is in it when they attended <b>and</b> their payment was marked paid before that time &mdash; so <b>End of the day</b> and the Payments tab decide who is eligible. Set how many winners are picked. Results are permanent and never re-run; if the scheduled draw did not happen, <b>Run draw now</b> applies the same rules. Players see the winners and the replay video on the public Lucky Draw page; who attended and who paid stays admin-only.</div></details>
-      <details class="help-sec"><summary>Lucky Draw &mdash; Monthly draws</summary><div>A points draw once a month. Everyone who reaches the <b>points needed</b> (default 80) during the month is in it; points go back to zero for <b>everyone</b> when the month ends &mdash; winners, non-winners and anyone who never reached the threshold alike. Only the admin-only <b>lifetime</b> total on the Session tab keeps the full record. With the <b>automatic</b> switch on, the draw runs itself at <b>9:00 AM on the 1st</b> of the next month; switch it off to run it yourself. <b>Pull players</b> lists everyone at the threshold right now (untick anyone who should sit out), then <b>Run draw now</b> draws this month on the spot. Set how many winners are picked and the prize list &mdash; each prize picks the <b>place</b> it goes to (two prizes on the same place means that winner takes both). Each prize has a <b>quantity</b> (so one winner can take, say, 2 tubes of shuttlecocks), an optional <b>description</b>, and a photo; these show on the public Lucky Draw page, and the winner&rsquo;s prize (with quantity) in the replay video. One draw per month; results are permanent.</div></details>
+      <details class="help-sec"><summary>Payments</summary><div>The fee depends on how long each person stayed: <b>2h &middot; RM20</b> or <b>3h &middot; RM25</b>. The Session tab sets the default for the night; after <b>End of the day</b> every player in the line-up gets a row here at that default. Tap <b>2h</b> or <b>3h</b> on a row for early leavers, tap <b>Cash</b>, <b>TnG</b> or <b>DuitNow</b> as each person pays (one tap), or <b>Unpaid</b> to undo. Paid rows drop to the bottom so whoever still owes stays at the top. Tap the amount for a one-off custom fee. Pressing End of the day again adds players who joined later and drops anyone you unticked in the meantime (unless they already paid), so the ticked line-up is always what counts. Switch to <b>By member</b> to see everyone&rsquo;s running balance across every night on record; tap a member for their points, total outstanding and a night-by-night breakdown, and settle any night right there. A night is never removed from history while someone on it still owes.</div></details>
+      <details class="help-sec"><summary>Lucky Draw: Session draws</summary><div>Every Monday, Friday and Sunday session gets one automatic draw at <b>9:00 AM</b> three mornings later (Mon &rarr; Thu, Fri &rarr; Mon, Sun &rarr; Wed). A player is in it when they attended <b>and</b> their payment was marked paid before that time, so <b>End of the day</b> and the Payments tab decide who is eligible. Set how many winners are picked. Results are permanent and never re-run; if the scheduled draw did not happen, <b>Run draw now</b> applies the same rules. Players see the winners and the replay video on the public Lucky Draw page; who attended and who paid stays admin-only.</div></details>
+      <details class="help-sec"><summary>Lucky Draw: Monthly draws</summary><div>A points draw once a month. Everyone who reaches the <b>points needed</b> (default 80) during the month is in it; points go back to zero for <b>everyone</b> when the month ends: winners, non-winners and anyone who never reached the threshold alike. Only the admin-only <b>lifetime</b> total on the Session tab keeps the full record. With the <b>automatic</b> switch on, the draw runs itself at <b>9:00 AM on the 1st</b> of the next month; switch it off to run it yourself. <b>Pull players</b> lists everyone at the threshold right now (untick anyone who should sit out), then <b>Run draw now</b> draws this month on the spot. Set how many winners are picked and the prize list, where each prize picks the <b>place</b> it goes to (two prizes on the same place means that winner takes both). Each prize has a <b>quantity</b> (so one winner can take, say, 2 tubes of shuttlecocks), an optional <b>description</b>, and a photo; these show on the public Lucky Draw page, and the winner&rsquo;s prize (with quantity) in the replay video. One draw per month; results are permanent.</div></details>
       <details class="help-sec"><summary>Sign-ups</summary><div>People who asked to join through the public form, newest first. Mark each one contacted once you&rsquo;ve reached out.</div></details>
-      <details class="help-sec"><summary>Accounts</summary><div>Members sign in with a <b>login code</b> like <b>Thomas#123</b> and see their points, what they owe and their draw wins. Press <b>Assign codes to everyone</b> once, then tap a code to copy it and send it to that member. Tap a member&rsquo;s name (or <b>Manage</b>) to open their profile: their points, what they owe, their level and their login code are all there and all editable, and <b>Copy invite</b> puts the whole sign-in message on your clipboard. Phone + password sign-in still works for anyone who has one: approve requests, or open <b>Manage</b> &rarr; <b>Reveal</b> / temporary password to help with a forgotten password. Deleting an account keeps the player &mdash; it only removes the login.</div></details>
-      <details class="help-sec"><summary>Settings</summary><div>Share the viewer link, set the daily <b>site access code</b>, change the admin password, pick the <b>phone shortcuts</b> (which tabs sit in the bottom bar on phones &mdash; up to 4, the rest live under More), choose which social game days appear on the public sign-up, and set <b>weekly regulars</b> &mdash; players who always come on a given day, added to the line-up automatically when the session date lands on that day.</div></details>
+      <details class="help-sec"><summary>Accounts</summary><div>Members sign in with a <b>login code</b> like <b>Thomas#123</b> and see their points, what they owe and their draw wins. Press <b>Assign codes to everyone</b> once, then tap a code to copy it and send it to that member. Tap a member&rsquo;s name (or <b>Manage</b>) to open their profile: their points, what they owe, their level and their login code are all there and all editable, and <b>Copy invite</b> puts the whole sign-in message on your clipboard. Phone + password sign-in still works for anyone who has one: approve requests, or open <b>Manage</b> &rarr; <b>Reveal</b> / temporary password to help with a forgotten password. Deleting an account keeps the player. It only removes the login.</div></details>
+      <details class="help-sec"><summary>Settings</summary><div>Share the viewer link, set the daily <b>site access code</b>, change the admin password, pick the <b>phone shortcuts</b> (which tabs sit in the bottom bar on phones, up to 4, with the rest under More), choose which social game days appear on the public sign-up, and set <b>weekly regulars</b>: players who always come on a given day, added to the line-up automatically when the session date lands on that day.</div></details>
     </div>
   </div>
 </aside>
@@ -3493,6 +3503,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 <script src="monthly-eligibility.js"></script>
 <script src="matchmaking.js"></script>
 <script src="/session-draw.js"></script>
+<script src="/night.js"></script>
 <script src="/monthly-lucky.js"></script>
 <script src="/draw-video.js"></script>
 <script src="/draw-hub.js"></script>
@@ -4088,7 +4099,7 @@ function renderFriendlySquad(f) {
   const searchEl = document.getElementById('frSquadSearch');
   const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
   const all = friendlyPeople();
-  if (!all.length) { el.innerHTML = `<div class="frl-empty">No players yet &mdash; add some in the Session tab.</div>`; return; }
+  if (!all.length) { el.innerHTML = `<div class="frl-empty">No players yet. Add some in the Session tab.</div>`; return; }
   const people = q ? all.filter(p => (p.name || '').toLowerCase().includes(q)) : all;
   // Split summary: who's on each team right now (session players only).
   const sess = friendlySessionSet();
@@ -4125,7 +4136,7 @@ function renderFriendlySquad(f) {
   el.innerHTML = split + `<div class="frl-head"><span>Player</span><span>Team</span><span>Captain</span></div>${rows}`;
 }
 function friendlyPairOptions(teamIds, selected) {
-  return ['<option value="">&mdash;</option>'].concat((teamIds||[]).map(id =>
+  return ['<option value="">&ndash;</option>'].concat((teamIds||[]).map(id =>
     `<option value="${id}"${id===selected?' selected':''}>${escHtml(frNameOf(id))}</option>`
   )).join('');
 }
@@ -4203,7 +4214,7 @@ function renderFriendlyMatchups(f) {
           <option value="final"${m.status === 'final' ? ' selected' : ''}>Final</option>
         </select>
         <button class="frb-es${m.endingSoon ? ' on' : ''}" onclick="toggleFriendlyEnding(${i})" title="${m.endingSoon ? 'Remove ending-soon flag' : 'Tell viewers this court is ending soon'}" aria-label="Ending soon" aria-pressed="${m.endingSoon ? 'true' : 'false'}">${clockSvg}</button>
-        <button class="frb-lock${m.locked ? ' on' : ''}" onclick="toggleFriendlyLock(${i})" title="${m.locked ? 'Locked — kept when you reshuffle' : 'Lock this court'}" aria-label="Lock court">${lockSvg}</button>
+        <button class="frb-lock${m.locked ? ' on' : ''}" onclick="toggleFriendlyLock(${i})" title="${m.locked ? 'Locked: kept when you reshuffle' : 'Lock this court'}" aria-label="Lock court">${lockSvg}</button>
         <button class="fr-mu-del" onclick="removeFriendlyMatchup(${i})" title="Remove" aria-label="Remove matchup">&#215;</button>
       </div>
       <div class="frb-body">
@@ -4220,7 +4231,7 @@ function renderFriendlyMatchups(f) {
   // rebuilt via innerHTML on every interaction, so a moved node wouldn't survive.
   const benchBlock = hasTeams
     ? `<div class="frb-bench" ondragover="frBenchDragOver(event,this)" ondragleave="this.classList.remove('frb-bench-drop')" ondrop="frDropToBench(event,this)">
-      <div class="frb-bench-hint">Bench &mdash; tap a court slot to pick a player from a list, tap a player then a slot, or drag them across. Drag a player here to take them off a court.</div>
+      <div class="frb-bench-hint">Bench: tap a court slot to pick a player from a list, tap a player then a slot, or drag them across. Drag a player here to take them off a court.</div>
       <div class="frb-side r">RED</div>${rail('red')}
       <div class="frb-side b">BLUE</div>${rail('blue')}
     </div>`
@@ -4237,7 +4248,7 @@ function renderFriendlyMatchups(f) {
         <button class="btn btn-primary btn-sm" onclick="autoFillFriendly()">Auto-fill courts</button>
         <button class="btn btn-ghost btn-sm" onclick="reshuffleFriendly()">Reshuffle</button>
       </div>
-      ${f.matchups.length ? pods : `<div class="admin-helper-text">No courts yet &mdash; tap <b>Auto-fill courts</b>, or <b>Add court matchup</b> below.</div>`}
+      ${f.matchups.length ? pods : `<div class="admin-helper-text">No courts yet. Tap <b>Auto-fill courts</b>, or <b>Add court matchup</b> below.</div>`}
     </div>
   `;
 }
@@ -4565,7 +4576,7 @@ function recordFriendlyResult(i) {
   else if (winner === 'blue') f.blueGames = (f.blueGames || 0) + 1;
   m.redScore = 0; m.blueScore = 0; m.endingSoon = false; m.status = 'live';
   renderFriendlyAdmin(); saveFriendly(); renderFriendlyViewer();
-  notify(winner === 'tie' ? 'Game recorded (tie).' : `Game recorded — ${winner === 'red' ? (f.redName || 'Red') : (f.blueName || 'Blue')} won.`);
+  notify(winner === 'tie' ? 'Game recorded (tie).' : `Game recorded: ${winner === 'red' ? (f.redName || 'Red') : (f.blueName || 'Blue')} won.`);
 }
 function deleteFriendlyGame(idx) {
   const f = ensureFriendly();
@@ -4666,7 +4677,7 @@ function autoFillFriendly() {
   fillMatchups(f);
   __frSel.pid = null; __frActive = null;
   renderFriendlyMatchups(f); saveFriendly();
-  notify('Courts auto-filled — drag to tweak.');
+  notify('Courts auto-filled. Drag to tweak.');
 }
 function reshuffleFriendly() {
   const f = ensureFriendly();
@@ -4786,7 +4797,7 @@ function buildFriendlyViewer(f) {
       <div class="fv-half red">
         <div class="fv-tlabel">Team &middot; Red</div>
         <div class="fv-tname fv-anton">${escHtml(redName)}</div>
-        <div class="fv-cap">Captain &middot; <b>${f.redCaptain ? escHtml(frNameOf(f.redCaptain)) : '—'}</b></div>
+        <div class="fv-cap">Captain &middot; <b>${f.redCaptain ? escHtml(frNameOf(f.redCaptain)) : '–'}</b></div>
         <div class="fv-gnum fv-anton" data-count="${f.redGames}">0</div>
       </div>
       <div class="fv-center">
@@ -4797,7 +4808,7 @@ function buildFriendlyViewer(f) {
       <div class="fv-half blue">
         <div class="fv-tlabel">Team &middot; Blue</div>
         <div class="fv-tname fv-anton">${escHtml(blueName)}</div>
-        <div class="fv-cap">Captain &middot; <b>${f.blueCaptain ? escHtml(frNameOf(f.blueCaptain)) : '—'}</b></div>
+        <div class="fv-cap">Captain &middot; <b>${f.blueCaptain ? escHtml(frNameOf(f.blueCaptain)) : '–'}</b></div>
         <div class="fv-gnum fv-anton" data-count="${f.blueGames}">0</div>
       </div>
     </div>
@@ -5049,7 +5060,7 @@ function renderRestingPlayers(courtRounds) {
 
   strip.innerHTML = `
     <div class="frb-bench" ondragover="frBenchDragOver(event,this)" ondragleave="this.classList.remove('frb-bench-drop')" ondrop="crtDropToBench(event,this)">
-      <div class="frb-bench-hint">Bench &mdash; resting now, longest wait first. Open a round and drag a name into a slot, or tap a name then a court slot up top. Drop a name here to rest them.</div>
+      <div class="frb-bench-hint">Bench: resting now, longest wait first. Open a round and drag a name into a slot, or tap a name then a court slot up top. Drop a name here to rest them.</div>
       ${blocks || `<div class="frb-rail empty">Everyone's on a court.</div>`}
     </div>
   `;
@@ -5493,7 +5504,7 @@ async function toggleRosterPlayer(id) {
     // Network failed — revert to the pre-click snapshot so the UI stays truthful.
     state.players = prevPlayers;
     state.rounds = prevRounds;
-    notify('Could not save — check your connection.', 'warn');
+    notify('Could not save. Check your connection.', 'warn');
   } finally {
     pendingTicks.delete(id);
     renderPlayersSection();
@@ -5645,7 +5656,7 @@ async function confirmAddRoster() {
   const roster = [...(state.roster || []), { id, name, photo: addRosterPhotoData || null }];
   // Never claim success on a write the server refused — the row would vanish on
   // the next poll with no explanation (same bug that hid the bulk-add failure).
-  const r = await apiPost({ roster }).catch(() => ({ error: 'Network error — nobody was added.' }));
+  const r = await apiPost({ roster }).catch(() => ({ error: 'Network error. Nobody was added.' }));
   if (!r) return;
   if (r.error) return notify(r.error, 'warn');
   state.roster = roster;
@@ -5672,7 +5683,7 @@ async function confirmAddGuest() {
   await refreshState();
   const id = 'g' + Date.now();
   const players = [...(state.players || []), { id, name, photo: null, guest: true }];
-  const r = await apiPost({ players }).catch(() => ({ error: 'Network error — the guest was not added.' }));
+  const r = await apiPost({ players }).catch(() => ({ error: 'Network error. The guest was not added.' }));
   if (!r) return;
   if (r.error) return notify(r.error, 'warn');
   state.players = players;
@@ -5715,7 +5726,7 @@ async function confirmBulkImport() {
     r = await apiPost({ action: 'addRosterPlayers', names });
   } catch (e) {
     restore();
-    return notify('Network error — nobody was added. Your names are still here.', 'warn');
+    return notify('Network error. Nobody was added. Your names are still here.', 'warn');
   }
   restore();
   // apiPost returns null after a 401: it has already bounced to the password prompt.
@@ -5966,7 +5977,7 @@ function roundSummary(round) {
 // Build the <option> list for a player dropdown. A <select> whose value matches
 // no <option> silently defaults to its FIRST option, so an empty slot ('') or an
 // id no longer in `players` (e.g. a removed player) used to render — and save —
-// as the first roster entry ("Thomas"). The leading "— empty —" option is
+// as the first roster entry ("Thomas"). The leading "empty" option is
 // selected whenever selectedId is falsy OR unknown, so an empty/stale slot
 // resolves to '' (empty), never silently to the first player. Pure + testable.
 function playerSelectOptions(players, selectedId, escFn) {
@@ -5977,7 +5988,7 @@ function playerSelectOptions(players, selectedId, escFn) {
   const opts = list.map(p =>
     `<option value="${p.id}"${p.id === selectedId ? ' selected' : ''}>${esc(p.name)}</option>`
   ).join('');
-  return `<option value=""${emptySel}>— empty —</option>` + opts;
+  return `<option value=""${emptySel}>&ndash; empty &ndash;</option>` + opts;
 }
 
 // Chevron + face for the player-picker button. The button carries the picked id
@@ -6123,7 +6134,7 @@ function renderNextUpEditor() {
   for (let i = 0; i < numCourts; i++) {
     const ni = (courtRounds[i] ?? 0) + 1;
     if (ni >= total) {
-      html += `<div class="court-editor"><h4>Court ${courtLabel(i)}</h4><div class="admin-helper-text">On last round — no next round. Add or generate more rounds.</div></div>`;
+      html += `<div class="court-editor"><h4>Court ${courtLabel(i)}</h4><div class="admin-helper-text">On last round. No next round. Add or generate more rounds.</div></div>`;
       continue;
     }
     const court = state.rounds?.[ni]?.courts?.[i];
@@ -6646,10 +6657,10 @@ function renderSiteCodeSection() {
   const code = state.siteCode;
   if (code) {
     display.innerHTML = `
-      <div class="site-code-active-label">Active code — share with players:</div>
+      <div class="site-code-active-label">Active code, share with players:</div>
       <div class="site-code-value">${escHtml(code)}</div>`;
   } else {
-    display.innerHTML = `<div class="site-code-none">No code set — site is open to everyone.</div>`;
+    display.innerHTML = `<div class="site-code-none">No code set. The site is open to everyone.</div>`;
   }
 }
 
@@ -6681,7 +6692,7 @@ function renderSocialGamesCard(rows) {
   if (!list) return;
   const games = Array.isArray(rows) ? rows : (state.socialGames || []);
   if (!games.length) {
-    list.innerHTML = '<div class="signup-empty">No game days yet — add one below.</div>';
+    list.innerHTML = '<div class="signup-empty">No game days yet. Add one below.</div>';
     return;
   }
   list.innerHTML = games.map(g => {
@@ -6802,7 +6813,7 @@ function renderRegularChips() {
   if (!wrap) return;
   const roster = state.roster || [];
   if (!roster.length) {
-    wrap.innerHTML = '<div class="reg-empty">No roster players yet — add players in the Session tab first.</div>';
+    wrap.innerHTML = '<div class="reg-empty">No roster players yet. Add players in the Session tab first.</div>';
     return;
   }
   const q = (document.getElementById('regSearch')?.value || '').trim().toLowerCase();
@@ -6859,7 +6870,7 @@ async function saveRegulars() {
   regularsDraft = regularsClone(regulars);
   renderRegularsCard();
   renderRegularsPrompt();
-  notify(toAdd.length ? `Regulars saved — ${toAdd.length} added to today` : 'Regulars saved');
+  notify(toAdd.length ? `Regulars saved: ${toAdd.length} added to today` : 'Regulars saved');
 }
 
 // Session-tab nudge: regulars are auto-added when the date is set (and on save),
@@ -6943,6 +6954,43 @@ function renderSessionDateSection() {
   if (inp) { inp.value = date; inp.max = maxSessionDateISO(); }
   if (headerDate) headerDate.textContent = formatDisplayDate(date);
   renderFeeTierSegs(); // class toggle only — safe on the 2s repaint
+  renderNightControls(date);
+}
+
+/**
+ * "Start tonight" + the off-day notice. The session date is sticky — it holds
+ * the last night played so the payments can be tallied the next afternoon, and
+ * the 20:00 cron moves it on. Both of these are the manual escape hatches:
+ * starting a game night early, and flagging a date nobody plays on.
+ */
+function renderNightControls(date) {
+  const btn = document.getElementById('startTonightBtn');
+  const warn = document.getElementById('sessionOffDayWarn');
+  if (!window.Night) return;
+  if (btn) {
+    const canStart = Night.canStartTonight(date, Date.now());
+    const label = canStart ? 'Start tonight · ' + formatDisplayDate(Night.localDate(Date.now())) : '';
+    setHtmlIfChanged(btn, escHtml(label));           // no-op repaint guard: the 2s poll runs through here
+    btn.style.display = canStart ? '' : 'none';
+  }
+  if (warn) {
+    // Games are Mon/Fri/Sun. A one-off (holiday, tournament) is allowed — this
+    // is a heads-up, not a block — but an ACCIDENTAL off day is exactly the bug
+    // the night boundary was built to stop, so it has to be visible.
+    const off = !Night.isGameDay(date);
+    setHtmlIfChanged(warn, off ? escHtml('Heads-up: ' + formatDisplayDate(date) + ' is not a normal game night (those are Monday, Friday and Sunday). Fine for a one-off, just check it is what you meant.') : '');
+    warn.style.display = off ? '' : 'none';
+  }
+}
+
+/** Start a game night before the 20:00 auto-boundary. Same path as Set Date. */
+async function startTonight() {
+  if (!window.Night || !state) return;
+  const today = Night.localDate(Date.now());
+  if (!Night.canStartTonight(state.sessionDate || '', Date.now())) return;
+  const inp = document.getElementById('sessionDateInput');
+  if (inp) inp.value = today;
+  await setSessionDate();
 }
 
 async function setSessionDate() {
@@ -6970,7 +7018,7 @@ async function setSessionDate() {
   renderEodStatus();
   // Neutral phrasing: the line-up may be auto-added regulars OR a restored day.
   const inLineup = (state.players || []).length;
-  notify(inLineup ? `Date set — ${inLineup} in the line-up` : 'Date set — previous session saved to history.');
+  notify(inLineup ? `Date set: ${inLineup} in the line-up` : 'Date set. Previous session saved to history.');
 }
 
 // ── HISTORY MODAL ─────────────────────────────
@@ -7273,7 +7321,7 @@ function submitPassword() {
     } else if (r.status === 401) {
       pwFail('Incorrect password.');
     } else {
-      pwFail(`Server error (HTTP ${r.status}) — the password was not checked.`);
+      pwFail(`Server error (HTTP ${r.status}). The password was not checked.`);
     }
   }).catch(() => {
     pwFail('Could not reach the server. Check your connection and try again.');
@@ -7368,7 +7416,7 @@ function renderShortcutsCard() {
     + `<span class="sc-pv sc-pv-more">${ADMIN_NAV_ICONS.more}More</span>`;
   const hint = document.getElementById('shortcutsHint');
   if (hint) hint.textContent = sc.length >= AdminNav.MAX_SHORTCUTS
-    ? `All ${AdminNav.MAX_SHORTCUTS} slots used — turn one off to swap it for another.`
+    ? `All ${AdminNav.MAX_SHORTCUTS} slots used. Turn one off to swap it for another.`
     : `${sc.length} of ${AdminNav.MAX_SHORTCUTS} slots used.`;
 }
 
@@ -7559,7 +7607,7 @@ function lifetimePointsFor(playerId) {
 }
 function lifetimePointsLabel(playerId) {
   const n = lifetimePointsFor(playerId);
-  return n === null ? '&mdash;' : escHtml(n.toLocaleString());
+  return n === null ? '&ndash;' : escHtml(n.toLocaleString());
 }
 
 function serverNowMs() { return Date.now() + (clockOffset || 0); }
@@ -7714,7 +7762,7 @@ async function loadDrawPage(more, quiet) {
   if (!res) {
     if (quiet) return;
     if (!sdRetried) { sdRetried = true; setTimeout(() => loadDrawPage(more), 1500); return; } // one silent retry (cold start / flaky link)
-    list.innerHTML = '<div class="acct-empty">Could not load the draws — check your connection and try again.' + (sdLastError ? ' <span class="sd-err">(' + escHtml(sdLastError) + ')</span>' : '')
+    list.innerHTML = '<div class="acct-empty">Could not load the draws. Check your connection and try again.' + (sdLastError ? ' <span class="sd-err">(' + escHtml(sdLastError) + ')</span>' : '')
       + '<div class="admin-btn-row admin-mt"><button type="button" class="btn btn-secondary btn-sm" onclick="loadDrawPage(false)">Try again</button></div></div>';
     return;
   }
@@ -8062,7 +8110,7 @@ function renderDrawList(container, sessions, opts) {
   const admin = !!(opts && opts.admin);
   const items = (opts && opts.items) || (sessions || []).map(v => ({ kind: 'session', date: v.date, v }));
   if (!items.length) {
-    container.innerHTML = '<div class="acct-empty">' + (opts && opts.filtered ? 'No draw on this day.' : 'No sessions yet — the first draw appears after the next Monday, Friday or Sunday night.') + '</div>';
+    container.innerHTML = '<div class="acct-empty">' + (opts && opts.filtered ? 'No draw on this day.' : 'No sessions yet. The first draw appears after the next Monday, Friday or Sunday night.') + '</div>';
     return;
   }
   container.innerHTML = items.map(i => (i.kind === 'manual' ? qdCardHtml(i.e) : sdCardHtml(i.v, admin))).join('');
@@ -8080,7 +8128,7 @@ function sdCardHtml(v, admin) {
     const w = lists.winners || [];
     html += w.length
       ? '<div class="sd-winners">' + w.map(x => '<span class="sd-win-chip"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg>' + escHtml(x.name) + '</span>').join('') + '</div>'
-      : '<div class="sd-nowin">No winners — nobody was eligible for this session.</div>';
+      : '<div class="sd-nowin">No winners. Nobody was eligible for this session.</div>';
     if (w.length) html += sdVideoRowHtml(v.test ? 'test' : 'session', v.date);
   }
   if (admin) { // attendance / payment detail is admin-only; players get winners + video
@@ -8089,11 +8137,11 @@ function sdCardHtml(v, admin) {
   }
   if (admin && !done && v.due) {
     html += '<div class="sd-admin-row"><button class="btn btn-primary btn-sm" onclick="runDrawNow(\'' + escHtml(v.date) + '\')"' + (sdBusy.has(v.date) ? ' disabled' : '') + '>Run draw now</button>'
-      + '<span class="admin-helper-text" style="margin:0">The scheduled time has passed but no result exists yet — the automatic draw may still be on its way.</span></div>';
+      + '<span class="admin-helper-text" style="margin:0">The scheduled time has passed but no result exists yet. The automatic draw may still be on its way.</span></div>';
   }
   if (done) {
     html += '<div class="sd-foot"><span>' + escHtml((v.test ? 'Test draw · not saved' : v.method === 'manual' ? 'Manual draw by admin' : 'Automatic draw') + (admin ? '' : ' · ' + (c.eligible || 0) + ' in the draw') + (v.shortfall && c.eligible ? ' · only ' + c.eligible + ' eligible for ' + v.winnersWanted + ' prizes' : '')) + '</span>'
-      + '<span class="sd-seed" title="Random seed — the full order can be replayed from it">Seed ' + escHtml(String(v.seed || '').slice(0, 8)) + '… '
+      + '<span class="sd-seed" title="Random seed: the full order can be replayed from it">Seed ' + escHtml(String(v.seed || '').slice(0, 8)) + '… '
       + (v.verified ? '<span class="sd-verified">verified ✓</span>' : '<span class="sd-unverified">not verified</span>') + '</span></div>';
   } else {
     html += '<div class="sd-foot"><span>' + escHtml((admin ? '' : (c.eligible || 0) + ' in the draw so far · ') + (v.due ? 'Waiting for the automatic draw…' : 'Pay before ' + SessionDraw.fmtDrawTime(v.drawAt) + ' to be in the draw · ' + sdWinnersLabel(v.winnersWanted) + ' will be picked')) + '</span></div>';
@@ -8107,7 +8155,7 @@ function sdListHtml(v, key, label, done) {
   const title = key === 'eligible' && !done ? 'Eligible so far' : label;
   const empty = {
     attended: 'No attendance recorded.', paid: 'Nobody has paid yet.',
-    eligible: done ? 'Nobody was eligible.' : 'Nobody is eligible yet — pay before the draw time.',
+    eligible: done ? 'Nobody was eligible.' : 'Nobody is eligible yet. Pay before the draw time.',
     winners: done ? 'No winners.' : 'Winners appear here after the draw.',
   }[key];
   let body;
@@ -8219,7 +8267,7 @@ function qdCardHtml(e) {
   html += winners.length
     ? '<div class="sd-winners">' + winners.map(w => '<span class="sd-win-chip"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg>' + escHtml(w.name) + '<small>' + escHtml(ordinalLbl(w.rank)) + '</small></span>').join('') + '</div>'
     : '<div class="sd-nowin">No winners.</div>';
-  html += replayable ? sdVideoRowHtml('manual', e.key) : '<div class="sd-foot"><span>No replay — this draw was made before replays were recorded.</span></div>';
+  html += replayable ? sdVideoRowHtml('manual', e.key) : '<div class="sd-foot"><span>No replay. This draw was made before replays were recorded.</span></div>';
   return html + '</div>';
 }
 
@@ -8251,7 +8299,7 @@ function openDrawVideo(kind, key, download) {
   const canRec = DrawVideo.canRecord();
   dvSetProgress(0, script.durationMs);
   dvSetButtons(false, canRec);
-  dvSetStatus(canRec ? (download ? 'Preparing your video…' : 'Playing and preparing your video…') : 'Playing replay — this browser cannot save video');
+  dvSetStatus(canRec ? (download ? 'Preparing your video…' : 'Playing and preparing your video…') : 'Playing replay. This browser cannot save video');
   modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false');
   const ctl = DrawVideo.play(document.getElementById('dvCanvas'), script, { record: canRec, onProgress: dvSetProgress });
   dvCtl = ctl;
@@ -8284,7 +8332,7 @@ function dvSetButtons(ready, canRec) {
 function dvSave() {
   if (!dvResult || !dvResult.blob) return;
   DrawVideo.saveBlob(dvResult.blob, DrawVideo.filenameFor(dvSource, dvResult.mimeType));
-  notify('Video saved — check your downloads.', 'ok', 4000);
+  notify('Video saved. Check your downloads.', 'ok', 4000);
 }
 async function dvShare() {
   if (!dvResult || !dvResult.blob) return;
@@ -8331,7 +8379,7 @@ function renderTestDraw() {
   const v = sdTest.view;
   el.innerHTML = '<div class="sd-test-note">' + escHtml('Test draw for ' + SessionDraw.fmtSessionDate(v.date) + ' using ' + sdTest.note + '.'
       + (sdTest.assumedPaid ? ' Nobody had paid before now, so everyone attending was treated as paid for this test.' : ' Eligible = paid before now, exactly like the real draw.')
-      + ' Not saved — Clear or refresh to remove it.') + '</div>'
+      + ' Not saved. Clear or refresh to remove it.') + '</div>'
     + '<div class="sd-list">' + sdCardHtml(v, true) + '</div>'
     + '<div class="admin-btn-row admin-mt"><button class="btn btn-secondary btn-sm" type="button" onclick="runTestDraw()">Run again</button><button class="btn btn-ghost btn-sm" type="button" onclick="clearTestDraw()">Clear</button></div>';
 }
@@ -8455,7 +8503,7 @@ async function runDrawNow(date) {
   }
   const rec = res.result || {};
   const names = (rec.winners || []).map(id => (rec.names && rec.names[id]) || id);
-  notify(names.length ? 'Drawn — winner' + (names.length === 1 ? '' : 's') + ': ' + names.join(', ') : 'Drawn — nobody was eligible.', 'ok', 6000);
+  notify(names.length ? 'Drawn: winner' + (names.length === 1 ? '' : 's') + ': ' + names.join(', ') : 'Drawn. Nobody was eligible.', 'ok', 6000);
   await loadAdminOps();
   loadAdminDraws(false);
 }
@@ -8492,14 +8540,14 @@ function renderMonthlyLuckyAdmin() {
 async function loadMonthlyAdmin() {
   const list = document.getElementById('mlAdminList'); if (!list) return;
   let res;
-  try { res = await apiPost({ action: 'getMonthlyDraws' }); } catch (e) { res = { error: 'Network error — check your connection.' }; }
+  try { res = await apiPost({ action: 'getMonthlyDraws' }); } catch (e) { res = { error: 'Network error. Check your connection.' }; }
   if (res === null) return;
   if (!res.ok) { list.innerHTML = '<div class="acct-empty">' + escHtml(res.error || 'Could not load the monthly draws.') + '</div>'; return; }
   if (res.serverTime) clockOffset = res.serverTime - Date.now();
   mlAdmin = { settings: res.settings || null, pointsMonth: res.pointsMonth || '', months: res.months || [], pool: res.pool || null, loaded: true };
   if (!prizeDirty.monthly) prizeDrafts.monthly = ((mlAdmin.settings && mlAdmin.settings.prizes) || []).map(prizeRow);
   if (res.closedMonths && res.closedMonths.length) {
-    notify(res.closedMonths.map(m => MonthlyLucky.monthLabel(m)).join(', ') + ' closed — everyone starts again from 0 points.', 'ok', 7000);
+    notify(res.closedMonths.map(m => MonthlyLucky.monthLabel(m)).join(', ') + ' closed. Everyone starts again from 0 points.', 'ok', 7000);
     refreshState().catch(() => {});
   }
   renderMonthlySettings();
@@ -8515,7 +8563,7 @@ function renderMonthlySettings() {
   const tg = document.getElementById('mlAutoToggle');
   if (tg) { tg.classList.toggle('on', !!s.auto); tg.setAttribute('aria-checked', s.auto ? 'true' : 'false'); }
   const lbl = document.getElementById('mlAutoLabel');
-  if (lbl) lbl.textContent = s.auto ? 'Runs itself at ' + MonthlyLucky.drawTimeLabel() + ' on the 1st of next month' : 'Automatic draw is off — use “Run draw now” when you are ready';
+  if (lbl) lbl.textContent = s.auto ? 'Runs itself at ' + MonthlyLucky.drawTimeLabel() + ' on the 1st of next month' : 'Automatic draw is off. Use “Run draw now” when you are ready';
   const w = document.getElementById('mlWinnersInput'); if (w && document.activeElement !== w) w.value = s.winners;
   const t = document.getElementById('mlThresholdInput'); if (t && document.activeElement !== t) t.value = s.threshold;
   const how = document.getElementById('mlAdminHow'); if (how) how.textContent = MonthlyLucky.howItWorksText(s) + ' One draw per month; results are permanent and show on the public Lucky Draw page.';
@@ -8523,7 +8571,7 @@ function renderMonthlySettings() {
 }
 async function saveMonthlySettings(patch, okMsg) {
   let res;
-  try { res = await apiPost(Object.assign({ action: 'setMonthlySettings' }, patch)); } catch (e) { res = { error: 'Network error — check your connection.' }; }
+  try { res = await apiPost(Object.assign({ action: 'setMonthlySettings' }, patch)); } catch (e) { res = { error: 'Network error. Check your connection.' }; }
   if (res === null) return false;
   if (!res.ok) { notify(res.error || 'Could not save.', 'warn'); mlFlash('mlSaveState', 'err'); renderMonthlySettings(); return false; }
   if (res.settings) {
@@ -8538,7 +8586,7 @@ async function saveMonthlySettings(patch, okMsg) {
 }
 function toggleMonthlyAuto() {
   const s = mlSettings();
-  return saveMonthlySettings({ auto: !s.auto }, !s.auto ? 'Automatic monthly draw is on.' : 'Automatic monthly draw is off — run it yourself.');
+  return saveMonthlySettings({ auto: !s.auto }, !s.auto ? 'Automatic monthly draw is on.' : 'Automatic monthly draw is off. Run it yourself.');
 }
 function stepMonthlyWinners(delta) {
   const inp = document.getElementById('mlWinnersInput');
@@ -8606,7 +8654,7 @@ function renderPrizeEditor(kind) {
   const list = prizeList(kind);
   const k = escHtml(kind);
   if (!list.length) {
-    el.innerHTML = '<div class="acct-empty">No prizes yet — add the first one.</div>';
+    el.innerHTML = '<div class="acct-empty">No prizes yet. Add the first one.</div>';
   } else {
     el.innerHTML = list.map((p, i) => {
       const id = escHtml(p.id);
@@ -8620,8 +8668,8 @@ function renderPrizeEditor(kind) {
         + '<label class="ml-prize-qty"><span>Qty</span><input class="admin-form-input" type="number" inputmode="numeric" min="' + SessionDraw.MIN_PRIZE_QTY + '" max="' + SessionDraw.MAX_PRIZE_QTY + '" step="1" value="' + escHtml(String(p.qty == null ? SessionDraw.DEFAULT_PRIZE_QTY : p.qty)) + '" oninput="setPrizeQty(' + ref + ', this.value)" aria-label="Prize ' + (i + 1) + ' quantity"></label>'
         + '<label class="ml-prize-qty ml-prize-place"><span>Goes to</span><select class="admin-form-input" onchange="setPrizePlace(' + ref + ', this.value)" aria-label="Prize ' + (i + 1) + ' goes to which winner">'
         + mlPlaceOptions(SessionDraw.placeOf(p, i), kind) + '</select></label></div>'
-        + (SessionDraw.placeOf(p, i) > prizeWinnerCount(kind) ? '<div class="ml-prize-warn">There is no ' + mlOrdinal(SessionDraw.placeOf(p, i)) + ' winner — raise the winner count or this prize is not given.</div>' : '')
-        + '<input class="admin-form-input ml-prize-desc" type="text" maxlength="' + SessionDraw.MAX_PRIZE_DESC + '" placeholder="Description (optional) — brand, model, what is included" value="' + escHtml(p.desc || '') + '" oninput="setPrizeDesc(' + ref + ', this.value)" aria-label="Prize ' + (i + 1) + ' description">'
+        + (SessionDraw.placeOf(p, i) > prizeWinnerCount(kind) ? '<div class="ml-prize-warn">There is no ' + mlOrdinal(SessionDraw.placeOf(p, i)) + ' winner. Raise the winner count or this prize is not given.</div>' : '')
+        + '<input class="admin-form-input ml-prize-desc" type="text" maxlength="' + SessionDraw.MAX_PRIZE_DESC + '" placeholder="Description (optional): brand, model, what is included" value="' + escHtml(p.desc || '') + '" oninput="setPrizeDesc(' + ref + ', this.value)" aria-label="Prize ' + (i + 1) + ' description">'
         + (p.photo ? '<button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start" onclick="clearPrizePhoto(' + ref + ')">Remove photo</button>' : '') + '</div>'
         + '<div class="ml-prize-tools">'
         + '<button type="button" class="btn btn-ghost btn-sm" onclick="movePrize(' + ref + ',-1)"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move prize ' + (i + 1) + ' up">&uarr;</button>'
@@ -8702,7 +8750,7 @@ async function prizePhotoPicked(input) {
   if (!p) return;
   let photo;
   try { photo = await compressPrizePhoto(file); } catch (e) { notify('Could not read that image.', 'warn'); return; }
-  if (!SessionDraw.isPhoto(photo)) { notify('That photo is too large — try a smaller image.', 'warn'); return; }
+  if (!SessionDraw.isPhoto(photo)) { notify('That photo is too large. Try a smaller image.', 'warn'); return; }
   p.photo = photo;
   markPrizesDirty(kind);
 }
@@ -8732,11 +8780,11 @@ function compressPrizePhoto(file) {
 async function savePrizes(kind) {
   const own = prizeOwner(kind);
   const list = prizeList(kind).map((p, i) => ({ id: p.id, name: String(p.name || '').trim(), qty: p.qty === '' || p.qty == null ? SessionDraw.DEFAULT_PRIZE_QTY : Number(p.qty), desc: String(p.desc || '').trim(), place: SessionDraw.placeOf(p, i), photo: p.photo || null }));
-  if (list.some(p => !p.name)) { notify('Every prize needs a name — or remove the empty row.', 'warn'); return; }
+  if (list.some(p => !p.name)) { notify('Every prize needs a name, or remove the empty row.', 'warn'); return; }
   if (list.some(p => !SessionDraw.isPrizeQty(p.qty))) { notify('Quantity must be a whole number from ' + SessionDraw.MIN_PRIZE_QTY + ' to ' + SessionDraw.MAX_PRIZE_QTY + '.', 'warn'); return; }
   const btn = document.getElementById(own.save); if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
   let res;
-  try { res = await apiPost({ action: own.action, prizes: list }); } catch (e) { res = { error: 'Network error — check your connection.' }; }
+  try { res = await apiPost({ action: own.action, prizes: list }); } catch (e) { res = { error: 'Network error. Check your connection.' }; }
   if (res === null) return;
   if (!res.ok) { notify(res.error || 'Could not save the prizes.', 'warn'); mlFlash(own.state, 'err'); if (btn) { btn.disabled = false; btn.textContent = 'Save prizes'; } return; }
   prizeDirty[kind] = false;
@@ -8772,7 +8820,7 @@ function renderMonthlyPool() {
   const { pool, rows, removed, inDraw } = mlPoolRows();
   const sum = document.getElementById('mlPoolSummary'); if (sum) sum.textContent = rows.length && !drawn ? inDraw + ' in the draw' : '';
   const help = document.getElementById('mlPoolHelp');
-  if (help) help.textContent = drawn ? MonthlyLucky.monthLabel(month) + ' has already been drawn — see the record below. Points keep counting until the month closes.'
+  if (help) help.textContent = drawn ? MonthlyLucky.monthLabel(month) + ' has already been drawn. See the record below. Points keep counting until the month closes.'
     : pool ? 'Pulled ' + SessionDraw.fmtDrawTime(pool.pulledAt) + '. Remove anyone who should sit this one out, then run the draw. The automatic draw pulls everyone again on the 1st.'
     : 'Everyone with ' + s.threshold + '+ points this month. Pull the list to build the pool and run the draw yourself, or leave it to the automatic draw on the 1st.';
   const pull = document.getElementById('mlPullBtn'); if (pull) pull.disabled = drawn || mlBusy.has('pool');
@@ -8785,7 +8833,7 @@ function renderMonthlyPool() {
     return '<div class="ml-pool-row' + (off ? ' removed' : '') + '"><span class="ml-pool-name">' + escHtml(p.name) + '</span><span class="ml-pts">' + (p.points || 0) + ' pts</span>'
       + (pool && !drawn ? '<button type="button" class="btn btn-ghost btn-sm" onclick="setMonthlyPoolRemoved(\'' + escHtml(p.id) + '\',' + (off ? 'false' : 'true') + ')">' + (off ? 'Put back' : 'Remove') + '</button>' : '') + '</div>';
   }).join('');
-  if (stale.length && !drawn) html += '<div class="ml-pool-hint">' + stale.length + ' more player' + (stale.length === 1 ? ' has' : 's have') + ' reached ' + s.threshold + ' points since you pulled — pull again to include them.</div>';
+  if (stale.length && !drawn) html += '<div class="ml-pool-hint">' + stale.length + ' more player' + (stale.length === 1 ? ' has' : 's have') + ' reached ' + s.threshold + ' points since you pulled, pull again to include them.</div>';
   list.innerHTML = html;
   renderMonthlyConfirm();
 }
@@ -8793,7 +8841,7 @@ async function pullMonthlyPool() {
   if (mlBusy.has('pool')) return;
   mlBusy.add('pool'); renderMonthlyPool();
   let res;
-  try { res = await apiPost({ action: 'pullMonthlyPool' }); } catch (e) { res = { error: 'Network error — try again.' }; }
+  try { res = await apiPost({ action: 'pullMonthlyPool' }); } catch (e) { res = { error: 'Network error. Try again.' }; }
   mlBusy.delete('pool');
   if (res === null) return;
   if (!res.ok) { notify(res.error || 'Could not pull the players.', 'warn'); renderMonthlyPool(); return; }
@@ -8805,7 +8853,7 @@ async function pullMonthlyPool() {
 }
 async function setMonthlyPoolRemoved(id, removed) {
   let res;
-  try { res = await apiPost({ action: 'setMonthlyPoolRemoved', playerId: id, removed: !!removed }); } catch (e) { res = { error: 'Network error — try again.' }; }
+  try { res = await apiPost({ action: 'setMonthlyPoolRemoved', playerId: id, removed: !!removed }); } catch (e) { res = { error: 'Network error. Try again.' }; }
   if (res === null) return;
   if (!res.ok) { notify(res.error || 'Could not update the pool.', 'warn'); return; }
   mlAdmin.pool = res.pool || mlAdmin.pool;
@@ -8833,7 +8881,7 @@ async function runMonthlyDrawNow(month) {
   if (!month || mlBusy.has(month)) return;
   mlBusy.add(month); renderMonthlyConfirm(); renderMonthlyPool();
   let res;
-  try { res = await apiPost({ action: 'runMonthlyDraw', month }); } catch (e) { res = { error: 'Network error — try again.' }; }
+  try { res = await apiPost({ action: 'runMonthlyDraw', month }); } catch (e) { res = { error: 'Network error. Try again.' }; }
   mlBusy.delete(month);
   if (res === null) return;
   mlConfirmMonth = null;
@@ -8845,7 +8893,7 @@ async function runMonthlyDrawNow(month) {
   }
   const rec = res.result || {};
   const names = MonthlyLucky.awardsOf(rec).map(a => a.name + (a.prize ? ' (' + a.prize + ')' : ''));
-  notify(names.length ? 'Drawn — winner' + (names.length === 1 ? '' : 's') + ': ' + names.join(', ') : 'Drawn — nobody was eligible.', 'ok', 8000);
+  notify(names.length ? 'Drawn: winner' + (names.length === 1 ? '' : 's') + ': ' + names.join(', ') : 'Drawn. Nobody was eligible.', 'ok', 8000);
   await loadMonthlyAdmin();
 }
 
@@ -8858,7 +8906,7 @@ function renderMonthlyAdminList() {
 }
 function mlWinnersHtml(v) {
   const w = (v.lists && v.lists.winners) || [];
-  if (!w.length) return '<div class="sd-nowin">No winners — nobody reached ' + (v.threshold || '') + ' points.</div>';
+  if (!w.length) return '<div class="sd-nowin">No winners. Nobody reached ' + (v.threshold || '') + ' points.</div>';
   const photoOf = pid => { const p = (v.prizes || []).find(x => x.id === pid); return p && p.photo ? p.photo : null; };
   return '<div class="ml-wins">' + w.map(x => {
     // One place can hold several prizes; fall back to the single-prize fields
@@ -8896,12 +8944,12 @@ function mlCardHtml(v, admin) {
         + (rows.length ? '<ul class="sd-names">' + rows.map(r => '<li class="sd-row' + (winIds.has(r.id) ? ' win' : '') + '"><span class="sd-name">' + escHtml(r.name) + '</span>' + (winIds.has(r.id) ? '<span class="sd-win-tag">Winner</span>' : '') + '<span class="sd-meta">' + (r.points || 0) + ' pts</span></li>').join('') + '</ul>'
           : '<div class="sd-none">Nobody reached ' + (v.threshold || '') + ' points.</div>') + '</details>';
       if (!done) html += '<div class="sd-admin-row"><button class="btn btn-primary btn-sm" onclick="askRunMonthlyDraw(\'' + escHtml(v.month) + '\')"' + (mlBusy.has(v.month) || !c.eligible ? ' disabled' : '') + '>Run draw now</button>'
-        + '<span class="admin-helper-text" style="margin:0">' + (v.auto ? 'The month has closed; the automatic draw is on its way — or run it now.' : 'The month has closed. Automatic draw is off, so run it when you are ready.') + '</span></div>';
+        + '<span class="admin-helper-text" style="margin:0">' + (v.auto ? 'The month has closed; the automatic draw is on its way, or run it now.' : 'The month has closed. Automatic draw is off, so run it when you are ready.') + '</span></div>';
     }
   }
   if (done) {
     html += '<div class="sd-foot"><span>' + escHtml((v.method === 'manual' ? 'Draw run by admin' : 'Automatic draw') + ' · ' + (c.eligible || 0) + ' in the draw' + (v.shortfall && c.eligible ? ' · only ' + c.eligible + ' eligible for ' + v.winnersWanted : '')) + '</span>'
-      + '<span class="sd-seed" title="Random seed — the full order can be replayed from it">Seed ' + escHtml(String(v.seed || '').slice(0, 8)) + '… '
+      + '<span class="sd-seed" title="Random seed: the full order can be replayed from it">Seed ' + escHtml(String(v.seed || '').slice(0, 8)) + '… '
       + (v.verified ? '<span class="sd-verified">verified ✓</span>' : '<span class="sd-unverified">not verified</span>') + '</span></div>';
   } else {
     html += '<div class="sd-foot"><span>' + escHtml((c.eligible || 0) + ' at ' + (v.threshold || '') + '+ points' + (v.live ? ' so far' : '') + ' · ' + (v.winnersWanted || 0) + ' winner' + (v.winnersWanted === 1 ? '' : 's') + ' will be picked') + '</span></div>';
@@ -8966,7 +9014,7 @@ function renderPublicMonthly() {
   } else {
     html += '<div class="acct-empty">' + (mlCal.sel
       ? 'No draw for ' + escHtml(MonthlyLucky.monthLabel(mlCal.sel)) + '.'
-      : 'No monthly draw has been run yet — the first one appears after this month closes.') + '</div>';
+      : 'No monthly draw has been run yet. The first one appears after this month closes.') + '</div>';
   }
   el.innerHTML = html;
   renderMonthlyCalendar(document.getElementById('drawPageMonthlyCal'), m);
@@ -9109,7 +9157,7 @@ async function setSessionFeeTier(tier) {
   pendingTicks.add('feeTier'); // hold the 2s poll so it can't snap the tier back mid-flight
   let res;
   try { res = await apiPost({ feeTier: tier }); }
-  catch (e) { res = { error: 'Network error — check your connection.' }; }
+  catch (e) { res = { error: 'Network error. Check your connection.' }; }
   finally { pendingTicks.delete('feeTier'); }
   if (res === null) return;
   if (!res.ok) { state.feeTier = prev; renderFeeTierSegs(); notify(res.error || 'Could not save the fee tier.', 'warn'); return; }
@@ -9141,14 +9189,14 @@ function renderEodConfirm() {
   const existing = paymentEntriesFor(adminOps, date).length;
   const warn = document.getElementById('eodWarn');
   if (warn) {
-    if (!n) warn.textContent = 'No players in tonight’s line-up — add them on the Session tab first.';
+    if (!n) warn.textContent = 'No players in tonight’s line-up. Add them on the Session tab first.';
     else if (existing) {
       // Preview the second press: new players are added, unticked (unpaid) players drop out.
       const day = adminOps.attendance[date];
       const rc = Payments.reconcileInto((day && day.entries) || {}, state.players || []);
       const have = new Set(Object.keys((day && day.entries) || {}).filter(id => day.entries[id] && day.entries[id].payment));
       const adding = (state.players || []).filter(p => p && !have.has(p.id)).length;
-      let txt = existing + ' record' + (existing === 1 ? '' : 's') + ' already exist for this date — ' + (adding ? adding + ' new player' + (adding === 1 ? '' : 's') + ' will be added' : 'no new players to add') + '.';
+      let txt = existing + ' record' + (existing === 1 ? '' : 's') + ' already exist for this date. ' + (adding ? adding + ' new player' + (adding === 1 ? '' : 's') + ' will be added' : 'no new players to add') + '.';
       if (rc.removed.length) txt += ' Unticked since, so their records will be removed: ' + rc.removed.map(x => x.name).join(', ') + '.';
       if (rc.keptPaid.length) txt += ' Unticked but already paid, so kept: ' + rc.keptPaid.map(x => x.name).join(', ') + '.';
       warn.textContent = txt;
@@ -9165,7 +9213,7 @@ async function confirmEndOfDay() {
   btn.disabled = true; btn.textContent = 'Generating…';
   let res;
   try { res = await apiPost({ action: 'generatePayments', date }); }
-  catch (e) { res = { error: 'Network error — try again.' }; }
+  catch (e) { res = { error: 'Network error. Try again.' }; }
   btn.disabled = false; btn.textContent = 'Generate';
   if (res === null) { closeEodModal(); return; } // 401: apiPost already bounced to the viewer
   if (!res.ok) { notify(res.error || 'Could not generate payment records.', 'warn'); renderEodConfirm(); return; }
@@ -9205,7 +9253,9 @@ function renderEodStatus() {
 function renderPaymentsTab() {
   if (!state || !window.Payments || !document.getElementById('pmList')) return;
   const live = state.sessionDate || todayISO();
-  if (!pmDate) pmDate = live;
+  // Open on the night that still owes money, not on "today" — the tally happens
+  // the afternoon after the night (see public/night.js).
+  if (!pmDate) pmDate = Payments.nightToOpen(adminOps.attendance, live) || live;
   renderPmViewSeg();
   renderFeeTierSegs();
   if (pmView === 'night') {
@@ -9271,7 +9321,7 @@ async function pmGenerateFor() {
   const date = pmDate;
   let res;
   try { res = await apiPost({ action: 'generatePayments', date }); }
-  catch (e) { res = { error: 'Network error — try again.' }; }
+  catch (e) { res = { error: 'Network error. Try again.' }; }
   if (res === null) return;
   if (!res.ok) { notify(res.error || 'Could not generate payment records.', 'warn'); return; }
   mergePaymentEntries(date, res.entries);
@@ -9460,7 +9510,7 @@ async function pmWrite(pid, patch, apply, atDate) {
   renderPmBody();
   let res;
   try { res = await apiPost({ action: 'setPayment', date, playerId: pid, ...patch }); }
-  catch (err) { res = { error: 'Network error — check your connection.' }; }
+  catch (err) { res = { error: 'Network error. Check your connection.' }; }
   pmBusy.delete(key);
   if (res === null) return;
   if (!res.ok) {
@@ -9585,7 +9635,7 @@ function renderPmMemberModal(body, put) {
   // Three figures: this month's points (which reset for everyone at month close),
   // the lifetime total (organiser-only, never reset), and what they still owe.
   let html = '<div class="pm-mem-hero">'
-    + '<div class="pm-mem-stat"><b>' + (pts === null ? '&mdash;' : escHtml(pts.toLocaleString())) + '</b><span>Points' + (tier ? ' · ' + escHtml(tier.name) : '') + '</span></div>'
+    + '<div class="pm-mem-stat"><b>' + (pts === null ? '&ndash;' : escHtml(pts.toLocaleString())) + '</b><span>Points' + (tier ? ' · ' + escHtml(tier.name) : '') + '</span></div>'
     + '<div class="pm-mem-stat"><b>' + lifetimePointsLabel(pmMemPid) + '</b><span>Lifetime</span></div>'
     + '<div class="pm-mem-stat' + (owe ? ' owe' : '') + '"><b>' + escHtml(Payments.fmtRM(m.outstanding)) + '</b><span>' + (owe ? 'Outstanding · ' + pmNights(m.unpaidCount) : 'Outstanding') + '</span></div>'
     + '</div>';
@@ -9824,7 +9874,7 @@ function joinFmtDate(iso) {
 function joinRenderDateSummary() {
   const wrap = document.getElementById('joinDateSummary');
   const list = [...joinSelectedDates].sort();
-  if (!list.length) { wrap.innerHTML = '<span class="date-empty">No dates yet — go back to add some.</span>'; return; }
+  if (!list.length) { wrap.innerHTML = '<span class="date-empty">No dates yet. Go back to add some.</span>'; return; }
   wrap.innerHTML = '';
   list.forEach(iso => {
     const pill = document.createElement('span');
@@ -10002,7 +10052,7 @@ async function submitJoinForm() {
   const nd = dates.length, np = people.length;
   const who = np > 1 ? ('all ' + np + ' of you') : 'you';
   document.getElementById('joinThanksMsg').textContent =
-    'Thanks' + (first ? ' ' + first : '') + ' — we’ve saved ' + nd + ' date' + (nd > 1 ? 's' : '') +
+    'Thanks' + (first ? ' ' + first : '') + ', we’ve saved ' + nd + ' date' + (nd > 1 ? 's' : '') +
     ' for ' + who + ' and will be in touch about our social games.';
   joinSetStep(3);
   setTimeout(closeJoinModal, 2600);
@@ -10100,7 +10150,7 @@ async function addSignupToRoster(id) {
     if (await apiPost({ signups }) === null) return;
     state.signups = signups;
     renderSignupsTab();
-    return notify(name + ' is already on the roster — marked contacted.', 'warn');
+    return notify(name + ' is already on the roster. Marked contacted.', 'warn');
   }
   const player = { id: 'p' + Date.now() + Math.random().toString(36).slice(2, 6), name, photo: null, points: 0 };
   const roster = [...(state.roster || []), player];
@@ -10145,9 +10195,9 @@ const ADMIN_STATUS = {
 function adminStatusBadge(s) { const i = ADMIN_STATUS[s] || { label: s, cls: 'wait' }; return '<span class="st-badge ' + i.cls + '">' + escHtml(i.label) + '</span>'; }
 
 function acctFmtTs(ts) {
-  if (!ts) return '—';
+  if (!ts) return '–';
   const d = new Date(ts);
-  if (isNaN(d.getTime())) return '—';
+  if (isNaN(d.getTime())) return '–';
   return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 function acctFmtTsTime(ts) {
@@ -10162,7 +10212,7 @@ function acctFmtTsTime(ts) {
 function rosterSelectHtml(selId, currentId) {
   const roster = (state && Array.isArray(state.roster)) ? state.roster : [];
   const linkedIds = new Set(adminAccountsCache.filter(a => a.playerId).map(a => a.playerId));
-  const opts = ['<option value="">— choose player —</option>'].concat(roster.map(r => {
+  const opts = ['<option value="">&ndash; choose player &ndash;</option>'].concat(roster.map(r => {
     const taken = linkedIds.has(r.id) && r.id !== currentId;
     return `<option value="${escHtml(r.id)}"${r.id === currentId ? ' selected' : ''}${taken ? ' disabled' : ''}>${escHtml(r.name)}${taken ? ' (linked)' : ''}</option>`;
   }));
@@ -10191,7 +10241,7 @@ const AUDIT_LABELS = {
   'attendance.present': 'Attendance changed', 'attendance.paid': 'Payment changed', 'attendance.seed': 'Attendance seeded',
   'draw.run': 'Session draw run (manual)', 'draw.settings': 'Winners per draw changed',
   'monthlyLucky.draw': 'Monthly draw run (manual)', 'monthlyLucky.settings': 'Monthly draw setting changed', 'monthlyLucky.prizes': 'Monthly draw prizes changed',
-  'monthlyLucky.pool': 'Monthly draw pool changed', 'monthlyLucky.close': 'Month closed — points reset',
+  'monthlyLucky.pool': 'Monthly draw pool changed', 'monthlyLucky.close': 'Month closed, points reset',
   'weekly.draw': 'Weekly draw (retired)', 'weekly.settings': 'Weekly schedule (retired)',
   'account.register': 'Account requested', 'account.approve': 'Account approved', 'account.reject': 'Account rejected',
   'account.more_info': 'More info requested', 'account.password_reveal': 'Password revealed', 'account.temp_password': 'Temp password set',
@@ -10337,9 +10387,9 @@ function acctFinanceHtml(a) {
   const tier = pts === null ? null : tierForPoints(pts);
   const m = Payments.memberSummary((adminOps && adminOps.attendance) || {}, a.playerId, a.name || '');
   const owe = m.outstanding > 0;
-  const ptsLabel = pts === null ? '&mdash;' : escHtml(pts.toLocaleString()) + (tier ? ' · ' + escHtml(tier.name) : '');
+  const ptsLabel = pts === null ? '&ndash;' : escHtml(pts.toLocaleString()) + (tier ? ' · ' + escHtml(tier.name) : '');
   return `<span>Points <b>${ptsLabel}</b></span>`
-    + `<span title="Every point ever earned — never reset at the end of the month. Admin only.">Lifetime <b>${lifetimePointsLabel(a.playerId)}</b></span>`
+    + `<span title="Every point ever earned. Never reset at the end of the month. Admin only.">Lifetime <b>${lifetimePointsLabel(a.playerId)}</b></span>`
     + `<button type="button" class="acct-owe${owe ? ' owe' : ''}" onclick="${pmCall('openPmMember', a.playerId)}" aria-haspopup="dialog">Payments <b>${escHtml(Payments.memberOweLabel(m))}</b></button>`;
 }
 
@@ -10450,9 +10500,9 @@ function acctProfileHtml(a) {
       </div>
     </div>
     <div class="ap-tiles">
-      <div class="ap-tile"><b>${pts === null ? '&mdash;' : escHtml(pts.toLocaleString())}</b><span>Points${tier ? ' · ' + escHtml(tier.name) : ''}</span></div>
+      <div class="ap-tile"><b>${pts === null ? '&ndash;' : escHtml(pts.toLocaleString())}</b><span>Points${tier ? ' · ' + escHtml(tier.name) : ''}</span></div>
       <div class="ap-tile"><b>${lifetimePointsLabel(pid)}</b><span>Lifetime</span></div>
-      <div class="ap-tile${owe ? ' owe' : ''}"><b>${m ? escHtml(Payments.fmtRM(m.outstanding)) : '&mdash;'}</b><span>${m && owe ? 'Owing · ' + pmNights(m.unpaidCount) : 'Owing'}</span></div>
+      <div class="ap-tile${owe ? ' owe' : ''}"><b>${m ? escHtml(Payments.fmtRM(m.outstanding)) : '&ndash;'}</b><span>${m && owe ? 'Owing · ' + pmNights(m.unpaidCount) : 'Owing'}</span></div>
       <div class="ap-tile"><b>${nights}</b><span>${nights === 1 ? 'Night played' : 'Nights played'}</span></div>
     </div>
     ${acctProfPointsHtml(a, rp, pts)}
@@ -10482,7 +10532,7 @@ function acctProfPointsHtml(a, rp, pts) {
       ${thr > 0 ? `<span class="ap-bar" aria-hidden="true"><i style="width:${pctv}%"></i></span>
       <span class="ap-goal${inDraw ? ' in' : ''}">${inDraw ? 'In the Monthly draw ✓' : escHtml(String(Math.max(0, thr - pts))) + ' more for the draw'}</span>` : ''}
     </div>
-    <div class="ap-row"><span class="ap-lbl">Lifetime</span><b>${lifetimePointsLabel(a.playerId)}</b><span class="ap-note">Every point ever earned — never reset at month close, and never shown to the member.</span></div>
+    <div class="ap-row"><span class="ap-lbl">Lifetime</span><b>${lifetimePointsLabel(a.playerId)}</b><span class="ap-note">Every point ever earned. Never reset at month close, and never shown to the member.</span></div>
     <div class="ap-note">Points and the draw bar are what ${escHtml(rp.name)} sees when they sign in.</div>
   </div>`;
 }
@@ -10509,7 +10559,7 @@ function acctProfPlayHtml(a, rp) {
     <div class="pm-sec-hd"><span>On court</span><b>${lv ? 'Level ' + escHtml(String(lv)) : 'No level set'}</b></div>
     <div class="ap-row">
       <span class="ap-lbl">Level</span>
-      <input type="number" class="admin-form-input rl-lvl-inp${rp.level ? ' set' : ''}" min="1" max="7" step="0.5" inputmode="decimal" placeholder="&mdash;" value="${escHtml(String(lv))}" onchange="acctProfLevel('${pid}',this.value)" aria-label="Level">
+      <input type="number" class="admin-form-input rl-lvl-inp${rp.level ? ' set' : ''}" min="1" max="7" step="0.5" inputmode="decimal" placeholder="&ndash;" value="${escHtml(String(lv))}" onchange="acctProfLevel('${pid}',this.value)" aria-label="Level">
       <span class="ap-note">1.0 – 7.0, used to balance the courts.</span>
     </div>
     <div class="ap-row">
@@ -10561,11 +10611,11 @@ function acctProfSigninHtml(a, id) {
     </div>
     <div class="ap-row">
       <span class="ap-lbl">Status</span>
-      ${statusBtns.join('') || '<span class="acct-uname">—</span>'}
+      ${statusBtns.join('') || '<span class="acct-uname">&ndash;</span>'}
       <span class="ap-note">Last login ${escHtml(acctFmtTsTime(a.lastLoginAt))} · ${escHtml(String(a.failedAttempts || 0))} failed · password changed ${escHtml(acctFmtTs(a.pwChangedAt))}</span>
     </div>
     <div class="ap-danger">
-      <span class="ap-note">Deleting only removes the sign-in — the player and their history stay.</span>
+      <span class="ap-note">Deleting only removes the sign-in. The player and their history stay.</span>
       <button class="btn btn-danger btn-sm" onclick="deleteAccountAdmin('${id}',this)">Delete account</button>
     </div>
   </div>`;
@@ -10707,7 +10757,7 @@ async function moreInfoAccount(id) {
   const res = await apiPost({ action: 'adminRequestMoreInfo', id, message: message.trim() });
   if (res === null) return;
   if (!res.ok) { notify(res.error || 'Could not send.', 'warn'); return; }
-  notify('Message saved — the player will see it.');
+  notify('Message saved. The player will see it.');
   await loadAccountsTab();
 }
 
@@ -10995,7 +11045,7 @@ function renderRosterList(listEl, visibleRoster, sessionIds, q) {
     // admin type any value in range; blank leaves it "not set" (reads as 4.0 when
     // generating). setPlayerLevel rounds to the nearest 0.5.
     const lvVal = (rp.level == null || rp.level === '') ? '' : rp.level;
-    const seg = `<input type="number" class="rl-lvl-inp${rp.level ? ' set' : ''}" min="1" max="7" step="0.5" inputmode="decimal" placeholder="&mdash;" value="${lvVal}" onchange="setPlayerLevel('${rp.id}',this.value)" aria-label="Level for ${escHtml(rp.name)}">`;
+    const seg = `<input type="number" class="rl-lvl-inp${rp.level ? ' set' : ''}" min="1" max="7" step="0.5" inputmode="decimal" placeholder="&ndash;" value="${lvVal}" onchange="setPlayerLevel('${rp.id}',this.value)" aria-label="Level for ${escHtml(rp.name)}">`;
     const gl = !!rp.girl;
     const mx = !!rp.mixed;
     const inS = sessionIds.has(rp.id);
@@ -11010,12 +11060,12 @@ function renderRosterList(listEl, visibleRoster, sessionIds, q) {
     // reaching for the drawer can't silently drop a player from the night.
     const rowAttrs = phone
       ? `aria-expanded="${open}" title="Tap for level, girl, mixed and lifetime points"`
-      : `aria-pressed="${inS}" title="${inS ? 'Playing today — tap to remove from session' : "Tap to add to today's session"}"`;
+      : `aria-pressed="${inS}" title="${inS ? 'Playing today, tap to remove from session' : "Tap to add to today's session"}"`;
     // The Level/Girl/Mixed cells are separate columns so tapping them never
     // toggles the session; the tick stops propagation for the same reason.
     return `<div class="rl-row${inS ? ' in' : ''}${open ? ' open' : ''}">
       <div class="rl-player" onclick="rosterRowTap('${rp.id}')" role="button" tabindex="0" ${rowAttrs}>
-        <button type="button" class="rl-check${inS ? ' on' : ''}" aria-pressed="${inS}" onclick="event.stopPropagation();toggleRosterPlayer('${rp.id}')" title="${inS ? 'Playing today — tap to remove from session' : "Tap to add to today's session"}" aria-label="${inS ? 'Remove' : 'Add'} ${escHtml(rp.name)} ${inS ? "from today's session" : "to today's session"}">${inS ? '✓' : ''}</button>
+        <button type="button" class="rl-check${inS ? ' on' : ''}" aria-pressed="${inS}" onclick="event.stopPropagation();toggleRosterPlayer('${rp.id}')" title="${inS ? 'Playing today, tap to remove from session' : "Tap to add to today's session"}" aria-label="${inS ? 'Remove' : 'Add'} ${escHtml(rp.name)} ${inS ? "from today's session" : "to today's session"}">${inS ? '✓' : ''}</button>
         ${avatarHTML(rp, 32)}<span class="rl-name">${escHtml(rp.name)}</span>
       </div>
       <div class="rl-level">${seg}</div>
@@ -11050,7 +11100,7 @@ async function writePlayerPoints(id, body, optimistic) {
   renderPlayersSection();
 
   const r = await apiPost({ action: 'setRosterPoints', playerId: id, ...body })
-    .catch(() => ({ error: 'Network error — points not saved.' }));
+    .catch(() => ({ error: 'Network error. Points not saved.' }));
   if (!r) return;                      // 401: apiPost already bounced to the prompt
   if (!r.ok || r.error) {
     // Put the old number back rather than leaving a total that was never saved.
@@ -11238,7 +11288,7 @@ function renderPaidPicker() {
   const paidIds = new Set(((state.luckyDraw || {}).paid || []).map(p => p.id));
   const hint = document.getElementById('paidHint');
   if (!sessionPlayers.length) {
-    host.innerHTML = '<div class="draw-empty">No players in today\'s session yet — tick players into the session first.</div>';
+    host.innerHTML = '<div class="draw-empty">No players in today\'s session yet. Tick players into the session first.</div>';
     if (hint) hint.textContent = 'Tick each player who has paid; they join the draw and drop off automatically 2 days later.';
     return;
   }
@@ -11248,7 +11298,7 @@ function renderPaidPicker() {
   host.innerHTML = sessionPlayers.map(p => {
     const rp = (state.roster || []).find(r => r.id === p.id) || p;
     const on = paidIds.has(p.id);
-    return `<button type="button" class="paid-chip${on ? ' on' : ''}" onclick="togglePaidPlayer('${p.id}')" aria-pressed="${on}" title="${on ? 'Paid — click to remove' : 'Mark as paid'}">
+    return `<button type="button" class="paid-chip${on ? ' on' : ''}" onclick="togglePaidPlayer('${p.id}')" aria-pressed="${on}" title="${on ? 'Paid, click to remove' : 'Mark as paid'}">
       <span class="paid-check" aria-hidden="true">${on ? '✓' : ''}</span>
       ${avatarHTML(rp, 32)}
       <span class="paid-name">${escHtml(rp.name || p.name)}</span>
@@ -11314,7 +11364,7 @@ function renderDrawPool() {
     else countEl.style.display = 'none';
   }
   if (!items.length) {
-    pool.innerHTML = '<div class="draw-empty">Pool is empty — tick paid players above, pull the session, or add names manually.</div>';
+    pool.innerHTML = '<div class="draw-empty">Pool is empty. Tick paid players above, pull the session, or add names manually.</div>';
     return;
   }
   pool.innerHTML = items.map((it, i) => {
@@ -11322,7 +11372,7 @@ function renderDrawPool() {
     // to a synthetic player so unmatched names still get stable initials + colour.
     const rp = (state.roster || []).find(r => r.name === it.name) || { id: it.name, name: it.name };
     const tag = it.paid
-      ? `<span class="draw-paid-tag" title="Paid — stays until ${escHtml(shortWeekday(addDaysISO(it.forDate, 2)))}">Paid · ${escHtml(shortWeekday(addDaysISO(it.forDate, 2)))}</span>`
+      ? `<span class="draw-paid-tag" title="Paid, stays until ${escHtml(shortWeekday(addDaysISO(it.forDate, 2)))}">Paid · ${escHtml(shortWeekday(addDaysISO(it.forDate, 2)))}</span>`
       : '';
     return `<div class="draw-card${it.paid ? ' is-paid' : ''}">
       <button class="draw-card-del" onclick="removeFromPoolAt(${i})" title="Remove" aria-label="Remove ${escHtml(it.name)} from pool">&#x00D7;</button>
@@ -11383,7 +11433,7 @@ function renderDrawResult() {
   const results = (ld.results || []);
   // Spin label + enabled state — spin-aware so the 2s poll can't re-enable mid-reveal
   const lblEl = document.getElementById('spinBtnLabel');
-  if (lblEl) lblEl.innerHTML = 'Spin &mdash; pick ' + escHtml(ordinalLbl(results.length + 1)) + ' winner';
+  if (lblEl) lblEl.innerHTML = 'Spin: pick ' + escHtml(ordinalLbl(results.length + 1)) + ' winner';
   setSpinBtnEnabled(drawPoolHasEnough() && !drawSpinLive());
 
   const el = document.getElementById('drawResult');
@@ -11393,7 +11443,7 @@ function renderDrawResult() {
   const shown = results.filter(r => now >= r.at).slice().sort((a, b) => a.rank - b.rank);
   let html = '';
   if (shown.length) {
-    html += '<div class="draw-result"><div class="draw-result-label">Winners &mdash; ' + escHtml(readableDate(getDrawDate())) + '</div>';
+    html += '<div class="draw-result"><div class="draw-result-label">Winners: ' + escHtml(readableDate(getDrawDate())) + '</div>';
     html += shown.map(r => {
       const rp = (state.roster || []).find(x => x.name === r.name);
       const av = rp ? avatarHTML(rp, 30) : '';
@@ -11636,12 +11686,12 @@ function closeHelp() {
 
 // Each step: which admin tab to show first, the element to spotlight, and copy.
 const TOUR_STEPS = [
-  { tab: null,         sel: '#adminSidebar',     title: 'Grouped nav runs everything', text: 'The sidebar groups every job — Today (Session, Courts, Payments, Lucky Draw) and Manage (Friendly, Sign-ups, Accounts, Settings). We’ll walk through the main ones.' },
+  { tab: null,         sel: '#adminSidebar',     title: 'Grouped nav runs everything', text: 'The sidebar groups every job: Today (Session, Courts, Payments, Lucky Draw) and Manage (Friendly, Sign-ups, Accounts, Settings). We’ll walk through the main ones.' },
   { tab: 'session',    sel: '#sessionDateInput', title: 'Set tonight’s date', text: 'Pick today’s play date. Changing it saves the previous day to history and awards every player who played their points.' },
-  { tab: 'session',    sel: '#rosterGrid',       title: 'Add players & set levels', text: 'Tap a player to add them to tonight’s session. In the List view the Level picker (1.0–7.0) and the Girl & Mixed toggles set their rating and who plays mixed doubles — these balance the generated matches.' },
+  { tab: 'session',    sel: '#rosterGrid',       title: 'Add players & set levels', text: 'Tap a player to add them to tonight’s session. In the List view the Level picker (1.0–7.0) and the Girl & Mixed toggles set their rating and who plays mixed doubles, and these balance the generated matches.' },
   { tab: 'courts',     sel: '#eodBtn',           title: 'Wrap up the night', text: 'End of the day creates one payment record per player at the default fee. On the Payments tab tap 2h or 3h for how long each person stayed, then Cash, TnG or DuitNow as they pay.' },
-  { tab: 'engagement', sub: 'weekly', sel: '#sdAutoCard', title: 'The Lucky Draw runs itself', text: 'Every Monday, Friday and Sunday session is drawn automatically at 9:00 AM a few mornings later. Everyone who attended and was marked paid before then is in it — set how many winners here. Results are permanent and show on the public Lucky Draw page.' },
-  { tab: 'engagement', sub: 'weekly', sel: '#spinBtn',    title: 'Need a draw on the spot?', text: 'Manual quick draw is the hands-on spin: open it, tick who has paid to build a pool, then Spin — the winner is revealed live on everyone’s viewer screen.' },
+  { tab: 'engagement', sub: 'weekly', sel: '#sdAutoCard', title: 'The Lucky Draw runs itself', text: 'Every Monday, Friday and Sunday session is drawn automatically at 9:00 AM a few mornings later. Everyone who attended and was marked paid before then is in it. Set how many winners here. Results are permanent and show on the public Lucky Draw page.' },
+  { tab: 'engagement', sub: 'weekly', sel: '#spinBtn',    title: 'Need a draw on the spot?', text: 'Manual quick draw is the hands-on spin: open it, tick who has paid to build a pool, then Spin. The winner is revealed live on everyone’s viewer screen.' },
   { tab: 'settings',   sel: '#siteCodeInput',    title: 'Set the daily access code', text: 'Give players today’s short code to unlock the site. Generate a fresh one whenever you like.' },
 ];
 let tourIdx = -1;
@@ -11768,7 +11818,7 @@ function showPickerOverlay(spin) {
     if (spin && spin.noPrize) {
       prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${escHtml(ordinalLbl(rank))} Winner</span>`;
     } else {
-      prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${escHtml(ordinalLbl(rank))} Prize${spin && spin.prize ? ' &mdash; ' + escHtml(spin.prize) : ''}</span>`;
+      prizeEl.innerHTML = `<span class="rank-medal">${rank}</span><span>${escHtml(ordinalLbl(rank))} Prize${spin && spin.prize ? ': ' + escHtml(spin.prize) : ''}</span>`;
     }
   }
   const nameEl = document.getElementById('pickerName');
@@ -11892,14 +11942,14 @@ async function acctPost(action, payload) {
     const data = await r.json().catch(() => ({}));
     return { status: r.status, ok: r.ok, data: data || {} };
   } catch {
-    return { status: 0, ok: false, data: { error: 'Network error — please try again.' } };
+    return { status: 0, ok: false, data: { error: 'Network error. Please try again.' } };
   }
 }
 
 function fmtDateTime(ms) {
-  if (!ms) return '—';
+  if (!ms) return '–';
   try { return new Date(ms).toLocaleString([], { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
-  catch { return '—'; }
+  catch { return '–'; }
 }
 
 // The account's live roster player (source of truth for name/photo), or null.
@@ -12042,7 +12092,7 @@ async function submitCodeSignin() {
 }
 function openNoCode() {
   showInfoModal('Don’t have a login code?',
-    'Ask the TZH organiser at your next session — every member has a code like Thomas#123. '
+    'Ask the TZH organiser at your next session. Every member has a code like Thomas#123. '
     + 'Codes are handed out in person, not by SMS, WhatsApp or email.');
 }
 
@@ -12142,14 +12192,14 @@ async function refreshStatusScreen() {
   if (!statusCreds) return;
   const res = await acctPost('accountStatus', statusCreds);
   if (res.ok && res.data && res.data.account) showStatusScreen(res.data.account);
-  else notify('Could not refresh — please try again.', 'warn');
+  else notify('Could not refresh. Please try again.', 'warn');
 }
 function closeStatusModal() { document.getElementById('statusModal').classList.remove('open'); }
 
 function openContactAdmin() {
   showInfoModal('Contact the administrator',
     'Please contact the TZH administrator for help with your account or password. '
-    + 'For your security, approvals and passwords are handled in person — not by SMS, WhatsApp or email.');
+    + 'For your security, approvals and passwords are handled in person, not by SMS, WhatsApp or email.');
 }
 function openForgotPassword() {
   showInfoModal('Forgot password?',
@@ -12213,9 +12263,9 @@ function openAccountModal() {
   const token = acctSession.token;
   acctPost('memberInfo', { token }).then(res => {
     if (!acctSession || acctSession.token !== token) return; // signed out meanwhile
-    if (res.status === 401) { saveAcctSession(null); renderAccountWidget(); closeAccountModal(); notify('Session expired — please sign in again.', 'warn'); return; }
+    if (res.status === 401) { saveAcctSession(null); renderAccountWidget(); closeAccountModal(); notify('Session expired. Please sign in again.', 'warn'); return; }
     if (!res.ok || !res.data || !res.data.ok) {
-      body.innerHTML += '<div class="acct-empty">Could not load your details — please try again.</div>'
+      body.innerHTML += '<div class="acct-empty">Could not load your details. Please try again.</div>'
         + '<div class="acctpg-actions"><button class="btn btn-secondary btn-sm" onclick="openAccountModal()">Retry</button></div>';
       return;
     }
@@ -12261,7 +12311,7 @@ function mbWinDetailHtml(w) {
   if (d.attended > 0) rows.push(['That night', escHtml(d.attended + ' played · ' + d.paid + ' paid in time')]);
   if (d.myPoints > 0) rows.push(['Your points', escHtml(d.myPoints + (d.threshold ? ' (needed ' + d.threshold + ')' : ''))]);
   if (d.others && d.others.length) {
-    rows.push(['Also won', d.others.map(o => escHtml(o.name + (o.prize ? ' — ' + o.prize : ''))).join('<br>')]);
+    rows.push(['Also won', d.others.map(o => escHtml(o.name + (o.prize ? ': ' + o.prize : ''))).join('<br>')]);
   }
   if (d.seed) rows.push(['Draw seed', escHtml(d.seed), 'mb-seed']);
   if (!rows.length) return '';
@@ -12299,7 +12349,7 @@ function memberPageHtml(d) {
   }
   html += '<div class="md-sec-title">My draw wins</div>';
   if (!wins.length) {
-    html += '<div class="acct-empty">No prizes yet — every paid session is a ticket to the next draw.</div>';
+    html += '<div class="acct-empty">No prizes yet. Every paid session is a ticket to the next draw.</div>';
   } else {
     html += '<div class="mb-list">' + wins.map(w => {
       const when = w.date ? mbDate(w.date) : (w.label || w.month || '');
@@ -12332,7 +12382,7 @@ function openMyLuckyDraw() {
   if (body) body.innerHTML = '<div class="acct-empty">Loading…</div>';
   document.getElementById('myDrawModal').classList.add('open');
   acctPost('accountDrawInfo', { token: acctSession.token }).then(res => {
-    if (res.status === 401) { saveAcctSession(null); renderAccountWidget(); closeMyDraw(); notify('Session expired — please sign in again.', 'warn'); return; }
+    if (res.status === 401) { saveAcctSession(null); renderAccountWidget(); closeMyDraw(); notify('Session expired. Please sign in again.', 'warn'); return; }
     renderMyDraw(res.data || {});
   });
 }
@@ -12430,7 +12480,7 @@ async function submitProfile() {
   const res = await acctPost('updateAccount', payload);
   if (res.status === 401) {
     saveAcctSession(null); renderAccountWidget(); closeProfileModal();
-    notify('Session expired — please sign in again.', 'warn');
+    notify('Session expired. Please sign in again.', 'warn');
     return;
   }
   if (!res.ok) { showErr('profError', (res.data && res.data.error) || 'Could not save changes.'); return; }

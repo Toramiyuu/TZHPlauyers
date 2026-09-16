@@ -71,7 +71,7 @@ check('page: nights to settle listed newest first with amounts', owing.includes(
 check('page: wins list shows prize or Winner', owing.includes('Monthly draw · August 2026') && owing.includes('Racket bag') && owing.includes('Session draw · Mon 7 Sep 2026') && owing.includes('>Winner<'));
 check('page: every win is a tappable disclosure row', (owing.match(/<details class="mb-win">/g) || []).length === 2 && owing.includes('class="mb-chev"'));
 check('page: expanded win shows pool size, co-winner + prize, own points and the seed',
-  owing.includes('<span>Picked from</span><b>9 players in the draw</b>') && owing.includes('Ah Sheng — Tube of shuttlecocks')
+  owing.includes('<span>Picked from</span><b>9 players in the draw</b>') && owing.includes('Ah Sheng: Tube of shuttlecocks')
   && owing.includes('<span>Your place</span><b>Winner 1 of 3</b>') && owing.includes('96 (needed 80)') && owing.includes('class="mb-seed">def456'));
 check('page: a win with no recorded detail says so instead of rendering an empty block', owing.includes('Not recorded for this draw'));
 check('page: dates use fixed English names (locale-proof)', (() => { const f = new Function(fn('mbDate') + '; return mbDate;')(); return f('2026-09-08') === 'Tue 8 Sep 2026' && f('2026-01-01') === 'Thu 1 Jan 2026' && f('bad') === 'bad'; })());

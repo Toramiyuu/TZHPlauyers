@@ -254,6 +254,24 @@
       .reverse();
   }
 
+  /**
+   * The night the Payments tab should OPEN on: the most recent one that still
+   * has money outstanding, falling back to the live night once everything is
+   * settled. The treasurer tallies the night after — a Friday night is chased
+   * on Saturday afternoon — so landing on "today" used to mean landing on an
+   * empty day while the real work sat one tap away. `dayHasOutstanding` is the
+   * same test the retention window uses, so a night that is safe from pruning
+   * is exactly a night this will surface.
+   */
+  function nightToOpen(attendance, liveDate) {
+    const att = attendance && typeof attendance === 'object' ? attendance : {};
+    const dates = datesWithPayments(att); // newest first
+    for (const d of dates) {
+      if (dayHasOutstanding(att[d])) return d;
+    }
+    return liveDate || dates[0] || null;
+  }
+
   /** Step through a newest-first date list. dir +1 = newer, -1 = older. null at the ends. */
   function stepDate(dates, current, dir) {
     const list = Array.isArray(dates) ? dates : [];
@@ -446,7 +464,7 @@
   /** "Generated 20 payment records, 0 already existed" */
   function eodSummaryText(created, existed, removed) {
     const c = Number(created) || 0, x = Number(existed) || 0, r = Number(removed) || 0;
-    if (!c && !x && !r) return 'Nothing to generate — no players in the line-up.';
+    if (!c && !x && !r) return 'Nothing to generate. No players in the line-up.';
     return 'Generated ' + c + ' payment record' + (c === 1 ? '' : 's') + ', ' + x + ' already existed'
       + (r ? ', ' + r + ' removed (no longer in the line-up)' : '');
   }
@@ -467,7 +485,7 @@
     TIERS, DEFAULT_TIER, FEE_BY_TIER, METHODS, METHOD_LABELS, MAX_FEE, TIME_ZONE,
     isTier, isMethod, tierOf, feeForTier, methodLabel, isValidFee,
     newPayment, applyPaid, applyMethod, applyTier, applyFeeOverride, resetFee, generateInto,
-    summarize, rowsOf, nextPaymentPatch, isNoopPatch, datesWithPayments, stepDate, feeTierForDate,
+    summarize, rowsOf, nextPaymentPatch, isNoopPatch, datesWithPayments, nightToOpen, stepDate, feeTierForDate,
     FILTERS, isFilter, filterLabel, matchesFilter, breakdownByMethod, unpaidNames,
     dayHasOutstanding, memberSessions, memberSummary, memberLedger, compareMembers,
     MEMBER_FILTERS, isMemberFilter, memberFilterLabel, matchesMemberFilter, filterMembers, ledgerTotals, memberOweLabel,

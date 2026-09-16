@@ -97,7 +97,7 @@ check('Manual quick draw summary shows a +/\u2013 disclosure indicator and hint'
 check('guided tour spotlights the automatic draw card, then the manual spin', html.includes('id="sdAutoCard"') && /sub: 'weekly', sel: '#sdAutoCard'/.test(html) && /sub: 'weekly', sel: '#spinBtn'/.test(html) && !/title: 'Tick who has paid'/.test(html));
 check('guided tour switches to the Session draws sub-tab', fn('showTourStep').includes('setLuckyTab(step.sub)'));
 check('guided tour opens collapsed <details> ancestors before measuring', fn('positionTourStep').includes("el.closest('details')") && fn('positionTourStep').includes('d.open = true'));
-check('help drawer describes the session draw', /Lucky Draw &mdash; Session draws/.test(html) && /Run draw now/.test(html));
+check('help drawer describes the session draw', /Lucky Draw: Session draws/.test(html) && /Run draw now/.test(html));
 check('audit labels cover the new actions', /'draw\.run':/.test(html) && /'draw\.settings':/.test(html));
 check('adminOps carries drawSettings, not the retired weekly keys', fn('loadAdminOps').includes('drawSettings: res.drawSettings') && !fn('loadAdminOps').includes('weeklyDraws'));
 

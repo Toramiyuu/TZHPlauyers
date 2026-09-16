@@ -1,13 +1,18 @@
-// Vercel Cron target — advances the session date at 00:00 Malaysia time.
+// Vercel Cron target — advances the session date to the new NIGHT at 20:00
+// Malaysia time. Not midnight: see public/night.js. A night belongs to the day
+// it started, so the Friday social that ends at 12:30am is still Friday, and so
+// is the Saturday afternoon spent tallying its payments.
 //
-// vercel.json schedules this at "0 16 * * *" (16:00 UTC = 00:00 UTC+8). The
-// server's todayISO() already uses TZ_OFFSET_HOURS (default 8), so the day
-// boundary is Malaysia's. rolloverSessionDate() is idempotent — a no-op unless
-// the live session date is stale — so a duplicate/late invocation is harmless.
+// vercel.json schedules this at "0 12 * * *" (12:00 UTC = 20:00 UTC+8) — the
+// hour a game night takes over. On the four non-game days the current night is
+// unchanged, so this is a no-op. rolloverSessionDate() is idempotent (a no-op
+// unless the session date is behind the current night), so a duplicate or late
+// invocation is harmless.
 //
 // Optional hardening: set a CRON_SECRET env var and Vercel will send
 // `Authorization: Bearer <secret>`; when set, we require it. Without it the
-// endpoint is still safe (it can only ever advance a stale date to *today*).
+// endpoint is still safe (it can only ever advance a stale date to the current
+// night, which is always a Mon/Fri/Sun game day).
 const { rolloverSessionDate } = require('./state.js');
 
 module.exports = async function handler(req, res) {

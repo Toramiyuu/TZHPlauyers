@@ -1,7 +1,7 @@
 {
   "version": 2,
   "crons": [
-    { "path": "/api/cron-rollover", "schedule": "0 16 * * *" },
+    { "path": "/api/cron-rollover", "schedule": "0 12 * * *" },
     { "path": "/api/cron-session-draw", "schedule": "0 1 * * *" }
   ]
 }

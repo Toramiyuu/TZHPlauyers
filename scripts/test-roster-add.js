@@ -96,7 +96,7 @@ const c = fn('confirmBulkImport');
 check('the client posts only the names, never the whole roster', c.includes("apiPost({ action: 'addRosterPlayers', names })") && !c.includes('apiPost({ roster })'));
 check('the client no longer builds player ids itself', !c.includes("'r' + Date.now()"));
 check('a server error is shown and the modal stays open with the typing intact', c.includes("if (!r.ok || r.error) return notify(r.error || 'Could not add those players.', 'warn');") && c.indexOf('return notify(r.error') < c.indexOf('closeBulkModal()'));
-check('a network error is reported instead of a success toast', c.includes("notify('Network error — nobody was added. Your names are still here.', 'warn')"));
+check('a network error is reported instead of a success toast', c.includes("notify('Network error. Nobody was added. Your names are still here.', 'warn')"));
 check('a 401 (apiPost returned null) exits quietly — the password prompt is already up', c.includes('if (!r) return;'));
 check('the success toast uses the count the SERVER confirmed', c.includes('notify(`Added ${r.added} player${r.added === 1 ? \'\' : \'s\'} to roster!`)'));
 check('the roster comes back from the server, not from a local guess', c.includes('state.roster = r.roster;'));

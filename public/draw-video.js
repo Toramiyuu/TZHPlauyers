@@ -478,7 +478,7 @@
     if (prev.length) {
       const py = y + h + (seg.prize && !locked ? 260 : 210);
       text(ctx, 'Already drawn', W / 2, py, { weight: 700, px: 24, color: THEME.ink3, spacing: '4px' });
-      prev.forEach((wn, i) => text(ctx, ordinal(wn.rank) + ' · ' + wn.name + (wn.prize ? ' — ' + wn.prize : ''), W / 2, py + 52 + i * 46, { weight: 600, px: 34, color: THEME.ink2 }));
+      prev.forEach((wn, i) => text(ctx, ordinal(wn.rank) + ' · ' + wn.name + (wn.prize ? ': ' + wn.prize : ''), W / 2, py + 52 + i * 46, { weight: 600, px: 34, color: THEME.ink2 }));
     }
     if (locked) paintConfetti(ctx, seg.confetti, f.sinceLock, W, H);
   }

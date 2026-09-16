@@ -8,6 +8,11 @@ node_modules/
 .env*
 .playwright-cli/
 
+# State backups taken by scripts/migrate-nights.js --apply. These are a full dump
+# of the live Redis blob: member names, phone numbers, payment history and the
+# encrypted account passwords. Never commit one.
+/state-backup-*.json
+
 # Local-only docs & artifacts — kept on disk, never committed.
 # Root working notes / private documents:
 /CLAUDE_PROMPT_*.md

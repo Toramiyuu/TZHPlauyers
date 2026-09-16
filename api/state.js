@@ -10,6 +10,7 @@ const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('../lib/paym
 const { pushAudit } = require('../lib/audit.js');
 const Payments = require('../public/payments.js');
 const AdminNav = require('../public/admin-nav.js');
+const Night = require('../public/night.js');
 
 // Accepts env vars from Vercel Marketplace (KV_REST_API_URL) or direct Upstash (UPSTASH_REDIS_REST_URL)
 let redis = null;
@@ -541,23 +542,36 @@ function applySessionDateChange(state, newDate, today) {
 }
 
 /**
- * Decide whether the automatic midnight rollover should advance the session
- * date, and to what. Pure. Advances ONLY a stale live day (sessionDate behind
- * today); never rewinds a future-scheduled session and never re-fires on the
- * current day. `today` is the server's UTC+8 day (todayISO). Returns the target
- * ISO date, or null for "do nothing".
+ * Decide whether the automatic rollover should advance the session date, and to
+ * what. Pure. Advances ONLY a stale live day (sessionDate behind the current
+ * night); never rewinds a future-scheduled session and never re-fires on the
+ * current night. Returns the target ISO date, or null for "do nothing".
+ *
+ * `night` is Night.currentNight(), NOT todayISO(). That is the fix for the
+ * phantom Saturday: this used to be handed "today" by a 00:00 cron, so a Friday
+ * session still on court at 12:30am was closed mid-game and everything logged
+ * after midnight (End of the day, payment ticks) landed on a Saturday record —
+ * a day no game is ever played on, and one the draw schedule ignores. A night
+ * now belongs to the day it STARTED, so the target is always a game day.
  */
-function nextRolloverDate(sessionDate, today) {
-  if (!today) return null;
-  if (!sessionDate || sessionDate < today) return today;
+function nextRolloverDate(sessionDate, night) {
+  if (!night) return null;
+  if (!sessionDate || sessionDate < night) return night;
   return null;
 }
 
+/** The night that owns this instant, in the server's configured timezone. */
+function currentNight(nowMs) {
+  return Night.currentNight(nowMs == null ? Date.now() : nowMs, parseFloat(process.env.TZ_OFFSET_HOURS || '8'));
+}
+
 /**
- * Cron entry point (hit by /api/cron-rollover at 00:00 MYT). Loads state,
- * advances a stale session date to today via applySessionDateChange — which
- * snapshots the closed day to history and awards its +2 points — then persists.
- * Idempotent: a no-op when the date is already today or in the future.
+ * Cron entry point (hit by /api/cron-rollover at 20:00 MYT — the hour a game
+ * night takes over, NOT midnight). Loads state, advances a session date that is
+ * behind the current night via applySessionDateChange — which snapshots the
+ * closed day to history and awards its +2 points — then persists. Idempotent:
+ * a no-op when the date is already the current night or in the future, so on
+ * the four non-game days it does nothing at all.
  */
 async function rolloverSessionDate() {
   let state;
@@ -567,21 +581,27 @@ async function rolloverSessionDate() {
     return { ok: false, error: 'read', changed: false };
   }
   const today = todayISO();
+  const night = currentNight();
   // Seed the lifetime ledger BEFORE the day closes, so the night's +2 is added
   // to a real starting total rather than to an empty map.
   ensureLifetimePoints(state);
-  const target = nextRolloverDate(state.sessionDate, today);
+  const target = nextRolloverDate(state.sessionDate, night);
   let next = state, dateChanged = false;
   if (target) {
+    // `today` (not `night`) stays the yardstick for the month-ahead guard and
+    // the 31-day history prune — those are about the real calendar.
     const transition = applySessionDateChange(state, target, today);
     if (!transition.ok) return { ok: false, error: transition.error, changed: false, today };
     next = transition.state;
     dateChanged = true;
   }
-  // A new calendar month closes the old one for the Monthly (points) draw: the
-  // final points are snapshotted and everyone starts again from zero. This runs
-  // AFTER the date change so the last night's +2 is inside the closed month.
-  const closedMonths = applyMonthClose(next, today, Date.now());
+  // A new month closes the old one for the Monthly (points) draw: the final
+  // points are snapshotted and everyone starts again from zero. This runs AFTER
+  // the date change so the last night's +2 is inside the closed month — and it
+  // is keyed on the NIGHT, not today, so a Friday 31 Oct session that runs into
+  // 1 Nov keeps its points in October. The month cannot close while the night
+  // that earned them is still live.
+  const closedMonths = applyMonthClose(next, night || today, Date.now());
   if (!dateChanged && !closedMonths.length) return { ok: true, changed: false, sessionDate: state.sessionDate || null, today };
   try {
     await kv.set(STATE_KEY, next);
@@ -614,6 +634,48 @@ function restampDrawTimes(current) {
 /** Load the live state blob (or the defaults). Shared by the draws endpoint + cron. */
 async function loadState() {
   return restampDrawTimes((await kv.get(STATE_KEY)) || { ...DEFAULT_STATE });
+}
+
+/**
+ * Auto-close: make sure the current night has its payment list, even though
+ * nobody pressed "End of the day".
+ *
+ * The treasurer leaves the hall at 12:30am and goes to sleep, so the button
+ * usually never gets pressed on the night itself — and without a payment record
+ * per player there is nothing to tick off the next afternoon, and the session
+ * draw three days later sees zero paid players. This runs from the 09:00 MYT
+ * cron, so the list is already waiting the morning after.
+ *
+ * It only CREATES the unpaid records (exactly what the button does, via the
+ * same idempotent generatePayments handler). It never marks anyone paid, and it
+ * never advances the session date — at 09:00 on a Saturday the current night is
+ * still Friday, and it stays Friday until Sunday evening.
+ */
+async function autoCloseNight(opts) {
+  const o = opts || {};
+  const night = o.night || currentNight(o.nowMs);
+  if (!night) return { ok: true, changed: false, reason: 'no night' };
+  let state;
+  try {
+    state = (await kv.get(STATE_KEY)) || { ...DEFAULT_STATE };
+  } catch (e) {
+    return { ok: false, error: 'read', changed: false, night };
+  }
+  // Only ever touch the live night. A past night the admin already dealt with
+  // is none of this job's business.
+  if (state.sessionDate !== night) return { ok: true, changed: false, night, reason: 'session date is not the current night' };
+  const day = (state.attendance || {})[night];
+  if (day && day.payments) return { ok: true, changed: false, night, reason: 'already generated' };
+  const r = handlePaymentAdminAction(state, { action: 'generatePayments', date: night }, { nowMs: o.nowMs != null ? o.nowMs : Date.now() });
+  if (!r || !r.changed) {
+    return { ok: true, changed: false, night, reason: (r && r.body && r.body.error) || 'nothing to generate' };
+  }
+  try {
+    await kv.set(STATE_KEY, state);
+  } catch (e) {
+    return { ok: false, error: 'write', changed: false, night };
+  }
+  return { ok: true, changed: true, night, created: r.body && r.body.created, total: r.body && r.body.total };
 }
 
 /**
@@ -655,7 +717,9 @@ async function runMonthlyDrawSweep() {
   // The close wipes every roster total; the lifetime ledger it leaves alone, so
   // seed it first and the reset write carries the pre-reset figures forward.
   ensureLifetimePoints(state);
-  const closedMonths = applyMonthClose(state, todayISO(), Date.now());
+  // Keyed on the night, not today — see rolloverSessionDate: a month must not
+  // close out from under a session that started in it and is still running.
+  const closedMonths = applyMonthClose(state, currentNight() || todayISO(), Date.now());
   if (closedMonths.length) {
     try { await kv.set(STATE_KEY, state); } catch (e) { return { ok: false, error: 'write', changed: false, closedMonths }; }
   }
@@ -1122,6 +1186,8 @@ module.exports.buildSignups = buildSignups;
 module.exports.addMonthsISO = addMonthsISO;
 module.exports.addDaysISO = addDaysISO;
 module.exports.applySessionDateChange = applySessionDateChange;
+module.exports.currentNight = currentNight;
+module.exports.autoCloseNight = autoCloseNight;
 module.exports.awardSessionPoints = awardSessionPoints;
 module.exports.addLifetimePoints = addLifetimePoints;
 module.exports.ensureLifetimePoints = ensureLifetimePoints;

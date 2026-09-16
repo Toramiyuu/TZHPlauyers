@@ -14,7 +14,11 @@
 // The Monthly (points) Lucky Draw shares this cron: its sweep is just as
 // idempotent (a closed month is drawn once, at 09:00 MYT on the 1st) and the
 // Hobby plan allows only two cron jobs.
-const { runSessionDrawSweep, runMonthlyDrawSweep } = require('./state.js');
+// It also auto-closes the current night FIRST: the treasurer leaves at 12:30am
+// and goes to sleep, so "End of the day" usually never gets pressed. Generating
+// the (unpaid) payment records here means the list is waiting the next morning
+// and the draw three days later has something to judge. See autoCloseNight.
+const { runSessionDrawSweep, runMonthlyDrawSweep, autoCloseNight } = require('./state.js');
 
 module.exports = async function handler(req, res) {
   const secret = process.env.CRON_SECRET;
@@ -25,10 +29,14 @@ module.exports = async function handler(req, res) {
     }
   }
   try {
+    // Before the sweep, so a night closed this morning is drawable by its own
+    // draw day. A failure here must not block the draws, hence the soft catch.
+    let closed = null;
+    try { closed = await autoCloseNight(); } catch (e) { closed = { ok: false, error: 'close' }; }
     const result = await runSessionDrawSweep();
     let monthly = null;
     try { monthly = await runMonthlyDrawSweep(); } catch (e) { monthly = { ok: false, error: 'sweep' }; }
-    return res.status(result.ok ? 200 : 500).json(Object.assign({}, result, { monthly }));
+    return res.status(result.ok ? 200 : 500).json(Object.assign({}, result, { monthly, closed }));
   } catch (e) {
     console.error('cron-session-draw error:', e && e.message);
     return res.status(500).json({ error: 'Session draw failed' });

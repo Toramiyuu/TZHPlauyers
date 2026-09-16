@@ -70,7 +70,7 @@
       if (sc.length <= MIN_SHORTCUTS) return { list: sc, error: 'Keep at least one shortcut in the bar.' };
       return { list: sc.filter((t) => t !== id), error: null };
     }
-    if (sc.length >= MAX_SHORTCUTS) return { list: sc, error: 'Up to ' + MAX_SHORTCUTS + ' shortcuts — turn one off first.' };
+    if (sc.length >= MAX_SHORTCUTS) return { list: sc, error: 'Up to ' + MAX_SHORTCUTS + ' shortcuts. Turn one off first.' };
     return { list: TABS.filter((t) => t === id || sc.includes(t)), error: null };
   }
 

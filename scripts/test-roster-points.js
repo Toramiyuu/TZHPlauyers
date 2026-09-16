@@ -91,7 +91,7 @@ check('the client uses the action, never a whole-roster POST', w.includes("apiPo
 check('a refused save is reported instead of a silent success', w.includes("notify(r.error || 'Could not save those points.', 'warn')"));
 check('a refused save restores the real total from the server', w.includes('await refreshState();') && w.indexOf('await refreshState();') < w.indexOf('return notify(r.error'));
 check('a 401 exits quietly — the password prompt is already up', w.includes('if (!r) return;'));
-check('a network error is caught and reported', w.includes("catch(() => ({ error: 'Network error — points not saved.' }))"));
+check('a network error is caught and reported', w.includes("catch(() => ({ error: 'Network error. Points not saved.' }))"));
 check('the client adopts the roster the server returned', w.includes('if (r.roster) state.roster = r.roster;'));
 check('typing renders optimistically before the round trip', w.indexOf('renderPlayersSection();') < w.indexOf('await apiPost'));
 check('typed edits send an absolute total', sp.includes('writePlayerPoints(id, { points: n }, n)'));

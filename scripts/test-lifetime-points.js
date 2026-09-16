@@ -225,9 +225,9 @@ check('the response hands the new lifetime total back to the client', src.includ
 // ── client ──
 check('the ops cache starts with lifetimePoints null — "not fetched", not zero', html.includes("let adminOps = { attendance: {}, drawSettings: null, audit: [], lifetimePoints: null };"));
 check('loadAdminOps stores what the server sent', fn('loadAdminOps').includes('lifetimePoints: res.lifetimePoints || {}'));
-check('an unfetched ledger renders an em-dash, not a wrong 0', (() => {
+check('an unfetched ledger renders a dash, not a wrong 0', (() => {
   const f = fn('lifetimePointsFor'), l = fn('lifetimePointsLabel');
-  return f.includes('if (!lifetimePointsLoaded()) return null;') && l.includes("n === null ? '&mdash;'");
+  return f.includes('if (!lifetimePointsLoaded()) return null;') && l.includes("n === null ? '&ndash;'");
 })());
 check('a missing / junk entry reads 0', fn('lifetimePointsFor').includes('Number.isFinite(n) && n > 0 ? Math.floor(n) : 0'));
 check('opening the Session tab fetches the ledger and repaints the list', html.includes("if (name === 'session') loadAdminOps().then(() => { renderPlayersSection(); renderEodStatus(); updateAdminNavBadges(); });"));
@@ -275,7 +275,7 @@ check('the Session help explains the reset and who can see the lifetime total', 
   return /goes back to zero for <b>everyone<\/b>/.test(sec) && /Members never see it/.test(sec);
 })());
 check('the Monthly draw help says the reset hits everyone', (() => {
-  const i = html.indexOf('<summary>Lucky Draw &mdash; Monthly draws</summary>');
+  const i = html.indexOf('<summary>Lucky Draw: Monthly draws</summary>');
   return /zero for <b>everyone<\/b> when the month ends/.test(html.slice(i, i + 900));
 })());
 
