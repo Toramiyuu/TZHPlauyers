@@ -141,8 +141,8 @@ check('public done card: winners + video only — no stats, lists, pay times or 
 const pendView = SD.viewOf({ date: '2026-09-07', drawAt: MON_AT, day: rec ? { entries: { a: { playerId: 'a', name: 'Alice', present: true, paid: true, payment: { paidAt: MON_AT - 60000 } } } } : null, lineup: [] }, null, MON_AT - 3600000, { winners: 2 });
 const pendHtml = sdCardHtml(pendView, true);
 const pubPendHtml = sdCardHtml(pendView, false);
-check('public pending card: count + pay-before only, no names', !pubPendHtml.includes('sd-names-wrap') && !pubPendHtml.includes('sd-stats') && !pubPendHtml.includes('Alice') && pubPendHtml.includes('1 in the draw so far · Pay before Fri 11 Sep · 9:00 AM'));
-check('pending card: "Eligible so far" open, status Pending, pay-before hint', /<details class="sd-names-wrap" open><summary><span>Eligible so far/.test(pendHtml) && pendHtml.includes('>Pending<') && pendHtml.includes('Pay before Fri 11 Sep · 9:00 AM'));
+check('public pending card: count + pay-before only, no names', !pubPendHtml.includes('sd-names-wrap') && !pubPendHtml.includes('sd-stats') && !pubPendHtml.includes('Alice') && pubPendHtml.includes('1 in the draw so far · Pay before Thu 10 Sep · 9:00 AM'));
+check('pending card: "Eligible so far" open, status Pending, pay-before hint', /<details class="sd-names-wrap" open><summary><span>Eligible so far/.test(pendHtml) && pendHtml.includes('>Pending<') && pendHtml.includes('Pay before Thu 10 Sep · 9:00 AM'));
 const dueView = SD.viewOf({ date: '2026-09-07', drawAt: MON_AT, day: null, lineup: [{ id: 'a', name: 'Alice' }] }, null, MON_AT + 1000, { winners: 2 });
 check('due + pending card in admin mode shows Run draw now; public does not', sdCardHtml(dueView, true).includes("runDrawNow('2026-09-07')") && !sdCardHtml(dueView, false).includes('runDrawNow') && sdCardHtml(dueView, true).includes('Draw pending'));
 

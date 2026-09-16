@@ -12,20 +12,21 @@ const MYT = 8;
 
 // ── schedule mapping: every weekday ──
 // 2026-09-06 Sun, 07 Mon, 08 Tue, 09 Wed, 10 Thu, 11 Fri, 12 Sat
-check('Mon -> Fri (+4 days)', S.drawDateFor('2026-09-07') === '2026-09-11');
-check('Fri -> Tue (+4 days)', S.drawDateFor('2026-09-11') === '2026-09-15');
-check('Sun -> Thu (+4 days)', S.drawDateFor('2026-09-06') === '2026-09-10');
+check('Mon -> Thu (+3 days)', S.drawDateFor('2026-09-07') === '2026-09-10');
+check('Fri -> Mon (+3 days)', S.drawDateFor('2026-09-11') === '2026-09-14');
+check('Sun -> Wed (+3 days)', S.drawDateFor('2026-09-06') === '2026-09-09');
 check('Tue never draws', S.drawDateFor('2026-09-08') === null && S.scheduledDrawAt('2026-09-08') === null);
 check('Wed never draws', S.drawDateFor('2026-09-09') === null);
 check('Thu never draws', S.drawDateFor('2026-09-10') === null);
 check('Sat never draws', S.drawDateFor('2026-09-12') === null);
 check('isDrawDay agrees with the table', S.isDrawDay('2026-09-07') && S.isDrawDay('2026-09-11') && S.isDrawDay('2026-09-06') && !S.isDrawDay('2026-09-09'));
-check('draw time is 09:00 MYT = 01:00 UTC', S.scheduledDrawAt('2026-09-07', MYT) === Date.UTC(2026, 8, 11, 1, 0));
-check('offsetHours is honoured', S.scheduledDrawAt('2026-09-07', 0) === Date.UTC(2026, 8, 11, 9, 0));
+check('draw time is 09:00 MYT = 01:00 UTC', S.scheduledDrawAt('2026-09-07', MYT) === Date.UTC(2026, 8, 10, 1, 0));
+check('offsetHours is honoured', S.scheduledDrawAt('2026-09-07', 0) === Date.UTC(2026, 8, 10, 9, 0));
 check('DRAW_TIME constant is 09:00', S.DRAW_TIME === '09:00');
 check('table lists exactly Mon/Fri/Sun', Object.keys(S.DRAW_SCHEDULE).sort().join(',') === '0,1,5');
-check('month boundary: Fri 2026-10-30 -> Tue 2026-11-03', S.drawDateFor('2026-10-30') === '2026-11-03');
-check('year boundary: Sun 2026-12-27 -> Thu 2026-12-31; Mon 2026-12-28 -> Fri 2027-01-01', S.drawDateFor('2026-12-27') === '2026-12-31' && S.drawDateFor('2026-12-28') === '2027-01-01');
+check('every session gets three days to pay', [['2026-09-07', '2026-09-10'], ['2026-09-11', '2026-09-14'], ['2026-09-06', '2026-09-09']].every(([s, d]) => S.drawDateFor(s) === d));
+check('month boundary: Fri 2026-10-30 -> Mon 2026-11-02', S.drawDateFor('2026-10-30') === '2026-11-02');
+check('year boundary: Sun 2026-12-27 -> Wed 2026-12-30; Mon 2026-12-28 -> Thu 2026-12-31', S.drawDateFor('2026-12-27') === '2026-12-30' && S.drawDateFor('2026-12-28') === '2026-12-31');
 
 // ── eligibility boundary ──
 const DATE = '2026-09-07';
@@ -158,9 +159,9 @@ check('view paging: limit + before', (() => { const r = S.buildView({ sessions: 
 
 // ── strings ──
 check('statusLabel', S.statusLabel({ status: 'done' }) === 'Drawn' && S.statusLabel({ status: 'pending', due: false }) === 'Pending' && S.statusLabel({ status: 'pending', due: true }) === 'Draw pending');
-check('fmtDrawTime renders Malaysia time', S.fmtDrawTime(DRAW_AT) === 'Fri 11 Sep · 9:00 AM');
+check('fmtDrawTime renders Malaysia time', S.fmtDrawTime(DRAW_AT) === 'Thu 10 Sep · 9:00 AM');
 check('fmtSessionDate', S.fmtSessionDate('2026-09-07') === 'Monday 7 September 2026');
-check('drawDayLabel Monday-first', S.drawDayLabel() === 'Mon → Fri, Fri → Tue, Sun → Thu');
+check('drawDayLabel Monday-first', S.drawDayLabel() === 'Mon → Thu, Fri → Mon, Sun → Wed');
 check('howItWorksText mentions 3 days, 9:00 AM and the winner count', /within 3 days/.test(S.howItWorksText(2)) && /9:00 AM/.test(S.howItWorksText(2)) && /2 winners are/.test(S.howItWorksText(2)) && /1 winner is/.test(S.howItWorksText(1)));
 check('countsLine', S.countsLine({ attended: 20, paid: 18, eligible: 18, winners: 2 }) === '20 attended · 18 paid · 18 eligible · 2 winners');
 

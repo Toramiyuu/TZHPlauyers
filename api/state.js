@@ -591,9 +591,29 @@ async function rolloverSessionDate() {
   return { ok: true, changed: true, from: state.sessionDate || null, to: target || state.sessionDate || null, closedMonths, today };
 }
 
+/**
+ * Re-stamp every scheduled Lucky Draw time from the table in public/session-draw.js,
+ * which is the single source of truth for which weekday draws when. A stamp written
+ * under an older table would otherwise pin a still-pending session to the morning it
+ * used to draw on. Sessions that were already drawn are untouched by this: their
+ * permanent record carries its own drawAt, and the sweep skips a date that has one.
+ */
+function restampDrawTimes(current) {
+  if (!current || typeof current !== 'object') return current;
+  if (typeof current.sessionDate === 'string') current.sessionDrawAt = SD.scheduledDrawAt(current.sessionDate);
+  const sessions = current.sessions;
+  if (sessions && typeof sessions === 'object' && !Array.isArray(sessions)) {
+    for (const d of Object.keys(sessions)) {
+      const snap = sessions[d];
+      if (snap && typeof snap === 'object') snap.drawAt = SD.scheduledDrawAt(d);
+    }
+  }
+  return current;
+}
+
 /** Load the live state blob (or the defaults). Shared by the draws endpoint + cron. */
 async function loadState() {
-  return (await kv.get(STATE_KEY)) || { ...DEFAULT_STATE };
+  return restampDrawTimes((await kv.get(STATE_KEY)) || { ...DEFAULT_STATE });
 }
 
 /**
@@ -769,7 +789,7 @@ const handler = async function handler(req, res) {
       delete current.weeklySettings;
       // Session draw settings + the live day's scheduled draw instant.
       current.drawSettings = { winners: SD.winnersOf(current.drawSettings), prize: SD.prizeOf(current.drawSettings), prizes: SD.prizesOf(current.drawSettings) };
-      if (current.sessionDrawAt === undefined) current.sessionDrawAt = SD.scheduledDrawAt(current.sessionDate);
+      restampDrawTimes(current);
       // Monthly (points) draw: repair old/odd blobs; a missing pointsMonth means "this month".
       current.monthlyLucky = ML.normalize(current.monthlyLucky, todayISO());
       // Lifetime points: seed/repair the map (stripped again by publicProjection —
@@ -902,7 +922,7 @@ const handler = async function handler(req, res) {
 
     let state;
     try {
-      state = (await kv.get(STATE_KEY)) || { ...DEFAULT_STATE };
+      state = restampDrawTimes((await kv.get(STATE_KEY)) || { ...DEFAULT_STATE });
     } catch (e) {
       state = { ...DEFAULT_STATE };
     }

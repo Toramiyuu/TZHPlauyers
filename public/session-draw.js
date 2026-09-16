@@ -7,8 +7,8 @@
  *
  * Rules (fixed, not user-configurable except the winner count):
  *   - Every session on a draw day gets exactly one draw, at DRAW_TIME Malaysia
- *     time on the weekday DRAW_SCHEDULE maps it to (Mon -> Fri, Fri -> Tue,
- *     Sun -> Thu). That leaves the three days in between to pay.
+ *     time on the weekday DRAW_SCHEDULE maps it to (Mon -> Thu, Fri -> Mon,
+ *     Sun -> Wed). That leaves the three days in between to pay.
  *   - Eligible = attended AND payment marked paid with paidAt strictly BEFORE
  *     the scheduled draw time. Lists nest: attended ⊇ paid ⊇ eligible ⊇ winners.
  *   - Winners = the first N of a Fisher–Yates shuffle of the eligible ids
@@ -30,7 +30,7 @@
   // ── config (the ONLY place the schedule lives) ───────────────────────
   // Session weekday (0=Sun..6=Sat) -> weekday the draw happens on. Add a day here
   // to start drawing it; days not listed never draw.
-  const DRAW_SCHEDULE = { 1: 5, 5: 2, 0: 4 };
+  const DRAW_SCHEDULE = { 1: 4, 5: 1, 0: 3 };
   const DRAW_TIME = '09:00';          // wall-clock in Asia/Kuala_Lumpur
   const PAY_WINDOW_DAYS = 3;          // copy only: "pay within 3 days"
   // Sessions before this date are ignored (never drawn, never listed) so the
@@ -510,7 +510,7 @@
     return view.due ? 'Draw pending' : 'Pending';
   }
   function drawDayLabel() {
-    // Monday-first week order so the copy reads "Mon → Fri, Fri → Tue, Sun → Thu".
+    // Monday-first week order so the copy reads "Mon → Thu, Fri → Mon, Sun → Wed".
     return [1, 2, 3, 4, 5, 6, 0].filter((k) => DRAW_SCHEDULE[k] != null)
       .map((k) => WEEKDAY_SHORT[k] + ' → ' + WEEKDAY_SHORT[DRAW_SCHEDULE[k]]).join(', ');
   }
