@@ -140,19 +140,20 @@ eq('Sun 1 Nov 19:59 is still the October night', Night.currentNight(myt(NOV_SUN,
 eq('Sun 1 Nov 20:00 starts a November night', Night.currentNight(myt(NOV_SUN, 20, 0)), NOV_SUN);
 
 // ── 7b. isPickableDate: which days a calendar strip lets you tap ─────
-// Games are Mon/Fri/Sun, so every other night is dead weight on a date strip.
-// The exception is a date that already holds something: an old off-day session
-// or the night on screen must stay reachable, never locked behind a grey button.
+// Games are Mon/Fri/Sun, so every other night is dead weight on a date strip
+// and is greyed out — an old off-day record does not buy it a tap, because the
+// club still never played on a Tuesday. Only the night already on screen is
+// exempt: tapping it changes nothing, and a disabled selected day reads broken.
 check('Friday can be picked', Night.isPickableDate(FRI, false));
 check('Sunday can be picked', Night.isPickableDate(SUN, false));
 check('Monday can be picked', Night.isPickableDate(MON, false));
-check('an empty Saturday cannot be picked', !Night.isPickableDate(SAT, false));
-check('an empty Tuesday cannot be picked', !Night.isPickableDate(TUE, false));
-check('an empty Wednesday cannot be picked', !Night.isPickableDate(WED, false));
-check('an empty Thursday cannot be picked', !Night.isPickableDate(THU, false));
-check('a Saturday that holds a session CAN be picked', Night.isPickableDate(SAT, true));
-check('a Wednesday one-off game night stays reachable', Night.isPickableDate(WED, true));
-check('a game day is pickable with or without a record', Night.isPickableDate(FRI, true));
+check('Saturday cannot be picked', !Night.isPickableDate(SAT, false));
+check('Tuesday cannot be picked', !Night.isPickableDate(TUE, false));
+check('Wednesday cannot be picked', !Night.isPickableDate(WED, false));
+check('Thursday cannot be picked', !Night.isPickableDate(THU, false));
+check('an off day that HOLDS a record still cannot be picked', !Night.isPickableDate(SAT, false));
+check('the night already on screen stays enabled, off day or not', Night.isPickableDate(SAT, true));
+check('a game day is pickable either way', Night.isPickableDate(FRI, true));
 check('garbage date is never pickable', !Night.isPickableDate('nonsense', true));
 
 // ── 8. defensive ─────────────────────────────────────────────────────
@@ -202,11 +203,13 @@ check('off-day notice element exists', /id="sessionOffDayWarn"/.test(HTML));
 check('off-day notice is driven by isGameDay', /Night\.isGameDay\(date\)/.test(HTML));
 check('night controls render from the session-date section', /renderNightControls\(date\)/.test(HTML));
 // The 2s admin poll runs through this render — it must not stomp live edits.
-// Date strips: the Session History one and the Payments one both grey out the
-// off nights rather than open an empty panel on a Tuesday.
-check('history strip greys out off nights', /Night\.isPickableDate\(iso, !!sessions\[iso\]/.test(HTML) && /btn\.disabled = !pickable/.test(HTML));
-check('payments strip greys out off nights', /Night\.isPickableDate\(iso, has\.has\(iso\)/.test(HTML) && / disabled title="No games on /.test(HTML));
-check('both strips still open a date that holds something', /iso === selectedCalDate\)/.test(HTML) && /iso === pmDate \|\| iso === live\)/.test(HTML));
+// Date strips: the Session History one and the Payments one both grey out every
+// off night, records or not. Only the date already showing survives.
+check('history strip greys out off nights', /Night\.isPickableDate\(iso, iso === selectedCalDate\)/.test(HTML) && /btn\.disabled = !pickable/.test(HTML));
+check('payments strip greys out off nights', /Night\.isPickableDate\(iso, iso === pmDate\)/.test(HTML) && / disabled title="No games on /.test(HTML));
+check('an old off-day session does not re-enable a strip day',
+  !/isPickableDate\(iso, [^)]*sessions\[iso\]/.test(HTML) && !/isPickableDate\(iso, [^)]*has\.has\(iso\)/.test(HTML));
+check('a greyed night carries no dot either', /pickable && \(iso === todayStr/.test(HTML) && /pickable && \(iso === live/.test(HTML));
 check('an off night is styled as off, not invisible', /\.cal-strip-btn\.s-off\{/.test(HTML));
 check('night controls use the no-op repaint guard', /setHtmlIfChanged\(btn/.test(HTML) && /setHtmlIfChanged\(warn/.test(HTML));
 

@@ -140,16 +140,18 @@
   function localDate(nowMs, offsetHours) { return localParts(nowMs, offsetHours).date; }
 
   /**
-   * Is this date worth a tap on a date strip? Nobody plays on a Tuesday, so a
-   * Tuesday holds nothing to open and the calendars grey it out. The escape
-   * hatch is `hasRecord`: a date that already carries something (a saved
-   * session, payments, the night being shown) stays reachable whatever weekday
-   * it fell on, so a one-off game night — or an old ghost date — is never
-   * locked away behind a disabled button.
+   * Is this date worth a tap on a date strip? Games are Mon/Fri/Sun, so every
+   * other night is dead weight and the calendars grey it out — even one that
+   * carries an old record, because the club still never plays on a Tuesday and
+   * those records are the ghosts the night boundary was built to stop.
+   *
+   * `isCurrent` is the only exception: the night already on screen stays
+   * enabled, since tapping it changes nothing but a disabled selected day
+   * reads as broken.
    */
-  function isPickableDate(iso, hasRecord) {
+  function isPickableDate(iso, isCurrent) {
     if (!isValidISO(iso)) return false;
-    return isGameDay(iso) || !!hasRecord;
+    return isGameDay(iso) || !!isCurrent;
   }
 
   return {

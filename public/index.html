@@ -7069,10 +7069,10 @@ function renderCalendar() {
     if (iso === todayStr) cls.push('s-today');
     if (sessions[iso]) cls.push('s-has');
     if (iso === selectedCalDate) cls.push('s-sel');
-    // Games are Mon/Fri/Sun: an empty Tuesday has no session to show and no
-    // business being created, so it is greyed out rather than left to open an
-    // empty panel. A date that already holds a session stays pressable.
-    const pickable = !window.Night || Night.isPickableDate(iso, !!sessions[iso] || iso === selectedCalDate);
+    // Games are Mon/Fri/Sun: nothing else is a night, so nothing else can be
+    // opened here — not even a date left holding an old off-day session. Only
+    // the date already showing stays enabled.
+    const pickable = !window.Night || Night.isPickableDate(iso, iso === selectedCalDate);
     if (!pickable) cls.push('s-off');
     btn.className = cls.join(' ');
     btn.textContent = d;
@@ -9231,12 +9231,14 @@ function renderPmCalendar() {
     if (has.has(iso)) cls.push('s-has');
     else if (sessions[iso]) cls.push('s-sess');
     if (iso === pmDate) cls.push('s-sel');
-    // Nobody plays outside Mon/Fri/Sun, so an empty off-day has no night to
-    // settle: it is greyed out. Anything already recorded there stays pressable.
+    // Nobody plays outside Mon/Fri/Sun, so there is no night to settle there and
+    // the day is greyed out — an old off-day record does not buy it a tap; it
+    // still shows under By member. Only the night already open stays enabled.
     const wd = WeeklyDraw.isoWeekday(iso);
-    const pickable = !window.Night || Night.isPickableDate(iso, has.has(iso) || !!sessions[iso] || iso === pmDate || iso === live);
+    const pickable = !window.Night || Night.isPickableDate(iso, iso === pmDate);
     if (!pickable) cls.push('s-off');
-    const dot = (iso === live || has.has(iso) || sessions[iso] || iso === pmDate) ? '<span class="cal-strip-dot"></span>' : '';
+    // No dot on a greyed night: it would promise a night to open that no longer opens.
+    const dot = (pickable && (iso === live || has.has(iso) || sessions[iso] || iso === pmDate)) ? '<span class="cal-strip-dot"></span>' : '';
     html += '<div class="cal-strip-col"><span class="cal-strip-name">' + letters[wd] + '</span>'
       + '<button type="button" class="' + cls.join(' ') + '" onclick="pmSelectDate(\'' + iso + '\')" aria-label="' + iso + '"'
       + (pickable ? '' : ' disabled title="No games on ' + WEEKDAY_NAMES[wd] + 's"')
