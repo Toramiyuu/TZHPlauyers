@@ -37,6 +37,9 @@ function baseState(overrides) {
     courtRounds: [0, 0, 0],
     currentRound: 1,
     endingSoon: ['p0'],
+    courtStatus: ['final', 'next', 'live'],
+    courtLocks: [true, false, true],
+    courtLive: [1700000000000, 0, 1700000000000],
     sessions: {},
   }, overrides || {});
 }
@@ -70,6 +73,12 @@ if (typeof applySessionDateChange !== 'function') {
     check('fresh day: rounds reset to empty', Array.isArray(r.state.rounds) && r.state.rounds.length === 0);
     check('fresh day: currentRound reset', r.state.currentRound === 0);
     check('fresh day: endingSoon reset', Array.isArray(r.state.endingSoon) && r.state.endingSoon.length === 0);
+    // The rest of the per-court card flags belong to the night that just ended:
+    // a Final status, a lock held for a regenerate, a clock still counting a
+    // finished game. A new night must start with all of them clear.
+    check('fresh day: court statuses reset', Array.isArray(r.state.courtStatus) && r.state.courtStatus.length === 0);
+    check('fresh day: court locks reset', Array.isArray(r.state.courtLocks) && r.state.courtLocks.length === 0);
+    check('fresh day: court game clocks reset', Array.isArray(r.state.courtLive) && r.state.courtLive.length === 0);
     check('fresh day: numCourts carried over', r.state.numCourts === 3);
     check('fresh day: courtNumbers carried over', JSON.stringify(r.state.courtNumbers) === JSON.stringify([5, 6, 7]));
     check('leaving day snapshotted into sessions', !!(r.state.sessions && r.state.sessions['2026-07-01']));

@@ -539,7 +539,13 @@ function applySessionDateChange(state, newDate, today) {
       next.feeTier = Payments.DEFAULT_TIER; // a fresh night starts on the default fee
     }
     next.currentRound = 0;
+    // Every per-court flag is about the night that just ended: an "ending soon"
+    // court, a Final status, a lock held for a regenerate, a clock still
+    // counting a finished game. A new night starts with all of them clear.
     next.endingSoon = [];
+    next.courtStatus = [];
+    next.courtLocks = [];
+    next.courtLive = [];
     next.sessions = sessions;
   }
   next.sessionDate = newDate;
