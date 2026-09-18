@@ -89,6 +89,13 @@ const post = (b) => call('POST', {}, b);
   // adminGetOps returns private data to the admin
   r = await post({ password: P, action: 'adminGetOps' });
   check('adminGetOps returns attendance/audit', r.status === 200 && r.body.ok && typeof r.body.attendance === 'object' && Array.isArray(r.body.audit));
+  // Phone numbers by player: what Session and Payments read, admin-side only.
+  check('adminGetOps carries a playerId -> phone map for the linked accounts',
+    r.body.phones && r.body.phones.p0 === '+60 12-999 9999' && Object.keys(r.body.phones).length === STORE.accounts.filter(a => a.playerId && a.phone).length);
+  check('the phone map never carries hashes, tokens or unlinked accounts',
+    Object.values(r.body.phones).every(v => typeof v === 'string') && !JSON.stringify(r.body.phones).includes('pwHash'));
+  const gPhones = await call('GET', {});
+  check('the public GET has no phone map and no accounts', gPhones.body.phones === undefined && gPhones.body.accounts === undefined);
 
   // attendance through the dispatcher; the public GET must not expose it (nor the retired weeklyDraws)
   await post({ password: P, action: 'seedAttendance', date: '2026-07-20' });

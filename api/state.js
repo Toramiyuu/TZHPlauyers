@@ -1,5 +1,5 @@
 const { Redis } = require('@upstash/redis');
-const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction } = require('../lib/accounts.js');
+const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction, playerPhoneMap } = require('../lib/accounts.js');
 const { handleMemberInfo } = require('../lib/member.js');
 const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction, pruneWeeklyState } = require('../lib/weekly.js');
 const { SESSION_DRAW_ADMIN_ACTIONS, handleSessionDrawAdminAction, sweepSessionDraws, redisDrawStore } = require('../lib/session-draw.js');
@@ -1067,6 +1067,9 @@ const handler = async function handler(req, res) {
         feeTier: Payments.tierOf(state.feeTier),
         sessionDate: state.sessionDate || null,
         lifetimePoints: state.lifetimePoints || {},
+        // Phone numbers by player, so Session and Payments can show who to call
+        // without loading the (heavy, secret-carrying) accounts array.
+        phones: playerPhoneMap(state),
       });
     }
 

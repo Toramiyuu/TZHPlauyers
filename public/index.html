@@ -786,6 +786,9 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .rc-points-input::-webkit-outer-spin-button,
 .rc-points-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .rc-sessions-ref{font-size:9px;color:var(--muted);text-align:center;margin-top:2px;letter-spacing:.3px}
+/* Same number as the List view, sized for a card: one line, clipped rather than
+   wrapped so a card never grows a second row of text. */
+.rc-phone{font-size:9px;color:var(--muted);text-align:center;letter-spacing:.2px;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 /* Players Grid ⇄ List view toggle (variant 12) */
 .roster-viewtoggle{display:inline-flex;background:var(--card2);border:1px solid var(--border);border-radius:100px;padding:3px;margin-bottom:10px;gap:2px}
 .rv-btn{border:none;background:none;color:var(--text-2);font-size:13px;font-weight:600;padding:5px 18px;border-radius:100px;cursor:pointer;font-family:inherit;transition:var(--transition)}
@@ -807,7 +810,11 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .rl-check.on{background:var(--green);border-color:var(--green)}
 .rl-player:hover .rl-check,.rl-check:hover{border-color:var(--green-line)}
 .rl-check:focus-visible{outline:2px solid var(--a-blue,#0071e3);outline-offset:2px}
+.rl-who{display:flex;flex-direction:column;min-width:0;line-height:1.25}
 .rl-name{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Their number under the name: there to be read out, so it stays quiet but
+   full — never masked on the organiser's own screens. */
+.rl-phone{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 .rl-lvl-inp{width:66px;background:var(--dark);border:1px solid var(--border2);color:var(--muted);font-size:13px;font-weight:600;padding:6px 8px;border-radius:8px;font-family:inherit;text-align:center;transition:border-color .15s,color .15s}
 .rl-lvl-inp.set{color:var(--text);border-color:var(--a-blue,#0071e3)}
 .rl-lvl-inp:focus{outline:none;border-color:var(--green)}
@@ -5384,6 +5391,7 @@ function renderPlayersSection() {
           <button class="rc-points-btn" onclick="event.stopPropagation();adjustPoints('${rp.id}',1)" aria-label="Increase points">+</button>
         </div>
         <div class="rc-sessions-ref">${sessionsAttended(rp.id)} sessions</div>
+        ${(() => { const ph = phoneForPlayer(rp.id); return ph ? `<div class="rc-phone" title="${escHtml(ph)}">${escHtml(ph)}</div>` : ''; })()}
       </div>
     `);
   });
@@ -7578,6 +7586,7 @@ async function loadAdminOps() {
     attendance: res.attendance || {}, drawSettings: res.drawSettings || null,
     audit: res.audit || [],
     lifetimePoints: res.lifetimePoints || {},
+    phones: res.phones || {},
   };
   return adminOps;
 }
@@ -7604,10 +7613,16 @@ function serverTodayISO() { return (state && state.today) || new Date(serverNowM
 function fmtISO(iso) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ''); if (!m) return iso || ''; const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])); return d.getUTCDate() + ' ' + d.toLocaleString('en', { month: 'long', timeZone: 'UTC' }); }
 function fmtISOYear(iso) { const m = /^(\d{4})/.exec(iso || ''); return fmtISO(iso) + (m ? ' ' + m[1] : ''); }
 
+// The organiser's own screens show the number in full — a masked one is no use
+// for calling someone about an unpaid night. It comes from the admin ops fetch
+// (adminOps.phones), so Session and Payments have it without opening Accounts;
+// the accounts list, when it is loaded, is the fresher copy and wins.
 function phoneForPlayer(playerId) {
+  if (!playerId) return '';
   const a = (adminAccountsCache || []).find(x => x.playerId === playerId);
-  if (a && a.phoneDisplay && window.Phone) return Phone.maskPhone(a.phone || a.phoneDisplay);
-  return '';
+  if (a) return a.phoneDisplay || a.phone || '';
+  const phones = (adminOps && adminOps.phones) || null;
+  return phones && phones[playerId] ? String(phones[playerId]) : '';
 }
 
 // ── SESSION LUCKY DRAW (automatic per-session draw) ─────────────────────
@@ -9573,7 +9588,11 @@ function renderPmMemberModal(body, put) {
   const pts = rp ? (rp.points || 0) : null;
   const tier = pts === null ? null : tierForPoints(pts);
   const owe = m.outstanding > 0;
-  put('pmModalEyebrow', 'Member · ' + (m.sessions ? pmNights(m.sessions) + ' on record' : 'no records yet')); // tier sits next to the points, not repeated here
+  // The number goes in the eyebrow: chasing an unpaid night starts with a call,
+  // and this popup is where the organiser sees the debt.
+  const memPhone = phoneForPlayer(pmMemPid);
+  put('pmModalEyebrow', 'Member · ' + (m.sessions ? pmNights(m.sessions) + ' on record' : 'no records yet')
+    + (memPhone ? ' · ' + memPhone : '')); // tier sits next to the points, not repeated here
   put('pmModalTitle', m.name);
   // Three figures: this month's points (which reset for everyone at month close),
   // the lifetime total (organiser-only, never reset), and what they still owe.
@@ -11038,7 +11057,12 @@ function renderRosterList(listEl, visibleRoster, sessionIds, q) {
     return `<div class="rl-row${inS ? ' in' : ''}${open ? ' open' : ''}">
       <div class="rl-player" onclick="rosterRowTap('${rp.id}')" role="button" tabindex="0" ${rowAttrs}>
         <button type="button" class="rl-check${inS ? ' on' : ''}" aria-pressed="${inS}" onclick="event.stopPropagation();toggleRosterPlayer('${rp.id}')" title="${inS ? 'Playing today, tap to remove from session' : "Tap to add to today's session"}" aria-label="${inS ? 'Remove' : 'Add'} ${escHtml(rp.name)} ${inS ? "from today's session" : "to today's session"}">${inS ? '✓' : ''}</button>
-        ${avatarHTML(rp, 32)}<span class="rl-name">${escHtml(rp.name)}</span>
+        ${avatarHTML(rp, 32)}<span class="rl-who"><span class="rl-name">${escHtml(rp.name)}</span>${(() => {
+          // Their number, so the organiser can chase a payment or a no-show from
+          // the list they are already looking at. Blank for anyone without an account.
+          const ph = phoneForPlayer(rp.id);
+          return ph ? `<span class="rl-phone">${escHtml(ph)}</span>` : '';
+        })()}</span>
       </div>
       <div class="rl-level">${seg}</div>
       <div class="rl-girl"><button class="rl-toggle girl${gl ? ' on' : ''}" role="switch" aria-checked="${gl}" onclick="togglePlayerGirl('${rp.id}')" aria-label="${escHtml(rp.name)} is a girl ${gl ? 'yes' : 'no'}"><span class="rl-knob"></span></button></div>

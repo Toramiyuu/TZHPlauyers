@@ -4,7 +4,7 @@ const os = require('os');
 // Reuse the serverless submit validator + clock so local dev matches production.
 const { buildSignups, todayISO, applySessionDateChange, publicProjection, buildRosterAdditions, buildRosterPointsUpdate,
         ensureLifetimePoints, addLifetimePoints, lifetimeOf } = require('./api/state.js');
-const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction } = require('./lib/accounts.js');
+const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction, playerPhoneMap } = require('./lib/accounts.js');
 const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction } = require('./lib/weekly.js');
 const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('./lib/payments.js');
 const { SESSION_DRAW_ADMIN_ACTIONS, handleSessionDrawAdminAction, sweepSessionDraws, buildDrawsView, memoryDrawStore } = require('./lib/session-draw.js');
@@ -182,6 +182,7 @@ app.post('/api/state', async (req, res) => {
       feeTier: Payments.tierOf(state.feeTier),
       sessionDate: state.sessionDate || null,
       lifetimePoints: state.lifetimePoints || {},
+      phones: playerPhoneMap(state),
     });
   }
   // Mirrors the api/state.js branch — bulk roster add carries only the names.

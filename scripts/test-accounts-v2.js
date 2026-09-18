@@ -224,6 +224,19 @@ const admin = (s, body) => A.handleAdminAccountAction(s, body, { adminPassword: 
   check('setPhone: unknown account -> 404', admin(s, { action: 'adminSetPhone', id: 'acc_nope', phone: '0123456780' }).status === 404);
 }
 
+// ── playerPhoneMap: what Session / Payments read instead of the accounts array ──
+{
+  const s = freshState();
+  check('empty state -> empty map', Object.keys(A.playerPhoneMap(s)).length === 0 && Object.keys(A.playerPhoneMap(null)).length === 0);
+  admin(s, { action: 'adminCreateAccount', phone: '0123456789', name: 'Kokyan', playerId: 'p6' });
+  admin(s, { action: 'adminAssignCodes' });          // gives p0 a code-only account, no phone
+  const map = A.playerPhoneMap(s);
+  check('only linked accounts WITH a number are in it', map.p6 === '+60 12-345 6789' && map.p0 === undefined && Object.keys(map).length === 1);
+  check('it is the display form, and nothing else from the account', typeof map.p6 === 'string' && !JSON.stringify(map).includes('pwHash') && !JSON.stringify(map).includes('token'));
+  const unlinked = { accounts: [{ id: 'x', phone: '60111111111', phoneDisplay: '+60 11-111 1111' }], roster: [] };
+  check('an account with no player is skipped', Object.keys(A.playerPhoneMap(unlinked)).length === 0);
+}
+
 // ── add a phone to a code-only account, and take it away again ──
 // A code-only member (no phone, no password) is the common case: the organiser
 // adds their number later so phone + password sign-in works too.

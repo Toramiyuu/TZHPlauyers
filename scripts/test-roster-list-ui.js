@@ -137,5 +137,27 @@ check('.rl-check has a visible keyboard focus ring', html.includes('.rl-check:fo
 check('phone: the tick grows to 26px of ink', mq.includes('.rl-check{width:26px;height:26px;font-size:14px}'));
 check('phone: the tick gets a 44px hit area', mq.includes('.rl-check::after{content:"";position:absolute;inset:-9px}'));
 
+// ── phone numbers on the organiser's screens (2026-09-18) ──
+// The number is for reading out, so it is shown in full here — never masked —
+// and it comes from the admin ops fetch, so the Session tab has it without
+// anyone opening Accounts first.
+check('the List row shows the number under the name', row.includes('<span class="rl-who">') && row.includes('class="rl-phone"') && row.includes('phoneForPlayer(rp.id)'));
+check('a player with no account gets no empty line', /const ph = phoneForPlayer\(rp\.id\);\s*return ph \? /.test(row));
+check('the Grid card shows it too', fn('renderPlayersSection').includes('class="rc-phone"') && fn('renderPlayersSection').includes('phoneForPlayer(rp.id)'));
+check('phoneForPlayer reads the ops map and is no longer masked',
+  fn('phoneForPlayer').includes('adminOps.phones') && !fn('phoneForPlayer').includes('maskPhone')
+  && fn('phoneForPlayer').includes('a.phoneDisplay || a.phone'));
+check('the ops fetch keeps the map', fn('loadAdminOps').includes('phones: res.phones || {}'));
+check('Payments shows it on the night rows, the member rows and the member popup',
+  fn('pmRowHtml').includes('phoneForPlayer(pid)') && fn('pmMemRowHtml').includes('phoneForPlayer(m.playerId)')
+  && fn('renderPmMemberModal').includes('phoneForPlayer(pmMemPid)'));
+check('both lines are styled, and neither wraps a row onto two lines',
+  html.includes('.rl-who{display:flex;flex-direction:column') && html.includes('.rl-phone{font-size:var(--fs-xs)') && html.includes('.rc-phone{font-size:9px'));
+// Courts is the one place it must NOT appear: those cards are read across the
+// hall at a glance, and a phone number is noise there.
+const courtFns = ['renderCourtControls', 'renderRestingPlayers', 'renderCourtSelector'];
+check('the Courts renderers exist under these names', courtFns.every(f => fn(f).length > 200));
+check('no phone on the Courts bench or court cards', courtFns.every(f => !fn(f).includes('phoneForPlayer')));
+
 console.log(`\ntest-roster-list-ui: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
