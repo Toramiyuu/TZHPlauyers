@@ -10532,6 +10532,16 @@ function acctProfSigninHtml(a, id) {
       ${a.code ? `<button class="btn btn-secondary btn-sm" onclick="copyAcctInvite('${id}')">Copy invite</button>` : ''}
     </div>
     <div class="ap-row">
+      <span class="ap-lbl">Phone</span>
+      <input class="admin-form-input acct-pw-input" id="phoneVal_${id}" type="tel" value="${escHtml(a.phoneDisplay || a.phone || '')}" placeholder="e.g. 012-345 6789"
+        autocomplete="off" inputmode="tel" maxlength="20" onkeydown="if(event.key==='Enter')saveAcctPhone('${id}')" aria-label="Phone number">
+      <button class="btn btn-primary btn-sm" onclick="saveAcctPhone('${id}')">Save</button>
+      ${a.phone ? `<button class="btn btn-ghost btn-sm" onclick="clearAcctPhone('${id}')">Remove</button>` : ''}
+      <span class="ap-note">${a.phone
+        ? 'They can sign in with this number and their password, or with the login code.'
+        : 'Code sign-in only. Add a number to let them sign in with phone + password as well.'}</span>
+    </div>
+    <div class="ap-row">
       <span class="ap-lbl">Password</span>
       <button class="btn btn-secondary btn-sm" onclick="toggleReveal('${id}')" ${canReveal ? '' : 'disabled title="No stored password or key"'}>Reveal</button>
       <button class="btn btn-ghost btn-sm" onclick="toggleInline('chpw_${id}')">Change</button>
@@ -10664,6 +10674,25 @@ async function clearCode(id) {
   if (!res.ok) { notify(res.error || 'Could not remove the code.', 'warn'); return; }
   patchAcct(res); renderAccountsTab();
   notify('Login code removed.');
+}
+// Phone number: the second way in (phone + password). Code-only accounts start
+// without one, so this is how an organiser adds it later. The server normalises
+// whatever is typed — 012-345 6789, 60123456789, +60 12… are one number.
+async function setAcctPhone(id, phone, okMsg) {
+  const res = await apiPost({ action: 'adminSetPhone', id, phone });
+  if (res === null) return;
+  if (!res.ok) { notify(res.error || 'Could not save that phone number.', 'warn', 5000); renderAccountsTab(); return; }
+  patchAcct(res); renderAccountsTab();
+  notify(res.unchanged ? 'Phone number unchanged.' : okMsg(res.account), 'ok', 5000);
+}
+function saveAcctPhone(id) {
+  const el = document.getElementById('phoneVal_' + id);
+  const phone = el ? el.value.trim() : '';
+  if (!phone) { notify('Type a phone number, or use Remove to clear it.', 'warn'); return; }
+  return setAcctPhone(id, phone, acc => 'Phone number saved: ' + (acc.phoneDisplay || acc.phone));
+}
+function clearAcctPhone(id) {
+  return setAcctPhone(id, '', () => 'Phone number removed. They sign in with their login code now.');
 }
 
 function patchAcct(res) {

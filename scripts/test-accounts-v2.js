@@ -214,6 +214,39 @@ const admin = (s, body) => A.handleAdminAccountAction(s, body, { adminPassword: 
   const id2 = s.accounts.find(a => a.phone === '60129999999').id;
   check('setPhone: dup -> 409', admin(s, { action: 'adminSetPhone', id: id2, phone: '0123456789' }).status === 409);
   check('setPhone: new number ok', admin(s, { action: 'adminSetPhone', id: id2, phone: '0177777777' }).status === 200);
+  check('setPhone: the same number again changes nothing', (() => {
+    const before = JSON.stringify(s.accounts.find(a => a.id === id2));
+    const r2 = admin(s, { action: 'adminSetPhone', id: id2, phone: '+60 17-777 7777' });
+    return r2.status === 200 && r2.body.unchanged === true && r2.changed === false && JSON.stringify(s.accounts.find(a => a.id === id2)) === before;
+  })());
+  check('setPhone: junk is refused, the stored number stands',
+    admin(s, { action: 'adminSetPhone', id: id2, phone: '12345' }).status === 400 && s.accounts.find(a => a.id === id2).phone === '60177777777');
+  check('setPhone: unknown account -> 404', admin(s, { action: 'adminSetPhone', id: 'acc_nope', phone: '0123456780' }).status === 404);
+}
+
+// ── add a phone to a code-only account, and take it away again ──
+// A code-only member (no phone, no password) is the common case: the organiser
+// adds their number later so phone + password sign-in works too.
+{
+  const s = freshState();
+  admin(s, { action: 'adminAssignCodes' });
+  const acc = s.accounts.find(a => a.playerId === 'p6');
+  check('code-only accounts start with no phone', !!acc && acc.phone === '' && !!acc.code);
+  let r = admin(s, { action: 'adminSetPhone', id: acc.id, phone: '012-345 6789' });
+  check('adding a phone normalises it and keeps the login code',
+    r.status === 200 && r.changed === true && acc.phone === '60123456789' && acc.phoneDisplay && acc.code
+    && r.body.account.phone === '60123456789');
+  check('adding a phone is audited', s.audit[0].action === 'account.set_phone' && s.audit[0].prevValue === '' && s.audit[0].newValue === '60123456789');
+  r = admin(s, { action: 'adminSetPhone', id: acc.id, phone: '  ' });
+  check('an empty number clears it back to code sign-in only',
+    r.status === 200 && r.changed === true && r.body.cleared === true && acc.phone === '' && acc.phoneDisplay === '' && acc.code);
+  check('clearing is audited with what was there', s.audit[0].action === 'account.set_phone' && s.audit[0].prevValue === '60123456789' && s.audit[0].newValue === '');
+  r = admin(s, { action: 'adminSetPhone', id: acc.id, phone: '' });
+  check('clearing a number that was never there is a no-op, not an error', r.status === 200 && r.body.unchanged === true && r.changed === false);
+  const other = s.accounts.find(a => a.playerId === 'p0');
+  check('a cleared number is free for someone else to take',
+    admin(s, { action: 'adminSetPhone', id: other.id, phone: '0123456789' }).status === 200 && other.phone === '60123456789');
+  check('and it is taken while they hold it', admin(s, { action: 'adminSetPhone', id: acc.id, phone: '0123456789' }).status === 409);
 }
 
 // ── list + counts ──

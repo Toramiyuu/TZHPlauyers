@@ -104,6 +104,19 @@ check('blank Save regenerates instead of erroring', fn('saveCode').includes("if 
 // code row is in the profile's Sign-in section.
 check('account card shows the tappable code chip and opens the profile', fn('accountCardHtml').includes('${acctCodeChipHtml(a)}') && fn('accountCardHtml').includes("pmCall('openAcctProfile', a.id)"));
 check('the member profile carries the editable login-code row', fn('acctProfSigninHtml').includes('id="codeVal_${id}"') && fn('acctProfSigninHtml').includes(">Login code</span>") && fn('acctProfileHtml').includes('acctProfSigninHtml(a, id)'));
+// Phone row (2026-09-18): a code-only member has no number until an organiser
+// types one in here, which is what turns phone + password sign-in on for them.
+check('Manage has an editable Phone row, seeded from the stored number',
+  fn('acctProfSigninHtml').includes('id="phoneVal_${id}"') && fn('acctProfSigninHtml').includes('>Phone</span>')
+  && fn('acctProfSigninHtml').includes('a.phoneDisplay || a.phone')
+  && fn('acctProfSigninHtml').includes("saveAcctPhone('${id}')"));
+check('Remove only shows once there is a number to remove',
+  fn('acctProfSigninHtml').includes("${a.phone ? `<button class=\"btn btn-ghost btn-sm\" onclick=\"clearAcctPhone('${id}')\">Remove</button>` : ''}")
+  && fn('acctProfSigninHtml').includes('Code sign-in only'));
+check('save / remove both post adminSetPhone and repaint from the server copy',
+  fn('saveAcctPhone').includes("setAcctPhone(id, phone,") && fn('clearAcctPhone').includes("setAcctPhone(id, ''")
+  && fn('setAcctPhone').includes("action: 'adminSetPhone', id, phone") && fn('setAcctPhone').includes('patchAcct(res); renderAccountsTab();'));
+check('an empty Save is a nudge towards Remove, never a silent wipe', fn('saveAcctPhone').includes('or use Remove to clear it') && !fn('saveAcctPhone').includes("setAcctPhone(id, '')"));
 check('code chip copies on tap and is a real button', fn('acctCodeChipHtml').includes('<button type="button" class="acct-code"') && fn('acctCodeChipHtml').includes("pmCall('copyCode', a.code)"));
 check('roster players without an account get an Assign code row', fn('renderAcctList').includes('unlinkedRosterHtml(needle)') && fn('unlinkedRosterHtml').includes("pmCall('assignCodeFor', r.id)") && fn('unlinkedRosterHtml').includes('No login code yet'));
 check('counters lead with Login codes / No code', fn('renderAcctCounters').includes("['Login codes', codedPlayers.size, 'ok']") && fn('renderAcctCounters').includes("['No code', noCode"));
