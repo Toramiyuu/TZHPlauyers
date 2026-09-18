@@ -150,6 +150,35 @@ function freshState() {
   check('a store without put() refuses to remove instead of half-doing it',
     (await D.handleSessionDrawAdminAction(s, { action: 'removeDraw', date: MON }, { store: { get: async () => drawnRec, putIfAbsent: async () => false }, nowMs: MON_AT, offsetHours: 8, seedFn: seedA })).status === 500);
 
+  // ── redraw (the remove-and-run-again pair in one step) ──
+  s = freshState(); store = D.memoryDrawStore();
+  r = await D.handleSessionDrawAdminAction(s, { action: 'redraw', date: MON }, opts(MON_AT + MIN));
+  check('redraw with nothing drawn -> 404 pointing at Run draw now', r.status === 404 && /Run draw now/.test(r.body.error) && r.changed === false);
+  await D.sweepSessionDraws(s, store, { nowMs: MON_AT + 1000, offsetHours: 8, seedFn: seedA });
+  const firstRec = await store.get(MON);
+  r = await D.handleSessionDrawAdminAction(s, { action: 'redraw', date: MON }, opts(MON_AT + 2 * MIN));
+  const second = await store.get(MON);
+  check('redraw replaces the result in place: new seed, no marker, still verifiable',
+    r.status === 200 && r.body.ok && r.changed === true && second.seed === SEED_B && second.seed !== firstRec.seed
+    && second.removed === undefined && second.method === 'manual' && second.drawnAt === MON_AT + 2 * MIN && SD.verifyDrawResult(second));
+  check('redraw reports and audits both sets of winners',
+    r.body.prevWinners.length === 2 && s.audit[0].action === 'draw.redraw' && s.audit[0].target.id === MON
+    && s.audit[0].prevValue.join() === r.body.prevWinners.join() && s.audit[0].newValue.length === second.winners.length && /drawn again/.test(s.audit[0].note));
+  check('a redrawn night is still just a drawn night to the page',
+    (() => { const v = SD.viewOf({ date: MON }, second, MON_AT + 3 * MIN, {}); return v.status === 'done' && v.removed === false && v.verified === true; })());
+  r = await D.sweepSessionDraws(s, store, { nowMs: MON_AT + 4 * MIN, offsetHours: 8, seedFn: seedA });
+  check('the sweep leaves a redrawn night alone', !r.drawn.includes(MON) && (await store.get(MON)).seed === SEED_B);
+  check('redraw refuses a non-draw weekday / an invalid date',
+    (await D.handleSessionDrawAdminAction(s, { action: 'redraw', date: '2026-09-08' }, opts(MON_AT))).status === 400
+    && (await D.handleSessionDrawAdminAction(s, { action: 'redraw', date: 'x' }, opts(MON_AT))).status === 400);
+  r = await D.handleSessionDrawAdminAction(s, { action: 'redraw', date: MON }, { store, nowMs: MON_AT - MIN, offsetHours: 8, seedFn: seedA });
+  check('redraw before the scheduled time -> 400 with drawAt, result untouched', r.status === 400 && r.body.drawAt === MON_AT && (await store.get(MON)).seed === SEED_B);
+  check('a store without put() refuses to redraw', (await D.handleSessionDrawAdminAction(s, { action: 'redraw', date: MON }, { store: { get: async () => firstRec, putIfAbsent: async () => false }, nowMs: MON_AT + MIN, offsetHours: 8, seedFn: seedA })).status === 500);
+  r = await D.handleSessionDrawAdminAction(s, { action: 'removeDraw', date: MON }, opts(MON_AT + 5 * MIN));
+  r = await D.handleSessionDrawAdminAction(s, { action: 'redraw', date: MON }, opts(MON_AT + 6 * MIN));
+  check('redraw over a removed night works too, and remembers what was removed',
+    r.status === 200 && r.body.prevWinners.length === 2 && (await store.get(MON)).removed === undefined);
+
   // ── setDrawSettings ──
   s = freshState(); store = D.memoryDrawStore();
   for (const bad of [0, 11, 'x', 2.5, null]) {
@@ -257,6 +286,12 @@ function freshState() {
   r = await post({ password: P, action: 'runDraw', date: FRI });
   check('running it again through the dispatcher replaces the marker with a result',
     r.status === 200 && r.body.replaced === true && SD.verifyDrawResult(JSON.parse(HASHES.get(D.DRAWS_KEY).get(FRI))));
+  const beforeRedraw = JSON.parse(HASHES.get(D.DRAWS_KEY).get(FRI));
+  r = await post({ password: P, action: 'redraw', date: FRI });
+  check('redraw via dispatcher rewrites the field in one step and audits both sides',
+    r.status === 200 && r.body.ok && JSON.parse(HASHES.get(D.DRAWS_KEY).get(FRI)).seed !== beforeRedraw.seed
+    && STORE.audit[0].action === 'draw.redraw' && Array.isArray(STORE.audit[0].prevValue));
+  check('unauthenticated redraw -> 401', (await post({ action: 'redraw', date: FRI })).status === 401);
   r = await post({ password: P, action: 'setDrawSettings', winners: 3 });
   check('setDrawSettings via dispatcher persists', r.status === 200 && STORE.drawSettings.winners === 3 && STORE.audit[0].action === 'draw.settings');
   check('winners setting is not accepted through the generic merge', (await post({ password: P, drawSettings: { winners: 9 } })).status === 400 && STORE.drawSettings.winners === 3);

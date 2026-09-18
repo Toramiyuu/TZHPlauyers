@@ -115,14 +115,14 @@ check('page overlay is opaque full-screen without backdrop-filter', /#drawPage\{
 
 // ── evaluate the card renderer against a fixture ──
 const esc = 'function escHtml(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/\'/g, "&#39;"); }';
-const src = esc + ';' + 'const SessionDraw = arguments[0]; const sdBusy = new Set(); let sdConfirmRemove = null;'
+const src = esc + ';' + 'const SessionDraw = arguments[0]; const sdBusy = new Set(); let sdConfirm = null;'
   + "const SD_LIST_KEYS = [['attended', 'Attended'], ['paid', 'Paid'], ['eligible', 'Eligible'], ['winners', 'Winners']];"
-  + fn('sdWinnersLabel') + ';' + fn('sdListHtml') + ';' + fn('sdVideoRowHtml') + ';' + fn('sdCardHtml')
-  + '; return { card: sdCardHtml, ask: (d) => { sdConfirmRemove = d; } };';
+  + fn('sdWinnersLabel') + ';' + fn('sdListHtml') + ';' + fn('sdVideoRowHtml') + ';' + fn('sdAsking') + ';' + fn('sdCardHtml')
+  + '; return { card: sdCardHtml, ask: (date, kind) => { sdConfirm = date ? { date, kind } : null; } };';
 const evaluated = new Function(src)(SD);
 const sdCardHtml = evaluated.card;
-// Stands in for the admin having tapped "Remove result" on that card.
-const askRemove = evaluated.ask;
+// Stands in for the admin having tapped "Re-draw" / "Remove result" on that card.
+const askAction = evaluated.ask;
 const MON_AT = SD.scheduledDrawAt('2026-09-07', 8);
 const rec = SD.buildDrawResult({ date: '2026-09-07', drawAt: MON_AT, winnersWanted: 2, seed: '00112233445566778899aabbccddeeff', nowMs: MON_AT + 60000, method: 'auto',
   day: { entries: {
@@ -149,20 +149,30 @@ const dueView = SD.viewOf({ date: '2026-09-07', drawAt: MON_AT, day: null, lineu
 // The date is the jump to that night's money — admin only, never on a test card.
 check('admin card heading opens that night in Payments', doneHtml.includes("openPaymentsForNight('2026-09-07')") && doneHtml.includes('class="sd-date sd-date-link"'));
 check('a member sees the date as plain text, not a link', !pubDoneHtml.includes('openPaymentsForNight') && pubDoneHtml.includes('<div class="sd-date">'));
-// ── removing a result (2026-09-18) ──
-check('a drawn card offers "Remove result" to admins only, behind an inline confirm',
-  doneHtml.includes("askRemoveDraw('2026-09-07')") && doneHtml.includes('Remove result') && doneHtml.includes('sd-remove-btn')
-  && !doneHtml.includes('removeDrawResult(') && !pubDoneHtml.includes('askRemoveDraw'));
-check('the confirm step is the only thing that posts removeDraw, and only on its own card', (() => {
-  askRemove('2026-09-07');
-  const confirming = sdCardHtml(doneView, true);
+// ── redoing a result: Re-draw / Remove result (2026-09-18) ──
+check('a drawn card offers Re-draw + Remove result to admins only, both behind an inline confirm',
+  doneHtml.includes("askDrawAction('2026-09-07','redraw')") && doneHtml.includes('>Re-draw<')
+  && doneHtml.includes("askDrawAction('2026-09-07','remove')") && doneHtml.includes('Remove result') && doneHtml.includes('sd-remove-btn')
+  && !doneHtml.includes('redrawResult(') && !doneHtml.includes('removeDrawResult(')
+  && !pubDoneHtml.includes('askDrawAction'));
+check('each confirm posts its own action, on its own card only', (() => {
+  askAction('2026-09-07', 'redraw');
+  const redrawing = sdCardHtml(doneView, true);
   const other = sdCardHtml(Object.assign({}, doneView, { date: '2026-09-04' }), true);
-  askRemove(null);
-  return confirming.includes("removeDrawResult('2026-09-07')") && confirming.includes('Yes, remove it') && confirming.includes('askRemoveDraw(null)')
-    && !other.includes('removeDrawResult(') && sdCardHtml(doneView, true).includes("askRemoveDraw('2026-09-07')");
+  askAction('2026-09-07', 'remove');
+  const removing = sdCardHtml(doneView, true);
+  askAction(null);
+  return redrawing.includes("redrawResult('2026-09-07')") && redrawing.includes('Yes, draw again') && redrawing.includes('askDrawAction(null)')
+    && !redrawing.includes('removeDrawResult(')
+    && removing.includes("removeDrawResult('2026-09-07')") && removing.includes('Yes, remove it') && !removing.includes('redrawResult(')
+    && !other.includes('Yes, draw again') && other.includes("askDrawAction('2026-09-04','redraw')")
+    && sdCardHtml(doneView, true).includes("askDrawAction('2026-09-07','redraw')");
 })());
-check('removeDrawResult posts the action and reloads; it never deletes anything client-side',
-  fn('removeDrawResult').includes("action: 'removeDraw'") && fn('removeDrawResult').includes('sdBusy') && fn('removeDrawResult').includes('loadAdminDraws(false)'));
+check('both actions post through the same guarded shell and reload the list',
+  fn('redrawResult').includes("action: 'redraw'") && fn('removeDrawResult').includes("action: 'removeDraw'")
+  && fn('sdCardAction').includes('sdBusy.has(date)') && fn('sdCardAction').includes('sdBusy.add(date)')
+  && fn('sdCardAction').includes('loadAdminDraws(false)') && fn('sdCardAction').includes('sdConfirm = null'));
+check('a re-draw with nobody eligible says so instead of claiming winners', fn('redrawResult').includes('Nobody was eligible'));
 check('a pending card explains a removed result instead of promising an automatic draw',
   (() => { const h = sdCardHtml(Object.assign({}, dueView, { removed: true, removedAt: MON_AT + 60000 }), true);
     return h.includes('The earlier result was removed') && !h.includes('may still be on its way') && h.includes("runDrawNow('2026-09-07')"); })());
