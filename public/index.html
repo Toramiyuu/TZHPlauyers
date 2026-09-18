@@ -1375,12 +1375,6 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .sdc-now{display:inline-block;width:12px;height:7px;border-bottom:2px solid var(--text-2)}
 .sd-video-row{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 12px}
 .sd-win-chip small{font-size:11px;font-weight:600;opacity:.85}
-.sd-test{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
-.sd-test-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.sd-test-help{margin:0}
-.sd-test-note{font-size:var(--fs-sm);color:var(--text-2);line-height:1.5;margin:10px 0}
-.sd-card.test{border-color:var(--accent)}
-.sd-status.test{background:rgba(240,180,41,.18);border-color:transparent;color:var(--a-amber)}
 /* ── Lucky Draw hub (2 draws) + shared detail skeleton ── */
 /* Head row: back · title · close, with the Session/Monthly switch on its own
    full-width line under them. On a wide screen (below) the switch moves up beside
@@ -1525,6 +1519,10 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .sd-verified{color:var(--green-light);font-weight:600}
 .sd-unverified{color:var(--red);font-weight:600}
 .sd-admin-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--border)}
+/* Taking a result back is rare and undoes what members already saw: quiet until
+   it is asked for, then red while the confirm is on screen. */
+.sd-remove-btn{color:var(--red)}
+.sd-remove-btn:hover{background:rgba(229,72,77,.1)}
 .sd-more{display:flex;justify-content:center;padding:16px 0 0}
 .sd-setting{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px}
 .sd-setting .admin-form-label{margin:0}
@@ -3148,11 +3146,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
   <div class="ld-sub" data-sub="weekly">
 
-    <!-- Fixed schedule + winners setting -->
+    <!-- Fixed schedule. How many win and what they get live with the Prizes below. -->
     <div class="admin-card" id="sdAutoCard">
       <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span> Automatic draw</span>
         <button class="btn btn-secondary btn-sm" onclick="openDrawPage('session')"><svg class="ic" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg> Open public page</button></div>
       <div class="admin-helper-text" id="sdAdminHow"></div>
+    </div>
+
+    <!-- Prizes: how many win, what they get, and the list itself — one card, one
+         story. The same editor and the same prize shape as the Monthly draw. -->
+    <div class="admin-card" id="sdPrizesCard">
+      <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span> Prizes</span><span class="pm-save-state" id="sdPrizesSaveState"></span></div>
       <div class="sd-setting">
         <label class="admin-form-label" for="sdWinnersInput">Winners per draw</label>
         <div class="sd-stepper">
@@ -3170,20 +3174,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <input id="sdPrizeInput" type="text" maxlength="80" class="admin-form-input sd-prize-input" placeholder="e.g. A tube of shuttlecocks" onchange="setDrawPrize(this.value)" aria-label="What session draw winners get">
         <span class="pm-save-state" id="sdPrizeSaveState"></span>
       </div>
-      <div class="admin-helper-text">A single line, used only while the <b>Prizes</b> list below is empty. List the prizes instead to give each one its own card.</div>
-      <!-- Dry run: same rules/shuffle/card/video as the real draw, never saved -->
-      <div class="sd-test">
-        <div class="sd-test-row">
-          <button class="btn btn-secondary btn-sm" type="button" onclick="runTestDraw()"><svg class="ic" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Test draw</button>
-          <span class="admin-helper-text sd-test-help">Dry run with tonight&#x2019;s line-up: the same rules, shuffle, card and video as the real draw. Nothing is saved.</span>
-        </div>
-        <div id="sdTestPanel"></div>
-      </div>
-    </div>
-
-    <!-- Prizes: the same editor and the same prize shape as the Monthly draw -->
-    <div class="admin-card" id="sdPrizesCard">
-      <div class="admin-card-title admin-card-title-row"><span><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg></span> Prizes</span><span class="pm-save-state" id="sdPrizesSaveState"></span></div>
+      <div class="admin-helper-text">A single line, used only while the list below is empty. List the prizes instead to give each one its own card.</div>
+      <div class="divider"></div>
       <div class="admin-helper-text">Each prize says which place it <b>goes to</b>: new rows fill 1st, 2nd, 3rd in turn. Point two rows at the same place and that winner takes both. Set a quantity to give several of the <em>same</em> item, and add a short description if you like.</div>
       <div class="admin-helper-text mlp-photo-note sd-photo-note"><svg class="ic" viewBox="0 0 24 24"><path d="M20 8H4v4h16zM12 8v13M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 8S9.5 3 7.5 4.5 9 8 12 8zM12 8s2.5-5 4.5-3.5S15 8 12 8z"/></svg>
         <span>The name is what members read, so write it the way you would say it: a card each on the <b>Session Draw</b> page, and a line each on the Lucky Draw hub. These are what is on offer now: a past draw&rsquo;s record keeps its winners&rsquo; names only. <button type="button" class="ml-photo-link" onclick="openDrawPage('session')">See the page</button></span></div>
@@ -3448,7 +3440,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <details class="help-sec"><summary>Session</summary><div>Set tonight&rsquo;s date and tap players to add them to the line-up. In the <b>List</b> view, the <b>Level</b> picker (1.0&ndash;7.0) and the <b>Girl</b> &amp; <b>Mixed</b> toggles set a player&rsquo;s rating and who plays mixed doubles, and these drive level-balanced match generation. <b>Pts</b> is this month&rsquo;s points (+2 a session, editable by hand) and goes back to zero for <b>everyone</b> when the month ends, whether or not they made the Monthly draw. <b>Life</b> next to it is their lifetime total: every point they have ever earned, never reset. Members never see it; it is on the Players list, the Accounts rows and the Payments member popup, for you only.</div></details>
       <details class="help-sec"><summary>Courts</summary><div>Build rounds, choose which courts are active, and manage who&rsquo;s resting. Each court&rsquo;s current match shows live on the viewer screen. When play ends, press <b>End of the day</b> (bottom of the tab) to create tonight&rsquo;s payment records.</div></details>
       <details class="help-sec"><summary>Payments</summary><div>The fee depends on how long each person stayed: <b>2h &middot; RM20</b> or <b>3h &middot; RM25</b>. The Session tab sets the default for the night; after <b>End of the day</b> every player in the line-up gets a row here at that default. Tap <b>2h</b> or <b>3h</b> on a row for early leavers, tap <b>Cash</b>, <b>TnG</b> or <b>DuitNow</b> as each person pays (one tap), or <b>Unpaid</b> to undo. Paid rows drop to the bottom so whoever still owes stays at the top. Tap the amount for a one-off custom fee. Pressing End of the day again adds players who joined later and drops anyone you unticked in the meantime (unless they already paid), so the ticked line-up is always what counts. Switch to <b>By member</b> to see everyone&rsquo;s running balance across every night on record; tap a member for their points, total outstanding and a night-by-night breakdown, and settle any night right there. A night is never removed from history while someone on it still owes.</div></details>
-      <details class="help-sec"><summary>Lucky Draw: Session draws</summary><div>Every Monday, Friday and Sunday session gets one automatic draw at <b>9:00 AM</b> three mornings later (Mon &rarr; Thu, Fri &rarr; Mon, Sun &rarr; Wed). A player is in it when they attended <b>and</b> their payment was marked paid before that time, so <b>End of the day</b> and the Payments tab decide who is eligible. Set how many winners are picked. Results are permanent and never re-run; if the scheduled draw did not happen, <b>Run draw now</b> applies the same rules. Players see the winners and the replay video on the public Lucky Draw page; who attended and who paid stays admin-only.</div></details>
+      <details class="help-sec"><summary>Lucky Draw: Session draws</summary><div>Every Monday, Friday and Sunday session gets one automatic draw at <b>9:00 AM</b> three mornings later (Mon &rarr; Thu, Fri &rarr; Mon, Sun &rarr; Wed). A player is in it when they attended <b>and</b> their payment was marked paid before that time, so <b>End of the day</b> and the Payments tab decide who is eligible. How many winners are picked, and what they get, sit with the <b>Prizes</b> list. A draw is never re-run on its own: if the scheduled draw did not happen, <b>Run draw now</b> applies the same rules, and if one came out on the wrong line-up, <b>Remove result</b> on that night&rsquo;s card clears the winners so you can fix the night and draw it again. Players see the winners and the replay video on the public Lucky Draw page; who attended and who paid stays admin-only.</div></details>
       <details class="help-sec"><summary>Lucky Draw: Monthly draws</summary><div>A points draw once a month. Everyone who reaches the <b>points needed</b> (default 80) during the month is in it; points go back to zero for <b>everyone</b> when the month ends: winners, non-winners and anyone who never reached the threshold alike. Only the admin-only <b>lifetime</b> total on the Session tab keeps the full record. With the <b>automatic</b> switch on, the draw runs itself at <b>9:00 AM on the 1st</b> of the next month; switch it off to run it yourself. <b>Pull players</b> lists everyone at the threshold right now (untick anyone who should sit out), then <b>Run draw now</b> draws this month on the spot. Set how many winners are picked and the prize list, where each prize picks the <b>place</b> it goes to (two prizes on the same place means that winner takes both). Each prize has a <b>quantity</b> (so one winner can take, say, 2 tubes of shuttlecocks), and an optional <b>description</b>; these show on the public Lucky Draw page, and the winner&rsquo;s prize (with quantity) in the replay video. One draw per month; results are permanent.</div></details>
       <details class="help-sec"><summary>Sign-ups</summary><div>People who asked to join through the public form, newest first. Mark each one contacted once you&rsquo;ve reached out.</div></details>
       <details class="help-sec"><summary>Accounts</summary><div>Members sign in with a <b>login code</b> like <b>Thomas#123</b> and see their points, what they owe and their draw wins. Press <b>Assign codes to everyone</b> once, then tap a code to copy it and send it to that member. Tap a member&rsquo;s name (or <b>Manage</b>) to open their profile: their points, what they owe, their level and their login code are all there and all editable, and <b>Copy invite</b> puts the whole sign-in message on your clipboard. Phone + password sign-in still works for anyone who has one: approve requests, or open <b>Manage</b> &rarr; <b>Reveal</b> / temporary password to help with a forgotten password. Deleting an account keeps the player. It only removes the login.</div></details>
@@ -7626,11 +7618,12 @@ function phoneForPlayer(playerId) {
 // fetched on open (+ every 30 s while the page is open), never on the 2 s poll.
 const SD_LIST_LIMIT = 30;
 const SD_LIST_KEYS = [['attended', 'Attended'], ['paid', 'Paid'], ['eligible', 'Eligible'], ['winners', 'Winners']];
-const SD_ADMIN_NOTE = ' Results are permanent and never re-run; use "Run draw now" only if the automatic draw did not happen.';
+const SD_ADMIN_NOTE = ' A result is never re-run on its own: use "Run draw now" if the automatic draw did not happen, and "Remove result" to take back one that was drawn on the wrong night.';
 let sdPublic = { sessions: [], hasMore: false, nextBefore: null, winnersPerDraw: null, locked: false };
 let sdAdmin = { sessions: [], hasMore: false, nextBefore: null, winnersPerDraw: null };
 let sdPublicTimer = null, sdDeepLinkDone = false, sdRetried = false, sdLastError = '';
 const sdBusy = new Set();
+let sdConfirmRemove = null;   // date awaiting the inline "Yes, remove it"
 
 function isDrawPageOpen() { const el = document.getElementById('drawPage'); return !!(el && el.classList.contains('open')); }
 
@@ -8050,13 +8043,13 @@ function sdCardHtml(v, admin) {
   const done = v.status === 'done';
   const c = v.counts || {};
   const lists = v.lists || {};
-  const statusCls = v.test ? 'test' : (done ? 'done' : (v.due ? 'due' : 'pending'));
-  let html = '<div class="sd-card ' + escHtml(v.status) + (v.test ? ' test' : '') + '" data-date="' + escHtml(v.date) + '">';
+  const statusCls = done ? 'done' : (v.due ? 'due' : 'pending');
+  let html = '<div class="sd-card ' + escHtml(v.status) + '" data-date="' + escHtml(v.date) + '">';
   // The date is the way to that night's money: a card reading "0 paid" is exactly
   // when an admin wants the Payments tab, so the heading opens it on that night.
-  // A member has no Payments tab, and a test draw has no night, so both stay plain text.
+  // A member has no Payments tab, so for them it stays plain text.
   const dateTxt = escHtml(SessionDraw.fmtSessionDate(v.date));
-  const dateEl = (admin && !v.test)
+  const dateEl = admin
     ? '<button type="button" class="sd-date sd-date-link" onclick="openPaymentsForNight(\'' + escHtml(v.date) + '\')" title="Open this night in Payments">'
       + dateTxt + '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>'
     : '<div class="sd-date">' + dateTxt + '</div>';
@@ -8068,7 +8061,7 @@ function sdCardHtml(v, admin) {
     html += w.length
       ? '<div class="sd-winners">' + w.map(x => '<span class="sd-win-chip"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg>' + escHtml(x.name) + '</span>').join('') + '</div>'
       : '<div class="sd-nowin">No winners. Nobody was eligible for this session.</div>';
-    if (w.length) html += sdVideoRowHtml(v.test ? 'test' : 'session', v.date);
+    if (w.length) html += sdVideoRowHtml('session', v.date);
   }
   if (admin) { // attendance / payment detail is admin-only; players get winners + video
     html += '<div class="sd-stats">' + SD_LIST_KEYS.map(([k, l]) => '<div class="sd-stat' + (k === 'winners' && done && c.winners ? ' win' : '') + '"><b>' + (c[k] || 0) + '</b><span>' + l + '</span></div>').join('') + '</div>';
@@ -8076,12 +8069,29 @@ function sdCardHtml(v, admin) {
   }
   if (admin && !done && v.due) {
     html += '<div class="sd-admin-row"><button class="btn btn-primary btn-sm" onclick="runDrawNow(\'' + escHtml(v.date) + '\')"' + (sdBusy.has(v.date) ? ' disabled' : '') + '>Run draw now</button>'
-      + '<span class="admin-helper-text" style="margin:0">The scheduled time has passed but no result exists yet. The automatic draw may still be on its way.</span></div>';
+      + '<span class="admin-helper-text" style="margin:0">' + (v.removed
+        ? 'The earlier result was removed. Fix the night first, then run the draw again — it will not run itself.'
+        : 'The scheduled time has passed but no result exists yet. The automatic draw may still be on its way.') + '</span></div>';
+  }
+  // A drawn night can be taken back: a draw run on the wrong line-up (nobody
+  // marked paid yet, a mis-typed date) is worse than no draw at all. Removing
+  // clears the record and stops the automatic sweep re-running it behind the
+  // admin's back — "Run draw now" is the deliberate second attempt.
+  if (admin && done) {
+    html += sdConfirmRemove === v.date
+      ? '<div class="sd-admin-row sd-remove-row"><button class="btn btn-danger btn-sm" onclick="removeDrawResult(\'' + escHtml(v.date) + '\')"' + (sdBusy.has(v.date) ? ' disabled' : '') + '>Yes, remove it</button>'
+        + '<button class="btn btn-ghost btn-sm" onclick="askRemoveDraw(null)">Cancel</button>'
+        + '<span class="admin-helper-text" style="margin:0">' + escHtml('Remove this result? The winners are cleared and members stop seeing them. Nothing else about the night changes, and you can run the draw again after.') + '</span></div>'
+      : '<div class="sd-admin-row sd-remove-row"><button class="btn btn-ghost btn-sm sd-remove-btn" onclick="askRemoveDraw(\'' + escHtml(v.date) + '\')">Remove result</button>'
+        + '<span class="admin-helper-text" style="margin:0">Drawn on the wrong line-up? Remove it and run the draw again.</span></div>';
   }
   if (done) {
-    html += '<div class="sd-foot"><span>' + escHtml((v.test ? 'Test draw · not saved' : v.method === 'manual' ? 'Manual draw by admin' : 'Automatic draw') + (admin ? '' : ' · ' + (c.eligible || 0) + ' in the draw') + (v.shortfall && c.eligible ? ' · only ' + c.eligible + ' eligible for ' + v.winnersWanted + ' prizes' : '')) + '</span>'
+    html += '<div class="sd-foot"><span>' + escHtml((v.method === 'manual' ? 'Manual draw by admin' : 'Automatic draw') + (admin ? '' : ' · ' + (c.eligible || 0) + ' in the draw') + (v.shortfall && c.eligible ? ' · only ' + c.eligible + ' eligible for ' + v.winnersWanted + ' prizes' : '')) + '</span>'
       + '<span class="sd-seed" title="Random seed: the full order can be replayed from it">Seed ' + escHtml(String(v.seed || '').slice(0, 8)) + '… '
       + (v.verified ? '<span class="sd-verified">verified ✓</span>' : '<span class="sd-unverified">not verified</span>') + '</span></div>';
+  } else if (v.removed) {
+    const when = v.removedAt ? ' ' + SessionDraw.fmtDrawTime(v.removedAt) : '';
+    html += '<div class="sd-foot"><span>' + escHtml(admin ? 'Result removed' + when + '.' : 'The result for this night was removed' + when + '. A new draw will be run.') + '</span></div>';
   } else {
     html += '<div class="sd-foot"><span>' + escHtml((admin ? '' : (c.eligible || 0) + ' in the draw so far · ') + (v.due ? 'Waiting for the automatic draw…' : 'Pay before ' + SessionDraw.fmtDrawTime(v.drawAt) + ' to be in the draw · ' + sdWinnersLabel(v.winnersWanted) + ' will be picked')) + '</span></div>';
   }
@@ -8214,7 +8224,6 @@ function qdCardHtml(e) {
 let dvCtl = null, dvResult = null, dvSource = null, dvKey = null, dvAutoSave = false;
 function sdFindSource(kind, key) {
   if (!window.DrawVideo) return null;
-  if (kind === 'test') return sdTest && sdTest.view && sdTest.view.date === key ? DrawVideo.sourceFromSession(sdTest.view) : null;
   if (kind === 'session') {
     const v = (sdPublic.sessions || []).concat(sdAdmin.sessions || []).find(x => x.date === key && x.status === 'done');
     return v ? DrawVideo.sourceFromSession(v) : null;
@@ -8283,44 +8292,6 @@ function closeDrawVideo() {
   if (dvCtl) { dvCtl.stop(); dvCtl = null; }
   dvResult = null; dvSource = null; dvKey = null; dvAutoSave = false;
   if (modal) { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); }
-}
-
-// ── admin "Test draw": dry run of the automatic draw, never saved ──
-let sdTest = null;
-function randomSeedHex() {
-  const a = new Uint8Array(16);
-  if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(a); else for (let i = 0; i < 16; i++) a[i] = Math.floor(Math.random() * 256);
-  return Array.from(a, b => b.toString(16).padStart(2, '0')).join('');
-}
-function runTestDraw() {
-  if (!window.SessionDraw || !state) return;
-  const date = state.sessionDate || serverToday();
-  let day = adminOps.attendance && adminOps.attendance[date] ? adminOps.attendance[date] : null;
-  let lineup = (state.players || []).map(p => ({ id: p.id, name: p.name }));
-  let note = 'tonight’s line-up';
-  if (!SessionDraw.attendedFrom(day, lineup).length) {
-    lineup = (state.roster || []).map(r => ({ id: r.id, name: r.name }));
-    day = null;
-    note = 'the full roster (nobody is in tonight’s session yet)';
-  }
-  if (!lineup.length) { notify('Add players to the session first.', 'warn'); return; }
-  const now = clockNow();
-  const n = sdAdminWinners();
-  const t = SessionDraw.testDrawResult({ date, day, lineup, winnersWanted: n, seed: randomSeedHex(), nowMs: now });
-  sdTest = { view: SessionDraw.viewOf({ date }, t.rec, now, { winners: n }), note, assumedPaid: t.assumedPaid };
-  renderTestDraw();
-  const el = document.getElementById('sdTestPanel'); if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-}
-function clearTestDraw() { sdTest = null; renderTestDraw(); }
-function renderTestDraw() {
-  const el = document.getElementById('sdTestPanel'); if (!el) return;
-  if (!sdTest) { el.innerHTML = ''; return; }
-  const v = sdTest.view;
-  el.innerHTML = '<div class="sd-test-note">' + escHtml('Test draw for ' + SessionDraw.fmtSessionDate(v.date) + ' using ' + sdTest.note + '.'
-      + (sdTest.assumedPaid ? ' Nobody had paid before now, so everyone attending was treated as paid for this test.' : ' Eligible = paid before now, exactly like the real draw.')
-      + ' Not saved. Clear or refresh to remove it.') + '</div>'
-    + '<div class="sd-list">' + sdCardHtml(v, true) + '</div>'
-    + '<div class="admin-btn-row admin-mt"><button class="btn btn-secondary btn-sm" type="button" onclick="runTestDraw()">Run again</button><button class="btn btn-ghost btn-sm" type="button" onclick="clearTestDraw()">Clear</button></div>';
 }
 
 // ── admin: "Session draws" sub-tab (settings + list + Run draw now) ──
@@ -8443,6 +8414,33 @@ async function runDrawNow(date) {
   const rec = res.result || {};
   const names = (rec.winners || []).map(id => (rec.names && rec.names[id]) || id);
   notify(names.length ? 'Drawn: winner' + (names.length === 1 ? '' : 's') + ': ' + names.join(', ') : 'Drawn. Nobody was eligible.', 'ok', 6000);
+  sdConfirmRemove = null;
+  await loadAdminOps();
+  loadAdminDraws(false);
+}
+// ── take back a result (removeDraw) ──
+// One night at a time, confirmed inline on the card. The server keeps a marker
+// so the automatic sweep does not silently draw the night again; "Run draw now"
+// on the same card is how a replacement result is made.
+function askRemoveDraw(date) {
+  sdConfirmRemove = date || null;
+  renderSessionDrawsAdminView();
+}
+async function removeDrawResult(date) {
+  if (!date || sdBusy.has(date)) return;
+  sdBusy.add(date);
+  renderSessionDrawsAdminView();
+  const res = await apiPost({ action: 'removeDraw', date });
+  sdBusy.delete(date);
+  if (res === null) { renderSessionDrawsAdminView(); return; }
+  if (!res.ok) {
+    notify(res.error || 'Could not remove the result.', 'warn', 5000);
+    renderSessionDrawsAdminView();
+    if (res.alreadyRemoved) loadAdminDraws(false);
+    return;
+  }
+  sdConfirmRemove = null;
+  notify('Result removed for ' + SessionDraw.fmtSessionDate(date) + '. Run the draw again when the night is right.', 'ok', 6000);
   await loadAdminOps();
   loadAdminDraws(false);
 }
@@ -10157,7 +10155,7 @@ async function loadAccountsTab() {
 
 const AUDIT_LABELS = {
   'attendance.present': 'Attendance changed', 'attendance.paid': 'Payment changed', 'attendance.seed': 'Attendance seeded',
-  'draw.run': 'Session draw run (manual)', 'draw.settings': 'Winners per draw changed',
+  'draw.run': 'Session draw run (manual)', 'draw.remove': 'Session draw result removed', 'draw.settings': 'Winners per draw changed',
   'monthlyLucky.draw': 'Monthly draw run (manual)', 'monthlyLucky.settings': 'Monthly draw setting changed', 'monthlyLucky.prizes': 'Monthly draw prizes changed',
   'monthlyLucky.pool': 'Monthly draw pool changed', 'monthlyLucky.close': 'Month closed, points reset',
   'weekly.draw': 'Weekly draw (retired)', 'weekly.settings': 'Weekly schedule (retired)',
@@ -11608,7 +11606,7 @@ const TOUR_STEPS = [
   { tab: 'session',    sel: '#sessionDateInput', title: 'Set tonight’s date', text: 'Pick today’s play date. Changing it saves the previous day to history and awards every player who played their points.' },
   { tab: 'session',    sel: '#rosterGrid',       title: 'Add players & set levels', text: 'Tap a player to add them to tonight’s session. In the List view the Level picker (1.0–7.0) and the Girl & Mixed toggles set their rating and who plays mixed doubles, and these balance the generated matches.' },
   { tab: 'courts',     sel: '#eodBtn',           title: 'Wrap up the night', text: 'End of the day creates one payment record per player at the default fee. On the Payments tab tap 2h or 3h for how long each person stayed, then Cash, TnG or DuitNow as they pay.' },
-  { tab: 'engagement', sub: 'weekly', sel: '#sdAutoCard', title: 'The Lucky Draw runs itself', text: 'Every Monday, Friday and Sunday session is drawn automatically at 9:00 AM a few mornings later. Everyone who attended and was marked paid before then is in it. Set how many winners here. Results are permanent and show on the public Lucky Draw page.' },
+  { tab: 'engagement', sub: 'weekly', sel: '#sdAutoCard', title: 'The Lucky Draw runs itself', text: 'Every Monday, Friday and Sunday session is drawn automatically at 9:00 AM a few mornings later. Everyone who attended and was marked paid before then is in it. How many win and what they get sit in Prizes below, and the results show on the public Lucky Draw page — if one ever comes out wrong, Remove result on its card takes it back.' },
   { tab: 'engagement', sub: 'weekly', sel: '#spinBtn',    title: 'Need a draw on the spot?', text: 'Manual quick draw is the hands-on spin: open it, tick who has paid to build a pool, then Spin. The winner is revealed live on everyone’s viewer screen.' },
   { tab: 'settings',   sel: '#siteCodeInput',    title: 'Set the daily access code', text: 'Give players today’s short code to unlock the site. Generate a fresh one whenever you like.' },
 ];

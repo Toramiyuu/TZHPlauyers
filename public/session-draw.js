@@ -322,27 +322,23 @@
   }
 
   /**
-   * Admin dry run ("Test draw"): the real rules and shuffle applied RIGHT NOW to a
-   * session, never stored. drawAt = nowMs, so everyone marked paid so far is
-   * eligible; when nobody has paid yet, every attendee is treated as paid so the
-   * draw still shows winners (reported via `assumedPaid`). The record carries
-   * test:true, which viewOf/statusLabel surface as "Test draw".
+   * A removed result: the tombstone an admin's "Remove result" leaves behind.
+   * It keeps the field occupied so the idempotent sweep does not redraw the
+   * night by itself, and remembers what was taken back. `prev` is for the audit
+   * trail and admin copy only — nothing recomputes from it.
    */
-  function testDrawResult(opts) {
-    const o = opts || {};
-    const now = Number(o.nowMs) || 0;
-    const base = { date: o.date, drawAt: now, winnersWanted: o.winnersWanted, seed: o.seed, nowMs: now, method: 'auto' };
-    let rec = buildDrawResult(Object.assign({}, base, { day: o.day, lineup: o.lineup }));
-    let assumedPaid = false;
-    if (!rec.counts.eligible && rec.counts.attended) {
-      const entries = {};
-      rec.attended.forEach((id) => { entries[id] = { playerId: id, name: rec.names[id] || id, present: true, paid: true, payment: { paidAt: now - 1 } }; });
-      rec = buildDrawResult(Object.assign({}, base, { day: { entries }, lineup: [] }));
-      assumedPaid = true;
-    }
-    rec.test = true;
-    return { rec, assumedPaid };
+  function removedDrawRecord(rec, nowMs) {
+    const r = rec && typeof rec === 'object' ? rec : {};
+    return {
+      v: RECORD_VERSION, date: String(r.date || ''), weekday: isoWeekday(r.date), drawAt: r.drawAt,
+      removed: true, removedAt: Number(nowMs) || 0,
+      prev: {
+        drawnAt: r.drawnAt || null, method: r.method || 'auto', seed: r.seed || '',
+        winners: (r.winners || []).map((id) => (r.names && r.names[id]) || id),
+      },
+    };
   }
+  function isRemovedRecord(rec) { return !!(rec && typeof rec === 'object' && rec.removed); }
 
   // ── which sessions get a draw ────────────────────────────────────────
   function lineupOf(state, date) {
@@ -395,14 +391,20 @@
    * One session as the page shows it. `rec` = the stored DrawResult or null.
    * Pending sessions compute their lists live ("eligible so far"); done ones are
    * frozen to the record. `late` marks a paid row that missed the cutoff.
+   * A removed result is NOT a result: the session reads as pending again, with
+   * `removed` set so the card can say why there is nothing to show.
    */
   function viewOf(cand, rec, nowMs, settings) {
     const now = Number(nowMs) || 0;
+    const gone = isRemovedRecord(rec);
+    const removedAt = gone ? (Number(rec.removedAt) || null) : null;
+    if (gone) rec = null;
     const date = rec ? rec.date : cand.date;
     const drawAt = rec ? rec.drawAt : cand.drawAt;
     const base = {
       date, weekday: isoWeekday(date), weekdayName: WEEKDAY_NAMES[isoWeekday(date)] || '',
       drawAt, drawDate: drawDateFor(date), due: Number.isFinite(drawAt) && now >= drawAt,
+      removed: gone, removedAt,
     };
     if (rec) {
       const paidRows = rowsFromIds(rec.paid, rec.names).map((r) => {
@@ -410,7 +412,7 @@
         return { id: r.id, name: r.name, paidAt: at, late: !(at != null && at < rec.drawAt) };
       });
       return Object.assign(base, {
-        status: 'done', test: !!rec.test, method: rec.method || 'auto', drawnAt: rec.drawnAt || null, seed: rec.seed || '',
+        status: 'done', method: rec.method || 'auto', drawnAt: rec.drawnAt || null, seed: rec.seed || '',
         winnersWanted: rec.winnersWanted, shortfall: !!rec.shortfall, verified: verifyDrawResult(rec),
         counts: rec.counts || { attended: (rec.attended || []).length, paid: (rec.paid || []).length, eligible: (rec.eligible || []).length, winners: (rec.winners || []).length },
         lists: {
@@ -471,7 +473,8 @@
     const names = (rows) => (Array.isArray(rows) ? rows : []).map((r) => ({ id: r.id, name: r.name }));
     return {
       date: v.date, weekday: v.weekday, weekdayName: v.weekdayName, drawAt: v.drawAt, drawDate: v.drawDate, due: v.due,
-      status: v.status, test: !!v.test, method: v.method, drawnAt: v.drawnAt, seed: v.seed, winnersWanted: v.winnersWanted, shortfall: v.shortfall, verified: v.verified,
+      status: v.status, removed: !!v.removed, removedAt: v.removedAt || null,
+      method: v.method, drawnAt: v.drawnAt, seed: v.seed, winnersWanted: v.winnersWanted, shortfall: v.shortfall, verified: v.verified,
       counts: { eligible: c.eligible || 0, winners: c.winners || 0 },
       lists: { eligible: done ? names(lists.eligible) : [], winners: names(lists.winners) },
     };
@@ -505,8 +508,8 @@
   }
   function statusLabel(view) {
     if (!view) return '';
-    if (view.test) return 'Test draw';
     if (view.status === 'done') return 'Drawn';
+    if (view.removed) return 'Result removed';
     return view.due ? 'Draw pending' : 'Pending';
   }
   function drawDayLabel() {
@@ -537,7 +540,7 @@
     isValidISO, isoWeekday, addDaysISO, mytInstant,
     drawWeekdayFor, isDrawDay, drawDateFor, scheduledDrawAt, isWinnersCount, winnersOf,
     attendedFrom, paidFrom, eligibleFrom,
-    prngFromSeed, shuffleWithSeed, buildDrawResult, verifyDrawResult, testDrawResult,
+    prngFromSeed, shuffleWithSeed, buildDrawResult, verifyDrawResult, removedDrawRecord, isRemovedRecord,
     lineupOf, dayOf, drawAtFor, sessionCandidates, viewOf, buildView, publicSessionView,
     fmtDrawTime, fmtMYT, fmtSessionDate, statusLabel, drawDayLabel, drawTimeLabel, howItWorksText, countsLine, prizeOf,
   };

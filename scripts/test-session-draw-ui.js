@@ -115,10 +115,14 @@ check('page overlay is opaque full-screen without backdrop-filter', /#drawPage\{
 
 // ── evaluate the card renderer against a fixture ──
 const esc = 'function escHtml(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/\'/g, "&#39;"); }';
-const src = esc + ';' + 'const SessionDraw = arguments[0]; const sdBusy = new Set();'
+const src = esc + ';' + 'const SessionDraw = arguments[0]; const sdBusy = new Set(); let sdConfirmRemove = null;'
   + "const SD_LIST_KEYS = [['attended', 'Attended'], ['paid', 'Paid'], ['eligible', 'Eligible'], ['winners', 'Winners']];"
-  + fn('sdWinnersLabel') + ';' + fn('sdListHtml') + ';' + fn('sdVideoRowHtml') + ';' + fn('sdCardHtml') + '; return sdCardHtml;';
-const sdCardHtml = new Function(src)(SD);
+  + fn('sdWinnersLabel') + ';' + fn('sdListHtml') + ';' + fn('sdVideoRowHtml') + ';' + fn('sdCardHtml')
+  + '; return { card: sdCardHtml, ask: (d) => { sdConfirmRemove = d; } };';
+const evaluated = new Function(src)(SD);
+const sdCardHtml = evaluated.card;
+// Stands in for the admin having tapped "Remove result" on that card.
+const askRemove = evaluated.ask;
 const MON_AT = SD.scheduledDrawAt('2026-09-07', 8);
 const rec = SD.buildDrawResult({ date: '2026-09-07', drawAt: MON_AT, winnersWanted: 2, seed: '00112233445566778899aabbccddeeff', nowMs: MON_AT + 60000, method: 'auto',
   day: { entries: {
@@ -145,22 +149,36 @@ const dueView = SD.viewOf({ date: '2026-09-07', drawAt: MON_AT, day: null, lineu
 // The date is the jump to that night's money — admin only, never on a test card.
 check('admin card heading opens that night in Payments', doneHtml.includes("openPaymentsForNight('2026-09-07')") && doneHtml.includes('class="sd-date sd-date-link"'));
 check('a member sees the date as plain text, not a link', !pubDoneHtml.includes('openPaymentsForNight') && pubDoneHtml.includes('<div class="sd-date">'));
-check('a test draw has no night to open', (() => {
-  const t = sdCardHtml(Object.assign({}, doneView, { test: true }), true);
-  return !t.includes('openPaymentsForNight') && t.includes('<div class="sd-date">');
+// ── removing a result (2026-09-18) ──
+check('a drawn card offers "Remove result" to admins only, behind an inline confirm',
+  doneHtml.includes("askRemoveDraw('2026-09-07')") && doneHtml.includes('Remove result') && doneHtml.includes('sd-remove-btn')
+  && !doneHtml.includes('removeDrawResult(') && !pubDoneHtml.includes('askRemoveDraw'));
+check('the confirm step is the only thing that posts removeDraw, and only on its own card', (() => {
+  askRemove('2026-09-07');
+  const confirming = sdCardHtml(doneView, true);
+  const other = sdCardHtml(Object.assign({}, doneView, { date: '2026-09-04' }), true);
+  askRemove(null);
+  return confirming.includes("removeDrawResult('2026-09-07')") && confirming.includes('Yes, remove it') && confirming.includes('askRemoveDraw(null)')
+    && !other.includes('removeDrawResult(') && sdCardHtml(doneView, true).includes("askRemoveDraw('2026-09-07')");
 })());
+check('removeDrawResult posts the action and reloads; it never deletes anything client-side',
+  fn('removeDrawResult').includes("action: 'removeDraw'") && fn('removeDrawResult').includes('sdBusy') && fn('removeDrawResult').includes('loadAdminDraws(false)'));
+check('a pending card explains a removed result instead of promising an automatic draw',
+  (() => { const h = sdCardHtml(Object.assign({}, dueView, { removed: true, removedAt: MON_AT + 60000 }), true);
+    return h.includes('The earlier result was removed') && !h.includes('may still be on its way') && h.includes("runDrawNow('2026-09-07')"); })());
+check('members are told a result was removed, not left staring at an empty night',
+  sdCardHtml(Object.assign({}, dueView, { removed: true }), false).includes('The result for this night was removed'));
 check('openPaymentsForNight lands on that night, By night, at the top of the tab',
   fn('openPaymentsForNight').includes('pmDate = date') && fn('openPaymentsForNight').includes("pmView = 'night'")
   && fn('openPaymentsForNight').includes("setAdminTab('payments')") && fn('openPaymentsForNight').includes('window.scrollTo')
   && fn('renderPaymentsTab').includes('if (!pmDate) pmDate ='));
 check('due + pending card in admin mode shows Run draw now; public does not', sdCardHtml(dueView, true).includes("runDrawNow('2026-09-07')") && !sdCardHtml(dueView, false).includes('runDrawNow') && sdCardHtml(dueView, true).includes('Draw pending'));
 
-console.log(`\nsession draw ui: ${pass} passed, ${fail} failed`);
-// ── admin Test draw (dry run) + public page retry ──
-check('admin Test draw button + panel', html.includes('onclick="runTestDraw()"') && html.includes('id="sdTestPanel"'));
-check('runTestDraw is a pure dry run: SessionDraw.testDrawResult, never apiPost', fn('runTestDraw').includes('SessionDraw.testDrawResult(') && !fn('runTestDraw').includes('apiPost') && fn('runTestDraw').includes('sdAdminWinners()'));
-check('test draw falls back to the roster when tonight has nobody', fn('runTestDraw').includes('state.roster'));
-check('test cards: badge, "not saved" footer, test video source', fn('sdCardHtml').includes("v.test ? 'test'") && fn('sdCardHtml').includes('Test draw · not saved') && fn('sdFindSource').includes("kind === 'test'"));
+// ── the admin "Test draw" dry run is gone (2026-09-18) ──
+for (const sym of ['runTestDraw', 'clearTestDraw', 'renderTestDraw', 'sdTestPanel', 'sd-test', 'testDrawResult', 'Test draw', 'sdTest']) {
+  check('retired dry run: ' + sym, !html.includes(sym));
+}
+check('no test-draw branch survives in the card or the video lookup', !fn('sdCardHtml').includes('v.test') && !fn('sdFindSource').includes("'test'") && !fs.readFileSync(path.join(__dirname, '..', 'public', 'draw-video.js'), 'utf8').includes('src.test'));
 check('public page retries a failed load once, then offers Try again', fn('loadDrawPage').includes('sdRetried') && fn('loadDrawPage').includes('onclick="loadDrawPage(false)"'));
 
 // ── Shuttlecock Draw REMOVED (2026-09) ──────────────────────────────────
@@ -188,4 +206,5 @@ check('the two remaining draws are intact',
 check('the word "shuttlecock" survives only as a prize/points example, never as a draw',
   !/Shuttlecock Draw|Shuttlecock draw|Shuttlecock Lucky Draw|Shuttlecock Prize/.test(html));
 
+console.log(`\nsession draw ui: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

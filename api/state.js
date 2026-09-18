@@ -36,6 +36,12 @@ const kv = {
     if (!redis) throw new Error('No Redis configured');
     return redis.hsetnx(key, field, val);
   },
+  // Only the admin "Remove result" path (and the re-run that follows it) writes
+  // over an existing field — see lib/session-draw.js.
+  hset: async (key, field, val) => {
+    if (!redis) throw new Error('No Redis configured');
+    return redis.hset(key, { [field]: val });
+  },
 };
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'TZH123';

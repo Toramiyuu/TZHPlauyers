@@ -19,6 +19,7 @@ require.cache[require.resolve('@upstash/redis')] = {
     async hget(k, f) { const h = HASHES.get(k); return h && h.has(f) ? h.get(f) : null; }
     async hgetall(k) { const h = HASHES.get(k); if (!h || !h.size) return null; return Object.fromEntries(h); }
     async hsetnx(k, f, v) { let h = HASHES.get(k); if (!h) { h = new Map(); HASHES.set(k, h); } if (h.has(f)) return 0; h.set(f, String(v)); return 1; }
+    async hset(k, kv) { let h = HASHES.get(k); if (!h) { h = new Map(); HASHES.set(k, h); } for (const f of Object.keys(kv || {})) h.set(f, String(kv[f])); return 1; }
   } },
 };
 process.env.KV_REST_API_URL = 'http://stub';

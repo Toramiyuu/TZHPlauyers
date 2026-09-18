@@ -177,18 +177,34 @@ check('countsLine', S.countsLine({ attended: 20, paid: 18, eligible: 18, winners
   check('publicSessionView tolerates junk', S.publicSessionView(null) === null);
 }
 
-// ── admin test draw (dry run) ──
+// ── a removed result ("Remove result") ──
+// The marker keeps the store field occupied so the sweep cannot redraw the night,
+// and the night reads as pending again everywhere the view is used.
 {
   const now = DRAW_AT + 5 * 3600 * 1000;
-  const day = { entries: { a: { playerId: 'a', name: 'Alice', present: true, paid: true, payment: { paidAt: now - 1000 } }, b: { playerId: 'b', name: 'Bob', present: true, paid: false } } };
-  const t = S.testDrawResult({ date: '2026-09-10', day, lineup: [], winnersWanted: 2, seed: SEED, nowMs: now });
-  check('testDrawResult: real eligibility when someone has paid (drawAt = now)', t.assumedPaid === false && t.rec.test === true && t.rec.eligible.join() === 'a' && t.rec.winners.join() === 'a' && t.rec.drawAt === now && t.rec.counts.attended === 2 && t.rec.shortfall === true);
-  const t2 = S.testDrawResult({ date: '2026-09-10', day: null, lineup: [{ id: 'x', name: 'Xu' }, { id: 'y', name: 'Yi' }, { id: 'z', name: 'Zed' }], winnersWanted: 2, seed: SEED, nowMs: now });
-  check('testDrawResult: nobody paid → every attendee treated as paid, flagged, verifiable', t2.assumedPaid === true && t2.rec.counts.eligible === 3 && t2.rec.winners.length === 2 && t2.rec.test === true && S.verifyDrawResult(t2.rec));
-  const tv = S.viewOf({ date: '2026-09-10' }, t2.rec, now, { winners: 2 });
-  check('viewOf carries test:true and statusLabel says Test draw', tv.test === true && tv.status === 'done' && S.statusLabel(tv) === 'Test draw' && S.statusLabel({ status: 'done' }) === 'Drawn' && S.viewOf({ date: '2026-09-07' }, S.buildDrawResult({ date: '2026-09-07', drawAt: now, seed: SEED, nowMs: now, day: null, lineup: [] }), now, {}).test === false);
-  check('testDrawResult: empty input → no winners, no crash', S.testDrawResult({ date: '2026-09-10', day: null, lineup: [], winnersWanted: 2, seed: SEED, nowMs: now }).rec.counts.attended === 0);
+  const day = { entries: { a: { playerId: 'a', name: 'Al', present: true, paid: true, payment: { paidAt: DRAW_AT - 5 } }, b: { playerId: 'b', name: 'Bo', present: true, paid: true, payment: { paidAt: DRAW_AT - 4 } } } };
+  const rec = S.buildDrawResult({ date: '2026-09-07', drawAt: DRAW_AT, day, lineup: [], winnersWanted: 1, seed: SEED, nowMs: DRAW_AT + 1, method: 'auto' });
+  const gone = S.removedDrawRecord(rec, now);
+  check('removedDrawRecord keeps the date/drawAt and remembers the winners by name',
+    gone.removed === true && gone.removedAt === now && gone.date === '2026-09-07' && gone.drawAt === DRAW_AT
+    && gone.prev.winners.length === 1 && ['Al', 'Bo'].includes(gone.prev.winners[0]) && gone.prev.seed === SEED && gone.prev.method === 'auto'
+    && gone.winners === undefined && gone.eligible === undefined);
+  check('isRemovedRecord tells the two records apart', S.isRemovedRecord(gone) === true && S.isRemovedRecord(rec) === false && S.isRemovedRecord(null) === false);
+  const v = S.viewOf({ date: '2026-09-07', drawAt: DRAW_AT, day, lineup: [] }, gone, now, { winners: 2 });
+  check('viewOf: a removed result reads as pending again, flagged and timed',
+    v.status === 'pending' && v.removed === true && v.removedAt === now && v.due === true && v.lists.winners.length === 0
+    && v.counts.eligible === 2 && v.seed === '' && v.verified === null);
+  check('statusLabel says the result was removed, not "Drawn"', S.statusLabel(v) === 'Result removed' && S.statusLabel({ status: 'done' }) === 'Drawn' && S.statusLabel({ status: 'pending', due: true }) === 'Draw pending');
+  check('a normal view is never flagged removed', S.viewOf({ date: '2026-09-07' }, rec, now, {}).removed === false);
+  check('the public page is told too, without any new detail',
+    (() => { const p = S.publicSessionView(v); return p.removed === true && p.removedAt === now && p.status === 'pending' && p.lists.winners.length === 0 && !p.lists.paid; })());
+  check('buildView lists a removed night from the store even with no candidate left',
+    (() => { const out = S.buildView({}, { '2026-09-07': gone }, { nowMs: now, offsetHours: 8, settings: { winners: 2 } }); return out.sessions.length === 1 && out.sessions[0].removed === true && out.sessions[0].status === 'pending'; })());
+  check('removedDrawRecord survives junk', (() => { const g = S.removedDrawRecord(null, now); return g.removed === true && g.prev.winners.length === 0; })());
 }
+
+// ── the admin dry run is gone: no dry-run result shape survives ──
+check('no testDrawResult export', typeof S.testDrawResult === 'undefined');
 
 // ── prizes (the list both draws share; Monthly re-exports these) ──
 check('prizesOf cleans the list: names required, qty/desc/place defaulted, ids kept', (() => {

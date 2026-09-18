@@ -18,6 +18,7 @@ require.cache[require.resolve('@upstash/redis')] = {
     async hget(k, f) { const h = HASHES.get(k); return h && h.has(f) ? h.get(f) : null; }
     async hgetall(k) { const h = HASHES.get(k); if (!h || !h.size) return null; return Object.fromEntries(h); }
     async hsetnx(k, f, v) { let h = HASHES.get(k); if (!h) { h = new Map(); HASHES.set(k, h); } if (h.has(f)) return 0; h.set(f, String(v)); return 1; }
+    async hset(k, kv) { let h = HASHES.get(k); if (!h) { h = new Map(); HASHES.set(k, h); } for (const f of Object.keys(kv || {})) h.set(f, String(kv[f])); return 1; }
   } },
 };
 process.env.KV_REST_API_URL = 'http://stub';
@@ -118,6 +119,37 @@ function freshState() {
   r = await D.sweepSessionDraws(s, store, { nowMs: MON_AT + 1000, offsetHours: 8, seedFn: seedA });
   check('cron after a manual draw leaves it alone', !r.drawn.includes(MON) && (await store.get(MON)).seed === SEED_B);
 
+  // ── removeDraw (take a result back, then draw it again) ──
+  s = freshState(); store = D.memoryDrawStore();
+  r = await D.handleSessionDrawAdminAction(s, { action: 'removeDraw', date: MON }, opts(MON_AT + MIN));
+  check('removeDraw with nothing drawn -> 404', r.status === 404 && r.changed === false);
+  check('removeDraw invalid date -> 400', (await D.handleSessionDrawAdminAction(s, { action: 'removeDraw', date: 'x' }, opts(MON_AT))).status === 400);
+  await D.sweepSessionDraws(s, store, { nowMs: MON_AT + 1000, offsetHours: 8, seedFn: seedA });
+  const drawnRec = await store.get(MON);
+  r = await D.handleSessionDrawAdminAction(s, { action: 'removeDraw', date: MON }, opts(MON_AT + MIN));
+  const marker = await store.get(MON);
+  check('removeDraw replaces the result with a marker, keeping the winners for the audit',
+    r.status === 200 && r.body.ok && r.changed === true && marker.removed === true && marker.removedAt === MON_AT + MIN
+    && marker.winners === undefined && marker.prev.winners.length === drawnRec.winners.length && marker.prev.seed === SEED_A);
+  check('removeDraw writes an audit entry naming the winners it took back',
+    s.audit[0].action === 'draw.remove' && s.audit[0].target.id === MON && s.audit[0].prevValue.length === 2 && /drawn automatically/.test(s.audit[0].note));
+  r = await D.sweepSessionDraws(s, store, { nowMs: MON_AT + 2 * MIN, offsetHours: 8, seedFn: seedB });
+  check('the sweep does NOT redraw a removed night', !r.drawn.includes(MON) && (await store.get(MON)).removed === true);
+  r = await D.handleSessionDrawAdminAction(s, { action: 'getDraws' }, opts(MON_AT + 2 * MIN));
+  check('a removed night is listed as pending again, flagged for the card',
+    (() => { const v = r.body.sessions.find((x) => x.date === MON); return v.status === 'pending' && v.removed === true && v.removedAt === MON_AT + MIN && v.lists.winners.length === 0; })());
+  r = await D.handleSessionDrawAdminAction(s, { action: 'removeDraw', date: MON }, opts(MON_AT + 3 * MIN));
+  check('removing twice -> 400, and the marker is untouched', r.status === 400 && r.body.alreadyRemoved === true && r.changed === false && (await store.get(MON)).removedAt === MON_AT + MIN);
+  r = await D.handleSessionDrawAdminAction(s, { action: 'runDraw', date: MON }, opts(MON_AT + 4 * MIN));
+  const redrawn = await store.get(MON);
+  check('runDraw after a removal writes a real result over the marker',
+    r.status === 200 && r.body.ok && r.body.replaced === true && redrawn.removed === undefined && redrawn.seed === SEED_B
+    && redrawn.method === 'manual' && SD.verifyDrawResult(redrawn) && s.audit[0].action === 'draw.run' && /replaces a removed result/.test(s.audit[0].note));
+  r = await D.handleSessionDrawAdminAction(s, { action: 'runDraw', date: MON }, opts(MON_AT + 5 * MIN));
+  check('the replacement is a normal result: a second run is refused again', r.status === 409 && (await store.get(MON)).seed === SEED_B);
+  check('a store without put() refuses to remove instead of half-doing it',
+    (await D.handleSessionDrawAdminAction(s, { action: 'removeDraw', date: MON }, { store: { get: async () => drawnRec, putIfAbsent: async () => false }, nowMs: MON_AT, offsetHours: 8, seedFn: seedA })).status === 500);
+
   // ── setDrawSettings ──
   s = freshState(); store = D.memoryDrawStore();
   for (const bad of [0, 11, 'x', 2.5, null]) {
@@ -213,6 +245,18 @@ function freshState() {
   check('runDraw via dispatcher on an already-drawn session -> 409', r.status === 409 && r.body.result && r.body.result.date === FRI);
   r = await post({ password: P, action: 'runDraw', date: future });
   check('runDraw via dispatcher before the time -> 400', r.status === 400);
+  // The one write that goes over an existing hash field, through the real kv façade.
+  r = await post({ password: P, action: 'removeDraw', date: FRI });
+  check('removeDraw via dispatcher rewrites the stored field and audits it',
+    r.status === 200 && r.body.ok && JSON.parse(HASHES.get(D.DRAWS_KEY).get(FRI)).removed === true && STORE.audit[0].action === 'draw.remove');
+  check('unauthenticated removeDraw -> 401', (await post({ action: 'removeDraw', date: FRI })).status === 401);
+  r = await call(drawsHandler, 'GET', { code: 'ABC-123' });
+  check('the public page shows that night as pending again, never as drawn with no winners',
+    (() => { const v = r.body.sessions.find((x) => x.date === FRI); return v.status === 'pending' && v.removed === true && v.lists.winners.length === 0; })());
+  check('the on-view sweep did not quietly redraw it', JSON.parse(HASHES.get(D.DRAWS_KEY).get(FRI)).removed === true);
+  r = await post({ password: P, action: 'runDraw', date: FRI });
+  check('running it again through the dispatcher replaces the marker with a result',
+    r.status === 200 && r.body.replaced === true && SD.verifyDrawResult(JSON.parse(HASHES.get(D.DRAWS_KEY).get(FRI))));
   r = await post({ password: P, action: 'setDrawSettings', winners: 3 });
   check('setDrawSettings via dispatcher persists', r.status === 200 && STORE.drawSettings.winners === 3 && STORE.audit[0].action === 'draw.settings');
   check('winners setting is not accepted through the generic merge', (await post({ password: P, drawSettings: { winners: 9 } })).status === 400 && STORE.drawSettings.winners === 3);
