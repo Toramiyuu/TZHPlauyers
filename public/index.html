@@ -442,11 +442,11 @@ body.in-3d #joinModal{z-index:1300}
 .acct-pin-badge.none{color:var(--red)}
 .acct-meta{display:flex;flex-wrap:wrap;gap:3px 14px;font-size:var(--fs-xs);color:var(--text-2)}
 .acct-meta b{color:var(--text);font-weight:600}
-/* Payment standing chip on a linked account row: looks like the other meta chips, taps open the member ledger */
-.acct-owe{position:relative;appearance:none;background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
-.acct-owe::after{content:"";position:absolute;inset:-8px}
-.acct-owe:hover b{text-decoration:underline}
-.acct-owe.owe,.acct-owe.owe b{color:var(--red)}
+/* The one line left under the name: the last night this member turned up.
+   Points, payments and sign-in history all live in the Manage profile now. */
+.acct-last{display:inline-flex;align-items:center;gap:6px}
+.acct-last.none{color:var(--muted)}
+.acct-last.none b{color:var(--muted);font-weight:600}
 .acct-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .acct-actions .btn{min-height:44px}
 .acct-del{width:44px;min-width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;transition:var(--transition)}
@@ -10778,27 +10778,60 @@ function acctCodeChipHtml(a) {
   return `<button type="button" class="acct-code" onclick="${pmCall('copyCode', a.code)}" title="Tap to copy" aria-label="Copy login code ${escHtml(a.code)}">${escHtml(a.code)}<svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg></button>`;
 }
 
-// Points + payment standing for an account that is linked to a roster player.
-// Reuses the Payments member ledger (adminOps.attendance) so the numbers match
-// the Payments tab exactly; tapping the payment chip opens that member's ledger.
-function acctFinanceHtml(a) {
-  if (!a || !a.hasPlayer || !a.playerId || !window.Payments) return '';
-  const rp = state ? pmRosterPlayer(a.playerId) : null;
-  const pts = rp ? (rp.points || 0) : null;
-  const tier = pts === null ? null : tierForPoints(pts);
-  const m = Payments.memberSummary((adminOps && adminOps.attendance) || {}, a.playerId, a.name || '');
-  const owe = m.outstanding > 0;
-  const ptsLabel = pts === null ? '&ndash;' : escHtml(pts.toLocaleString()) + (tier ? ' · ' + escHtml(tier.name) : '');
-  return `<span>Points <b>${ptsLabel}</b></span>`
-    + `<span title="Every point ever earned. Never reset at the end of the month. Admin only.">Lifetime <b>${lifetimePointsLabel(a.playerId)}</b></span>`
-    + `<button type="button" class="acct-owe${owe ? ' owe' : ''}" onclick="${pmCall('openPmMember', a.playerId)}" aria-haspopup="dialog">Payments <b>${escHtml(Payments.memberOweLabel(m))}</b></button>`;
+// The last night this member actually turned up, as an ISO date ('' if never).
+// Three sources, newest wins, because no single one covers every night:
+//   · attendance (adminOps, 100 days) — the durable record, but only for nights
+//     the organiser seeded or pressed End of the day on;
+//   · saved sessions (31 days) — the ticked line-up of every past night;
+//   · tonight's live line-up, which is not a saved session yet.
+// Seeded-but-absent attendance rows carry present:false and are skipped.
+function acctLastPlayedISO(playerId) {
+  if (!playerId) return '';
+  let best = '';
+  const att = (adminOps && adminOps.attendance) || {};
+  for (const date of Object.keys(att)) {
+    if (date <= best) continue;
+    const day = att[date];
+    const e = day && day.entries && day.entries[playerId];
+    if (e && e.present) best = date;
+  }
+  const sessions = (state && state.sessions) || {};
+  for (const date of Object.keys(sessions)) {
+    if (date <= best) continue;
+    const s = sessions[date];
+    if (s && Array.isArray(s.players) && s.players.some(p => p && p.id === playerId)) best = date;
+  }
+  const live = state && state.sessionDate;
+  if (live && live > best && Array.isArray(state.players) && state.players.some(p => p && p.id === playerId)) best = live;
+  return best;
+}
+
+// "Friday, 12 Sep" — the organiser thinks in Mondays, Fridays and Sundays, so
+// the day name leads. The year only appears when it isn't this one.
+function acctLastPlayedLabel(iso, todayIso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  if (!m) return '';
+  const month = PM_MONTHS[+m[2] - 1];
+  const wd = weekdayOfISO(iso);
+  if (!month || wd < 0) return '';
+  const label = WEEKDAY_NAMES[wd] + ', ' + Number(m[3]) + ' ' + month;
+  const thisYear = String(todayIso || '').slice(0, 4);
+  return m[1] === thisYear ? label : label + ' ' + m[1];
+}
+
+// The one chip left on an Accounts row. Unlinked accounts have no line-up to
+// look in, so they say so rather than reading "Never".
+function acctLastPlayedHtml(a) {
+  if (!a || !a.hasPlayer || !a.playerId) return '<span class="acct-warn">Not linked to a player</span>';
+  const iso = acctLastPlayedISO(a.playerId);
+  if (!iso) return '<span class="acct-last none">Last game <b>Never</b></span>';
+  return `<span class="acct-last">Last game <b>${escHtml(acctLastPlayedLabel(iso, todayISO()))}</b></span>`;
 }
 
 function accountCardHtml(a) {
   const id = escHtml(a.id);
   const name = escHtml(a.name || '(no name)');
   const avatar = avatarHTML({ id: a.playerId || a.id, name: a.name || '?', photo: a.photo }, 46);
-  const linked = a.hasPlayer ? `<span>Linked ✓</span>` : '<span class="acct-warn">Not linked</span>';
   const canReveal = a.canReveal;
   const statusBtns = [];
   if (a.status === 'active') { statusBtns.push(`<button class="btn btn-ghost btn-sm" onclick="lockAccount('${id}')">Lock</button>`); statusBtns.push(`<button class="btn btn-ghost btn-sm" onclick="suspendAccount('${id}')">Suspend</button>`); }
@@ -10811,16 +10844,10 @@ function accountCardHtml(a) {
         <button type="button" class="acct-name acct-name-btn" onclick="${pmCall('openAcctProfile', a.id)}" aria-haspopup="dialog">${name}</button>
         ${acctCodeChipHtml(a)}
         <span class="acct-uname">${escHtml(a.phoneDisplay || a.phone || (a.code ? 'Code sign-in' : 'no phone'))}</span>
-        ${adminStatusBadge(a.status)}
-        ${a.forceChange ? '<span class="st-badge wait">Must change pw</span>' : ''}
-        ${a.tempPassword ? '<span class="st-badge wait">Temp pw</span>' : ''}
+        ${a.status === 'active' ? '' : adminStatusBadge(a.status)}
       </div>
       <div class="acct-meta">
-        ${linked}
-        ${acctFinanceHtml(a)}
-        <span>Last login <b>${escHtml(acctFmtTsTime(a.lastLoginAt))}</b></span>
-        <span>Failed <b>${escHtml(String(a.failedAttempts || 0))}</b></span>
-        <span>Pw changed <b>${escHtml(acctFmtTs(a.pwChangedAt))}</b></span>
+        ${acctLastPlayedHtml(a)}
       </div>
     </div>
     <div class="acct-actions">

@@ -30,19 +30,35 @@ function extractFn(name, src) {
 const fn = (name) => extractFn(name, html) || '';
 
 // ── wiring ──
-check('accountCardHtml renders the finance chips in the meta row', fn('accountCardHtml').includes('${linked}') && fn('accountCardHtml').includes('${acctFinanceHtml(a)}') && fn('accountCardHtml').indexOf('${linked}') < fn('accountCardHtml').indexOf('${acctFinanceHtml(a)}'));
-check('acctFinanceHtml reuses the Payments member ledger + tier helper', fn('acctFinanceHtml').includes('Payments.memberSummary(') && fn('acctFinanceHtml').includes('Payments.memberOweLabel(m)') && fn('acctFinanceHtml').includes('tierForPoints(pts)') && fn('acctFinanceHtml').includes('pmRosterPlayer(a.playerId)'));
-check('acctFinanceHtml only renders for accounts linked to a roster player', fn('acctFinanceHtml').includes('!a.hasPlayer || !a.playerId') && fn('acctFinanceHtml').includes('!window.Payments'));
-check('payment chip is a button that opens the member ledger popup', fn('acctFinanceHtml').includes('<button type="button" class="acct-owe') && fn('acctFinanceHtml').includes("pmCall('openPmMember', a.playerId)"));
+// 2026-09-19 (organiser): a row is name + login code + phone + the last night
+// they played, and nothing else. Points, payments, lifetime and the sign-in
+// history moved entirely into the Manage profile, so the row stays scannable.
+check('the row carries name, code chip, phone and the last-game chip', (() => {
+  const f = fn('accountCardHtml');
+  return f.includes('${acctCodeChipHtml(a)}') && f.includes('a.phoneDisplay || a.phone')
+    && f.includes('${acctLastPlayedHtml(a)}') && f.includes('class="acct-name acct-name-btn"');
+})());
+check('the old finance / sign-in chips are gone from the row', (() => {
+  const f = fn('accountCardHtml');
+  return !f.includes('acctFinanceHtml') && !f.includes('Last login') && !f.includes('Failed')
+    && !f.includes('Pw changed') && !f.includes('Linked ✓') && !f.includes('Temp pw')
+    && !html.includes('function acctFinanceHtml(');
+})());
+check('only a status worth acting on is badged — Active is the norm, so it is silent', fn('accountCardHtml').includes("a.status === 'active' ? '' : adminStatusBadge(a.status)"));
+check('everything dropped from the row still lives in the Manage profile', (() => {
+  const p = fn('acctProfileHtml') + fn('acctProfSigninHtml') + fn('acctProfPayHtml');
+  return p.includes('Lifetime') && p.includes('Owing') && p.includes('Last login')
+    && p.includes('Must change pw') && p.includes('Temp pw');
+})());
 check('loadAccountsTab fetches accounts + ops together (single paint)', fn('loadAccountsTab').includes("Promise.all([apiPost({ action: 'adminListAccounts' }), loadAdminOps()])") && !fn('loadAccountsTab').includes('loadAdminOps().then'));
 check('closing the ledger popup refreshes the Accounts rows', fn('closePmModal').includes("if (currentAdminTab === 'accounts') renderAcctList();"));
 check('settling a night from the popup refreshes chips + counters live', fn('pmWrite').includes("if (currentAdminTab === 'accounts') renderAccountsTab();"));
 check('Owing counter chip counts linked members with an outstanding balance', fn('renderAcctCounters').includes("chips.push(['Owing', owing, 'bad'])") && fn('renderAcctCounters').includes('.outstanding > 0'));
 
 // ── CSS ──
-check('.acct-owe is a reset button that inherits the chip look', /\.acct-owe\{position:relative;appearance:none;background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;cursor:pointer;display:inline-flex/.test(html));
-check('.acct-owe has a phone-sized hit area', html.includes('.acct-owe::after{content:"";position:absolute;inset:-8px}'));
-check('owing chip turns red without !important', html.includes('.acct-owe.owe,.acct-owe.owe b{color:var(--red)}') && !/\.acct-owe[^\n]*!important/.test(html));
+check('.acct-last is an inline chip in the meta row', html.includes('.acct-last{display:inline-flex;align-items:center;gap:6px}'));
+check('"Never" is muted rather than bolded at the reader', html.includes('.acct-last.none{color:var(--muted)}') && html.includes('.acct-last.none b{color:var(--muted);font-weight:600}'));
+check('the retired payment chip took its CSS with it', !html.includes('.acct-owe'));
 
 // ── section hygiene ──
 const sectionAt = html.indexOf('// ── ADMIN: ACCOUNTS CONTROL TAB');
@@ -52,41 +68,47 @@ check('accounts section found', section.length > 1000);
 check('accounts list section has no native confirm/alert/prompt', section.length > 0 && !/\b(confirm|alert|prompt)\(/.test(section));
 
 // ── extracted glue, executed with stubs ──
-// The row also shows the admin-only lifetime total, which reads from the same
-// injected adminOps cache — pull those helpers in rather than stubbing them.
-const factory = new Function('pmRosterPlayer', 'tierForPoints', 'Payments', 'adminOps', 'state', 'window',
-  fn('escHtml') + ';' + fn('pmCall') + ';' + fn('lifetimePointsLoaded') + ';' + fn('lifetimePointsFor') + ';'
-  + fn('lifetimePointsLabel') + ';' + fn('acctFinanceHtml') + '; return acctFinanceHtml;');
+// "Last game" has to survive three partial sources: attendance rows (only for
+// nights the organiser seeded or ended), saved sessions (31 days) and tonight's
+// line-up, which is not a saved session yet. Newest of the three wins.
+const factory = new Function('adminOps', 'state', 'todayISO',
+  "const WEEKDAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];"
+  + "const PM_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];"
+  + fn('escHtml') + ';' + fn('weekdayOfISO') + ';' + fn('acctLastPlayedISO') + ';' + fn('acctLastPlayedLabel') + ';'
+  + fn('acctLastPlayedHtml') + '; return { acctLastPlayedISO, acctLastPlayedLabel, acctLastPlayedHtml };');
+const mk = (ops, st, today) => factory(ops, st, () => today || '2026-09-19');
 const attendance = {
-  '2026-09-07': { entries: { p1: { name: 'Alex', present: true, paid: false, payment: { fee: 25, tier: '3h', method: null, paidAt: null } } } },
-  '2026-09-04': { entries: { p1: { name: 'Alex', present: true, paid: true, payment: { fee: 20, tier: '2h', method: 'cash', paidAt: 1 } } } },
+  // Fri 4 Sep 2026 played, Mon 7 Sep seeded but absent.
+  '2026-09-04': { entries: { p1: { name: 'Alex', present: true, paid: true }, p2: { name: 'Bee', present: true, paid: false } } },
+  '2026-09-07': { entries: { p1: { name: 'Alex', present: false, paid: false, source: 'regular' } } },
 };
-const mk = (roster) => factory(
-  (pid) => roster.find(r => r.id === pid) || null,
-  (pts) => ({ name: pts >= 900 ? 'Gold' : 'Visitor' }),
-  Payments, { attendance }, { roster }, { Payments });
-const withPts = mk([{ id: 'p1', name: 'Alex', points: 1240 }]);
-const owingRow = withPts({ id: 'a1', name: 'Alex', hasPlayer: true, playerId: 'p1' });
-check('linked + owing: points with tier, red chip, RM + nights, opens the ledger', owingRow.includes('<span>Points <b>1,240 · Gold</b></span>') && owingRow.includes('class="acct-owe owe"') && owingRow.includes('RM25 · 1 night</b>') && owingRow.includes("onclick=\"openPmMember('p1')\""));
-const settledFactory = mk([{ id: 'p2', name: 'Bee', points: 0 }]);
-const settledAtt = { '2026-09-04': { entries: { p2: { paid: true, payment: { fee: 20 } } } } };
-const settledRow = factory((pid) => ({ id: 'p2', name: 'Bee', points: 0 }), () => ({ name: 'Visitor' }), Payments, { attendance: settledAtt }, { roster: [] }, { Payments })({ id: 'a2', name: 'Bee', hasPlayer: true, playerId: 'p2' });
-check('linked + settled: not red, reads Settled', settledRow.includes('class="acct-owe"') && settledRow.includes('Settled</b>') && !settledRow.includes(' owe"') && settledRow.includes('<b>0 · Visitor</b>'));
-check('no records yet', settledFactory({ id: 'a2', name: 'Bee', hasPlayer: true, playerId: 'p2' }).includes('No records yet</b>'));
-check('unlinked account renders nothing extra', withPts({ id: 'a3', name: 'Cy', hasPlayer: false, playerId: null }) === '' && withPts({ id: 'a4', name: 'Di', hasPlayer: true, playerId: null }) === '');
-const missingRoster = factory(() => null, () => ({ name: 'x' }), Payments, { attendance }, { roster: [] }, { Payments })({ id: 'a1', name: 'Alex', hasPlayer: true, playerId: 'p1' });
-check('roster player missing: points show a dash, ledger still available', missingRoster.includes('<span>Points <b>&ndash;</b></span>') && missingRoster.includes('RM25 · 1 night'));
-const noState = factory(() => { throw new Error('must not be called'); }, () => ({ name: 'x' }), Payments, { attendance }, null, { Payments })({ id: 'a1', name: 'Alex', hasPlayer: true, playerId: 'p1' });
-check('before the first poll (state null) the roster is not dereferenced', noState.includes('<b>&ndash;</b>'));
-// Lifetime points: admin-only, from the ops cache, never from state.roster.
-check('lifetime shows a dash until the ops cache has been fetched', owingRow.includes('Lifetime <b>&ndash;</b>'));
-const withLife = factory((pid) => ({ id: 'p1', name: 'Alex', points: 1240 }), () => ({ name: 'Gold' }), Payments,
-  { attendance, lifetimePoints: { p1: 3480 } }, { roster: [] }, { Payments })({ id: 'a1', name: 'Alex', hasPlayer: true, playerId: 'p1' });
-check('lifetime renders the fetched total, grouped', withLife.includes('Lifetime <b>3,480</b>'));
-check('a player with no lifetime entry reads 0, not a dash, once fetched', factory((pid) => ({ id: 'p9', points: 0 }), () => ({ name: 'Visitor' }), Payments,
-  { attendance: {}, lifetimePoints: {} }, { roster: [] }, { Payments })({ id: 'a9', name: 'Zed', hasPlayer: true, playerId: 'p9' }).includes('Lifetime <b>0</b>'));
-const escaped = withPts({ id: 'a5', name: 'O"Neil <b>', hasPlayer: true, playerId: 'p1' });
-check('names never leak markup into the row', !escaped.includes('<b>O"') && !escaped.includes('O"Neil <b>'));
+const sessions = { '2026-09-11': { players: [{ id: 'p2', name: 'Bee' }] } };
+const A = mk({ attendance }, { sessions, sessionDate: '2026-09-18', players: [] });
+check('present rows count, seeded-but-absent rows do not', A.acctLastPlayedISO('p1') === '2026-09-04');
+check('a saved session beats an older attendance row', A.acctLastPlayedISO('p2') === '2026-09-11');
+check('never played reads empty, and an empty player id is safe', A.acctLastPlayedISO('p9') === '' && A.acctLastPlayedISO('') === '' && A.acctLastPlayedISO(null) === '');
+const live = mk({ attendance }, { sessions, sessionDate: '2026-09-18', players: [{ id: 'p1', name: 'Alex' }] });
+check("tonight's ticked line-up counts before it is ever saved", live.acctLastPlayedISO('p1') === '2026-09-18');
+check('an older live date never overrides a newer record', mk({ attendance }, { sessions, sessionDate: '2026-09-01', players: [{ id: 'p2' }] }).acctLastPlayedISO('p2') === '2026-09-11');
+// The organiser reads nights by their day name — Monday, Friday or Sunday.
+check('the label leads with the day name', A.acctLastPlayedLabel('2026-09-04', '2026-09-19') === 'Friday, 4 Sep');
+check('Monday and Sunday nights read the same way', A.acctLastPlayedLabel('2026-09-07', '2026-09-19') === 'Monday, 7 Sep' && A.acctLastPlayedLabel('2026-09-13', '2026-09-19') === 'Sunday, 13 Sep');
+check('the year only shows when it is not this one', A.acctLastPlayedLabel('2025-12-26', '2026-09-19') === 'Friday, 26 Dec 2025');
+check('a junk date never renders a chip', A.acctLastPlayedLabel('', '2026-09-19') === '' && A.acctLastPlayedLabel('not-a-date', '2026-09-19') === '' && A.acctLastPlayedLabel(null, '2026-09-19') === '');
+check('a linked player who has played gets the chip', A.acctLastPlayedHtml({ id: 'a1', name: 'Alex', hasPlayer: true, playerId: 'p1' }) === '<span class="acct-last">Last game <b>Friday, 4 Sep</b></span>');
+check('a linked player with no record reads Never, muted', A.acctLastPlayedHtml({ id: 'a9', name: 'Zed', hasPlayer: true, playerId: 'p9' }).includes('class="acct-last none">Last game <b>Never</b>'));
+check('an unlinked account says so instead of claiming Never', (() => {
+  const u = A.acctLastPlayedHtml({ id: 'a3', name: 'Cy', hasPlayer: false, playerId: null });
+  return u.includes('Not linked to a player') && !u.includes('Never')
+    && A.acctLastPlayedHtml({ id: 'a4', name: 'Di', hasPlayer: true, playerId: null }) === u;
+})());
+// Before the first poll `state` is null and the ops cache is empty — the row
+// still has to paint rather than throw inside renderAcctList.
+const cold = mk(null, null);
+check('before the first poll nothing is dereferenced', cold.acctLastPlayedISO('p1') === '' && cold.acctLastPlayedHtml({ hasPlayer: true, playerId: 'p1' }).includes('Never'));
+check('a malformed attendance day is skipped, not thrown on', mk({ attendance: { '2026-09-04': null, '2026-09-11': { entries: null } } }, { sessions: { '2026-09-13': {} } }).acctLastPlayedISO('p1') === '');
+const escaped = fn('accountCardHtml');
+check('names never leak markup into the row', escaped.includes('escHtml(a.name') && escaped.includes('${name}'));
 
 // ── member profile (tap a row) ──
 // Everything the member can see, editable in one panel. The guard is that each

@@ -266,7 +266,13 @@ check('the Payments member popup shows Points · Lifetime · Outstanding', (() =
   return m.includes("<b>' + lifetimePointsLabel(pmMemPid) + '</b><span>Lifetime</span>") && m.indexOf('Lifetime') < m.indexOf('Outstanding');
 })());
 check('the hero grid is three across', html.includes('.pm-mem-hero{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));'));
-check('an Accounts row shows the lifetime total next to the monthly one', fn('acctFinanceHtml').includes('Lifetime <b>${lifetimePointsLabel(a.playerId)}</b>'));
+// The Accounts *row* was stripped back to name/code/phone/last game on
+// 2026-09-19, so the lifetime total now lives one tap in, on the member profile.
+check('the member profile shows the lifetime total next to the monthly one', (() => {
+  const p = fn('acctProfileHtml');
+  return p.includes('<b>${lifetimePointsLabel(pid)}</b><span>Lifetime</span>') && p.indexOf('Lifetime') > p.indexOf('Points');
+})());
+check('the lifetime total is not back on the list row', !fn('accountCardHtml').includes('lifetimePointsLabel'));
 
 // ── help text ──
 check('the Session help explains the reset and who can see the lifetime total', (() => {
