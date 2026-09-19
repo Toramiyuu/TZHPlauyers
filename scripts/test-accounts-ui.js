@@ -70,13 +70,15 @@ check('accounts list section has no native confirm/alert/prompt', section.length
 // ── extracted glue, executed with stubs ──
 // "Last game" has to survive three partial sources: attendance rows (only for
 // nights the organiser seeded or ended), saved sessions (31 days) and tonight's
-// line-up, which is not a saved session yet. Newest of the three wins.
-const factory = new Function('adminOps', 'state', 'todayISO',
+// line-up, which is not a saved session yet. Newest of the three wins, and the
+// real Night module folds the ghost off-days back onto the night that ran.
+const Night = require('../public/night.js');
+const factory = new Function('adminOps', 'state', 'todayISO', 'window', 'Night',
   "const WEEKDAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];"
   + "const PM_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];"
   + fn('escHtml') + ';' + fn('weekdayOfISO') + ';' + fn('acctLastPlayedISO') + ';' + fn('acctLastPlayedLabel') + ';'
   + fn('acctLastPlayedHtml') + '; return { acctLastPlayedISO, acctLastPlayedLabel, acctLastPlayedHtml };');
-const mk = (ops, st, today) => factory(ops, st, () => today || '2026-09-19');
+const mk = (ops, st, today) => factory(ops, st, () => today || '2026-09-19', { Night }, Night);
 const attendance = {
   // Fri 4 Sep 2026 played, Mon 7 Sep seeded but absent.
   '2026-09-04': { entries: { p1: { name: 'Alex', present: true, paid: true }, p2: { name: 'Bee', present: true, paid: false } } },
@@ -90,6 +92,12 @@ check('never played reads empty, and an empty player id is safe', A.acctLastPlay
 const live = mk({ attendance }, { sessions, sessionDate: '2026-09-18', players: [{ id: 'p1', name: 'Alex' }] });
 check("tonight's ticked line-up counts before it is ever saved", live.acctLastPlayedISO('p1') === '2026-09-18');
 check('an older live date never overrides a newer record', mk({ attendance }, { sessions, sessionDate: '2026-09-01', players: [{ id: 'p2' }] }).acctLastPlayedISO('p2') === '2026-09-11');
+// Games are Mon/Fri/Sun. A Saturday record is a ghost the old midnight rollover
+// left behind — it belongs to Friday's night, and must never read "Saturday".
+const ghost = mk({ attendance: { '2026-08-29': { entries: { p3: { present: true } } } } }, { sessions: {}, players: [] });
+check('a ghost Saturday folds back onto the Friday night that ran', ghost.acctLastPlayedISO('p3') === '2026-08-28');
+check('and so the chip names a real game night', ghost.acctLastPlayedHtml({ hasPlayer: true, playerId: 'p3' }).includes('Friday, 28 Aug'));
+check('a ghost session date folds the same way', mk({ attendance: {} }, { sessions: { '2026-08-29': { players: [{ id: 'p3' }] } }, players: [] }).acctLastPlayedISO('p3') === '2026-08-28');
 // The organiser reads nights by their day name — Monday, Friday or Sunday.
 check('the label leads with the day name', A.acctLastPlayedLabel('2026-09-04', '2026-09-19') === 'Friday, 4 Sep');
 check('Monday and Sunday nights read the same way', A.acctLastPlayedLabel('2026-09-07', '2026-09-19') === 'Monday, 7 Sep' && A.acctLastPlayedLabel('2026-09-13', '2026-09-19') === 'Sunday, 13 Sep');

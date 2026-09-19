@@ -10788,21 +10788,27 @@ function acctCodeChipHtml(a) {
 function acctLastPlayedISO(playerId) {
   if (!playerId) return '';
   let best = '';
+  // Games are Mondays, Fridays and Sundays. Records dated anything else are the
+  // ghost days the old midnight rollover left behind, and a night is owned by
+  // the day it STARTED — so an off-day record folds back onto its own night
+  // rather than telling the organiser they played on a Saturday.
+  const keep = (date) => {
+    const owner = (window.Night && Night.owningNight(date)) || date;
+    if (owner && owner > best) best = owner;
+  };
   const att = (adminOps && adminOps.attendance) || {};
   for (const date of Object.keys(att)) {
-    if (date <= best) continue;
     const day = att[date];
     const e = day && day.entries && day.entries[playerId];
-    if (e && e.present) best = date;
+    if (e && e.present) keep(date);
   }
   const sessions = (state && state.sessions) || {};
   for (const date of Object.keys(sessions)) {
-    if (date <= best) continue;
     const s = sessions[date];
-    if (s && Array.isArray(s.players) && s.players.some(p => p && p.id === playerId)) best = date;
+    if (s && Array.isArray(s.players) && s.players.some(p => p && p.id === playerId)) keep(date);
   }
   const live = state && state.sessionDate;
-  if (live && live > best && Array.isArray(state.players) && state.players.some(p => p && p.id === playerId)) best = live;
+  if (live && Array.isArray(state.players) && state.players.some(p => p && p.id === playerId)) keep(live);
   return best;
 }
 
