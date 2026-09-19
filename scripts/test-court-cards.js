@@ -396,13 +396,20 @@ if (H.normalizeCourtStatus) {
       check('liveClockHTML: running clock carries a stamp for the ticker',
         /data-live-since="\d{10,}"/.test(out));
       check('liveClockHTML: wires up the caller handler', out.includes('onclick="go(1)"'));
+      // Tapping a RUNNING clock stops it, and that has to be visible without a
+      // tooltip — a phone never shows one.
+      check('liveClockHTML: a running clock says it stops on tap', out.includes('tap to stop the clock'));
+      check('liveClockHTML: a running clock draws the stop square', out.includes('class="stop"'));
     }
-    // 3. Live but never started offers to start, and is not tickable.
+    // 3. Live but never started offers to start, is not tickable, and shows no
+    //    stop square (there is nothing running to stop).
     {
       const out = chip('live', 0, 'go()');
       check('liveClockHTML: unstarted clock offers Start', out.includes('>Start<'));
       check('liveClockHTML: unstarted clock is not marked on', !out.includes('mu-clock on'));
       check('liveClockHTML: unstarted clock has a zero stamp', out.includes('data-live-since="0"'));
+      check('liveClockHTML: unstarted clock has no stop square', !out.includes('class="stop"'));
+      check('liveClockHTML: unstarted clock says it starts on tap', out.includes('Start the clock'));
     }
     // 4. Junk stamps degrade to "not started" rather than a nonsense time.
     {
@@ -436,8 +443,19 @@ if (H.normalizeCourtStatus) {
   check('Courts team rows drop the score column', courtsRender.includes('no-score'));
 
   // The live clock, on both boards.
-  check('Courts cards render the live clock', courtsRender.includes('liveClockHTML(') && courtsRender.includes('restartCourtClock('));
-  check('Friendly pods render the live clock', friendlyRender.includes('liveClockHTML(') && friendlyRender.includes('restartFriendlyClock('));
+  check('Courts cards render the live clock', courtsRender.includes('liveClockHTML(') && courtsRender.includes('toggleCourtClock('));
+  check('Friendly pods render the live clock', friendlyRender.includes('liveClockHTML(') && friendlyRender.includes('toggleFriendlyClock('));
+  // Stop/start is one tap on the chip: the handler must branch on whether the
+  // clock is already running, on BOTH boards, and stopping must not touch the
+  // court's status (a stopped clock is still a Live court).
+  {
+    const ct = extractFn('toggleCourtClock', html) || '';
+    const fr = extractFn('toggleFriendlyClock', html) || '';
+    check('a Courts clock tap stops a running clock', ct.includes('running ? 0 : Date.now()'));
+    check('a Friendly clock tap stops a running clock', fr.includes('> 0 ? 0 : Date.now()'));
+    check('stopping a Courts clock leaves the court Live', !ct.includes('courtStatus'));
+    check('stopping a Friendly clock leaves the pod Live', !fr.includes('m.status'));
+  }
   check('a 1s ticker updates the clocks between polls', html.includes('function tickLiveClocks()') && html.includes('startLiveClockTicker()'));
   check('the ticker only rewrites text, never markup', !(extractFn('tickLiveClocks', html) || '').includes('innerHTML'));
   check('setting a Friendly pod Live stamps its clock', html.includes('m.liveSince = m.status === \'live\' ? Date.now() : 0'));
@@ -474,7 +492,7 @@ if (failures.length) {
   console.log('  PASS  picking a taken court number swaps the two slots');
   console.log('  PASS  dropping a court shifts every slot-indexed field with it');
   console.log('  PASS  locked courts keep their four in round 1 of a new schedule');
-  console.log('  PASS  the clock chip only renders on a Live court');
+  console.log('  PASS  the clock chip only renders on a Live court, and one tap stops or starts it');
   console.log('  PASS  both boards render the pod controls; Courts stays score-free');
   console.log('\nRESULT: PASS — all court-card assertions green.');
   process.exit(0);

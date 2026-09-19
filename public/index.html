@@ -2052,6 +2052,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .mu-clock{display:inline-flex;align-items:center;gap:6px;flex:none;height:28px;padding:0 9px;border:1px solid var(--border2);border-radius:7px;background:var(--dark);color:var(--muted);font-family:inherit;font-size:var(--fs-sm);font-weight:600;cursor:pointer}
 .mu-clock .t{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
 .mu-clock .dot{width:7px;height:7px;border-radius:50%;background:var(--border2);flex:none}
+/* Stop square — makes "tap to stop" visible on a phone, where a title never shows. */
+.mu-clock .stop{flex:none;opacity:.5;margin-left:1px}
+.mu-clock:hover .stop{opacity:1}
 /* Blue = a game running now. Amber is kept for "ending soon" (the button right
    next to it), so the two never read as the same signal. */
 .mu-clock.on{background:var(--a-blue-tint);border-color:var(--green-line);color:var(--a-blue)}
@@ -3010,7 +3013,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
     <!-- Per-court controls: editable court cards (slots tap-open the picker) -->
     <div class="admin-subsection-label">Individual Court Control</div>
-    <div class="admin-helper-text">One card per court. Tap a slot to swap a player, or drag a name from the bench below. The arrows move that court through the schedule; <b>Live</b> starts a game clock you can tap to restart, the clock button tells viewers the court is ending soon, and the padlock keeps those four together when you generate a new schedule.</div>
+    <div class="admin-helper-text">One card per court. Tap a slot to swap a player, or drag a name from the bench below. The arrows move that court through the schedule; <b>Live</b> starts a game clock &mdash; tap it to stop, tap again to start it fresh. The clock button tells viewers the court is ending soon, and the padlock keeps those four together when you generate a new schedule.</div>
     <div class="court-ctrl-grid" id="courtCtrlGrid"></div>
 
     <!-- Up Next controls -->
@@ -4068,15 +4071,20 @@ function applyLockedFirstRound(rounds, locks, pairings) {
 // The Live clock chip, shared by the Courts cards and the Friendly pods. Drawn
 // only while a court is Live: with a start stamp it shows the running game time
 // (the ticker below rewrites it every second), without one it offers to start.
-// `onclick` is the caller's restart handler — tapping the chip restarts the
-// clock, which is how you fix a court whose game actually started earlier.
+// `onclick` is the caller's stop/start handler — one tap stops a running clock,
+// one tap starts a stopped one, so stop-then-start is also how you correct a
+// court whose game actually began earlier. The stop square is drawn on a
+// running chip so the tap is visible on a phone, where there is no tooltip.
 function liveClockHTML(status, startedAt, onclick) {
   if ((status || 'live') !== 'live') return '';
   const at = Math.floor(Number(startedAt));
   const on = Number.isFinite(at) && at > 0;
-  const title = on ? 'Game time — tap to restart the clock' : 'Start the clock for this game';
+  const title = on ? 'Game time — tap to stop the clock' : 'Start the clock for this game';
+  const stop = on
+    ? `<svg class="stop" viewBox="0 0 10 10" width="9" height="9" aria-hidden="true"><rect width="10" height="10" rx="2" fill="currentColor"/></svg>`
+    : '';
   return `<button class="mu-clock${on ? ' on' : ''}" data-live-since="${on ? at : 0}" onclick="${onclick}" title="${title}" aria-label="${title}">`
-    + `<span class="dot" aria-hidden="true"></span><span class="t">${on ? formatElapsed(Date.now() - at) : 'Start'}</span></button>`;
+    + `<span class="dot" aria-hidden="true"></span><span class="t">${on ? formatElapsed(Date.now() - at) : 'Start'}</span>${stop}</button>`;
 }
 
 // One 1s ticker for every clock chip on screen. It only rewrites text nodes, so
@@ -4451,7 +4459,7 @@ function renderFriendlyMatchups(f) {
       <div class="fr-mu-top">
         <div class="fr-mu-court">Court ${courtPicker(m, i)}</div>
         <div class="fr-mu-ctrls">
-        ${liveClockHTML(m.status || 'live', m.liveSince, `restartFriendlyClock(${i})`)}
+        ${liveClockHTML(m.status || 'live', m.liveSince, `toggleFriendlyClock(${i})`)}
         <select class="fr-mu-status" onchange="setFriendlyMatchup(${i},'status',this.value)">
           <option value="live"${(m.status || 'live') === 'live' ? ' selected' : ''}>Live</option>
           <option value="next"${m.status === 'next' ? ' selected' : ''}>Up Next</option>
@@ -4647,11 +4655,12 @@ function setFriendlyMatchup(i, field, val) {
   saveFriendly();
 }
 
-// Tap the clock chip on a Friendly pod — (re)start that court's game clock.
-function restartFriendlyClock(i) {
+// Tap the clock chip on a Friendly pod — stop a running clock, start a stopped
+// one. Same rule as the Courts cards: the pod stays Live either way.
+function toggleFriendlyClock(i) {
   const f = ensureFriendly();
   const m = f.matchups[i]; if (!m) return;
-  m.liveSince = Date.now();
+  m.liveSince = Number(m.liveSince) > 0 ? 0 : Date.now();
   renderFriendlyMatchups(f); saveFriendly();
 }
 // Single-select court chips: light the chosen one, clear its siblings, persist.
@@ -5195,7 +5204,7 @@ function renderCourtControls() {
           <button class="crt-rnav-btn" onclick="advanceCourt(${i},1)" ${ri >= totalRounds - 1 ? 'disabled' : ''} aria-label="Next round">&#8594;</button>
         </div>
         <div class="fr-mu-ctrls">
-        ${liveClockHTML(statuses[i], liveAt[i], `restartCourtClock(${i})`)}
+        ${liveClockHTML(statuses[i], liveAt[i], `toggleCourtClock(${i})`)}
         <select class="fr-mu-status" onchange="setCourtStatus(${i},this.value)" aria-label="Court ${courtLabel(i)} status">
           <option value="live"${statuses[i] === 'live' ? ' selected' : ''}>Live</option>
           <option value="next"${statuses[i] === 'next' ? ' selected' : ''}>Up Next</option>
@@ -5603,16 +5612,17 @@ async function setCourtStatus(courtIdx, value) {
   notify(`Court ${courtLabel(courtIdx)}: ${courtStatusLabel(courtStatus[courtIdx])}`);
 }
 
-// Tap the clock chip — (re)start this court's game clock from now. Used both to
-// start the clock on a court that was already Live and to correct one that was
-// started at the wrong moment.
-async function restartCourtClock(courtIdx) {
+// Tap the clock chip — stop a running clock, or start a stopped one. Stopping
+// leaves the court Live (the game is still on that court, you just aren't timing
+// it); it's the status select that takes a court off Live altogether.
+async function toggleCourtClock(courtIdx) {
   const numCourts = state.numCourts || 1;
-  const courtLive = setCourtLiveAt(state.courtLive, courtIdx, numCourts, Date.now());
+  const running = normalizeCourtLive(state.courtLive, numCourts)[courtIdx] > 0;
+  const courtLive = setCourtLiveAt(state.courtLive, courtIdx, numCourts, running ? 0 : Date.now());
   await apiPost({ courtLive });
   state.courtLive = courtLive;
   renderCourtControls();
-  notify(`Court ${courtLabel(courtIdx)} clock started`);
+  notify(`Court ${courtLabel(courtIdx)} clock ${running ? 'stopped' : 'started'}`);
 }
 
 // Lock = keep this court's four players together when a new schedule is
