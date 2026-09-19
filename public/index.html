@@ -442,6 +442,15 @@ body.in-3d #joinModal{z-index:1300}
 .acct-pin-badge.none{color:var(--red)}
 .acct-meta{display:flex;flex-wrap:wrap;gap:3px 14px;font-size:var(--fs-xs);color:var(--text-2)}
 .acct-meta b{color:var(--text);font-weight:600}
+/* The phone number is typed on the row itself, so the chip IS the field: it
+   reads as the plain muted text it replaces until you hover or tap it. */
+.acct-phone{position:relative;appearance:none;background:none;border:0;padding:0;margin:0;font:inherit;font-size:var(--fs-sm);color:var(--muted);cursor:pointer;border-bottom:1px solid transparent}
+.acct-phone::after{content:"";position:absolute;inset:-10px}
+.acct-phone:hover{color:var(--a-blue);border-bottom-color:var(--a-blue)}
+.acct-phone.none{color:var(--a-blue)}
+.acct-phone-edit{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.acct-phone-inp{width:168px;min-height:36px;padding:4px 10px;font-size:var(--fs-sm)}
+.acct-phone-edit .btn{min-height:36px}
 /* The one line left under the name: the last night this member turned up.
    Points, payments and sign-in history all live in the Manage profile now. */
 .acct-last{display:inline-flex;align-items:center;gap:6px}
@@ -10624,8 +10633,9 @@ async function loadAccountsTab() {
   const list = document.getElementById('accountsList');
   if (!list) return;
   list.innerHTML = '<div class="acct-empty">Loading accounts…</div>';
+  acctPhoneEditId = null; // a reload throws the list away; nothing is being typed into
   // Accounts + ops (attendance/payments + audit) together: one paint, so the
-  // points/payment chips never flash "No records yet" before the ledger arrives.
+  // "Last game" chip never flashes "Never" before the ledger arrives.
   const [res] = await Promise.all([apiPost({ action: 'adminListAccounts' }), loadAdminOps()]);
   if (res === null) return; // 401 already handled inside apiPost
   if (!res.ok || !Array.isArray(res.accounts)) {
@@ -10772,6 +10782,58 @@ function unlinkedRosterHtml(needle) {
     + `<div class="acct-actions"><button class="btn btn-primary btn-sm" onclick="${pmCall('assignCodeFor', r.id)}">Assign code</button></div></div>`).join('');
 }
 
+// The phone slot on a row. A code-only account used to read "Code sign-in",
+// which named what was missing instead of offering to fix it — so the slot is
+// now the editor: tap the number (or "Add phone") and type. Saving goes through
+// the same validated, audited adminSetPhone as the Manage profile; an emptied
+// field means the same "back to code sign-in only" it means there.
+let acctPhoneEditId = null;   // the one row whose phone field is open
+
+function acctPhoneHtml(a) {
+  const id = escHtml(a.id);
+  const num = a.phoneDisplay || a.phone || '';
+  const who = escHtml(a.name || 'this member');
+  if (acctPhoneEditId === a.id) {
+    return `<span class="acct-phone-edit">
+      <input class="admin-form-input acct-phone-inp" id="acctPhoneInp_${id}" type="tel" value="${escHtml(num)}" placeholder="012-345 6789"
+        autocomplete="off" inputmode="tel" maxlength="20" aria-label="Phone number for ${who}"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();saveAcctRowPhone('${id}')}else if(event.key==='Escape'){event.preventDefault();cancelAcctRowPhone()}">
+      <button type="button" class="btn btn-primary btn-sm" onclick="saveAcctRowPhone('${id}')">Save</button>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="cancelAcctRowPhone()">Cancel</button>
+    </span>`;
+  }
+  return `<button type="button" class="acct-phone${num ? '' : ' none'}" onclick="editAcctPhone('${id}')"
+    aria-label="${num ? 'Change' : 'Add'} the phone number for ${who}">${num ? escHtml(num) : '+ Add phone'}</button>`;
+}
+
+function editAcctPhone(id) {
+  acctPhoneEditId = id;
+  renderAcctList();
+  const el = document.getElementById('acctPhoneInp_' + id);
+  if (el) { el.focus(); el.select(); }
+}
+function cancelAcctRowPhone() {
+  acctPhoneEditId = null;
+  renderAcctList();
+}
+// A rejected number (malformed, or already on another account) reopens the
+// field with what was typed still in it — retyping a number the server just
+// refused is the one thing that would make this slower than the profile.
+async function saveAcctRowPhone(id) {
+  const el = document.getElementById('acctPhoneInp_' + id);
+  const phone = el ? el.value.trim() : '';
+  acctPhoneEditId = null;
+  const res = await setAcctPhone(id, phone, acc => (acc.phoneDisplay || acc.phone)
+    ? 'Phone number saved: ' + (acc.phoneDisplay || acc.phone)
+    : 'Phone number removed. They sign in with their login code now.');
+  if (res && !res.ok) {
+    acctPhoneEditId = id;
+    renderAcctList();
+    const again = document.getElementById('acctPhoneInp_' + id);
+    if (again) { again.value = phone; again.focus(); }
+  }
+}
+
 // The tappable code chip: one tap copies it so the organiser can paste it to the member.
 function acctCodeChipHtml(a) {
   if (!a || !a.code) return '<span class="acct-warn">No login code</span>';
@@ -10849,7 +10911,7 @@ function accountCardHtml(a) {
       <div class="acct-name-row">
         <button type="button" class="acct-name acct-name-btn" onclick="${pmCall('openAcctProfile', a.id)}" aria-haspopup="dialog">${name}</button>
         ${acctCodeChipHtml(a)}
-        <span class="acct-uname">${escHtml(a.phoneDisplay || a.phone || (a.code ? 'Code sign-in' : 'no phone'))}</span>
+        ${acctPhoneHtml(a)}
         ${a.status === 'active' ? '' : adminStatusBadge(a.status)}
       </div>
       <div class="acct-meta">
@@ -11169,12 +11231,15 @@ async function clearCode(id) {
 // Phone number: the second way in (phone + password). Code-only accounts start
 // without one, so this is how an organiser adds it later. The server normalises
 // whatever is typed — 012-345 6789, 60123456789, +60 12… are one number.
+// Returns the server's reply so the row editor can reopen its field on a
+// refusal; the profile's own Save/Remove buttons ignore it.
 async function setAcctPhone(id, phone, okMsg) {
   const res = await apiPost({ action: 'adminSetPhone', id, phone });
-  if (res === null) return;
-  if (!res.ok) { notify(res.error || 'Could not save that phone number.', 'warn', 5000); renderAccountsTab(); return; }
+  if (res === null) return null;
+  if (!res.ok) { notify(res.error || 'Could not save that phone number.', 'warn', 5000); renderAccountsTab(); return res; }
   patchAcct(res); renderAccountsTab();
   notify(res.unchanged ? 'Phone number unchanged.' : okMsg(res.account), 'ok', 5000);
+  return res;
 }
 function saveAcctPhone(id) {
   const el = document.getElementById('phoneVal_' + id);

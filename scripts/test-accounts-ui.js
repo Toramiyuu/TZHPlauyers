@@ -35,9 +35,27 @@ const fn = (name) => extractFn(name, html) || '';
 // history moved entirely into the Manage profile, so the row stays scannable.
 check('the row carries name, code chip, phone and the last-game chip', (() => {
   const f = fn('accountCardHtml');
-  return f.includes('${acctCodeChipHtml(a)}') && f.includes('a.phoneDisplay || a.phone')
+  return f.includes('${acctCodeChipHtml(a)}') && f.includes('${acctPhoneHtml(a)}')
     && f.includes('${acctLastPlayedHtml(a)}') && f.includes('class="acct-name acct-name-btn"');
 })());
+
+// ── the phone slot is the editor ──
+// 2026-09-19: the slot used to read "Code sign-in", which named what was
+// missing rather than offering to fix it. Now it is the field.
+check('an empty slot invites a number instead of reporting its absence', (() => {
+  const f = fn('acctPhoneHtml');
+  return f.includes("'+ Add phone'") && !f.includes('Code sign-in') && !fn('accountCardHtml').includes('Code sign-in');
+})());
+check('the slot renders the number when there is one', fn('acctPhoneHtml').includes('a.phoneDisplay || a.phone') && fn('acctPhoneHtml').includes('escHtml(num)'));
+check('only one row can be open at a time', fn('acctPhoneHtml').includes('acctPhoneEditId === a.id') && html.includes('let acctPhoneEditId = null;'));
+check('opening a field focuses and selects it', fn('editAcctPhone').includes('renderAcctList()') && fn('editAcctPhone').includes('el.focus(); el.select();'));
+check('Enter saves, Escape cancels', fn('acctPhoneHtml').includes("event.key==='Enter'") && fn('acctPhoneHtml').includes("event.key==='Escape'") && fn('acctPhoneHtml').includes('cancelAcctRowPhone()'));
+check('saving reuses the validated + audited adminSetPhone, not a raw state write', fn('saveAcctRowPhone').includes('setAcctPhone(id, phone') && fn('setAcctPhone').includes("action: 'adminSetPhone'"));
+check('a refused number reopens the field with what was typed', fn('saveAcctRowPhone').includes('if (res && !res.ok)') && fn('saveAcctRowPhone').includes('again.value = phone') && fn('setAcctPhone').includes('return res;'));
+check('an emptied field clears the number the same way Remove does', fn('saveAcctRowPhone').includes('They sign in with their login code now.'));
+check('reloading the tab closes any open field', fn('loadAccountsTab').includes('acctPhoneEditId = null;'));
+check('the phone slot is a button with a phone-sized hit area', html.includes('.acct-phone::after{content:"";position:absolute;inset:-10px}') && html.includes('.acct-phone{position:relative;appearance:none'));
+check('an empty slot is coloured as the action it is', html.includes('.acct-phone.none{color:var(--a-blue)}'));
 check('the old finance / sign-in chips are gone from the row', (() => {
   const f = fn('accountCardHtml');
   return !f.includes('acctFinanceHtml') && !f.includes('Last login') && !f.includes('Failed')
