@@ -19,19 +19,20 @@
   'use strict';
 
   // Canonical order — matches the desktop sidebar (Today group, then Manage group).
-  const TABS = ['session', 'courts', 'payments', 'engagement', 'friendly', 'signups', 'accounts', 'settings'];
+  const TABS = ['session', 'courts', 'payments', 'feedback', 'engagement', 'friendly', 'knockout', 'signups', 'accounts', 'settings'];
   const LABELS = {
-    session: 'Session', courts: 'Courts', payments: 'Payments', engagement: 'Lucky Draw',
-    friendly: 'Friendly', signups: 'Sign-ups', accounts: 'Accounts', settings: 'Settings',
+    session: 'Session', courts: 'Courts', payments: 'Payments', feedback: 'Feedback', engagement: 'Lucky Draw',
+    friendly: 'Friendly', knockout: 'Knockout', signups: 'Sign-ups', accounts: 'Accounts', settings: 'Settings',
   };
   // Shorter labels for the 10px uppercase bottom-bar captions.
-  const SHORT_LABELS = { engagement: 'Draw' };
+  const SHORT_LABELS = { engagement: 'Draw', knockout: 'Comp' };
   const DEFAULT_SHORTCUTS = ['session', 'courts', 'payments'];
   const MIN_SHORTCUTS = 1;
   const MAX_SHORTCUTS = 4;
   // Tabs whose live count is "something needs doing" (blue pill): tonight's unpaid
-  // players and unhandled sign-ups. These are the only counts the phone bar shows.
-  const ACCENT_BADGE_TABS = ['payments', 'signups'];
+  // players, unhandled sign-ups, and competition entries waiting to be confirmed
+  // or marked paid. These are the only counts the phone bar shows.
+  const ACCENT_BADGE_TABS = ['payments', 'knockout', 'signups', 'feedback'];
 
   const isTab = (id) => typeof id === 'string' && TABS.includes(id);
   const label = (id) => LABELS[id] || '';

@@ -7,6 +7,10 @@ const SD = require('../public/session-draw.js');
 const { MONTHLY_LUCKY_ADMIN_ACTIONS, handleMonthlyLuckyAdminAction, sweepMonthlyDraws, buildMonthlyView, redisMonthlyStore, applyMonthClose } = require('../lib/monthly-lucky.js');
 const ML = require('../public/monthly-lucky.js');
 const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('../lib/payments.js');
+const { FEEDBACK_ADMIN_ACTIONS, handleFeedbackAdminAction, handleMemberFeedbackAction, pruneFeedback } = require('../lib/feedback.js');
+const FB = require('../public/feedback.js');
+const { KNOCKOUT_PUBLIC_ACTIONS, KNOCKOUT_ADMIN_ACTIONS, handleKnockoutPublicAction, handleKnockoutAdminAction, ensureKnockout } = require('../lib/knockout.js');
+const KN = require('../public/knockout.js');
 const { pushAudit } = require('../lib/audit.js');
 const Payments = require('../public/payments.js');
 const AdminNav = require('../public/admin-nav.js');
@@ -134,6 +138,12 @@ const DEFAULT_STATE = {
   // the month-close reset and never leaves the server without the admin
   // password (see ensureLifetimePoints / adminGetOps).
   lifetimePoints: {},
+  // ── open competition / knockout (2026-09) ──
+  // The public, code-entered tournament: an event, its categories (each with its
+  // own printed code), their entrants and their draws. Entrant IC numbers are
+  // stored ENCRYPTED (lib/knockout.js) and are stripped from every projection
+  // below; see public/knockout.js for the shape.
+  knockout: KN.emptyKnockout(),
   // Durable admin audit log (bounded).
   audit: [],
 };
@@ -148,8 +158,18 @@ const DEFAULT_STATE = {
 // dormant — so they are stripped here to keep old per-player name lists from
 // leaking and off the 2s poll.
 // Session draw results are served by GET /api/draws (site-code gated), not here.
+// `feedback` is stripped for the same reason as attendance: the records are NAMED
+// ("Kelvin said he waited too long"), they are for the organiser's eyes only, and the
+// viewer screen polls this payload every 2 seconds. `feedbackSettings` stays — it is
+// only { enabled, points }.
 function publicProjection(current) {
-  const { attendance, audit, monthlyDraw, monthlyEligibility, weeklyDraws, weeklySettings, ...safe } = redactState(current);
+  const { attendance, audit, feedback, monthlyDraw, monthlyEligibility, weeklyDraws, weeklySettings, ...safe } = redactState(current);
+  // The competition holds entrants' phone numbers and (encrypted) IC numbers.
+  // Knockout.publicKnockout is the ONLY shape allowed out of the public GET:
+  // it keeps the bracket a hall screen needs and drops every phone, every IC,
+  // every unconfirmed entrant and every category code. Replacing the key here
+  // (rather than deleting it) means the viewer still gets its bracket.
+  safe.knockout = KN.publicKnockout(safe.knockout);
   return liteMonthlyLucky(safe);
 }
 // Both polls (public GET + admin auth ping) carry only the LIGHT monthly-draw
@@ -344,6 +364,29 @@ function awardSessionPoints(state, leavingDate) {
     awardedSessions: awarded.concat([leavingDate]),
     lifetimePoints: lifetime,
   };
+}
+
+/**
+ * Credit (or debit) one roster player's points, in place, keeping the monthly
+ * total and the permanent lifetime ledger in step. This is the ONE place a
+ * feature outside the roster editor should move a player's points — handlers in
+ * lib/ are handed it through their opts rather than requiring this module back.
+ *
+ * Returns { prev, next }: equal values mean nothing moved (unknown player, junk
+ * delta, or already at the 0..MAX_POINTS ceiling), which callers use to decide
+ * whether an award really happened.
+ */
+function creditRosterPoints(state, playerId, delta) {
+  const list = Array.isArray(state && state.roster) ? state.roster : [];
+  const idx = list.findIndex((r) => r && r.id === playerId);
+  const d = Math.trunc(Number(delta));
+  if (idx === -1 || !Number.isFinite(d) || d === 0) return { prev: 0, next: 0 };
+  const prev = Math.max(0, Math.trunc(Number(list[idx].points)) || 0);
+  const next = Math.max(0, Math.min(MAX_POINTS, prev + d));
+  if (next === prev) return { prev, next };
+  state.roster = list.map((r, i) => (i === idx ? Object.assign({}, r, { points: next }) : r));
+  state.lifetimePoints = addLifetimePoints(state.lifetimePoints, playerId, next - prev);
+  return { prev, next };
 }
 
 // ── WEEKLY REGULARS ──────────────────────────────────────────────────────────
@@ -871,11 +914,17 @@ const handler = async function handler(req, res) {
       // Lifetime points: seed/repair the map (stripped again by publicProjection —
       // this keeps a read and a write agreeing on the same starting totals).
       ensureLifetimePoints(current);
+      // Open competition: repair/seed the blob on every read, like the draws above.
+      ensureKnockout(current);
       if (!Array.isArray(current.audit)) current.audit = [];
       // Session fee tier: coerce anything but '2h'/'3h' (old blobs, junk) to the default.
       current.feeTier = Payments.tierOf(current.feeTier);
       // Prune attendance past the retention window on every read.
       pruneWeeklyState(current, todayISO());
+      // Member feedback follows the same retention window as attendance.
+      pruneFeedback(current, todayISO());
+      // Session feedback settings: coerce any old/odd blob to { enabled, points }.
+      current.feedbackSettings = FB.settingsOf(current);
       if (current.siteCode) {
         const provided = (req.query && req.query.code) ? req.query.code : '';
         if (provided !== current.siteCode) {
@@ -886,7 +935,11 @@ const handler = async function handler(req, res) {
             .map(g => ({ id: g.id, day: g.day, weekday: g.weekday, time: g.time, enabled: true }));
           // `today` lets the locked join calendar use the SERVER's day boundary
           // (not the visitor's browser clock) as its lower bound.
-          return res.status(200).json({ locked: true, socialGames: openGames, today: todayISO() });
+          // The competition is deliberately open to people who do NOT have the
+          // site code — that is the whole point of it — so the locked screen
+          // carries a thin teaser (name, date, "entries open") and the code box.
+          // KN.teaser never includes entrants, brackets or category codes.
+          return res.status(200).json({ locked: true, socialGames: openGames, knockout: KN.teaser(current.knockout), today: todayISO() });
         }
       }
       // publicProjection strips the accounts array (credentials) AND the private
@@ -950,6 +1003,32 @@ const handler = async function handler(req, res) {
       return res.json({ ok: true });
     }
 
+    // Public, UNAUTHENTICATED competition actions, gated ONLY by the category's
+    // printed code: "what is this code?" and "here are my entries". Like
+    // submitSignup above, handleKnockoutPublicAction self-builds every record
+    // and never spreads req.body, so this path can only ever append a sanitized
+    // entrant — it cannot reach siteCode, roster, accounts or another category.
+    // IC numbers are encrypted inside the handler before they touch the blob.
+    // It returns in every branch, so it can never fall through to the admin logic.
+    if (b.action && KNOCKOUT_PUBLIC_ACTIONS.has(b.action)) {
+      let s;
+      try {
+        s = (await kv.get(STATE_KEY)) || { ...DEFAULT_STATE };
+      } catch (e) {
+        s = { ...DEFAULT_STATE };
+      }
+      const result = handleKnockoutPublicAction(s, b);
+      if (result.changed) {
+        try {
+          await kv.set(STATE_KEY, s);
+        } catch (e) {
+          console.error('KV write error (knockout entry):', e.message);
+          return res.status(500).json({ error: 'Storage error.' });
+        }
+      }
+      return res.status(result.status).json(result.body);
+    }
+
     // Public, UNAUTHENTICATED account actions (register / login / session /
     // update profile / logout). Like submitSignup, this path is gated only by
     // the site-access code on the client; it never reaches the admin-password
@@ -968,6 +1047,33 @@ const handler = async function handler(req, res) {
         s = { ...DEFAULT_STATE };
       }
       const result = await handleMemberInfo(s, b, { drawStore, monthlyStore });
+      return res.status(result.status).json(result.body);
+    }
+
+    // A signed-in member's feedback on the night they just played. Public but
+    // TOKEN-gated inside the handler, and self-only: it self-builds the record (never
+    // spreads req.body), the SERVER decides which night it belongs to, and it can only
+    // reach state.feedback[night][theirOwnId] plus that player's points. Returns in
+    // every branch, so it can never fall through to the admin logic.
+    if (b.action === 'submitFeedback') {
+      let s;
+      try {
+        s = (await kv.get(STATE_KEY)) || { ...DEFAULT_STATE };
+      } catch (e) {
+        s = { ...DEFAULT_STATE };
+      }
+      // The award lands on the lifetime ledger too, so seed it before crediting —
+      // otherwise the first-ever feedback would add to {} instead of a real total.
+      ensureLifetimePoints(s);
+      const result = handleMemberFeedbackAction(s, b, { nowMs: Date.now(), creditRosterPoints });
+      if (result.changed) {
+        try {
+          await kv.set(STATE_KEY, s);
+        } catch (e) {
+          console.error('KV write error (feedback):', e.message);
+          return res.status(500).json({ error: 'Storage error.' });
+        }
+      }
       return res.status(result.status).json(result.body);
     }
 
@@ -1010,7 +1116,14 @@ const handler = async function handler(req, res) {
     // Auth-only ping (no updates): return state so an authenticated admin can
     // bypass the site lock and reach the admin panel even without the site code.
     if (Object.keys(updates).length === 0) {
-      return res.json({ ok: true, state: { ...liteMonthlyLucky(redactState(state)), serverTime: Date.now() } });
+      // The admin poll carries the competition MINUS the encrypted IC blobs
+      // (bulky, and a full number only ever arrives through an audited reveal).
+      // Applied here rather than inside liteMonthlyLucky, because that helper
+      // also runs on the PUBLIC projection — and re-normalising an already
+      // stripped projection would rebuild the very fields it dropped.
+      const lite = liteMonthlyLucky(redactState(state));
+      lite.knockout = KN.pollKnockout(state.knockout);
+      return res.json({ ok: true, state: { ...lite, serverTime: Date.now() } });
     }
 
     // Handle admin account-management actions (list / approve / reject / reveal / ...)
@@ -1040,6 +1153,15 @@ const handler = async function handler(req, res) {
       return res.status(result.status).json(result.body);
     }
 
+    // Handle admin session-feedback settings (on/off + points per submission).
+    if (updates.action && FEEDBACK_ADMIN_ACTIONS.has(updates.action)) {
+      const result = handleFeedbackAdminAction(state, updates);
+      if (result.changed) {
+        try { await kv.set(STATE_KEY, state); } catch (e) { return res.status(500).json({ error: 'Storage error.' }); }
+      }
+      return res.status(result.status).json(result.body);
+    }
+
     // Handle admin session-draw actions (manual "Run draw now", winners setting,
     // admin copy of the draw list). The handler is async: it talks to the
     // separate draw store; the state blob is saved only when it changed.
@@ -1062,6 +1184,17 @@ const handler = async function handler(req, res) {
       return res.status(result.status).json(result.body);
     }
 
+    // Admin competition actions: categories and codes, confirming entries and
+    // marking them paid, seeding, generating a draw, entering results, and the
+    // audited one-player-at-a-time IC reveal.
+    if (updates.action && KNOCKOUT_ADMIN_ACTIONS.has(updates.action)) {
+      const result = handleKnockoutAdminAction(state, updates);
+      if (result.changed) {
+        try { await kv.set(STATE_KEY, state); } catch (e) { return res.status(500).json({ error: 'Storage error.' }); }
+      }
+      return res.status(result.status).json(result.body);
+    }
+
     // Admin fetch of the full private ops data (attendance / drawSettings /
     // audit / lifetime points) — kept out of public GET.
     if (updates.action === 'adminGetOps') {
@@ -1073,6 +1206,8 @@ const handler = async function handler(req, res) {
         feeTier: Payments.tierOf(state.feeTier),
         sessionDate: state.sessionDate || null,
         lifetimePoints: state.lifetimePoints || {},
+        // Named member feedback per night — admin-only, never on the public poll.
+        feedback: state.feedback || {},
         // Phone numbers by player, so Session and Payments can show who to call
         // without loading the (heavy, secret-carrying) accounts array.
         phones: playerPhoneMap(state),
@@ -1155,6 +1290,15 @@ const handler = async function handler(req, res) {
     if (updates.monthlyLucky !== undefined) {
       return res.status(400).json({ error: 'Use the monthly draw actions.' });
     }
+    // Feedback is written by members through their own token-gated action, and the
+    // admin client posts its whole state copy back on every ordinary edit — so an
+    // unguarded key here would let a stale 2s poll overwrite the night's records.
+    if (updates.feedback !== undefined) {
+      return res.status(400).json({ error: 'Feedback is written by members.' });
+    }
+    if (updates.feedbackSettings !== undefined) {
+      return res.status(400).json({ error: 'Use the setFeedbackSettings action.' });
+    }
     // Lifetime points are the server's own record: they are never sent to the
     // client on a poll, so anything arriving here is stale or forged. Refusing
     // it outright is what makes the ledger safe from the whole-roster merge.
@@ -1205,6 +1349,7 @@ module.exports.currentNight = currentNight;
 module.exports.autoCloseNight = autoCloseNight;
 module.exports.awardSessionPoints = awardSessionPoints;
 module.exports.addLifetimePoints = addLifetimePoints;
+module.exports.creditRosterPoints = creditRosterPoints;
 module.exports.ensureLifetimePoints = ensureLifetimePoints;
 module.exports.lifetimeOf = lifetimeOf;
 module.exports.MAX_LIFETIME_POINTS = MAX_LIFETIME_POINTS;

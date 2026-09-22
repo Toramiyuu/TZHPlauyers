@@ -34,7 +34,7 @@ const fn = (name) => extractFn(name, html) || '';
 const D = AdminNav.DEFAULT_SHORTCUTS;
 check('default is Session, Courts, Payments', eq(D, ['session', 'courts', 'payments']));
 check('every default is a known tab', D.every(AdminNav.isTab));
-check('8 tabs in sidebar order', eq(AdminNav.TABS, ['session', 'courts', 'payments', 'engagement', 'friendly', 'signups', 'accounts', 'settings']));
+check('10 tabs in sidebar order', eq(AdminNav.TABS, ['session', 'courts', 'payments', 'feedback', 'engagement', 'friendly', 'knockout', 'signups', 'accounts', 'settings']));
 check('cap is 4, floor is 1', AdminNav.MAX_SHORTCUTS === 4 && AdminNav.MIN_SHORTCUTS === 1);
 
 check('normalize: missing -> default', eq(AdminNav.normalizeShortcuts(undefined), D) && eq(AdminNav.normalizeShortcuts(null), D));
@@ -44,7 +44,7 @@ check('normalize: all-unknown -> default', eq(AdminNav.normalizeShortcuts(['nope
 check('normalize: drops unknown, keeps known', eq(AdminNav.normalizeShortcuts(['settings', 'bogus']), ['settings']));
 check('normalize: dedupes', eq(AdminNav.normalizeShortcuts(['courts', 'courts', 'session']), ['session', 'courts']));
 check('normalize: canonical order regardless of input order', eq(AdminNav.normalizeShortcuts(['settings', 'session', 'engagement']), ['session', 'engagement', 'settings']));
-check('normalize: caps at 4 (first 4 in canonical order)', eq(AdminNav.normalizeShortcuts(AdminNav.TABS.slice().reverse()), ['session', 'courts', 'payments', 'engagement']));
+check('normalize: caps at 4 (first 4 in canonical order)', eq(AdminNav.normalizeShortcuts(AdminNav.TABS.slice().reverse()), ['session', 'courts', 'payments', 'feedback']));
 check('normalize: never mutates input', (() => { const inp = ['courts', 'session']; AdminNav.normalizeShortcuts(inp); return eq(inp, ['courts', 'session']); })());
 check('normalize: returns a fresh default array each time', AdminNav.normalizeShortcuts() !== AdminNav.normalizeShortcuts() && AdminNav.normalizeShortcuts() !== D);
 
@@ -56,8 +56,8 @@ check('isValid: unknown id rejected', !AdminNav.isValidShortcuts(['session', 'no
 check('isValid: duplicate rejected', !AdminNav.isValidShortcuts(['session', 'session']));
 check('isValid: non-array rejected', !AdminNav.isValidShortcuts('session') && !AdminNav.isValidShortcuts(null));
 
-check('moreTabs: complement of the defaults', eq(AdminNav.moreTabs(D), ['engagement', 'friendly', 'signups', 'accounts', 'settings']));
-check('moreTabs: complement of a custom list, canonical order', eq(AdminNav.moreTabs(['settings', 'signups']), ['session', 'courts', 'payments', 'engagement', 'friendly', 'accounts']));
+check('moreTabs: complement of the defaults', eq(AdminNav.moreTabs(D), ['feedback', 'engagement', 'friendly', 'knockout', 'signups', 'accounts', 'settings']));
+check('moreTabs: complement of a custom list, canonical order', eq(AdminNav.moreTabs(['settings', 'signups']), ['session', 'courts', 'payments', 'feedback', 'engagement', 'friendly', 'knockout', 'accounts']));
 check('moreTabs: garbage in -> complement of defaults', eq(AdminNav.moreTabs('x'), AdminNav.moreTabs(D)));
 check('bar + More always cover all 8 tabs exactly once', (() => {
   const sc = ['accounts', 'courts'];
@@ -73,7 +73,7 @@ check('toggle: refuses a 5th', (() => { const r = AdminNav.toggleShortcut(['sess
 check('toggle: unknown id is an error', /unknown/i.test(AdminNav.toggleShortcut(D, 'nope').error));
 check('toggle: never mutates input', (() => { const inp = D.slice(); AdminNav.toggleShortcut(inp, 'courts'); return eq(inp, D); })());
 
-check('accent badges only on Payments + Sign-ups', eq(AdminNav.ACCENT_BADGE_TABS, ['payments', 'signups']) && AdminNav.hasAccentBadge('payments') && !AdminNav.hasAccentBadge('courts'));
+check('accent badges on Payments, Knockout, Sign-ups + Feedback', eq(AdminNav.ACCENT_BADGE_TABS, ['payments', 'knockout', 'signups', 'feedback']) && AdminNav.hasAccentBadge('payments') && AdminNav.hasAccentBadge('knockout') && !AdminNav.hasAccentBadge('courts'));
 check('More pill: defaults -> only sign-ups count (payments is in the bar)', AdminNav.moreBadgeTotal({ payments: 3, signups: 2 }, D) === 2);
 check('More pill: payments hidden in More -> both counts', AdminNav.moreBadgeTotal({ payments: 3, signups: 2 }, ['session']) === 5);
 check('More pill: nothing hidden -> 0', AdminNav.moreBadgeTotal({ payments: 3, signups: 2 }, ['payments', 'signups']) === 0);
@@ -97,7 +97,7 @@ check('renderMobileNav paints both surfaces + badges', fn('renderMobileNav').inc
 check('bar is painted at script load (defaults) and on renderAdmin', /^renderMobileNav\(\);$/m.test(html) && fn('renderAdmin').includes('renderMobileNav()') && fn('renderAdmin').includes('renderShortcutsCard()'));
 check('poll syncs the bar only when the list changed', fn('poll').includes('syncMobileNav()') && fn('syncMobileNav').includes("adminShortcuts().join(',') === mobileNavKey"));
 check('badges address bar pill or More row for payments + sign-ups', ['bmnBadge-payments', 'moreBadge-payments', 'bmnBadge-signups', 'moreBadge-signups'].every(id => fn('updateAdminNavBadges').includes(`setNavBadge('${id}'`)));
-check('More pill sums only the hidden accent tabs', fn('updateAdminNavBadges').includes('AdminNav.moreBadgeTotal({ payments: unpaid, signups: su }, adminShortcuts())'));
+check('More pill sums only the hidden accent tabs', fn('updateAdminNavBadges').includes('AdminNav.moreBadgeTotal({ payments: unpaid, signups: su, feedback: fbNew }, adminShortcuts())'));
 check('old fixed More badge ids are gone', !html.includes('moreBadgePayments') && !html.includes('moreBadgeSignups'));
 check('any bar button can carry the count pill', html.includes('.admin-bmn-btn .signup-badge{position:absolute') && /\.admin-bmn-btn\{position:relative/.test(html));
 check('bar labels never overflow a 5-slot bar', /\.bmn-label\{[^}]*text-overflow:ellipsis/.test(html));
@@ -129,7 +129,7 @@ const mobileNavHtml = factory(AdminNav, esc, icons);
   const barTabs = [...out.bar.matchAll(/data-tab="([a-z]+)"/g)].map(m => m[1]);
   const sheetTabs = [...out.sheet.matchAll(/data-tab="([a-z]+)"/g)].map(m => m[1]);
   check('default bar = Session, Courts, Payments (+ More)', eq(barTabs, ['session', 'courts', 'payments']) && out.bar.includes('id="bmnMore"') && out.bar.endsWith('</button>'));
-  check('default sheet = the other five', eq(sheetTabs, ['engagement', 'friendly', 'signups', 'accounts', 'settings']));
+  check('default sheet = the other seven', eq(sheetTabs, ['feedback', 'engagement', 'friendly', 'knockout', 'signups', 'accounts', 'settings']));
   check('active tab highlighted in the bar; More not lit', out.bar.includes('class="admin-bmn-btn active" data-tab="session"') && !out.bar.includes('admin-bmn-more active'));
   check('Payments bar button carries its unpaid pill; Sign-ups row carries its pill', out.bar.includes('id="bmnBadge-payments"') && !out.bar.includes('id="bmnBadge-session"') && out.sheet.includes('id="moreBadge-signups"') && !out.sheet.includes('id="moreBadge-payments"'));
   check('bar uses short labels, sheet uses full labels', out.bar.includes('>Payments<') && out.sheet.includes('>Lucky Draw<') && out.sheet.includes('>Sign-ups<'));

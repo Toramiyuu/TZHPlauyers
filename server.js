@@ -7,6 +7,8 @@ const { buildSignups, todayISO, applySessionDateChange, publicProjection, buildR
 const { ACCOUNT_ACTIONS, handleAccountAction, redactState, ADMIN_ACCOUNT_ACTIONS, handleAdminAccountAction, playerPhoneMap } = require('./lib/accounts.js');
 const { WEEKLY_ADMIN_ACTIONS, handleWeeklyAdminAction } = require('./lib/weekly.js');
 const { PAYMENT_ADMIN_ACTIONS, handlePaymentAdminAction } = require('./lib/payments.js');
+const { KNOCKOUT_PUBLIC_ACTIONS, KNOCKOUT_ADMIN_ACTIONS, handleKnockoutPublicAction, handleKnockoutAdminAction, ensureKnockout } = require('./lib/knockout.js');
+const KN = require('./public/knockout.js');
 const { SESSION_DRAW_ADMIN_ACTIONS, handleSessionDrawAdminAction, sweepSessionDraws, buildDrawsView, memoryDrawStore } = require('./lib/session-draw.js');
 const { MONTHLY_LUCKY_ADMIN_ACTIONS, handleMonthlyLuckyAdminAction, sweepMonthlyDraws, buildMonthlyView, memoryMonthlyStore } = require('./lib/monthly-lucky.js');
 const ML = require('./public/monthly-lucky.js');
@@ -57,6 +59,7 @@ const DEFAULT_STATE = {
   drawSettings: { winners: SD.DEFAULT_WINNERS },
   sessionDrawAt: SD.scheduledDrawAt(todayISO()),
   lifetimePoints: {}, // permanent { playerId: total } — the month close never touches it
+  knockout: KN.emptyKnockout(), // open competition: event, categories, entrants, draws
   audit: [],
 };
 
@@ -67,6 +70,7 @@ const monthlyStore = memoryMonthlyStore();
 
 // GET state — public (with siteCode gate)
 app.get('/api/state', (req, res) => {
+  ensureKnockout(state); // repair/seed the competition blob on every read, as production does
   if (state.siteCode) {
     const provided = req.query.code || '';
     if (provided !== state.siteCode) {
@@ -75,7 +79,9 @@ app.get('/api/state', (req, res) => {
       const openGames = games
         .filter(g => g && g.enabled)
         .map(g => ({ id: g.id, day: g.day, weekday: g.weekday, time: g.time, enabled: true }));
-      return res.json({ locked: true, socialGames: openGames, today: todayISO() });
+      // The competition is open to people who do NOT have the site code, so the
+      // locked screen carries a thin teaser and the code box (see api/state.js).
+      return res.json({ locked: true, socialGames: openGames, knockout: KN.teaser(state.knockout), today: todayISO() });
     }
   }
   // publicProjection strips accounts + private attendance/audit/eligibility,
@@ -126,6 +132,15 @@ app.post('/api/state', async (req, res) => {
     return res.json({ ok: true });
   }
 
+  // Public, UNAUTHENTICATED competition actions (code lookup + entry submission),
+  // gated ONLY by the category's printed code. Same contract as api/state.js:
+  // self-builds every record, never spreads req.body, encrypts IC numbers before
+  // they touch state, and returns in every branch.
+  if (b.action && KNOCKOUT_PUBLIC_ACTIONS.has(b.action)) {
+    const result = handleKnockoutPublicAction(state, b);
+    return res.status(result.status).json(result.body);
+  }
+
   // Public, UNAUTHENTICATED account actions (register / login / session /
   // update profile / logout) — same contract as api/state.js: returns in every
   // branch, never reaches the admin-password logic, only ever touches the
@@ -145,6 +160,9 @@ app.post('/api/state', async (req, res) => {
   // Never carries lifetimePoints — that comes from adminGetOps, as in production.
   if (Object.keys(updates).length === 0) {
     const { lifetimePoints, ...safe } = redactState(state);
+    // Encrypted IC blobs never ride the 2s poll (production does this inside
+    // liteMonthlyLucky); the admin tab reads masked ICs from knockoutGetAdmin.
+    if (safe.knockout) safe.knockout = KN.pollKnockout(safe.knockout);
     return res.json({ ok: true, state: { ...safe, serverTime: Date.now() } });
   }
   // Admin account-management actions (approve / reject / reveal / lock / ...).
@@ -170,6 +188,12 @@ app.post('/api/state', async (req, res) => {
   // Admin Monthly (points) draw actions (settings / prizes / pool / Run draw now / list).
   if (updates.action && MONTHLY_LUCKY_ADMIN_ACTIONS.has(updates.action)) {
     const result = await handleMonthlyLuckyAdminAction(state, updates, { store: monthlyStore });
+    return res.status(result.status).json(result.body);
+  }
+  // Admin competition actions (categories/codes, confirmations, seeding, draws,
+  // results, audited IC reveal).
+  if (updates.action && KNOCKOUT_ADMIN_ACTIONS.has(updates.action)) {
+    const result = handleKnockoutAdminAction(state, updates);
     return res.status(result.status).json(result.body);
   }
   // Admin fetch of the full private ops data (kept out of public GET).

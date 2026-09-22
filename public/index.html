@@ -1815,6 +1815,67 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .mb-row>b{font-weight:700;color:var(--text-2);white-space:nowrap}
 .mb-row>b.owe{color:var(--red)}
 .mb-note{font-size:var(--fs-xs);color:var(--muted);margin-top:8px;text-align:left;line-height:1.5}
+/* ── member page (My TZH) sizing ──
+   The shared .modal-box is a fixed 400px, which suits a short dialog but turns the
+   member page into a tall narrow strip on a desktop — and .modal-overlay centres
+   without scrolling, so anything taller than the viewport loses its own heading off
+   the top. Scoped to this modal only; #membersModal already uses the same pattern. */
+#accountModal{align-items:flex-start;overflow-y:auto;overscroll-behavior:contain}
+#accountModal .modal-box{width:min(620px,94vw);margin:auto}
+/* ── member session feedback card ── */
+.fb-card{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);padding:13px 14px;text-align:left;margin-bottom:10px}
+.fb-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:2px}
+.fb-head b{font-size:var(--fs-base);font-weight:700;color:var(--text)}
+.fb-pts{font-size:var(--fs-xs);font-weight:700;color:var(--accent);white-space:nowrap}
+.fb-sub{font-size:var(--fs-xs);color:var(--muted);line-height:1.5}
+.fb-secs{display:grid;grid-template-columns:1fr;gap:0}
+.fb-sec{margin-top:12px;min-width:0}
+@media(min-width:620px){
+  /* Equal-height columns so the two notes boxes line up: the chip lists grow to
+     fill, whichever side happens to wrap onto an extra line. */
+  .fb-secs{grid-template-columns:1fr 1fr;gap:18px;align-items:stretch}
+  .fb-secs .fb-sec{display:flex;flex-direction:column}
+  .fb-secs .fb-chips{flex:1 1 auto;align-content:flex-start}
+  .fb-card{padding:15px 16px}
+}
+.fb-sec-lbl{display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.fb-chips{display:flex;flex-wrap:wrap;gap:6px}
+.fb-chip{font-family:inherit;font-size:var(--fs-sm);font-weight:500;line-height:1.3;text-align:left;color:var(--text-2);background:var(--card);border:1px solid var(--border);border-radius:980px;padding:7px 13px;min-height:36px;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.fb-chip:hover{background:var(--elev);color:var(--text)}
+.fb-chip[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.fb-chip[aria-pressed="true"]:hover{background:var(--green)}
+.fb-ta{width:100%;margin-top:7px;min-height:58px;resize:vertical;font-family:inherit;font-size:var(--fs-sm);line-height:1.5;color:var(--text);background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px}
+.fb-ta::placeholder{color:var(--muted)}
+.fb-actions{display:flex;align-items:center;gap:10px;margin-top:13px}
+.fb-actions .btn{flex:1}
+.fb-err{font-size:var(--fs-xs);color:var(--red);margin-top:8px;min-height:0}
+.fb-done-list{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+.fb-done-list li{font-size:var(--fs-sm);color:var(--text-2);display:flex;gap:7px;align-items:flex-start;line-height:1.45}
+.fb-done-list li span{flex-shrink:0;font-weight:700}
+.fb-done-list li.good span{color:var(--green-light)}
+.fb-done-list li.bad span{color:var(--red)}
+.fb-quote{font-size:var(--fs-sm);color:var(--text-2);font-style:italic;line-height:1.5;margin-top:7px;padding-left:10px;border-left:2px solid var(--border)}
+/* ── admin Feedback tab ── */
+.fb-stats{margin-top:4px}
+.fbt-block{margin-top:12px}
+.fbt-row{display:flex;align-items:center;gap:10px;padding:5px 0}
+.fbt-lbl{flex:0 0 40%;font-size:var(--fs-sm);color:var(--text-2);line-height:1.35}
+.fbt-bar{flex:1;height:7px;border-radius:980px;background:var(--card2);overflow:hidden;min-width:40px}
+.fbt-bar i{display:block;height:100%;border-radius:980px;background:var(--green-light)}
+.fbt-row.bad .fbt-bar i{background:var(--red)}
+.fbt-n{flex:0 0 auto;font-size:var(--fs-sm);font-weight:700;color:var(--text);min-width:16px;text-align:right}
+.fbr{padding:11px 12px;text-align:left}
+.fbr+.fbr{border-top:1px solid var(--border)}
+.fbr-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.fbr-head b{font-size:var(--fs-base);font-weight:600;color:var(--text)}
+.fbr-when{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap}
+.fb-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.fb-tag{font-size:var(--fs-xs);font-weight:600;line-height:1.3;border-radius:980px;padding:3px 9px;border:1px solid var(--border)}
+.fb-tag.good{color:var(--green-light);background:var(--green-tint);border-color:transparent}
+.fb-tag.bad{color:var(--red);background:var(--card2)}
+@media(max-width:560px){.fbt-lbl{flex-basis:52%;font-size:var(--fs-xs)}}
+.fbs-field{display:flex;align-items:center;gap:9px;font-size:var(--fs-sm);font-weight:600;color:var(--text-2)}
+.fbs-num{width:74px;text-align:center}
 .mb-hist{margin-top:14px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--card);text-align:left}
 .mb-hist summary{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:42px;padding:8px 12px;cursor:pointer;list-style:none;font-size:var(--fs-sm);font-weight:700;color:var(--text)}
 .mb-hist summary::-webkit-details-marker{display:none}
@@ -2564,6 +2625,77 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   </div>
 </div>
 
+
+<!-- ── Open competition: public entry (code → register → confirm → pay) ──
+     The code is the door: entering a category's printed code opens ITS form.
+     Nothing here is authenticated, so every field is validated server-side
+     again (lib/knockout.js) and an IC is encrypted before it is stored. -->
+<div id="koModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="koTitle" onclick="if(event.target===this)closeKoModal()">
+  <div class="modal-box join-panel">
+    <div class="join-head">
+      <h2 id="koTitle">Tournament entry</h2>
+      <p class="join-sub" id="koSub">Enter the code from the poster.</p>
+      <button class="join-close" type="button" onclick="closeKoModal()" aria-label="Close">&#x2715;</button>
+      <div class="join-steps" aria-hidden="true">
+        <div class="join-step-dot active" data-s="1"></div>
+        <div class="join-step-dot" data-s="2"></div>
+        <div class="join-step-dot" data-s="3"></div>
+      </div>
+    </div>
+    <div class="join-body">
+      <!-- Stage 0 — the code -->
+      <div class="join-stage active" data-stage="0">
+        <div class="ko-code-wrap">
+          <label class="join-field-label" for="koCodeInput">Category code</label>
+          <input id="koCodeInput" class="modal-input ko-code-input" type="text" maxlength="12" placeholder="XXXXXX"
+            autocomplete="off" spellcheck="false" oninput="koCodeTyped(this)" onkeydown="if(event.key==='Enter')koNext()">
+          <div class="ko-code-hint" id="koCodeHint">Each category has its own code. You will find it on the poster or the post you came from.</div>
+        </div>
+        <div id="koCodeError" class="join-error" role="alert"></div>
+      </div>
+      <!-- Stage 1 — Register -->
+      <div class="join-stage" data-stage="1">
+        <div class="ko-cat-banner" id="koCatBanner">
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v3a5 5 0 0 1-10 0z"></path><path d="M10 12.5h4M12 12.5V16M9 20h6"></path></svg>
+          <div class="ko-cat-txt"><strong id="koCatName"></strong><span id="koCatMeta"></span></div>
+        </div>
+        <div id="koEntryList"></div>
+        <button type="button" class="join-add-person" id="koAddEntry" onclick="koAddEntry()">
+          <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Add participants
+        </button>
+        <input id="koHp" type="text" name="hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+        <div id="koError" class="join-error" role="alert"></div>
+      </div>
+      <!-- Stage 2 — Confirmation -->
+      <div class="join-stage" data-stage="2">
+        <div id="koReview"></div>
+        <div id="koReviewError" class="join-error" role="alert"></div>
+      </div>
+      <!-- Stage 3 — Payment -->
+      <div class="join-stage" data-stage="3">
+        <div id="koPayment"></div>
+      </div>
+    </div>
+    <div class="join-foot" id="koFoot">
+      <button type="button" class="btn btn-secondary" id="koBack" onclick="koBack()">Back</button>
+      <button type="button" class="btn btn-primary" id="koNext" onclick="koNext()" disabled>Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Open competition: the live bracket (viewer + hall screen) ── -->
+<div id="koBracketModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="koBrTitle" onclick="if(event.target===this)closeKoBracket()">
+  <div class="modal-box ko-bracket-panel">
+    <div class="join-head">
+      <h2 id="koBrTitle">Competition</h2>
+      <p class="join-sub" id="koBrSub"></p>
+      <button class="join-close" type="button" onclick="closeKoBracket()" aria-label="Close">&#x2715;</button>
+    </div>
+    <div class="ko-tabs" id="koBrTabs"></div>
+    <div class="ko-bracket-body" id="koBrBody"></div>
+  </div>
+</div>
+
 <!-- History modal -->
 <div id="historyModal">
   <div class="history-box">
@@ -2606,6 +2738,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <div class="gate-error" id="gateError">Incorrect code. Try again.</div>
       <button class="gate-enter-btn" onclick="submitSiteCode()">Enter</button>
     </div>
+    <button type="button" class="gate-join-link gate-reveal" id="gateKoLink" style="--d:1.22s;display:none" onclick="openKoModal()"></button>
     <div class="gate-foot gate-reveal" style="--d:1.3s">Members only · Authorised access</div>
     <button type="button" class="gate-admin-link gate-reveal" style="--d:1.4s" onclick="openPwModal()">Admin access</button>
   </div>
@@ -2742,6 +2875,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <button id="drawBtn" onclick="openDrawPage()"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg> Lucky Draw</button>
         <button id="lbBtn" onclick="openLbModal()"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M8.5 12 7 21l5-2.8 5 2.8-1.5-9"/></svg> Leaderboard</button>
         <button id="viewerJoinBtn" onclick="openJoinModal()"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Join social games</button>
+        <button id="viewerKoBtn" style="display:none" onclick="openKoBracket()"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg> Competition</button>
         <button id="td3Btn" type="button" onclick="enter3D()" title="Switch to the 3D arena view (best on desktop)"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg> 3D View</button>
       </div>
       <div class="vh-acct" id="accountWidget"></div>
@@ -2892,11 +3026,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <button class="admin-nav-item" data-tab="session" onclick="setAdminTab('session')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg></span><span class="ani-label">Session</span><span class="nav-badge" id="navBadgeSession" style="display:none"></span></button>
         <button class="admin-nav-item" data-tab="courts" onclick="setAdminTab('courts')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg></span><span class="ani-label">Courts</span><span class="nav-badge" id="navBadgeCourts" style="display:none"></span></button>
         <button class="admin-nav-item" data-tab="payments" onclick="setAdminTab('payments')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 14h3"/></svg></span><span class="ani-label">Payments</span><span class="nav-badge accent" id="navBadgePayments" style="display:none"></span></button>
+        <button class="admin-nav-item" data-tab="feedback" onclick="setAdminTab('feedback')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/><path d="M8.5 9.5h7M8.5 12.5h4"/></svg></span><span class="ani-label">Feedback</span><span class="nav-badge accent" id="navBadgeFeedback" style="display:none"></span></button>
         <button class="admin-nav-item" data-tab="engagement" onclick="setAdminTab('engagement')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg></span><span class="ani-label">Lucky Draw</span></button>
       </div>
       <div class="admin-nav-group">
         <div class="admin-nav-grouplabel">Manage</div>
         <button class="admin-nav-item" data-tab="friendly" onclick="setAdminTab('friendly')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M14.5 3.5 21 10l-2 2-6.5-6.5zM9.5 3.5 3 10l2 2 6.5-6.5M12 12l-7 7M12 12l7 7"/></svg></span><span class="ani-label">Friendly</span></button>
+        <button class="admin-nav-item" data-tab="knockout" onclick="setAdminTab('knockout')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg></span><span class="ani-label">Knockout</span><span class="nav-badge accent" id="navBadgeKnockout" style="display:none"></span></button>
         <button class="admin-nav-item" data-tab="signups" onclick="setAdminTab('signups')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M15 19a4 4 0 0 0-8 0M11 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M18 8v6M21 11h-6"/></svg></span><span class="ani-label">Sign-ups</span><span class="nav-badge accent" id="navBadgeSignups" style="display:none"></span></button>
         <button class="admin-nav-item" data-tab="accounts" onclick="setAdminTab('accounts')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16.2c.6-1.9 2-2.9 3.5-2.9s2.9 1 3.5 2.9"/></svg></span><span class="ani-label">Accounts</span></button>
         <button class="admin-nav-item" data-tab="settings" onclick="setAdminTab('settings')"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 2h-4l-.5 2.4a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 22h4l.5-2.4a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg></span><span class="ani-label">Settings</span></button>
@@ -3118,6 +3254,33 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
   </div><!-- /payments tab -->
 
+  <!-- ── FEEDBACK TAB ───────────────────────────── -->
+  <!-- What the players said about a night: the two tallies, then the named rows.
+       Written by members from their own page (token-gated submitFeedback); read-only
+       here. Same calendar system as Payments / Session History. -->
+  <div class="admin-tab-panel" data-tab="feedback">
+
+  <div class="admin-card">
+    <div class="admin-card-title admin-card-title-row">
+      <span><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/><path d="M8.5 9.5h7M8.5 12.5h4"/></svg></span> Session feedback</span>
+      <span class="admin-session-count" id="fbTabNote"></span>
+    </div>
+    <div class="hist-nav pm-cal-nav">
+      <span class="cal-month-big pm-cal-month" id="fbCalMonth"></span>
+      <div class="hist-nav-btns">
+        <button class="cal-chevron" onclick="fbCalStep(-1)" aria-label="Previous month">&#8249;</button>
+        <button class="cal-chevron" onclick="fbCalStep(1)" aria-label="Next month">&#8250;</button>
+      </div>
+    </div>
+    <div class="cal-strip-wrap pm-cal-wrap"><div class="cal-strip" id="fbCalGrid"></div></div>
+    <div class="pm-date-line"><span id="fbDateLabel">&ndash;</span></div>
+    <div class="mb-stats fb-stats" id="fbStats"></div>
+    <div id="fbTally"></div>
+    <div id="fbRows"></div>
+  </div>
+
+  </div><!-- /feedback tab -->
+
   <!-- ── FRIENDLY TAB (Red vs Blue) ─────────────── -->
   <div class="admin-tab-panel" data-tab="friendly">
 
@@ -3333,6 +3496,31 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   </div><!-- /engagement (lucky draw) tab -->
 
   <!-- ── SIGN-UPS TAB ────────────────────────── -->
+  <div class="admin-tab-panel" data-tab="knockout">
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg></span> The competition</div>
+    <div class="admin-helper-text">An open event anyone can enter with a category code. Set the event up here, hand out the codes, confirm the entries that come in, then make the draw.</div>
+    <div id="koAdminEvent"></div>
+  </div>
+  <div class="admin-card" style="margin-top:12px">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg></span> Categories</div>
+    <div class="admin-helper-text">Each category has its own code, its own cap and its own draw. Six or more confirmed entries becomes a knockout bracket; five or fewer runs a round robin instead, so nobody drives out for one match.</div>
+    <div id="koAdminCats"></div>
+    <div class="join-person" style="margin-top:12px">
+      <div class="join-person-head"><span class="join-person-title">New category</span></div>
+      <label class="join-field-label">Name</label>
+      <input id="koNewCatName" class="modal-input" type="text" maxlength="60" placeholder="e.g. Men&rsquo;s Doubles Open" autocomplete="off"
+        onkeydown="if(event.key==='Enter')koAdminAddCategory()">
+      <label class="join-field-label">Singles or doubles</label>
+      <div class="skill-row" id="koNewCatType" role="group" aria-label="Category type">
+        <button type="button" class="skill-chip sel" data-type="doubles" onclick="koPickNewType('doubles')">Doubles</button>
+        <button type="button" class="skill-chip" data-type="singles" onclick="koPickNewType('singles')">Singles</button>
+      </div>
+      <button type="button" class="btn btn-primary" style="margin-top:12px" onclick="koAdminAddCategory()">Add category</button>
+    </div>
+  </div>
+  </div><!-- /knockout tab -->
+
   <div class="admin-tab-panel" data-tab="signups">
   <div class="admin-card">
     <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M15 19a4 4 0 0 0-8 0M11 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M18 8v6M21 11h-6"/></svg></span> Sign-ups</div>
@@ -3402,6 +3590,22 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <div class="admin-helper-text admin-mt">See exactly what players see when they don't have today's code. This won't sign you out.</div>
     <div class="admin-mt">
       <button class="btn btn-secondary btn-sm" onclick="previewLockscreen()">Preview lockscreen</button>
+    </div>
+  </div>
+
+  <!-- Session feedback (members' own page) -->
+  <div class="admin-card" id="fbSettingsCard">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/><path d="M8.5 9.5h7M8.5 12.5h4"/></svg></span> Session feedback</div>
+    <div class="admin-helper-text">After a player signs in, they can say how the night went &mdash; what went well, what could be better &mdash; and earn points for it. Only players who were there that night can reply, and feedback closes when the next session starts.</div>
+    <div class="admin-btn-row admin-mt">
+      <label class="fbs-field"><span>Points per reply</span>
+        <input id="fbPointsInput" type="number" min="0" max="50" step="1" class="admin-form-input fbs-num"
+          onkeydown="if(event.key==='Enter')saveFeedbackSettings()"></label>
+      <button class="btn btn-primary btn-sm" onclick="saveFeedbackSettings()">Save</button>
+    </div>
+    <div class="admin-helper-text admin-mt" id="fbSettingsHint"></div>
+    <div class="admin-mt">
+      <button class="btn btn-ghost btn-sm" id="fbToggleBtn" onclick="toggleFeedbackEnabled()"></button>
     </div>
   </div>
 
@@ -3517,6 +3721,114 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 </button>
 <div id="notif"></div>
 
+<style id="koStyles">
+/* ── Open competition (Knockout) ───────────────────────────────────
+   Public entry flow reuses the sign-up modal's shell (.join-panel and
+   friends); everything below is the bracket, the entry cards and the admin
+   score sheet. */
+.ko-code-wrap{text-align:center;padding:var(--sp-sm) 0}
+.ko-code-input{width:100%;text-align:center;font-size:26px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;padding:16px 12px}
+.ko-code-hint{font-size:var(--fs-sm);color:var(--muted);margin-top:10px;line-height:1.5}
+.ko-cat-banner{display:flex;align-items:center;gap:12px;padding:12px 15px;margin-bottom:14px;background:var(--a-blue-tint);border:1px solid var(--a-blue);border-radius:var(--radius-md)}
+.ko-cat-banner .ic{width:24px;height:24px;color:var(--a-blue);flex-shrink:0}
+.ko-cat-txt{display:flex;flex-direction:column;gap:2px;min-width:0;line-height:1.25}
+.ko-cat-txt strong{font-size:var(--fs-md);font-weight:600;color:var(--text);letter-spacing:-.01em}
+.ko-cat-txt span{font-size:var(--fs-sm);color:var(--a-ink-3)}
+.ko-player{border-top:1px dashed var(--border2);margin-top:12px;padding-top:10px}
+.ko-player:first-of-type{border-top:none;margin-top:0;padding-top:0}
+.ko-player-title{font-size:var(--fs-sm);font-weight:700;color:var(--text-2);margin-bottom:2px}
+.ko-optional{font-weight:400;color:var(--muted)}
+.ko-review{border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:10px;background:var(--dark)}
+.ko-review-name{font-size:var(--fs-md);font-weight:600;color:var(--text)}
+.ko-review-meta{font-size:var(--fs-sm);color:var(--muted);margin-top:3px;line-height:1.5}
+.ko-total{display:flex;justify-content:space-between;align-items:baseline;padding:12px 14px;border-radius:var(--radius-md);background:var(--a-blue-tint);border:1px solid var(--a-blue);margin-top:4px}
+.ko-total strong{font-size:20px;font-weight:700;color:var(--text)}
+.ko-pay-box{border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;background:var(--dark);margin:12px 0;white-space:pre-wrap;font-size:var(--fs-base);color:var(--text)}
+.ko-pending{display:flex;gap:10px;align-items:flex-start;font-size:var(--fs-sm);color:var(--a-ink-3);line-height:1.5}
+/* ── bracket ── */
+.ko-bracket{display:flex;gap:20px;overflow-x:auto;padding:4px 2px 12px;align-items:stretch}
+.ko-round{display:flex;flex-direction:column;justify-content:space-around;gap:10px;min-width:210px;flex:0 0 auto}
+.ko-round-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:center;padding-bottom:2px}
+.ko-match{border:1px solid var(--border);border-radius:var(--radius-md);background:var(--card);overflow:hidden;position:relative}
+.ko-match.live{border-color:var(--a-blue);box-shadow:0 0 0 2px var(--a-blue-tint)}
+.ko-match.ready{border-color:var(--border2)}
+.ko-side{display:flex;align-items:center;gap:8px;padding:9px 11px;font-size:var(--fs-sm);color:var(--text-2);line-height:1.3}
+.ko-side + .ko-side{border-top:1px solid var(--border)}
+.ko-side.win{color:var(--text);font-weight:700;background:var(--a-blue-tint)}
+.ko-side.lose{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
+.ko-side.tbc{color:var(--border2);font-style:italic}
+.ko-seed{font-size:10px;font-weight:700;color:var(--muted);min-width:18px;text-align:right;flex-shrink:0}
+.ko-side-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ko-side-club{font-size:10px;color:var(--muted);font-weight:400}
+.ko-match-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 11px;border-top:1px solid var(--border);background:var(--dark);font-size:11px;color:var(--muted)}
+.ko-court-pill{background:var(--a-blue);color:#fff;border-radius:980px;padding:2px 9px;font-weight:700;font-size:10px;letter-spacing:.03em}
+.ko-bye-note{font-size:11px;color:var(--muted);font-style:italic}
+/* ── standings table ── */
+.ko-table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
+.ko-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--border)}
+.ko-table td{padding:9px 8px;border-bottom:1px solid var(--border);color:var(--text-2)}
+.ko-table tr:nth-child(-n+2) td{color:var(--text);font-weight:600}
+.ko-table td.ko-num{text-align:center;width:44px}
+.ko-table .ko-pos{color:var(--muted);width:28px;text-align:center}
+.ko-tied{color:var(--a-amber);font-size:10px;margin-left:5px}
+/* ── champion banner ── */
+.ko-champ{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--a-blue-tint),transparent);border:1px solid var(--a-blue);margin-bottom:14px}
+.ko-champ .ic{width:26px;height:26px;color:var(--a-blue);flex-shrink:0}
+.ko-champ-txt strong{display:block;font-size:var(--fs-md);font-weight:700;color:var(--text)}
+.ko-champ-txt span{font-size:var(--fs-sm);color:var(--a-ink-3)}
+/* ── viewer bracket modal ── */
+.ko-bracket-panel{width:1040px;max-width:96vw;max-height:92vh;padding:0;display:flex;flex-direction:column;overflow:hidden}
+.ko-tabs{display:flex;gap:6px;overflow-x:auto;padding:12px 22px 0;flex-shrink:0}
+.ko-tab{flex:0 0 auto;padding:8px 14px;min-height:40px;border-radius:980px;border:1px solid var(--border2);background:var(--dark);color:var(--text-2);font-family:inherit;font-size:var(--fs-sm);font-weight:600;cursor:pointer;transition:var(--transition)}
+.ko-tab:hover{border-color:var(--a-blue)}
+.ko-tab.sel{background:var(--a-blue);border-color:var(--a-blue);color:#fff}
+.ko-bracket-body{padding:16px 22px 22px;overflow:auto;flex:1}
+.ko-empty{text-align:center;color:var(--muted);font-size:var(--fs-sm);padding:var(--sp-lg) 0;line-height:1.6}
+/* ── admin ── */
+.ko-admin-cat{border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:12px;overflow:hidden;background:var(--card)}
+.ko-admin-cat-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;background:var(--dark);border-bottom:1px solid var(--border);cursor:pointer}
+.ko-admin-cat-name{font-size:var(--fs-md);font-weight:600;color:var(--text);flex:1;min-width:120px}
+.ko-admin-cat-body{padding:14px}
+.ko-pill{display:inline-flex;align-items:center;gap:5px;border-radius:980px;padding:3px 10px;font-size:11px;font-weight:600;letter-spacing:.01em;white-space:nowrap}
+.ko-pill.grey{background:var(--card2);color:var(--muted)}
+.ko-pill.blue{background:var(--a-blue-tint);color:var(--a-blue-2)}
+.ko-pill.green{background:rgba(52,199,89,.14);color:var(--green-light)}
+.ko-pill.amber{background:var(--a-amber-tint);color:var(--a-amber)}
+.ko-pill.red{background:rgba(255,59,48,.14);color:var(--red)}
+.ko-code-chip{font-family:var(--font-mono);font-size:13px;font-weight:700;letter-spacing:.16em;background:var(--a-blue-tint);color:var(--a-blue-2);border:1px solid var(--a-blue);border-radius:var(--radius-sm);padding:5px 10px;cursor:pointer}
+.ko-ent-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border)}
+.ko-ent-row:last-child{border-bottom:none}
+.ko-ent-main{flex:1;min-width:150px}
+.ko-ent-name{font-size:var(--fs-base);font-weight:600;color:var(--text)}
+.ko-ent-meta{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5}
+.ko-ent-actions{display:flex;gap:6px;flex-wrap:wrap}
+.ko-ent-actions .btn{min-height:36px;padding:6px 11px;font-size:var(--fs-sm)}
+.ko-seed-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--dark);margin-bottom:6px;cursor:grab}
+.ko-seed-row.drag{opacity:.4}
+.ko-seed-row.over{border-color:var(--a-blue);background:var(--a-blue-tint)}
+.ko-seed-no{font-size:11px;font-weight:700;color:var(--muted);min-width:22px}
+.ko-seed-name{flex:1;min-width:0;font-size:var(--fs-sm);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ko-seed-move{width:32px;height:32px;min-width:32px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text-2);cursor:pointer;font-size:14px;line-height:1}
+.ko-seed-move:hover:not(:disabled){border-color:var(--a-blue);color:var(--a-blue)}
+.ko-seed-move:disabled{opacity:.3;cursor:not-allowed}
+.ko-score-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border)}
+.ko-score-row:last-child{border-bottom:none}
+.ko-score-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);width:100%}
+.ko-score-pick{flex:1;min-width:130px;padding:9px 11px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--dark);color:var(--text-2);font-family:inherit;font-size:var(--fs-sm);font-weight:600;cursor:pointer;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ko-score-pick:hover{border-color:var(--a-blue)}
+.ko-score-pick.sel{background:var(--a-blue-tint);border-color:var(--a-blue);color:var(--a-blue-2)}
+.ko-score-input{width:150px;flex:0 0 auto}
+.ko-admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.btn.ko-armed{background:var(--red);border-color:var(--red);color:#fff}
+.ko-warn{display:flex;gap:9px;align-items:flex-start;padding:10px 12px;border-radius:var(--radius-sm);background:var(--a-amber-tint);border:1px solid var(--a-amber);color:var(--a-amber);font-size:var(--fs-sm);line-height:1.5;margin-bottom:12px}
+@media(max-width:720px){
+  .ko-round{min-width:180px}
+  .ko-bracket-body{padding:12px 14px 18px}
+  .ko-tabs{padding:10px 14px 0}
+  .ko-ent-actions .btn{flex:1;min-width:84px}
+  .ko-score-input{width:100%}
+}
+</style>
 <script src="monthly-draw.js"></script>
 <script src="phone.js"></script>
 <script src="weekly-draw.js"></script>
@@ -3529,6 +3841,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 <script src="/monthly-lucky.js"></script>
 <script src="/draw-video.js"></script>
 <script src="/draw-hub.js"></script>
+<script src="/knockout.js"></script>
+<script src="/feedback.js"></script>
 <script>
 // ── STATE ────────────────────────────────────
 let state = null;
@@ -3549,6 +3863,10 @@ const DEFAULT_SOCIAL_GAMES = [
   { id: 'sg-mon', day: 'Monday', weekday: 1, time: '9–11pm', enabled: true },
 ];
 let lockedSocialGames = null;
+// Same idea for the competition: the locked GET carries a thin teaser (name,
+// date, whether entries are open) so somebody who has never had the site code
+// can still find the entry form. Never entrants, brackets or category codes.
+let lockedKnockout = null;
 // `lockedToday` holds the SERVER's today (YYYY-MM-DD) surfaced by the locked GET
 // so the join calendar uses the server's day boundary, not the visitor's clock.
 let lockedToday = null;
@@ -3655,6 +3973,7 @@ async function poll() {
     // The locked GET surfaces the open game days so the lockscreen CTA can show
     // even before the site code is entered. Update BEFORE either early return.
     if (Array.isArray(s.socialGames)) lockedSocialGames = s.socialGames;
+    if (s.knockout !== undefined) lockedKnockout = s.knockout;
     if (s.today) lockedToday = s.today;
     updateJoinCtaVisibility();
     // An authenticated admin must never be locked out of their own admin panel.
@@ -5155,6 +5474,7 @@ function renderAdmin() {
   document.getElementById('shareLink').textContent = window.location.origin + '/';
   renderSiteCodeSection();
   renderShortcutsCard();
+  renderFeedbackSettingsCard();
   renderMobileNav();
   renderSocialGamesCard();
   renderRegularsCard(true); // reinit the editor draft from freshly-loaded state
@@ -7786,7 +8106,7 @@ function logout() {
 // ── ADMIN TABS ────────────────────────────────
 let currentAdminTab = localStorage.getItem('adminTab') || 'session';
 
-const ADMIN_TAB_TITLES = { session: 'Session', courts: 'Courts', payments: 'Payments', friendly: 'Friendly', engagement: 'Lucky Draw', signups: 'Sign-ups', accounts: 'Accounts', settings: 'Settings' };
+const ADMIN_TAB_TITLES = { session: 'Session', courts: 'Courts', payments: 'Payments', feedback: 'Feedback', friendly: 'Friendly', engagement: 'Lucky Draw', knockout: 'Knockout', signups: 'Sign-ups', accounts: 'Accounts', settings: 'Settings' };
 
 // ── Phone bottom bar ("shortcuts") ──────────────────────────────
 // The bar shows the tabs in state.adminShortcuts (Settings → Phone shortcuts;
@@ -7797,8 +8117,10 @@ const ADMIN_NAV_ICONS = {
   session: '<svg class="ic" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/></svg>',
   courts: '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18"/></svg>',
   payments: '<svg class="ic" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 14h3"/></svg>',
+  feedback: '<svg class="ic" viewBox="0 0 24 24"><path d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/><path d="M8.5 9.5h7M8.5 12.5h4"/></svg>',
   engagement: '<svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg>',
   friendly: '<svg class="ic" viewBox="0 0 24 24"><path d="M14.5 3.5 21 10l-2 2-6.5-6.5zM9.5 3.5 3 10l2 2 6.5-6.5M12 12l-7 7M12 12l7 7"/></svg>',
+  knockout: '<svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg>',
   signups: '<svg class="ic" viewBox="0 0 24 24"><path d="M15 19a4 4 0 0 0-8 0M11 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M18 8v6M21 11h-6"/></svg>',
   accounts: '<svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><circle cx="12" cy="10" r="2.2"/><path d="M8.5 16.2c.6-1.9 2-2.9 3.5-2.9s2.9 1 3.5 2.9"/></svg>',
   settings: '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 2h-4l-.5 2.4a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12a7 7 0 0 0 .1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 22h4l.5-2.4a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6A7 7 0 0 0 19 12z"/></svg>',
@@ -7843,6 +8165,53 @@ function syncMobileNav() {
   if (adminShortcuts().join(',') === mobileNavKey) return;
   renderMobileNav();
   if (currentAdminTab === 'settings') renderShortcutsCard();
+}
+
+// Settings → Session feedback: how many points a reply is worth, and the on/off switch.
+// The points number is an editable field, so the poll must not stomp it mid-type — see
+// isEditing()/shouldHoldAdminRender for the same rule on the roster editors.
+function renderFeedbackSettingsCard() {
+  const inp = document.getElementById('fbPointsInput');
+  if (!inp || !state || !window.Feedback) return;
+  const s = Feedback.settingsOf(state);
+  if (document.activeElement !== inp) inp.value = s.points;
+  const hint = document.getElementById('fbSettingsHint');
+  if (hint) {
+    hint.textContent = s.enabled
+      ? (s.points > 0
+        ? ('Players earn ' + s.points + ' point' + (s.points === 1 ? '' : 's') + ' the first time they reply about a night. Editing a reply never pays twice.')
+        : 'Feedback is on, but no points are awarded.')
+      : 'Feedback is switched off — the card is hidden on every player’s page.';
+  }
+  const btn = document.getElementById('fbToggleBtn');
+  if (btn) {
+    btn.textContent = s.enabled ? 'Turn feedback off' : 'Turn feedback on';
+    btn.classList.toggle('admin-remove-btn', s.enabled);
+  }
+}
+async function saveFeedbackSettings() {
+  const inp = document.getElementById('fbPointsInput');
+  if (!inp) return;
+  const n = Number(inp.value);
+  if (!window.Feedback || !Feedback.isPointsValue(n)) {
+    notify('Points must be a whole number from 0 to ' + (window.Feedback ? Feedback.MAX_POINTS_PER : 50) + '.', 'warn');
+    return;
+  }
+  const res = await apiPost({ action: 'setFeedbackSettings', points: n });
+  // apiPost does NOT throw on 4xx/5xx — check before the green toast.
+  if (!res || !res.ok) { notify((res && res.error) || 'Could not save that.', 'warn'); return; }
+  if (state) state.feedbackSettings = res.settings;
+  renderFeedbackSettingsCard();
+  notify('Feedback points saved');
+}
+async function toggleFeedbackEnabled() {
+  if (!state || !window.Feedback) return;
+  const next = !Feedback.settingsOf(state).enabled;
+  const res = await apiPost({ action: 'setFeedbackSettings', enabled: next });
+  if (!res || !res.ok) { notify((res && res.error) || 'Could not save that.', 'warn'); return; }
+  state.feedbackSettings = res.settings;
+  renderFeedbackSettingsCard();
+  notify(next ? 'Feedback is on' : 'Feedback is off');
 }
 
 // Settings → Phone shortcuts card: one switch per tab + a preview of the resulting bar.
@@ -7914,15 +8283,20 @@ function setAdminTab(name) {
   if (titleEl) titleEl.textContent = ADMIN_TAB_TITLES[name] || '';
   updateAdminNavBadges();
   if (name === 'engagement') { loadAdminOps().then(() => { if (currentLuckyTab === 'weekly') renderSessionDrawsAdmin(); if (currentLuckyTab === 'monthlylucky') renderMonthlyLuckyAdmin(); }); }
+  if (name === 'knockout') loadKoAdmin();
   if (name === 'signups') renderSignupsTab();
   // The Players list shows each player's lifetime total, which lives in the
   // admin-only ops cache rather than the public poll — paint, then refresh.
   if (name === 'session') loadAdminOps().then(() => { renderPlayersSection(); renderEodStatus(); updateAdminNavBadges(); });
   if (name === 'accounts') loadAccountsTab();
+  if (name === 'settings') renderFeedbackSettingsCard();
   if (name === 'friendly') renderFriendlyAdmin();
   // Payments live in the admin-only ops cache (not the public poll): paint from cache, then refresh.
   if (name === 'payments') { renderPaymentsTab(); loadAdminOps().then(() => { renderPaymentsTab(); renderEodStatus(); updateAdminNavBadges(); }); }
   if (name === 'courts') loadAdminOps().then(() => { renderEodStatus(); updateAdminNavBadges(); });
+  // Feedback lives in the admin-only ops cache: paint from cache, then refresh. Opening
+  // the tab is also what marks the night's replies as seen (clears the nav badge).
+  if (name === 'feedback') { renderFeedbackTab(); loadAdminOps().then(() => { renderFeedbackTab(); fbMarkSeen(); updateAdminNavBadges(); }); }
   placeCourtsBench();
 }
 
@@ -7983,6 +8357,11 @@ function updateAdminNavBadges() {
   const lib = window.MonthlyDraw;
   const su = lib ? lib.unhandledCount(state.signups || []) : (state.signups || []).filter(s => s && !s.handled).length;
   setNavBadge('navBadgeSignups', su);
+  // Competition entries waiting to be confirmed or marked paid.
+  const koTodo = (window.Knockout && state.knockout) ? Knockout.todoCount(state.knockout) : 0;
+  setNavBadge('navBadgeKnockout', koTodo);
+  setNavBadge('bmnBadge-knockout', koTodo);
+  setNavBadge('moreBadge-knockout', koTodo);
   // Tonight's unpaid count (from the admin-only payments cache; 0 until it has loaded).
   const unpaid = (window.Payments && typeof adminOps !== 'undefined')
     ? Payments.summarize(paymentEntriesFor(adminOps, state.sessionDate || '')).unpaid : 0;
@@ -7994,7 +8373,14 @@ function updateAdminNavBadges() {
   setNavBadge('moreBadge-payments', unpaid);
   setNavBadge('bmnBadge-signups', su);
   setNavBadge('moreBadge-signups', su);
-  setNavBadge('moreBadge', AdminNav.moreBadgeTotal({ payments: unpaid, signups: su }, adminShortcuts()));
+  // Feedback: replies for the current night that haven't been looked at yet. The
+  // high-water mark is per-device (localStorage) — it marks "I have read these",
+  // which is a property of the admin sitting there, not of the shared state.
+  const fbNew = fbUnseenCount();
+  setNavBadge('navBadgeFeedback', fbNew);
+  setNavBadge('bmnBadge-feedback', fbNew);
+  setNavBadge('moreBadge-feedback', fbNew);
+  setNavBadge('moreBadge', AdminNav.moreBadgeTotal({ payments: unpaid, signups: su, feedback: fbNew }, adminShortcuts()));
 }
 
 function openMoreSheet() { const s = document.getElementById('moreSheet'); if (s) s.classList.add('open'); }
@@ -8024,7 +8410,7 @@ function setLuckyTab(sub) {
 // ── ADMIN: private ops cache (attendance / draw settings / audit) ──
 // This data never rides the public GET — the admin fetches it here with the
 // admin password. Payments and Session draws both read it.
-let adminOps = { attendance: {}, drawSettings: null, audit: [], lifetimePoints: null };
+let adminOps = { attendance: {}, drawSettings: null, audit: [], lifetimePoints: null, feedback: {} };
 const WD_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 async function loadAdminOps() {
@@ -8034,6 +8420,7 @@ async function loadAdminOps() {
     attendance: res.attendance || {}, drawSettings: res.drawSettings || null,
     audit: res.audit || [],
     lifetimePoints: res.lifetimePoints || {},
+    feedback: res.feedback || {},
     phones: res.phones || {},
   };
   return adminOps;
@@ -9706,6 +10093,168 @@ function pmSelectDate(iso) {
   pmDate = iso; pmEditFee = null;
   renderPaymentsTab();
 }
+// ── Feedback tab ──
+// Read-only: members write these from their own page. One night at a time, picked on
+// the same calendar strip as Payments. Rows are NAMED (admin-only data, fetched with
+// the admin password via adminGetOps — never the public poll).
+let fbDate = null, fbCalYear = 0, fbCalMonth = -1, fbCalFor = null;
+
+function fbFeedbackMap() { return (adminOps && adminOps.feedback) || {}; }
+
+// "Have I read tonight's replies?" is per-device, so the mark lives in localStorage
+// rather than shared state — two admins each get their own unread count.
+const FB_SEEN_KEY = 'tzhFeedbackSeen';
+function fbSeenMap() {
+  try { return JSON.parse(localStorage.getItem(FB_SEEN_KEY) || '{}') || {}; } catch (e) { return {}; }
+}
+function fbUnseenCount() {
+  if (!window.Feedback || !state) return 0;
+  const night = state.sessionDate || todayISO();
+  const have = Feedback.countFor({ feedback: fbFeedbackMap() }, night);
+  const seen = Number(fbSeenMap()[night]) || 0;
+  return Math.max(0, have - seen);
+}
+function fbMarkSeen() {
+  if (!window.Feedback || !state) return;
+  const map = fbSeenMap();
+  // Mark the night being looked at AND the live one, so opening the tab on a quiet
+  // evening still clears a badge raised by a reply for tonight.
+  for (const night of [fbDate, state.sessionDate || todayISO()]) {
+    if (night) map[night] = Feedback.countFor({ feedback: fbFeedbackMap() }, night);
+  }
+  try { localStorage.setItem(FB_SEEN_KEY, JSON.stringify(map)); } catch (e) {}
+}
+
+// Roster names win over the name stored on the record, as in the Payments ledger.
+function fbRosterNames() {
+  const out = {};
+  for (const r of ((state && state.roster) || [])) if (r && r.id) out[r.id] = r.name || r.id;
+  return out;
+}
+
+// The night to open on: the most recent one that actually has feedback, else the live night.
+function fbNightToOpen() {
+  const live = (state && state.sessionDate) || todayISO();
+  const nights = window.Feedback ? Feedback.nightsWithFeedback({ feedback: fbFeedbackMap() }) : [];
+  return nights.length ? nights[0] : live;
+}
+
+function renderFeedbackTab() {
+  if (!state || !window.Feedback || !document.getElementById('fbRows')) return;
+  if (!fbDate) fbDate = fbNightToOpen();
+  const live = state.sessionDate || todayISO();
+  const lbl = document.getElementById('fbDateLabel');
+  if (lbl) lbl.textContent = pmDateLabel(fbDate, true) + (fbDate === live ? ' · tonight' : '');
+  const note = document.getElementById('fbTabNote');
+  const settings = Feedback.settingsOf(state);
+  if (note) note.textContent = settings.enabled ? ('+' + settings.points + ' points per reply') : 'Feedback is off';
+  renderFbCalendar();
+  renderFbBody();
+}
+
+function renderFbCalendar() {
+  const strip = document.getElementById('fbCalGrid');
+  if (!strip || !state) return;
+  if (fbCalMonth < 0 || fbCalFor !== fbDate) {
+    const m = /^(\d{4})-(\d{2})/.exec(fbDate || '');
+    if (m) { fbCalYear = +m[1]; fbCalMonth = +m[2] - 1; }
+    fbCalFor = fbDate;
+  }
+  const monthEl = document.getElementById('fbCalMonth');
+  if (monthEl) monthEl.textContent = PM_MONTHS_LONG[fbCalMonth] + ' ' + fbCalYear;
+  const live = state.sessionDate || todayISO();
+  const all = fbFeedbackMap();
+  const has = new Set(Feedback.nightsWithFeedback({ feedback: all }));
+  const days = new Date(fbCalYear, fbCalMonth + 1, 0).getDate();
+  const letters = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  let html = '';
+  for (let d = 1; d <= days; d++) {
+    const iso = fbCalYear + '-' + String(fbCalMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    const cls = ['cal-strip-btn'];
+    if (iso === live) cls.push('s-today');
+    if (has.has(iso)) cls.push('s-has');
+    if (iso === fbDate) cls.push('s-sel');
+    const wd = WeeklyDraw.isoWeekday(iso);
+    const pickable = !window.Night || Night.isPickableDate(iso, iso === fbDate);
+    if (!pickable) cls.push('s-off');
+    const dot = (pickable && (iso === live || has.has(iso) || iso === fbDate)) ? '<span class="cal-strip-dot"></span>' : '';
+    html += '<div class="cal-strip-col"><span class="cal-strip-name">' + letters[wd] + '</span>'
+      + '<button type="button" class="' + cls.join(' ') + '" onclick="fbSelectDate(\'' + iso + '\')" aria-label="' + iso + '"'
+      + (pickable ? '' : ' disabled title="No games on ' + WEEKDAY_NAMES[wd] + 's"')
+      + (iso === fbDate ? ' aria-current="date"' : '') + '>' + d + dot + '</button></div>';
+  }
+  strip.innerHTML = html;
+  const wrap = strip.parentElement;
+  const sel = strip.querySelector('.s-sel') || strip.querySelector('.s-today');
+  if (wrap && sel) {
+    const w = wrap.getBoundingClientRect(), b = sel.getBoundingClientRect();
+    wrap.scrollLeft = Math.max(0, wrap.scrollLeft + (b.left - w.left) - w.width / 2 + b.width / 2);
+  }
+}
+function fbCalStep(dir) {
+  fbCalMonth += dir;
+  if (fbCalMonth > 11) { fbCalMonth = 0; fbCalYear++; }
+  if (fbCalMonth < 0) { fbCalMonth = 11; fbCalYear--; }
+  renderFbCalendar();
+}
+function fbSelectDate(iso) {
+  if (!iso || iso === fbDate) return;
+  fbDate = iso;
+  renderFeedbackTab();
+}
+
+// One tally bar per option, widest first within its side, so the night's biggest
+// complaint is the first thing read.
+function fbTallyHtml(title, options, counts, total, tone) {
+  const rows = (options || [])
+    .map(o => ({ id: o.id, label: o.label, n: Number(counts[o.id]) || 0 }))
+    .filter(r => r.n > 0)
+    .sort((a, b) => b.n - a.n);
+  if (!rows.length) return '';
+  const max = rows[0].n;
+  return '<div class="fbt-block"><div class="md-sec-title">' + escHtml(title) + '</div>'
+    + rows.map(r => '<div class="fbt-row ' + tone + '"><span class="fbt-lbl">' + escHtml(r.label) + '</span>'
+      + '<span class="fbt-bar"><i style="width:' + Math.round(r.n / max * 100) + '%"></i></span>'
+      + '<b class="fbt-n">' + r.n + '</b></div>').join('') + '</div>';
+}
+
+function renderFbBody() {
+  const statsEl = document.getElementById('fbStats');
+  const tallyEl = document.getElementById('fbTally');
+  const rowsEl = document.getElementById('fbRows');
+  if (!rowsEl || !window.Feedback) return;
+  const day = fbFeedbackMap()[fbDate] || {};
+  const sum = Feedback.summarizeNight(day, fbRosterNames());
+
+  if (statsEl) {
+    const plural = (n, one, many) => (n === 1 ? one : many);
+    statsEl.innerHTML = '<div class="mb-stat"><b>' + sum.count + '</b><span>' + plural(sum.count, 'Reply', 'Replies') + '</span></div>'
+      + '<div class="mb-stat"><b>' + sum.goodTotal + '</b><span>' + plural(sum.goodTotal, 'Good mark', 'Good marks') + '</span></div>'
+      + '<div class="mb-stat"><b>' + sum.badTotal + '</b><span>' + plural(sum.badTotal, 'Gripe', 'Gripes') + '</span></div>';
+  }
+  if (tallyEl) {
+    tallyEl.innerHTML = sum.count
+      ? (fbTallyHtml('What went well', Feedback.GOOD_OPTIONS, sum.good, sum.goodTotal, 'good')
+        + fbTallyHtml('What could be better', Feedback.BAD_OPTIONS, sum.bad, sum.badTotal, 'bad'))
+      : '';
+  }
+  if (!sum.count) {
+    rowsEl.innerHTML = '<div class="acct-empty">No feedback for this night yet. '
+      + 'Players leave it from their own page after they play.</div>';
+    return;
+  }
+  rowsEl.innerHTML = '<div class="md-sec-title">Who said what</div><div class="mb-list">'
+    + sum.rows.map(r => {
+      const chips = r.good.map(id => '<span class="fb-tag good">' + escHtml(Feedback.labelOf(id)) + '</span>')
+        .concat(r.bad.map(id => '<span class="fb-tag bad">' + escHtml(Feedback.labelOf(id)) + '</span>')).join('');
+      const notes = (r.goodNote ? '<div class="fb-quote">' + escHtml(r.goodNote) + '</div>' : '')
+        + (r.badNote ? '<div class="fb-quote">' + escHtml(r.badNote) + '</div>' : '');
+      return '<div class="fbr"><div class="fbr-head"><b>' + escHtml(r.name) + '</b>'
+        + '<span class="fbr-when">' + escHtml(fmtDateTime(r.updatedAt)) + (r.edited ? ' · edited' : '') + '</span></div>'
+        + (chips ? '<div class="fb-tags">' + chips + '</div>' : '') + notes + '</div>';
+    }).join('') + '</div>';
+}
+
 // Past night with a saved session but no records yet: generate for that date (same idempotent action).
 async function pmGenerateFor() {
   const date = pmDate;
@@ -10150,6 +10699,7 @@ function updateJoinCtaVisibility() {
   const viewerBtn = document.getElementById('viewerJoinBtn');
   if (hero) hero.style.display = show ? '' : 'none';
   if (viewerBtn) viewerBtn.style.display = show ? '' : 'none';
+  koUpdateCtas(); // the competition CTAs ride the same refresh points
 }
 
 // ── Calendar join flow (3-step: dates → details → thanks) ────
@@ -12789,6 +13339,7 @@ function openAccountModal() {
   const body = document.getElementById('accountBody');
   const player = acctPlayer();
   const name = (player && player.name) || acctSession.name || 'Player';
+  fbEditing = false; // a fresh open always lands on the feedback summary, not the form
   setAccountTitle(name);
   body.innerHTML = '<div class="acctpg-top">' + acctAvatarHtml(player, 'acctpg-av')
     + '<div class="acctpg-phone">Loading your points and payments…</div></div>';
@@ -12852,6 +13403,130 @@ function mbWinDetailHtml(w) {
     + '<b' + (r[2] ? ' class="' + r[2] + '"' : '') + '>' + r[1] + '</b></div>').join('') + '</div>';
 }
 
+// ── session feedback card (member page) ──
+// Drawn from the `feedback` block on the memberInfo payload — `open:false` means
+// feedback is switched off, there is no current night, or they did not play it, and the
+// card is left out entirely rather than shown as a dead end.
+// Two states when open: the form, or a summary of what they already said (with Edit).
+function fbNightLabel(iso) {
+  const full = mbDate(iso);                 // "Fri 19 Sep 2026"
+  const m = /^(\w+) (\d+) (\w+)/.exec(full);
+  const LONG = { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' };
+  return m ? ((LONG[m[1]] || m[1]) + ' ' + m[2] + ' ' + m[3]) : full;
+}
+
+function fbChipsHtml(options, chosen, kind) {
+  const on = new Set(Array.isArray(chosen) ? chosen : []);
+  return '<div class="fb-chips">' + (options || []).map(o =>
+    '<button type="button" class="fb-chip" data-kind="' + kind + '" data-id="' + escHtml(o.id) + '"'
+    + ' aria-pressed="' + (on.has(o.id) ? 'true' : 'false') + '" onclick="fbToggleChip(this)">'
+    + escHtml(o.label) + '</button>').join('') + '</div>';
+}
+
+// One chosen option as a read-back line. Labels come from the payload's own catalogue so
+// a reworded option reads correctly even on a record written before the rename.
+function fbLabelOf(fb, kind, id) {
+  const list = (kind === 'good' ? fb.goodOptions : fb.badOptions) || [];
+  const hit = list.find(o => o && o.id === id);
+  // labelOf returns '' for an id it doesn't know, so fall through to the id itself —
+  // an unreadable row beats a blank one if an option is ever retired.
+  return hit ? hit.label : ((window.Feedback && Feedback.labelOf(id)) || id);
+}
+
+function mbFeedbackHtml(d) {
+  const fb = (d && d.feedback) || null;
+  if (!fb || !fb.open) return '';
+  const pts = Number(fb.points) || 0;
+  const mine = fb.mine || null;
+  const when = fbNightLabel(fb.night);
+
+  if (mine && !fbEditing) {
+    const lines = []
+      .concat((mine.good || []).map(id => '<li class="good"><span>✓</span>' + escHtml(fbLabelOf(fb, 'good', id)) + '</li>'))
+      .concat((mine.bad || []).map(id => '<li class="bad"><span>✕</span>' + escHtml(fbLabelOf(fb, 'bad', id)) + '</li>'));
+    return '<div class="fb-card">'
+      + '<div class="fb-head"><b>Thanks for the feedback</b>'
+      + (mine.awardedPoints > 0 ? '<span class="fb-pts">+' + mine.awardedPoints + ' points</span>' : '') + '</div>'
+      + '<div class="fb-sub">What you said about ' + escHtml(when) + '.</div>'
+      + (lines.length ? '<ul class="fb-done-list">' + lines.join('') + '</ul>' : '')
+      + (mine.goodNote ? '<div class="fb-quote">' + escHtml(mine.goodNote) + '</div>' : '')
+      + (mine.badNote ? '<div class="fb-quote">' + escHtml(mine.badNote) + '</div>' : '')
+      + '<div class="fb-actions"><button class="btn btn-secondary btn-sm" onclick="fbStartEdit()">Edit my feedback</button></div>'
+      + '</div>';
+  }
+
+  return '<div class="fb-card">'
+    + '<div class="fb-head"><b>How was ' + escHtml(when) + '?</b>'
+    + (pts > 0 && !(mine && mine.awarded) ? '<span class="fb-pts">+' + pts + ' points</span>' : '') + '</div>'
+    + '<div class="fb-sub">Tap whatever fits. It only goes to the organiser.</div>'
+    + '<div class="fb-secs">'
+    + '<div class="fb-sec"><div class="fb-sec-lbl">What went well</div>'
+    + fbChipsHtml(fb.goodOptions, mine && mine.good, 'good')
+    + '<textarea class="fb-ta" id="fbGoodNote" rows="2" maxlength="500" placeholder="Anything else that was good?">' + escHtml((mine && mine.goodNote) || '') + '</textarea></div>'
+    + '<div class="fb-sec"><div class="fb-sec-lbl">What could be better</div>'
+    + fbChipsHtml(fb.badOptions, mine && mine.bad, 'bad')
+    + '<textarea class="fb-ta" id="fbBadNote" rows="2" maxlength="500" placeholder="Anything else we should fix?">' + escHtml((mine && mine.badNote) || '') + '</textarea></div>'
+    + '</div>'
+    + '<div class="fb-err" id="fbErr" aria-live="polite"></div>'
+    + '<div class="fb-actions"><button class="btn btn-primary btn-sm" id="fbSendBtn" onclick="submitMemberFeedback()">'
+    + (mine ? 'Update my feedback' : 'Send feedback' + (pts > 0 ? ' · +' + pts + ' points' : '')) + '</button>'
+    + (mine ? '<button class="btn btn-ghost btn-sm" onclick="fbCancelEdit()">Cancel</button>' : '')
+    + '</div></div>';
+}
+
+// Editing an existing submission flips the card back to the form. Kept outside the
+// payload so re-opening the page always lands on the summary.
+let fbEditing = false;
+function fbStartEdit() { fbEditing = true; fbRepaint(); }
+function fbCancelEdit() { fbEditing = false; fbRepaint(); }
+function fbRepaint() {
+  const host = document.getElementById('mbFeedback');
+  if (host && memberInfoCache) host.innerHTML = mbFeedbackHtml(memberInfoCache);
+}
+
+function fbToggleChip(el) {
+  if (!el) return;
+  el.setAttribute('aria-pressed', el.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+}
+
+function fbChosen(kind) {
+  return Array.from(document.querySelectorAll('.fb-chip[data-kind="' + kind + '"][aria-pressed="true"]'))
+    .map(el => el.dataset.id);
+}
+
+async function submitMemberFeedback() {
+  if (!acctSession) return openAuthModal();
+  const err = document.getElementById('fbErr');
+  const btn = document.getElementById('fbSendBtn');
+  const good = fbChosen('good'), bad = fbChosen('bad');
+  const goodNote = (document.getElementById('fbGoodNote') || {}).value || '';
+  const badNote = (document.getElementById('fbBadNote') || {}).value || '';
+  if (!good.length && !bad.length && !goodNote.trim() && !badNote.trim()) {
+    if (err) err.textContent = 'Pick at least one option, or write a note.';
+    return;
+  }
+  if (err) err.textContent = '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+  const res = await acctPost('submitFeedback', { token: acctSession.token, good, bad, goodNote, badNote });
+  if (btn) btn.disabled = false;
+  if (res.status === 401) {
+    saveAcctSession(null); renderAccountWidget(); closeAccountModal();
+    notify('Session expired. Please sign in again.', 'warn');
+    return;
+  }
+  // apiPost/acctPost do NOT throw on 4xx — check the payload before celebrating.
+  if (!res.ok || !res.data || !res.data.ok) {
+    if (err) err.textContent = (res.data && res.data.error) || 'Could not send that. Please try again.';
+    if (btn) btn.textContent = 'Try again';
+    return;
+  }
+  fbEditing = false;
+  const awarded = Number(res.data.awarded) || 0;
+  notify(awarded > 0 ? ('Thanks! +' + awarded + ' points added.') : 'Thanks — your feedback is updated.');
+  // Re-open the page so the points stat and the card both show the new truth.
+  openAccountModal();
+}
+
 function memberPageHtml(d) {
   d = d || {};
   const m = d.member || {}, p = d.points || {}, pay = d.payments || {};
@@ -12869,6 +13544,9 @@ function memberPageHtml(d) {
     + '<div class="mb-stat' + (owe ? ' owe' : '') + '"><b>' + escHtml(mbRM(pay.outstanding || 0)) + '</b><span>' + (owe ? 'You owe' : 'Nothing owing') + '</span></div>'
     + '<div class="mb-stat"><b>' + wins.length + '</b><span>Draw win' + (wins.length === 1 ? '' : 's') + '</span></div>'
     + '</div>';
+  // Feedback sits directly under the stats: it is the one thing on this page that is
+  // time-limited, so it goes above the standing information (draw progress, debts).
+  html += '<div id="mbFeedback">' + mbFeedbackHtml(d) + '</div>';
   html += '<div class="mb-progress-wrap"><div class="mb-progress-lbl"><span>' + escHtml(p.monthLabel ? p.monthLabel + ' draw' : 'Monthly draw') + '</span>'
     + '<b>' + (p.inDraw ? 'You’re in the draw' : escHtml(toGo + ' more point' + (toGo === 1 ? '' : 's') + ' to enter')) + '</b></div>'
     + '<div class="pm-progress mb-bar"><i style="width:' + pct + '%"></i></div>'
@@ -13060,6 +13738,891 @@ startPolling();
   btn.addEventListener('touchmove', function (e) { if (e.touches[0]) look(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
   btn.addEventListener('mouseleave', reset);
 })();
+
+// ═══════════════════════════════════════════════════════════════════
+// OPEN COMPETITION ("Knockout")
+// ───────────────────────────────────────────────────────────────────
+// A public, code-entered tournament. An admin creates categories, each with
+// its own printed code; anybody who has that code can enter, which is the
+// whole point — it is meant to reach past the regulars who come to the social
+// games. Pure logic (bracket maths, seeding, validation, the public
+// projection) lives in public/knockout.js; everything below is DOM.
+//
+// Nothing in the public flow is authenticated, so every field the browser
+// validates is validated again server-side, and an IC/passport is encrypted
+// by lib/knockout.js before it is stored. The client never sees a stored IC.
+// ═══════════════════════════════════════════════════════════════════
+
+// The competition as the PUBLIC sees it (already stripped server-side).
+function koPublic() { return (state && state.knockout) || null; }
+// The thin teaser, whether we are locked out or fully loaded.
+function koTeaser() {
+  const pub = koPublic();
+  if (pub && pub.event && pub.event.published) {
+    const open = (pub.categories || []).filter(c => c.status === 'open' && c.hasCode).length;
+    return { name: pub.event.name, date: pub.event.date, regOpen: !!pub.event.regOpen && open > 0, categories: open };
+  }
+  return lockedKnockout || null;
+}
+// Categories with something to show on a screen: a draw, or confirmed entries.
+function koShowable() {
+  const pub = koPublic();
+  if (!pub || !pub.event || !pub.event.published) return [];
+  return (pub.categories || []).filter(c => c.draw || (c.entrants || []).length);
+}
+
+// Show or hide both competition CTAs. Called from updateJoinCtaVisibility, so
+// it refreshes wherever the sign-up CTAs do.
+function koUpdateCtas() {
+  const t = koTeaser();
+  const link = document.getElementById('gateKoLink');
+  if (link) {
+    const on = !!(t && t.regOpen);
+    link.style.display = on ? '' : 'none';
+    if (on) link.textContent = (t.name ? 'Entering ' + t.name + '?' : 'Entering the competition?') + ' Tap to enter your code';
+  }
+  const btn = document.getElementById('viewerKoBtn');
+  if (btn) btn.style.display = (koShowable().length || (t && t.regOpen)) ? '' : 'none';
+}
+
+const KO_BLANK_PLAYER = () => ({ name: '', phone: '', ic: '', club: '' });
+
+let koStep = 0;        // 0 code · 1 register · 2 confirmation · 3 payment
+let koCat = null;      // the public card returned by knockoutLookup
+let koEventInfo = null;
+let koEntries = [];    // [{ players: [ {name,phone,ic,club} ... ] }]
+let koSubmitted = null;
+let koBusy = false;
+
+function openKoModal() {
+  koStep = 0; koCat = null; koEventInfo = null; koEntries = []; koSubmitted = null; koBusy = false;
+  const input = document.getElementById('koCodeInput');
+  if (input) input.value = '';
+  document.getElementById('koHp').value = '';
+  koClearError('koCodeError'); koClearError('koError'); koClearError('koReviewError');
+  const t = koTeaser();
+  document.getElementById('koTitle').textContent = (t && t.name) || 'Tournament entry';
+  document.getElementById('koSub').textContent = 'Enter the code from the poster.';
+  koSetStep(0);
+  document.getElementById('koModal').classList.add('open');
+  setTimeout(() => { if (input) input.focus(); }, 40);
+}
+function closeKoModal() { document.getElementById('koModal').classList.remove('open'); }
+
+function koShowError(id, msg) { const el = document.getElementById(id); if (!el) return; el.textContent = msg; el.style.display = 'block'; }
+function koClearError(id) { const el = document.getElementById(id); if (!el) return; el.textContent = ''; el.style.display = 'none'; }
+
+function koSetStep(n) {
+  koStep = n;
+  document.querySelectorAll('#koModal .join-stage').forEach(st => st.classList.toggle('active', +st.dataset.stage === n));
+  // Stage 0 (the code) and stage 1 (the form) are both "Register" on the dots.
+  const dot = Math.max(1, n);
+  document.querySelectorAll('#koModal .join-step-dot').forEach(d => d.classList.toggle('active', +d.dataset.s <= dot));
+  const back = document.getElementById('koBack');
+  const next = document.getElementById('koNext');
+  document.getElementById('koFoot').style.display = n === 3 ? 'none' : 'flex';
+  back.style.visibility = n === 0 ? 'hidden' : 'visible';
+  if (n === 0) { next.textContent = 'Continue'; next.disabled = !koCodeReady(); }
+  else if (n === 1) { next.textContent = 'Review'; koRenderEntries(); koValidate(); }
+  else if (n === 2) { next.textContent = 'Confirm entry'; next.disabled = false; koRenderReview(); }
+}
+
+function koCodeReady() {
+  const lib = window.Knockout;
+  const v = (document.getElementById('koCodeInput') || {}).value || '';
+  return lib ? lib.isValidCode(v) : v.replace(/[^A-Za-z0-9]/g, '').length >= 4;
+}
+function koCodeTyped(el) {
+  el.value = el.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+  koClearError('koCodeError');
+  if (koStep === 0) document.getElementById('koNext').disabled = !koCodeReady();
+}
+
+async function koLookup() {
+  if (koBusy) return;
+  koBusy = true;
+  const next = document.getElementById('koNext');
+  next.disabled = true; next.textContent = 'Checking…';
+  try {
+    const r = await fetch('/api/state', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'knockoutLookup', code: document.getElementById('koCodeInput').value }),
+    });
+    const res = await r.json().catch(() => null);
+    if (!res || !res.ok) { koShowError('koCodeError', (res && res.error) || 'We couldn’t check that code. Please try again.'); return; }
+    koCat = res.category; koEventInfo = res.event || {};
+    koEntries = [{ players: Array.from({ length: koCat.players }, KO_BLANK_PLAYER) }];
+    document.getElementById('koCatName').textContent = koCat.name;
+    const bits = [koCat.players === 2 ? 'Doubles' : 'Singles'];
+    if (koCat.fee) bits.push('RM' + koCat.fee + ' per entry');
+    if (koCat.spacesLeft !== null && koCat.spacesLeft !== undefined) bits.push(koCat.spacesLeft + ' place' + (koCat.spacesLeft === 1 ? '' : 's') + ' left');
+    document.getElementById('koCatMeta').textContent = bits.join(' · ');
+    document.getElementById('koSub').textContent = koCat.players === 2
+      ? 'One person fills in both players’ details.' : 'Enter the player’s details.';
+    koSetStep(1);
+    setTimeout(() => { const el = document.querySelector('#koEntryList input'); if (el) el.focus(); }, 40);
+  } catch (e) {
+    koShowError('koCodeError', 'We couldn’t check that code. Please try again.');
+  } finally {
+    koBusy = false;
+    if (koStep === 0) { next.textContent = 'Continue'; next.disabled = !koCodeReady(); }
+  }
+}
+
+function koNext() {
+  if (koStep === 0) { if (koCodeReady()) koLookup(); }
+  else if (koStep === 1) { if (koValidate(true)) koSetStep(2); }
+  else if (koStep === 2) koSubmit();
+}
+function koBack() {
+  if (koStep === 1) koSetStep(0);
+  else if (koStep === 2) koSetStep(1);
+}
+
+// ── the entry form ───────────────────────────────────────────────────
+function koRenderEntries() {
+  const wrap = document.getElementById('koEntryList');
+  if (!wrap || !koCat) return;
+  const needIC = koEventInfo && koEventInfo.requireIC !== false;
+  wrap.innerHTML = koEntries.map((entry, i) => {
+    const title = koEntries.length > 1 ? 'Participant ' + (i + 1) : (koCat.players === 2 ? 'Your pair' : 'Participant');
+    const del = koEntries.length > 1
+      ? `<button type="button" class="join-person-del" onclick="koRemoveEntry(${i})" aria-label="Remove ${escHtml(title)}">&#215;</button>` : '';
+    const players = entry.players.map((_, pi) => `
+      <div class="ko-player">
+        ${koCat.players === 2 ? `<div class="ko-player-title">Player ${pi + 1}</div>` : ''}
+        <label class="join-field-label">Name</label>
+        <input class="modal-input ko-f" data-e="${i}" data-p="${pi}" data-k="name" type="text" maxlength="60" placeholder="Full name" autocomplete="off" oninput="koField(this)">
+        <label class="join-field-label">Contact number</label>
+        <input class="modal-input ko-f" data-e="${i}" data-p="${pi}" data-k="phone" type="tel" inputmode="tel" maxlength="24" placeholder="e.g. 012-345 6789" autocomplete="off" oninput="koField(this)">
+        ${needIC ? `<label class="join-field-label">IC or passport number</label>
+        <input class="modal-input ko-f" data-e="${i}" data-p="${pi}" data-k="ic" type="text" maxlength="24" placeholder="Without dashes" autocomplete="off" spellcheck="false" oninput="koField(this)">` : ''}
+        <label class="join-field-label">Representing club <span class="ko-optional">(optional)</span></label>
+        <input class="modal-input ko-f" data-e="${i}" data-p="${pi}" data-k="club" type="text" maxlength="60" placeholder="Free Agent" autocomplete="off" oninput="koField(this)">
+      </div>`).join('');
+    return `<div class="join-person" data-idx="${i}">
+      <div class="join-person-head"><span class="join-person-title">${escHtml(title)}</span>${del}</div>
+      ${players}
+    </div>`;
+  }).join('');
+  // Fill values from state — no user-typed text has ever gone into the HTML above.
+  wrap.querySelectorAll('.ko-f').forEach(el => {
+    const e = koEntries[+el.dataset.e]; if (!e) return;
+    const pl = e.players[+el.dataset.p]; if (!pl) return;
+    el.value = pl[el.dataset.k] || '';
+  });
+  const addBtn = document.getElementById('koAddEntry');
+  const maxHere = Math.min(window.Knockout ? Knockout.MAX_PER_SUBMIT : 8,
+    (koCat.spacesLeft === null || koCat.spacesLeft === undefined) ? 99 : koCat.spacesLeft);
+  if (addBtn) addBtn.style.display = koEntries.length >= maxHere ? 'none' : '';
+}
+
+function koField(el) {
+  const e = koEntries[+el.dataset.e]; if (!e) return;
+  const pl = e.players[+el.dataset.p]; if (!pl) return;
+  pl[el.dataset.k] = el.value;
+  koClearError('koError');
+  koValidate();
+}
+function koAddEntry() {
+  if (!koCat) return;
+  koEntries.push({ players: Array.from({ length: koCat.players }, KO_BLANK_PLAYER) });
+  koRenderEntries(); koValidate();
+  const cards = document.querySelectorAll('#koEntryList .join-person');
+  const el = cards.length ? cards[cards.length - 1].querySelector('input') : null;
+  if (el) el.focus();
+}
+function koRemoveEntry(i) { koEntries.splice(i, 1); koRenderEntries(); koValidate(); }
+
+// Client-side mirror of the server's validator. `loud` shows the reason.
+function koValidate(loud) {
+  const lib = window.Knockout;
+  const next = document.getElementById('koNext');
+  if (!lib || !koCat) { if (next && koStep === 1) next.disabled = false; return true; }
+  const cat = { id: koCat.id, type: koCat.players === 2 ? 'doubles' : 'singles', status: 'open', entrants: [] };
+  const opts = { category: cat, requireIC: !koEventInfo || koEventInfo.requireIC !== false };
+  let firstError = '';
+  for (const entry of koEntries) {
+    const v = lib.validateEntry(entry, opts);
+    if (!v.ok) { firstError = v.error; break; }
+  }
+  const okNow = !firstError && koEntries.length > 0;
+  if (next && koStep === 1) next.disabled = !okNow;
+  if (loud && firstError) koShowError('koError', firstError);
+  return okNow;
+}
+
+// ── confirmation ─────────────────────────────────────────────────────
+function koRenderReview() {
+  const wrap = document.getElementById('koReview');
+  if (!wrap || !koCat) return;
+  const needIC = koEventInfo && koEventInfo.requireIC !== false;
+  const rows = koEntries.map(e => {
+    const names = e.players.map(p => (p.name || '').trim()).filter(Boolean).join(' & ');
+    const meta = e.players.map(p => {
+      const bits = [(p.phone || '').trim()];
+      if (needIC && p.ic) bits.push('IC ••••' + p.ic.replace(/[^A-Za-z0-9]/g, '').slice(-4));
+      const club = (p.club || '').trim();
+      if (club) bits.push(club);
+      return bits.filter(Boolean).join(' · ');
+    }).join('<br>');
+    return `<div class="ko-review">
+      <div class="ko-review-name">${escHtml(names)}</div>
+      <div class="ko-review-meta">${meta}</div>
+    </div>`;
+  }).join('');
+  const total = (koCat.fee || 0) * koEntries.length;
+  const totalRow = koCat.fee
+    ? `<div class="ko-total"><span>${koEntries.length} entr${koEntries.length === 1 ? 'y' : 'ies'} &times; RM${koCat.fee}</span><strong>RM${total}</strong></div>`
+    : `<div class="ko-total"><span>${koEntries.length} entr${koEntries.length === 1 ? 'y' : 'ies'}</span><strong>Free</strong></div>`;
+  wrap.innerHTML = `<div class="ko-cat-banner">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+      <div class="ko-cat-txt"><strong>${escHtml(koCat.name)}</strong><span>Check the details, then confirm.</span></div>
+    </div>${rows}${totalRow}`;
+}
+
+async function koSubmit() {
+  if (koBusy) return;
+  koBusy = true;
+  const next = document.getElementById('koNext');
+  next.disabled = true; next.textContent = 'Sending…';
+  koClearError('koReviewError');
+  try {
+    const r = await fetch('/api/state', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'submitKnockoutEntry',
+        code: document.getElementById('koCodeInput').value,
+        hp: document.getElementById('koHp').value,
+        entries: koEntries.map(e => ({ players: e.players.map(p => ({ name: p.name, phone: p.phone, ic: p.ic, club: p.club })) })),
+      }),
+    });
+    const res = await r.json().catch(() => null);
+    if (!r.ok || !res || !res.ok) { koShowError('koReviewError', (res && res.error) || 'Sorry, that didn’t go through. Please try again.'); return; }
+    koSubmitted = res;
+    koRenderPayment();
+    koSetStep(3);
+  } catch (e) {
+    koShowError('koReviewError', 'Sorry, that didn’t go through. Please try again.');
+  } finally {
+    koBusy = false;
+    if (koStep === 2) { next.disabled = false; next.textContent = 'Confirm entry'; }
+  }
+}
+
+function koRenderPayment() {
+  const wrap = document.getElementById('koPayment');
+  if (!wrap || !koSubmitted) return;
+  const fee = koSubmitted.fee || 0;
+  const payTo = (koSubmitted.payTo || '').trim();
+  const names = (koSubmitted.labels || []).map(l => `<div class="ko-review-name">${escHtml(l)}</div>`).join('');
+  wrap.innerHTML = `
+    <div class="join-thanks" style="padding-bottom:6px">
+      <span class="join-thanks-mark" aria-hidden="true">&#10003;</span>
+      <p>You’re in the list for <strong>${escHtml((koSubmitted.category || {}).name || '')}</strong>.</p>
+    </div>
+    <div class="ko-review">${names}</div>
+    ${fee ? `<div class="ko-total"><span>To pay</span><strong>RM${fee}</strong></div>` : ''}
+    ${fee && payTo ? `<div class="ko-pay-box">${escHtml(payTo)}</div>` : ''}
+    <div class="ko-pending">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="width:18px;height:18px;flex-shrink:0"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5V12l3 1.8"></path></svg>
+      <span>${fee
+        ? 'Your place is held as <strong>pending</strong> until we see the payment. We’ll confirm it and you’ll appear in the draw.'
+        : 'Your place is held as <strong>pending</strong> until we confirm it. You’ll then appear in the draw.'}</span>
+    </div>
+    <button type="button" class="btn btn-primary" style="width:100%;margin-top:14px;min-height:44px" onclick="closeKoModal()">Done</button>`;
+}
+
+// ── the live bracket (viewer + hall screen) ──────────────────────────
+let koBrCat = null;
+
+function openKoBracket() {
+  const cats = koShowable();
+  const t = koTeaser();
+  if (!cats.length && !(t && t.regOpen)) return;
+  if (!koBrCat || !cats.some(c => c.id === koBrCat)) koBrCat = cats.length ? cats[0].id : null;
+  document.getElementById('koBrTitle').textContent = (t && t.name) || 'Competition';
+  const sub = [];
+  if (t && t.date) sub.push(formatDisplayDate ? formatDisplayDate(t.date) : t.date);
+  if (t && t.regOpen) sub.push('Entries open');
+  document.getElementById('koBrSub').textContent = sub.join(' · ');
+  koRenderBracket();
+  document.getElementById('koBracketModal').classList.add('open');
+}
+function closeKoBracket() { document.getElementById('koBracketModal').classList.remove('open'); }
+function koPickCat(id) { koBrCat = id; koRenderBracket(); }
+
+function koRenderBracket() {
+  const cats = koShowable();
+  const tabs = document.getElementById('koBrTabs');
+  const body = document.getElementById('koBrBody');
+  if (!tabs || !body) return;
+  tabs.innerHTML = cats.map(c =>
+    `<button type="button" class="ko-tab${c.id === koBrCat ? ' sel' : ''}" onclick="koPickCat('${c.id}')">${escHtml(c.name)}</button>`).join('');
+  const cat = cats.find(c => c.id === koBrCat);
+  if (!cat) {
+    const t = koTeaser();
+    body.innerHTML = `<div class="ko-empty">${t && t.regOpen
+      ? 'Entries are open. The draw appears here once it is made.'
+      : 'Nothing to show yet.'}</div>`;
+    return;
+  }
+  const lib = window.Knockout;
+  if (!lib) { body.innerHTML = '<div class="ko-empty">Loading…</div>'; return; }
+  const view = lib.viewOf(cat);
+  if (!view.hasDraw) {
+    const n = (cat.entrants || []).length;
+    body.innerHTML = `<div class="ko-empty">${n} ${n === 1 ? 'entry is' : 'entries are'} in.<br>The draw appears here once it is made.</div>`;
+    return;
+  }
+  let html = '';
+  if (view.complete) {
+    html += `<div class="ko-champ">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6"/></svg>
+      <div class="ko-champ-txt"><strong>${escHtml(view.championLabel)}</strong>
+      <span>Champion${view.runnerUpLabel ? ' · runner-up ' + escHtml(view.runnerUpLabel) : ''}${view.thirdLabel ? ' · third ' + escHtml(view.thirdLabel) : ''}</span></div>
+    </div>`;
+  }
+  html += view.format === 'roundrobin' ? koTableHtml(view) : '';
+  html += koRoundsHtml(view);
+  body.innerHTML = html;
+}
+
+function koSideHtml(label, club, isWinner, isLoser, isTbc) {
+  const cls = isTbc ? ' tbc' : (isWinner ? ' win' : (isLoser ? ' lose' : ''));
+  return `<div class="ko-side${cls}">
+    <span class="ko-side-name">${escHtml(label || 'TBC')}${club ? ` <span class="ko-side-club">${escHtml(club)}</span>` : ''}</span>
+  </div>`;
+}
+
+function koRoundsHtml(view) {
+  const groups = view.rounds || [];
+  if (!groups.length) return '';
+  return `<div class="ko-bracket">${groups.map(g => `
+    <div class="ko-round">
+      <div class="ko-round-head">${escHtml(g.label)}</div>
+      ${g.matches.map(m => {
+        if (m.bye) {
+          return `<div class="ko-match">${koSideHtml(m.aLabel || m.bLabel, m.aClub || m.bClub, false, false, false)}
+            <div class="ko-match-foot"><span class="ko-bye-note">Bye</span></div></div>`;
+        }
+        const live = m.state === 'ready' && m.court;
+        return `<div class="ko-match${live ? ' live' : (m.state === 'ready' ? ' ready' : '')}">
+          ${koSideHtml(m.aLabel, m.aClub, m.winner === m.a, !!m.winner && m.winner !== m.a, !m.a)}
+          ${koSideHtml(m.bLabel, m.bClub, m.winner === m.b, !!m.winner && m.winner !== m.b, !m.b)}
+          ${(m.score || m.court) ? `<div class="ko-match-foot">
+            <span>${escHtml(m.score || '')}</span>
+            ${m.court ? `<span class="ko-court-pill">Court ${escHtml(m.court)}</span>` : ''}
+          </div>` : ''}
+        </div>`;
+      }).join('')}
+    </div>`).join('')}</div>`;
+}
+
+function koTableHtml(view) {
+  const rows = (view.table || []).map(r => `<tr>
+    <td class="ko-pos">${r.pos}</td>
+    <td>${escHtml(r.label)}${r.tied ? '<span class="ko-tied">tied</span>' : ''}</td>
+    <td class="ko-num">${r.played}</td>
+    <td class="ko-num">${r.won}</td>
+    <td class="ko-num">${r.lost}</td>
+    <td class="ko-num">${r.pointDiff > 0 ? '+' : ''}${r.pointDiff}</td>
+  </tr>`).join('');
+  return `<table class="ko-table" style="margin-bottom:18px">
+    <thead><tr><th></th><th>Team</th><th class="ko-num">P</th><th class="ko-num">W</th><th class="ko-num">L</th><th class="ko-num">+/-</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+}
+
+// ESC closes whichever competition surface is open.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const m = document.getElementById('koModal');
+  const b = document.getElementById('koBracketModal');
+  if (m && m.classList.contains('open')) closeKoModal();
+  else if (b && b.classList.contains('open')) closeKoBracket();
+});
+
+// ── Admin: the Knockout tab ──────────────────────────────────────────
+// Reads through knockoutGetAdmin rather than the 2s poll, because the poll
+// deliberately carries no encrypted IC blobs and no reveal path.
+let koAdmin = null;        // the last knockoutGetAdmin payload
+let koOpenCat = null;      // which category is expanded
+let koScoreDraft = {};     // matchId -> { winner, score } while an admin types
+
+async function loadKoAdmin() {
+  const res = await apiPost({ action: 'knockoutGetAdmin' });
+  if (!res || !res.ok) return;
+  koAdmin = res;
+  renderKnockoutAdmin();
+  updateAdminNavBadges();
+}
+
+function koAdminCat(id) { return ((koAdmin && koAdmin.categories) || []).find(c => c.id === id) || null; }
+
+function renderKnockoutAdmin() {
+  if (!koAdmin) return;
+  koRenderAdminEvent();
+  koRenderAdminCats();
+}
+
+function koRenderAdminEvent() {
+  const wrap = document.getElementById('koAdminEvent');
+  if (!wrap) return;
+  const e = koAdmin.event || {};
+  const st = koAdmin.settings || {};
+  const encOff = st.encryption !== 'on';
+  wrap.innerHTML = `
+    ${encOff ? `<div class="ko-warn">
+      <svg class="ic" viewBox="0 0 24 24" style="width:18px;height:18px;flex-shrink:0"><path d="M12 9v4M12 17h.01M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <span>IC encryption is not configured on this server (<code>ACCOUNT_ENC_KEY</code>). Entries still work, but only the last four digits of an IC are kept. Nothing sensitive is stored in the clear.</span>
+    </div>` : ''}
+    <div class="ko-admin-grid">
+      <div><label class="join-field-label">Event name</label>
+        <input class="modal-input" type="text" maxlength="80" value="${escHtml(e.name || '')}" placeholder="TZH Open 2026" onchange="koSetEvent('name', this.value)"></div>
+      <div><label class="join-field-label">Date</label>
+        <input class="modal-input" type="date" value="${escHtml(e.date || '')}" onchange="koSetEvent('date', this.value)"></div>
+      <div><label class="join-field-label">Venue</label>
+        <input class="modal-input" type="text" maxlength="80" value="${escHtml(e.venue || '')}" placeholder="TZH Hall" onchange="koSetEvent('venue', this.value)"></div>
+    </div>
+    <label class="join-field-label">How entries are paid (shown on the payment step)</label>
+    <input class="modal-input" type="text" maxlength="160" value="${escHtml(e.payTo || '')}" placeholder="e.g. DuitNow to 012-345 6789 (TZH Badminton)" onchange="koSetEvent('payTo', this.value)">
+    <div class="ko-ent-actions" style="margin-top:12px">
+      <button type="button" class="btn ${e.regOpen ? 'btn-primary' : 'btn-secondary'}" onclick="koSetEvent('regOpen', ${!e.regOpen})">
+        ${e.regOpen ? '&#10003; Entries open' : 'Entries closed'}</button>
+      <button type="button" class="btn ${e.published ? 'btn-primary' : 'btn-secondary'}" onclick="koSetEvent('published', ${!e.published})">
+        ${e.published ? '&#10003; Shown publicly' : 'Hidden from the public'}</button>
+      <button type="button" class="btn ${e.requireIC ? 'btn-primary' : 'btn-secondary'}" onclick="koSetEvent('requireIC', ${!e.requireIC})">
+        ${e.requireIC ? '&#10003; IC required' : 'No IC collected'}</button>
+    </div>
+    <div class="admin-helper-text" style="margin-top:8px">
+      ${e.published
+        ? 'The bracket and the code box are live on the public site.'
+        : 'Nothing is public yet. Turn on “Shown publicly” when you are ready to hand out codes.'}
+      ${e.requireIC ? '' : ' IC numbers are not being collected for this event, which is the safest setting when no category is age-graded.'}
+    </div>`;
+}
+
+function koRenderAdminCats() {
+  const wrap = document.getElementById('koAdminCats');
+  if (!wrap) return;
+  const cats = koAdmin.categories || [];
+  if (!cats.length) { wrap.innerHTML = '<div class="ko-empty">No categories yet. Add one to get a code you can put on a poster.</div>'; return; }
+  wrap.innerHTML = cats.map(c => {
+    const open = c.id === koOpenCat;
+    const statusPill = { setup: 'grey', open: 'green', closed: 'amber', drawn: 'blue', done: 'grey' }[c.status] || 'grey';
+    const statusText = { setup: 'Setup', open: 'Entries open', closed: 'Entries closed', drawn: 'Draw made', done: 'Finished' }[c.status] || c.status;
+    return `<div class="ko-admin-cat">
+      <div class="ko-admin-cat-head" onclick="koToggleCat('${c.id}')">
+        <span class="ko-admin-cat-name">${escHtml(c.name)}</span>
+        <span class="ko-pill ${statusPill}">${statusText}</span>
+        <span class="ko-pill grey">${c.type === 'doubles' ? 'Doubles' : 'Singles'}</span>
+        ${c.confirmed ? `<span class="ko-pill blue">${c.confirmed} in</span>` : ''}
+        ${c.pending ? `<span class="ko-pill amber">${c.pending} pending</span>` : ''}
+        ${c.unpaid ? `<span class="ko-pill red">${c.unpaid} unpaid</span>` : ''}
+        <span class="ko-pill grey">${open ? '&#9652;' : '&#9662;'}</span>
+      </div>
+      ${open ? `<div class="ko-admin-cat-body">${koCatBodyHtml(c)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function koToggleCat(id) { koOpenCat = (koOpenCat === id ? null : id); koRenderAdminCats(); }
+
+function koCatBodyHtml(c) {
+  const fmtNote = c.formatSetting === 'auto'
+    ? `Automatic: ${c.confirmed} confirmed ${c.confirmed === 1 ? 'entry' : 'entries'} means a <strong>${c.formatLabel.toLowerCase()}</strong>${c.format === 'knockout' ? ` (a draw of ${c.size}, ${c.byes} bye${c.byes === 1 ? '' : 's'})` : ''}.`
+    : `Forced to <strong>${c.formatLabel.toLowerCase()}</strong>${c.format === 'knockout' ? ` (a draw of ${c.size}, ${c.byes} bye${c.byes === 1 ? '' : 's'})` : ''}.`;
+  return `
+    <div class="ko-ent-actions" style="margin-bottom:12px;align-items:center">
+      <button type="button" class="ko-code-chip" onclick="koCopyCode('${escHtml(c.code)}')" title="Tap to copy">${escHtml(c.code || '— no code —')}</button>
+      <button type="button" class="btn btn-secondary" onclick="koNewCode('${c.id}',this)">New code</button>
+      <button type="button" class="btn ${c.status === 'open' ? 'btn-secondary' : 'btn-primary'}" onclick="koSetCatStatus('${c.id}','${c.status === 'open' ? 'closed' : 'open'}')">
+        ${c.status === 'open' ? 'Close entries' : 'Open entries'}</button>
+    </div>
+    <div class="ko-admin-grid">
+      <div><label class="join-field-label">Name</label>
+        <input class="modal-input" type="text" maxlength="60" value="${escHtml(c.name)}" onchange="koSetCat('${c.id}','name',this.value)"></div>
+      <div><label class="join-field-label">Entry fee (RM)</label>
+        <input class="modal-input" type="number" min="0" max="1000" value="${c.fee || 0}" onchange="koSetCat('${c.id}','fee',this.value)"></div>
+      <div><label class="join-field-label">Cap (0 = no limit)</label>
+        <input class="modal-input" type="number" min="0" max="128" value="${c.cap || 0}" onchange="koSetCat('${c.id}','cap',this.value)"></div>
+      <div><label class="join-field-label">Format</label>
+        <select class="modal-input" onchange="koSetCat('${c.id}','format',this.value)">
+          <option value="auto"${c.formatSetting === 'auto' ? ' selected' : ''}>Automatic</option>
+          <option value="knockout"${c.formatSetting === 'knockout' ? ' selected' : ''}>Always knockout</option>
+          <option value="roundrobin"${c.formatSetting === 'roundrobin' ? ' selected' : ''}>Always round robin</option>
+        </select></div>
+    </div>
+    <div class="admin-helper-text" style="margin-bottom:14px">${fmtNote}</div>
+    ${koEntrantsHtml(c)}
+    ${koSeedHtml(c)}
+    ${koDrawHtml(c)}
+    <div class="ko-ent-actions" style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px">
+      ${koWalkInHtml(c)}
+      <button type="button" class="btn btn-danger" onclick="koDeleteCat('${c.id}',this)">Delete category</button>
+    </div>`;
+}
+
+function koEntrantsHtml(c) {
+  const list = c.entrants || [];
+  if (!list.length) return '<div class="ko-empty" style="padding:var(--sp-md) 0">No entries yet. Share the code above.</div>';
+  const order = { pending: 0, confirmed: 1, withdrawn: 2 };
+  const rows = list.slice().sort((a, b) => (order[a.status] - order[b.status]) || (a.at - b.at)).map(e => {
+    const meta = e.players.map(p =>
+      `${escHtml(p.name)} · ${escHtml(p.phone)}${p.ic ? ' · ' + escHtml(p.ic) : ''}${p.club && p.club !== 'Free Agent' ? ' · ' + escHtml(p.club) : ''}`
+    ).join('<br>');
+    const reveal = e.players.map((p, i) => p.hasIC
+      ? `<button type="button" class="btn btn-secondary" onclick="koRevealIC('${c.id}','${e.id}',${i})">Show ${escHtml((p.name || '').split(' ')[0] || 'IC')}’s IC</button>` : '').join('');
+    // One auto-hiding slot per player, filled only by an audited reveal.
+    const icSlots = e.players.map((p, i) => p.hasIC
+      ? `<div class="acct-pw-shown" id="koIc_${e.id}_${i}"></div>` : '').join('');
+    return `<div class="ko-ent-row">
+      <div class="ko-ent-main">
+        <div class="ko-ent-name">${escHtml(e.label)}
+          ${e.status === 'pending' ? '<span class="ko-pill amber" style="margin-left:6px">Pending</span>' : ''}
+          ${e.status === 'withdrawn' ? '<span class="ko-pill grey" style="margin-left:6px">Withdrawn</span>' : ''}
+          ${e.status === 'confirmed' && !e.paid ? '<span class="ko-pill red" style="margin-left:6px">Unpaid</span>' : ''}
+          ${e.status === 'confirmed' && e.paid ? '<span class="ko-pill green" style="margin-left:6px">Paid</span>' : ''}
+        </div>
+        <div class="ko-ent-meta">${meta}${e.note ? '<br><em>' + escHtml(e.note) + '</em>' : ''}</div>
+        ${icSlots}
+      </div>
+      <div class="ko-ent-actions">
+        ${e.status !== 'confirmed' ? `<button type="button" class="btn btn-primary" onclick="koSetEnt('${c.id}','${e.id}',{status:'confirmed'})">Confirm</button>` : ''}
+        ${e.status === 'confirmed' ? `<button type="button" class="btn ${e.paid ? 'btn-secondary' : 'btn-primary'}" onclick="koSetEnt('${c.id}','${e.id}',{paid:${!e.paid}})">${e.paid ? 'Mark unpaid' : 'Mark paid'}</button>` : ''}
+        ${e.status !== 'withdrawn' ? `<button type="button" class="btn btn-secondary" onclick="koSetEnt('${c.id}','${e.id}',{status:'withdrawn'})">Withdraw</button>` : ''}
+        ${reveal}
+      </div>
+    </div>`;
+  }).join('');
+  return `<div style="margin-bottom:14px">${rows}</div>`;
+}
+
+function koSeedHtml(c) {
+  const conf = (c.entrants || []).filter(e => e.status === 'confirmed');
+  if (conf.length < 2) return '';
+  if (c.hasDraw) return '';
+  const sorted = conf.slice().sort((a, b) => ((a.seed == null ? 1e9 : a.seed) - (b.seed == null ? 1e9 : b.seed)) || (a.at - b.at));
+  const rows = sorted.map((e, i) => `
+    <div class="ko-seed-row" draggable="true" data-id="${e.id}" data-cat="${c.id}"
+      ondragstart="koSeedDragStart(event)" ondragover="koSeedDragOver(event)" ondrop="koSeedDrop(event)" ondragend="koSeedDragEnd(event)">
+      <span class="ko-seed-no">${i + 1}</span>
+      <span class="ko-seed-name">${escHtml(e.label)}</span>
+      <button type="button" class="ko-seed-move" onclick="koSeedMove('${c.id}','${e.id}',-1)" ${i === 0 ? 'disabled' : ''} aria-label="Move up">&#9650;</button>
+      <button type="button" class="ko-seed-move" onclick="koSeedMove('${c.id}','${e.id}',1)" ${i === sorted.length - 1 ? 'disabled' : ''} aria-label="Move down">&#9660;</button>
+    </div>`).join('');
+  return `<div style="margin-bottom:14px">
+    <div class="ko-score-label" style="margin-bottom:8px">Seeding &mdash; strongest first</div>
+    <div class="admin-helper-text" style="margin-bottom:8px">Drag, or use the arrows. Seed 1 and seed 2 land in opposite halves, so they can only meet in the final. Byes go to the top seeds.</div>
+    ${rows}
+    <button type="button" class="btn btn-primary" style="margin-top:10px" onclick="koGenerate('${c.id}')">Make the draw</button>
+  </div>`;
+}
+
+function koDrawHtml(c) {
+  const v = c.view;
+  if (!v || !v.hasDraw) return '';
+  const lines = (v.matches || []).filter(m => !m.bye).map(m => {
+    const draft = koScoreDraft[c.id + ':' + m.id] || {};
+    const winner = draft.winner !== undefined ? draft.winner : m.winner;
+    const score = draft.score !== undefined ? draft.score : m.score;
+    const locked = !m.a || !m.b;
+    return `<div class="ko-score-row">
+      <div class="ko-score-label">${escHtml(m.label)}${m.court ? ' · court ' + escHtml(m.court) : ''}</div>
+      <button type="button" class="ko-score-pick${winner === m.a ? ' sel' : ''}" ${locked ? 'disabled' : ''}
+        onclick="koPickWinner('${c.id}','${m.id}','${m.a || ''}')">${escHtml(m.aLabel)}</button>
+      <button type="button" class="ko-score-pick${winner === m.b ? ' sel' : ''}" ${locked ? 'disabled' : ''}
+        onclick="koPickWinner('${c.id}','${m.id}','${m.b || ''}')">${escHtml(m.bLabel)}</button>
+      <input class="modal-input ko-score-input" type="text" maxlength="40" placeholder="21-15, 21-18" value="${escHtml(score || '')}"
+        ${locked ? 'disabled' : ''} oninput="koScoreTyped('${c.id}','${m.id}',this.value)">
+      <input class="modal-input" style="width:86px;flex:0 0 auto" type="text" maxlength="12" placeholder="Court" value="${escHtml(m.court || '')}"
+        onchange="koSetCourt('${c.id}','${m.id}',this.value)">
+      <button type="button" class="btn btn-primary" ${locked || !winner ? 'disabled' : ''} onclick="koSaveResult('${c.id}','${m.id}',this)">Save</button>
+      ${m.winner ? `<button type="button" class="btn btn-secondary" onclick="koClearResult('${c.id}','${m.id}',this)">Clear</button>` : ''}
+    </div>`;
+  }).join('');
+  return `<div style="margin-bottom:6px">
+    <div class="ko-score-label" style="margin-bottom:8px">${escHtml(v.format === 'roundrobin' ? 'Round robin' : 'Bracket')} &mdash; enter results</div>
+    ${v.complete ? `<div class="ko-champ" style="margin-bottom:10px"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg>
+      <div class="ko-champ-txt"><strong>${escHtml(v.championLabel)}</strong><span>Champion</span></div></div>` : ''}
+    ${lines}
+    <div class="ko-ent-actions" style="margin-top:12px">
+      <button type="button" class="btn btn-secondary" onclick="koRebuild('${c.id}',this)">Rebuild the draw</button>
+      <button type="button" class="btn btn-secondary" onclick="koClearDraw('${c.id}',this)">Clear the draw</button>
+    </div>
+  </div>`;
+}
+
+// ── admin actions ────────────────────────────────────────────────────
+// No native confirm/alert/prompt anywhere: destructive steps use the two-tap
+// arm pattern from deleteSignup(), a revealed IC uses the auto-hiding inline
+// panel from doRevealPw(), and anything that needs typing gets a real form.
+async function koDo(body, okMsg) {
+  const res = await apiPost(body);
+  if (!res) return null;
+  if (res.error) { notify(res.error, 'warn'); return null; }
+  if (okMsg) notify(okMsg);
+  await loadKoAdmin();
+  return res;
+}
+
+/** First tap arms and relabels the button; a second tap within 3s commits. */
+function koArm(btn, label, run) {
+  if (!btn) { run(); return; }
+  if (btn.dataset.koArmed === 'yes') {
+    btn.dataset.koArmed = '';
+    btn.classList.remove('ko-armed');
+    run();
+    return;
+  }
+  btn.dataset.koWas = btn.textContent;
+  btn.textContent = label;
+  btn.dataset.koArmed = 'yes';
+  btn.classList.add('ko-armed');
+  setTimeout(() => {
+    if (btn.dataset.koArmed !== 'yes') return;
+    btn.dataset.koArmed = '';
+    btn.textContent = btn.dataset.koWas || '';
+    btn.classList.remove('ko-armed');
+  }, 3000);
+}
+
+function koSetEvent(field, value) { koDo({ action: 'knockoutSetEvent', [field]: value }); }
+function koSetCat(id, field, value) { koDo({ action: 'knockoutUpdateCategory', categoryId: id, [field]: value }); }
+function koSetCatStatus(id, status) { koDo({ action: 'knockoutUpdateCategory', categoryId: id, status }); }
+function koSetEnt(catId, entId, patch) { koDo(Object.assign({ action: 'knockoutSetEntrant', categoryId: catId, entrantId: entId }, patch)); }
+
+// ── new category (inline form, no prompt) ────────────────────────────
+let koNewCatType = 'doubles';
+function koPickNewType(t) {
+  koNewCatType = t;
+  document.querySelectorAll('#koNewCatType .skill-chip').forEach(c => c.classList.toggle('sel', c.dataset.type === t));
+}
+async function koAdminAddCategory() {
+  const input = document.getElementById('koNewCatName');
+  const name = input ? input.value.trim() : '';
+  if (name.length < 2) { notify('Give the category a name first.', 'warn'); return; }
+  const res = await koDo({ action: 'knockoutAddCategory', name, type: koNewCatType }, 'Category added');
+  if (!res || !res.category) return;
+  if (input) input.value = '';
+  koOpenCat = res.category.id;
+  koRenderAdminCats();
+}
+
+function koDeleteCat(id, btn) {
+  const c = koAdminCat(id);
+  const n = ((c && c.entrants) || []).filter(e => e.status !== 'withdrawn').length;
+  koArm(btn, n ? `Delete ${n} ${n === 1 ? 'entry' : 'entries'}?` : 'Delete for good?', () => {
+    koOpenCat = null;
+    koDo({ action: 'knockoutDeleteCategory', categoryId: id, confirm: true }, 'Category deleted');
+  });
+}
+
+function koNewCode(id, btn) {
+  koArm(btn, 'Old code stops working', () => koDo({ action: 'knockoutNewCode', categoryId: id }, 'New code generated'));
+}
+
+function koCopyCode(code) {
+  if (!code) { notify('This category has no code yet.', 'warn'); return; }
+  if (navigator.clipboard) navigator.clipboard.writeText(code).then(() => notify('Code ' + code + ' copied.')).catch(() => notify('Code: ' + code));
+  else notify('Code: ' + code);
+}
+
+// ── IC reveal (inline, auto-hiding — mirrors the password reveal) ────
+const koRevealTimers = {};
+async function koRevealIC(catId, entId, playerIndex) {
+  const slot = document.getElementById('koIc_' + entId + '_' + playerIndex);
+  const res = await apiPost({ action: 'knockoutRevealIC', categoryId: catId, entrantId: entId, playerIndex });
+  if (!res) return;
+  if (!res.ok) { if (slot) { slot.className = 'acct-pw-shown err'; slot.textContent = res.error || 'Could not reveal that IC.'; } else notify(res.error || 'Could not reveal that IC.', 'warn'); return; }
+  if (!slot) return;
+  const key = entId + '_' + playerIndex;
+  slot.className = 'acct-pw-shown';
+  slot.innerHTML = `<code>${escHtml(res.ic)}</code>`
+    + `<button class="btn btn-ghost btn-sm" onclick="koHideIC('${escHtml(key)}')">Hide</button>`
+    + `<span class="acct-pw-timer" id="koIcTimer_${escHtml(key)}">hides in 30s</span>`;
+  let left = 30;
+  clearInterval(koRevealTimers[key]);
+  koRevealTimers[key] = setInterval(() => {
+    left--;
+    const t = document.getElementById('koIcTimer_' + key);
+    if (t) t.textContent = 'hides in ' + left + 's';
+    if (left <= 0) koHideIC(key);
+  }, 1000);
+}
+function koHideIC(key) {
+  clearInterval(koRevealTimers[key]);
+  const slot = document.getElementById('koIc_' + key);
+  if (slot) { slot.innerHTML = ''; slot.className = 'acct-pw-shown'; }
+}
+
+// ── walk-in entry at the desk (inline form, no prompt) ───────────────
+let koWalkIn = null;   // { catId, players: [{name,phone,ic,club}] }
+function koOpenWalkIn(catId) {
+  const c = koAdminCat(catId);
+  if (!c) return;
+  const need = c.type === 'doubles' ? 2 : 1;
+  koWalkIn = { catId, players: Array.from({ length: need }, () => ({ name: '', phone: '', ic: '', club: '' })) };
+  koRenderAdminCats();
+  setTimeout(() => { const el = document.querySelector('#koWalkInForm input'); if (el) el.focus(); }, 40);
+}
+function koCloseWalkIn() { koWalkIn = null; koRenderAdminCats(); }
+function koWalkInField(i, key, value) { if (koWalkIn && koWalkIn.players[i]) koWalkIn.players[i][key] = value; }
+function koWalkInHtml(c) {
+  if (!koWalkIn || koWalkIn.catId !== c.id) {
+    return `<button type="button" class="btn btn-secondary" onclick="koOpenWalkIn('${c.id}')">+ Add an entry at the desk</button>`;
+  }
+  const needIC = !!(koAdmin.event && koAdmin.event.requireIC);
+  const fields = koWalkIn.players.map((p, i) => `
+    <div class="ko-player">
+      ${koWalkIn.players.length === 2 ? `<div class="ko-player-title">Player ${i + 1}</div>` : ''}
+      <label class="join-field-label">Name</label>
+      <input class="modal-input ko-wi" data-i="${i}" data-k="name" type="text" maxlength="60" placeholder="Full name" oninput="koWalkInField(${i},'name',this.value)">
+      <label class="join-field-label">Contact number</label>
+      <input class="modal-input ko-wi" data-i="${i}" data-k="phone" type="tel" maxlength="24" placeholder="e.g. 012-345 6789" oninput="koWalkInField(${i},'phone',this.value)">
+      ${needIC ? `<label class="join-field-label">IC or passport <span class="ko-optional">(leave blank to skip)</span></label>
+      <input class="modal-input ko-wi" data-i="${i}" data-k="ic" type="text" maxlength="24" placeholder="Without dashes" oninput="koWalkInField(${i},'ic',this.value)">` : ''}
+      <label class="join-field-label">Representing club <span class="ko-optional">(optional)</span></label>
+      <input class="modal-input ko-wi" data-i="${i}" data-k="club" type="text" maxlength="60" placeholder="Free Agent" oninput="koWalkInField(${i},'club',this.value)">
+    </div>`).join('');
+  return `<div id="koWalkInForm" class="join-person">
+    <div class="join-person-head"><span class="join-person-title">New entry at the desk</span></div>
+    ${fields}
+    <div class="ko-ent-actions" style="margin-top:10px">
+      <button type="button" class="btn btn-primary" onclick="koSaveWalkIn()">Add entry</button>
+      <button type="button" class="btn btn-secondary" onclick="koCloseWalkIn()">Cancel</button>
+    </div>
+  </div>`;
+}
+async function koSaveWalkIn() {
+  if (!koWalkIn) return;
+  const players = koWalkIn.players.map(p => ({ name: p.name, phone: p.phone, ic: p.ic, club: p.club }));
+  const res = await koDo({
+    action: 'knockoutAddEntrant', categoryId: koWalkIn.catId, players,
+    skipIC: !players.some(p => (p.ic || '').trim()), status: 'confirmed',
+  }, 'Entry added');
+  if (res) koWalkIn = null;
+  koRenderAdminCats();
+}
+
+// ── seeding ──────────────────────────────────────────────────────────
+function koSeedOrder(catId) {
+  const c = koAdminCat(catId);
+  if (!c) return [];
+  return (c.entrants || []).filter(e => e.status === 'confirmed')
+    .sort((a, b) => ((a.seed == null ? 1e9 : a.seed) - (b.seed == null ? 1e9 : b.seed)) || (a.at - b.at))
+    .map(e => e.id);
+}
+function koSeedMove(catId, entId, dir) {
+  const order = koSeedOrder(catId);
+  const i = order.indexOf(entId);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= order.length) return;
+  order.splice(j, 0, order.splice(i, 1)[0]);
+  koDo({ action: 'knockoutSeed', categoryId: catId, order });
+}
+let __koDragId = null;
+function koSeedDragStart(ev) {
+  __koDragId = ev.currentTarget.dataset.id;
+  ev.currentTarget.classList.add('drag');
+  try { ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', __koDragId); } catch (e) {}
+}
+function koSeedDragOver(ev) {
+  if (!__koDragId) return;
+  ev.preventDefault();
+  document.querySelectorAll('.ko-seed-row.over').forEach(r => r.classList.remove('over'));
+  ev.currentTarget.classList.add('over');
+}
+function koSeedDrop(ev) {
+  ev.preventDefault();
+  const row = ev.currentTarget;
+  row.classList.remove('over');
+  const targetId = row.dataset.id, catId = row.dataset.cat;
+  if (!__koDragId || __koDragId === targetId) return;
+  const order = koSeedOrder(catId);
+  const from = order.indexOf(__koDragId), to = order.indexOf(targetId);
+  __koDragId = null;
+  if (from < 0 || to < 0) return;
+  order.splice(to, 0, order.splice(from, 1)[0]);
+  koDo({ action: 'knockoutSeed', categoryId: catId, order });
+}
+function koSeedDragEnd() {
+  __koDragId = null;
+  document.querySelectorAll('.ko-seed-row.drag,.ko-seed-row.over').forEach(r => r.classList.remove('drag', 'over'));
+}
+
+// ── draws + results ──────────────────────────────────────────────────
+function koGenerate(catId) { koDo({ action: 'knockoutGenerateDraw', categoryId: catId }, 'Draw made'); }
+function koRebuild(catId, btn) {
+  koArm(btn, 'Scores will be lost', () => koDo({ action: 'knockoutGenerateDraw', categoryId: catId, confirm: true }, 'Draw rebuilt'));
+}
+function koClearDraw(catId, btn) {
+  koArm(btn, 'Clear the whole draw?', () => koDo({ action: 'knockoutClearDraw', categoryId: catId, confirm: true }, 'Draw cleared'));
+}
+function koPickWinner(catId, matchId, entId) {
+  if (!entId) return;
+  const key = catId + ':' + matchId;
+  koScoreDraft[key] = Object.assign({}, koScoreDraft[key], { winner: entId });
+  koRenderAdminCats();
+}
+function koScoreTyped(catId, matchId, value) {
+  const key = catId + ':' + matchId;
+  koScoreDraft[key] = Object.assign({}, koScoreDraft[key], { score: value });
+}
+
+/**
+ * Save a result. If it overturns a decided match, the server refuses once and
+ * says how many later results would go with it; the button then arms so the
+ * admin confirms that specific number rather than a generic "are you sure".
+ */
+async function koSaveResult(catId, matchId, btn) {
+  const key = catId + ':' + matchId;
+  const draft = koScoreDraft[key] || {};
+  const c = koAdminCat(catId);
+  const m = c && c.view ? (c.view.matches || []).find(x => x.id === matchId) : null;
+  const winner = draft.winner !== undefined ? draft.winner : (m && m.winner);
+  if (!winner) { notify('Pick which side won first.', 'warn'); return; }
+  const score = draft.score !== undefined ? draft.score : (m ? m.score : '');
+  const body = { action: 'knockoutSetResult', categoryId: catId, matchId, winner, score };
+  const res = await apiPost(body);
+  if (!res) return;
+  if (res.error && /later result/.test(res.error)) {
+    notify(res.error.replace(' Send confirm:true to do it.', ''), 'warn');
+    koArm(btn, 'Clear them and save', async () => {
+      const again = await apiPost(Object.assign({ confirm: true }, body));
+      if (!again || again.error) { if (again && again.error) notify(again.error, 'warn'); return; }
+      delete koScoreDraft[key];
+      await loadKoAdmin();
+    });
+    return;
+  }
+  if (res.error) { notify(res.error, 'warn'); return; }
+  delete koScoreDraft[key];
+  if (res.complete && res.champion) notify(res.champion + ' wins it.');
+  await loadKoAdmin();
+}
+
+async function koClearResult(catId, matchId, btn) {
+  const body = { action: 'knockoutClearResult', categoryId: catId, matchId };
+  const res = await apiPost(body);
+  if (!res) return;
+  if (res.error && /later result/.test(res.error)) {
+    notify(res.error.replace(' Send confirm:true to do it.', ''), 'warn');
+    koArm(btn, 'Clear them too', async () => {
+      const again = await apiPost(Object.assign({ confirm: true }, body));
+      if (!again || again.error) { if (again && again.error) notify(again.error, 'warn'); return; }
+      delete koScoreDraft[catId + ':' + matchId];
+      await loadKoAdmin();
+    });
+    return;
+  }
+  if (res.error) { notify(res.error, 'warn'); return; }
+  delete koScoreDraft[catId + ':' + matchId];
+  await loadKoAdmin();
+}
+
+function koSetCourt(catId, matchId, court) { koDo({ action: 'knockoutSetCourt', categoryId: catId, matchId, court }); }
+
 </script>
 </body>
 </html>

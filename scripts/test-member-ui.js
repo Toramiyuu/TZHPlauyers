@@ -45,13 +45,18 @@ check('openAccountModal fetches memberInfo with the session token', fn('openAcco
 check('openAccountModal handles an expired session and a failed load', fn('openAccountModal').includes('res.status === 401') && fn('openAccountModal').includes('Retry'));
 check('openAccountModal ignores a late reply after sign-out', fn('openAccountModal').includes('acctSession.token !== token'));
 
-const factory = new Function('escHtml', 'acctAvatarHtml', 'acctPlayer', 'window', 'Payments', 'SessionDraw',
-  fn('mbDate') + ';' + fn('mbNights') + ';' + fn('mbRM') + ';' + fn('mbWinDetailHtml') + ';' + fn('memberPageHtml') + '; return memberPageHtml;');
+// memberPageHtml now embeds the session-feedback card, so its helpers come along.
+// `fbEditing` is the module-level edit latch; false = show the summary state.
+const factory = new Function('escHtml', 'acctAvatarHtml', 'acctPlayer', 'window', 'Payments', 'SessionDraw', 'Feedback',
+  'let fbEditing = false;' + fn('mbDate') + ';' + fn('mbNights') + ';' + fn('mbRM') + ';' + fn('mbWinDetailHtml')
+  + ';' + fn('fbNightLabel') + ';' + fn('fbChipsHtml') + ';' + fn('fbLabelOf') + ';' + fn('mbFeedbackHtml')
+  + ';' + fn('memberPageHtml') + '; return memberPageHtml;');
 const Payments = require('../public/payments.js');
 const SessionDraw = require('../public/session-draw.js');
+const Feedback = require('../public/feedback.js');
 const page = factory(
   (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'),
-  () => '<span class="acctpg-av">H</span>', () => ({ id: 'p0', name: 'Harvey Ng' }), { Payments, SessionDraw }, Payments, SessionDraw);
+  () => '<span class="acctpg-av">H</span>', () => ({ id: 'p0', name: 'Harvey Ng' }), { Payments, SessionDraw, Feedback }, Payments, SessionDraw, Feedback);
 
 const owing = page({
   member: { name: 'Harvey Ng', code: 'HarveyNg#123', hasPassword: false },
