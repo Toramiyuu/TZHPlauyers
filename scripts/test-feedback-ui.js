@@ -33,27 +33,39 @@ const escHtml = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt
 check('feedback.js is served to the page', html.includes('<script src="/feedback.js"></script>'));
 
 // ── member card: render it for each state ──
-function makeCard(fbEditing) {
-  return new Function('escHtml', 'window', 'Feedback', 'mbDate',
+// `fbNight` is the night on screen; '' means "whatever the payload leads with".
+function makeCard(fbEditing, fbNight) {
+  return new Function('escHtml', 'window', 'Feedback',
     'let fbEditing = ' + (fbEditing ? 'true' : 'false') + ';'
-    + fn('fbNightLabel') + ';' + fn('fbChipsHtml') + ';' + fn('fbLabelOf') + ';' + fn('mbFeedbackHtml')
-    + '; return mbFeedbackHtml;')(escHtml, { Feedback: FB }, FB, (iso) => {
-      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
-      if (!m) return iso || '';
-      const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
-      const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getUTCDay()];
-      const mo = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getUTCMonth()];
-      return wd + ' ' + d.getUTCDate() + ' ' + mo + ' ' + d.getUTCFullYear();
-    });
+    + 'let fbNight = ' + JSON.stringify(fbNight || '') + ';'
+    + fn('fbNightLabel') + ';' + fn('fbChipsHtml') + ';' + fn('fbLabelOf') + ';'
+    + fn('fbNightsOf') + ';' + fn('fbSelectedNight') + ';' + fn('fbNightPickerHtml') + ';' + fn('mbFeedbackHtml')
+    + '; return mbFeedbackHtml;')(escHtml, { Feedback: FB }, FB);
 }
+// One night, unanswered — the shape a member sees the first time they look.
+const night = (over) => Object.assign({ date: '2026-09-18', latest: true, mine: null, awardable: true }, over || {});
+const payload = (over, nights) => Object.assign({
+  open: true, night: (nights && nights[0] ? nights[0].date : '2026-09-18'), points: 5,
+  goodOptions: FB.GOOD_OPTIONS, badOptions: FB.BAD_OPTIONS,
+  mine: (nights && nights[0] ? nights[0].mine : null), nights: nights || [night()],
+}, over || {});
 const card = makeCard(false);
-const OPEN = { open: true, night: '2026-09-18', points: 5, goodOptions: FB.GOOD_OPTIONS, badOptions: FB.BAD_OPTIONS, mine: null };
+const OPEN = payload();
 
-check('no card at all when feedback is closed or they did not play',
-  card({ feedback: { open: false, night: '2026-09-18' } }) === '' && card({}) === '' && card(null) === '');
+check('no card at all when feedback is closed or they have not played yet',
+  card({ feedback: { open: false, night: '2026-09-18', nights: [] } }) === '' && card({}) === '' && card(null) === '');
+check('no card when the payload claims to be open but lists no nights',
+  card({ feedback: payload({ open: true }, []) }) === '');
 
 const form = card({ feedback: OPEN });
-check('the form names the night in full ("How was Friday 18 Sep?")', form.includes('How was Friday 18 Sep?'));
+check('the night IS the title, named and dated ("Friday 18/9/26")', form.includes('<b>Friday 18/9/26</b>'));
+check('the latest night says so, so they know which one they are answering',
+  form.includes('Your latest session.'));
+check('fbNightLabel spells out every weekday and a 2-digit year', (() => {
+  const f = new Function(fn('fbNightLabel') + '; return fbNightLabel;')();
+  return f('2026-09-13') === 'Sunday 13/9/26' && f('2026-09-14') === 'Monday 14/9/26'
+    && f('2026-12-04') === 'Friday 4/12/26' && f('') === '' && f('junk') === 'junk';
+})());
 check('both sections are labelled in the organiser\'s own framing',
   form.includes('What went well') && form.includes('What could be better'));
 check('all eight options are rendered as pressable chips',
@@ -78,9 +90,11 @@ check('it says who sees it', /only goes to the organiser/i.test(form));
 check('no Cancel button on a first submission (nothing to go back to)', !form.includes('fbCancelEdit'));
 
 const MINE = { good: ['level'], bad: ['long-wait'], goodNote: '', badNote: 'sat out three rounds', at: 1, updatedAt: 1, awarded: true, awardedPoints: 5 };
-const done = card({ feedback: Object.assign({}, OPEN, { mine: MINE }) });
-check('an existing reply shows the summary, not the form', done.includes('Thanks for the feedback')
+const answered = (over) => payload(null, [night(Object.assign({ mine: MINE, awardable: false }, over || {}))]);
+const done = card({ feedback: answered() });
+check('an existing reply shows the summary, not the form', done.includes('Thanks')
   && !done.includes('id="fbSendBtn"') && !done.includes('id="fbGoodNote"'));
+check('the answered night keeps the date as its title', done.includes('<b>Friday 18/9/26</b>'));
 check('the summary reads back the chosen options with their labels',
   done.includes('Games were at a good level') && done.includes('Waited too long between games'));
 check('good and bad read-backs are distinguishable', done.includes('<li class="good">') && done.includes('<li class="bad">'));
@@ -92,33 +106,84 @@ check('their note is quoted back', done.includes('sat out three rounds'));
 check('the awarded points are confirmed', done.includes('+5 points'));
 check('the summary offers an edit', done.includes('fbStartEdit()') && done.includes('Edit my feedback'));
 check('editing flips back to the form, pre-filled and with Cancel', (() => {
-  const editing = makeCard(true)({ feedback: Object.assign({}, OPEN, { mine: MINE }) });
+  const editing = makeCard(true)({ feedback: answered() });
   return editing.includes('id="fbSendBtn"') && editing.includes('Update my feedback')
     && editing.includes('data-id="level"') && /data-id="level"[^>]*aria-pressed="true"/.test(editing)
     && editing.includes('sat out three rounds') && editing.includes('fbCancelEdit()')
     && !editing.includes('+5 points');   // already paid — don't promise it twice
 })());
 check('a record that was never paid does not claim points', (() => {
-  const c = card({ feedback: Object.assign({}, OPEN, { mine: Object.assign({}, MINE, { awarded: false, awardedPoints: 0 }) }) });
-  return c.includes('Thanks for the feedback') && !c.includes('+5 points');
+  const c = card({ feedback: answered({ mine: Object.assign({}, MINE, { awarded: false, awardedPoints: 0 }) }) });
+  return c.includes('Thanks') && !c.includes('+5 points');
 })());
 check('the summary reports what was ACTUALLY paid, not today\'s rate', (() => {
   // Organiser has since dropped the reward to 2; this reply earned 5 and must still say so.
-  const c = card({ feedback: Object.assign({}, OPEN, { points: 2, mine: MINE }) });
+  const c = card({ feedback: payload({ points: 2 }, [night({ mine: MINE, awardable: false })]) });
   return c.includes('+5 points') && !c.includes('+2 points');
 })());
 check('points:0 shows no points promise anywhere',
-  !card({ feedback: Object.assign({}, OPEN, { points: 0 }) }).includes('points<'));
+  !card({ feedback: payload({ points: 0 }, [night({ awardable: false })]) }).includes('points<'));
 
 // ── escaping ──
 check('a note with markup is escaped, never injected', (() => {
-  const c = card({ feedback: Object.assign({}, OPEN, { mine: Object.assign({}, MINE, { badNote: '<img src=x onerror=alert(1)>' }) }) });
+  const c = card({ feedback: answered({ mine: Object.assign({}, MINE, { badNote: '<img src=x onerror=alert(1)>' }) }) });
   return c.includes('&lt;img src=x') && !c.includes('<img src=x');
 })());
 check('a label from the payload is escaped too', (() => {
-  const c = card({ feedback: Object.assign({}, OPEN, { badOptions: [{ id: 'long-wait', label: '<b>hi</b>' }], mine: { good: [], bad: ['long-wait'] } }) });
+  const c = card({ feedback: payload({ badOptions: [{ id: 'long-wait', label: '<b>hi</b>' }] },
+    [night({ mine: { good: [], bad: ['long-wait'] } })]) });
   return c.includes('&lt;b&gt;hi&lt;/b&gt;') && !c.includes('<b>hi</b>');
 })());
+// ── the collapsed "another night" row ──
+const OLDER = night({ date: '2026-09-13', latest: false, awardable: false });
+const THREE = payload(null, [night(), OLDER, night({ date: '2026-09-11', latest: false, awardable: false, mine: MINE })]);
+
+check('one night on the list means no picker at all (nothing to pick between)',
+  !card({ feedback: OPEN }).includes('fb-more'));
+const picked = card({ feedback: THREE });
+check('the picker is a collapsed row, not an always-open list',
+  /<details class="fb-more"><summary>[^<]*<\/summary>/.test(picked) && picked.includes('Pick another night'));
+check('the collapsed row is closed by default (the latest night is the point of the card)',
+  !/<details class="fb-more" open/.test(picked));
+check('every night they played is a row, the current one included and marked',
+  (picked.match(/class="fb-night"/g) || []).length === 3
+  && /aria-current="true"[^>]*onclick="fbPickNight\('2026-09-18'\)"/.test(picked)
+  && picked.includes("fbPickNight('2026-09-13')") && picked.includes("fbPickNight('2026-09-11')"));
+check('each row says where it stands: showing, sent, on offer, or not yet',
+  picked.includes('>Showing<') && picked.includes('fb-night-state done">Sent<')
+  && picked.includes('>Not yet<'));
+check('a night still worth points advertises them in the row', (() => {
+  const c = makeCard(false, '2026-09-13')({ feedback: THREE });
+  return c.includes('>+5 points<');
+})());
+check('the rows are dated the same way as the title', picked.includes('>Sunday 13/9/26<') && picked.includes('>Friday 11/9/26<'));
+check('the picker rides along on both faces of the card, so it is never a dead end',
+  picked.includes('fb-more') && card({ feedback: payload(null, [night({ mine: MINE, awardable: false }), OLDER]) }).includes('fb-more'));
+
+check('picking an older night retitles the card and drops the points promise', (() => {
+  const c = makeCard(false, '2026-09-13')({ feedback: THREE });
+  return c.includes('<b>Sunday 13/9/26</b>') && !c.includes('class="fb-pts"')
+    && !c.includes('Your latest session.') && c.includes('Send feedback</button>');
+})());
+check('an older night explains why there are no points, rather than going quiet', (() => {
+  const c = makeCard(false, '2026-09-13')({ feedback: THREE });
+  return /Points are for your latest session/.test(c);
+})());
+check('an older night that was already answered reads back, with no points excuse', (() => {
+  const c = makeCard(false, '2026-09-11')({ feedback: THREE });
+  return c.includes('<b>Friday 11/9/26</b>') && c.includes('sat out three rounds')
+    && !/Points are for your latest session/.test(c);
+})());
+check('a stale pick falls back to the latest night instead of blanking the card', (() => {
+  const c = makeCard(false, '2026-08-01')({ feedback: THREE });
+  return c.includes('<b>Friday 18/9/26</b>');
+})());
+check('a night with no date is dropped rather than rendered as an empty row',
+  !card({ feedback: payload(null, [night(), { date: '', mine: null }]) }).includes('fb-more'));
+check('picking a night repaints in place and never leaves the edit form open',
+  fn('fbPickNight').includes('fbNight = iso') && fn('fbPickNight').includes('fbEditing = false')
+  && fn('fbPickNight').includes('fbRepaint()'));
+
 check('fbLabelOf prefers the payload catalogue, then the module, then the raw id', (() => {
   const f = new Function('window', 'Feedback', fn('fbLabelOf') + '; return fbLabelOf;')({ Feedback: FB }, FB);
   return f({ goodOptions: [{ id: 'level', label: 'Renamed' }] }, 'good', 'level') === 'Renamed'
@@ -134,10 +199,13 @@ check('the card is mounted inside memberPageHtml, above the standing info',
 check('chips toggle their own pressed state', fn('fbToggleChip').includes("aria-pressed") && fn('fbToggleChip').includes("'true' ? 'false' : 'true'"));
 check('only pressed chips of the asked-for side are collected',
   fn('fbChosen').includes('[data-kind="\' + kind + \'"][aria-pressed="true"]'));
-check('opening the page always lands on the summary, never a stale edit form',
-  fn('openAccountModal').includes('fbEditing = false'));
-check('submit posts the token-gated action with both sides and both notes',
-  fn('submitMemberFeedback').includes("acctPost('submitFeedback', { token: acctSession.token, good, bad, goodNote, badNote })"));
+check('opening the page always lands on the latest night\'s summary, never a stale edit form',
+  fn('openAccountModal').includes('fbEditing = false')
+  && fn('openAccountModal').includes("fbNight = typeof keepNight === 'string' ? keepNight : ''"));
+check('submit posts the token-gated action with the night, both sides and both notes',
+  fn('submitMemberFeedback').includes("acctPost('submitFeedback', { token: acctSession.token, night, good, bad, goodNote, badNote })"));
+check('the night on the wire is the one the card is showing',
+  fn('submitMemberFeedback').includes('fbSelectedNight(memberInfoCache && memberInfoCache.feedback)'));
 check('an empty submission is caught on the client before the round trip',
   fn('submitMemberFeedback').includes("!good.length && !bad.length && !goodNote.trim() && !badNote.trim()"));
 check('a 401 signs them out rather than looping', fn('submitMemberFeedback').includes('res.status === 401') && fn('submitMemberFeedback').includes('saveAcctSession(null)'));
@@ -148,8 +216,8 @@ check('the reply is checked before the success toast (acctPost does not throw on
 check('a server error is shown in the card, not swallowed', fn('submitMemberFeedback').includes('err.textContent = (res.data && res.data.error)'));
 check('the button is disabled while sending, so a double tap cannot double-post',
   fn('submitMemberFeedback').includes('btn.disabled = true'));
-check('a successful send re-opens the page so the points stat refreshes',
-  fn('submitMemberFeedback').includes('openAccountModal()'));
+check('a successful send re-opens the page on the SAME night, so answering an old one does not bounce back',
+  fn('submitMemberFeedback').includes('openAccountModal(night)'));
 check('the toast names the points actually awarded', fn('submitMemberFeedback').includes("'Thanks! +' + awarded + ' points added.'"));
 
 // ── admin tab ──
@@ -232,7 +300,9 @@ check('the More pill includes the feedback count', fn('updateAdminNavBadges').in
 check('the Settings panel has the feedback card', html.includes('id="fbSettingsCard"') && html.includes('id="fbPointsInput"') && html.includes('id="fbToggleBtn"'));
 check('the points input is bounded in the markup too', /id="fbPointsInput"[^>]*min="0"[^>]*max="50"/.test(html));
 check('the card explains the rules the server actually enforces',
-  html.includes('Only players who were there that night can reply') && html.includes('feedback closes when the next session starts'));
+  html.includes('Only players who were there that night can reply, paid or not')
+  && html.includes('they can pick any earlier night from the row underneath')
+  && html.includes('the points are for their latest session only'));
 check('the poll cannot stomp the number while it is being typed',
   fn('renderFeedbackSettingsCard').includes('document.activeElement !== inp'));
 check('saving validates with the SAME helper the server uses', fn('saveFeedbackSettings').includes('Feedback.isPointsValue(n)'));

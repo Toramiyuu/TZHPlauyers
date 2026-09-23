@@ -1855,6 +1855,22 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .fb-done-list li.good span{color:var(--green-light)}
 .fb-done-list li.bad span{color:var(--red)}
 .fb-quote{font-size:var(--fs-sm);color:var(--text-2);font-style:italic;line-height:1.5;margin-top:7px;padding-left:10px;border-left:2px solid var(--border)}
+.fb-hint{font-size:var(--fs-xs);color:var(--muted);line-height:1.45;margin-top:9px}
+/* The collapsed row under the card: every other night they played, newest first. */
+.fb-more{margin-top:13px;border-top:1px solid var(--border)}
+.fb-more>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;min-height:40px;padding:8px 0 2px;font-size:var(--fs-sm);font-weight:600;color:var(--text-2)}
+.fb-more>summary::-webkit-details-marker{display:none}
+.fb-more>summary:hover{color:var(--text)}
+.fb-more>summary::after{content:"+";color:var(--muted);font-size:17px;font-weight:400;line-height:1;margin-left:auto;flex-shrink:0}
+.fb-more[open]>summary::after{content:"\2013"}
+.fb-nights{display:flex;flex-direction:column;gap:6px;margin:4px 0 2px}
+.fb-night{font-family:inherit;width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:42px;padding:8px 12px;cursor:pointer;font-size:var(--fs-sm);color:var(--text);background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);transition:background .15s,border-color .15s,color .15s}
+.fb-night:hover{background:var(--elev)}
+/* Selected takes the blue --green, never the gold --accent: gold means points on this
+   card, and the row the finger is on is not a reward. */
+.fb-night[aria-current="true"]{border-color:var(--green);color:var(--green);font-weight:600}
+.fb-night-state{font-size:var(--fs-xs);font-weight:600;color:var(--muted);white-space:nowrap}
+.fb-night-state.done{color:var(--green-light)}
 /* ── admin Feedback tab ── */
 .fb-stats{margin-top:4px}
 .fbt-block{margin-top:12px}
@@ -3596,7 +3612,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <!-- Session feedback (members' own page) -->
   <div class="admin-card" id="fbSettingsCard">
     <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/><path d="M8.5 9.5h7M8.5 12.5h4"/></svg></span> Session feedback</div>
-    <div class="admin-helper-text">After a player signs in, they can say how the night went &mdash; what went well, what could be better &mdash; and earn points for it. Only players who were there that night can reply, and feedback closes when the next session starts.</div>
+    <div class="admin-helper-text">After a player signs in, they can say how the night went &mdash; what went well, what could be better &mdash; and earn points for it. Their latest session opens on their page, and they can pick any earlier night from the row underneath. Only players who were there that night can reply, paid or not, and the points are for their latest session only.</div>
     <div class="admin-btn-row admin-mt">
       <label class="fbs-field"><span>Points per reply</span>
         <input id="fbPointsInput" type="number" min="0" max="50" step="1" class="admin-form-input fbs-num"
@@ -8179,7 +8195,7 @@ function renderFeedbackSettingsCard() {
   if (hint) {
     hint.textContent = s.enabled
       ? (s.points > 0
-        ? ('Players earn ' + s.points + ' point' + (s.points === 1 ? '' : 's') + ' the first time they reply about a night. Editing a reply never pays twice.')
+        ? ('Players earn ' + s.points + ' point' + (s.points === 1 ? '' : 's') + ' the first time they reply about their latest session. Editing a reply never pays twice, and back-filling an older night pays nothing.')
         : 'Feedback is on, but no points are awarded.')
       : 'Feedback is switched off — the card is hidden on every player’s page.';
   }
@@ -13332,7 +13348,9 @@ function acctLogout() {
 // the admin sees, their rows only) and every draw prize they've won. Fetched per
 // open via the token-gated `memberInfo` action — none of it rides the public poll.
 let memberInfoCache = null;
-function openAccountModal() {
+// `keepNight` re-opens on a particular feedback night — used after a submission, so
+// answering an old night does not bounce the card back to the latest one.
+function openAccountModal(keepNight) {
   const wrap = document.getElementById('accountWidget');
   if (wrap) wrap.classList.remove('open');
   if (!acctSession) return openAuthModal();
@@ -13340,6 +13358,7 @@ function openAccountModal() {
   const player = acctPlayer();
   const name = (player && player.name) || acctSession.name || 'Player';
   fbEditing = false; // a fresh open always lands on the feedback summary, not the form
+  fbNight = typeof keepNight === 'string' ? keepNight : '';
   setAccountTitle(name);
   body.innerHTML = '<div class="acctpg-top">' + acctAvatarHtml(player, 'acctpg-av')
     + '<div class="acctpg-phone">Loading your points and payments…</div></div>';
@@ -13404,15 +13423,19 @@ function mbWinDetailHtml(w) {
 }
 
 // ── session feedback card (member page) ──
-// Drawn from the `feedback` block on the memberInfo payload — `open:false` means
-// feedback is switched off, there is no current night, or they did not play it, and the
-// card is left out entirely rather than shown as a dead end.
-// Two states when open: the form, or a summary of what they already said (with Edit).
+// Drawn from the `feedback` block on the memberInfo payload. It carries EVERY night this
+// player was there for, newest first: the card opens on the first one and the rest sit in
+// a collapsed row underneath. `open:false` means feedback is switched off or they have not
+// played a night yet, and the card is left out entirely rather than shown as a dead end.
+// Two states per night: the form, or a summary of what they already said (with Edit).
+
+// "Friday 13/9/26" — the night is the card's title, so it is named in full and dated.
 function fbNightLabel(iso) {
-  const full = mbDate(iso);                 // "Fri 19 Sep 2026"
-  const m = /^(\w+) (\d+) (\w+)/.exec(full);
-  const LONG = { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' };
-  return m ? ((LONG[m[1]] || m[1]) + ' ' + m[2] + ' ' + m[3]) : full;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  if (!m) return iso || '';
+  const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]));
+  const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  return DAYS[d.getUTCDay()] + ' ' + d.getUTCDate() + '/' + (d.getUTCMonth() + 1) + '/' + String(d.getUTCFullYear()).slice(2);
 }
 
 function fbChipsHtml(options, chosen, kind) {
@@ -13433,32 +13456,62 @@ function fbLabelOf(fb, kind, id) {
   return hit ? hit.label : ((window.Feedback && Feedback.labelOf(id)) || id);
 }
 
+// The nights on the payload, and the one the card is currently showing. `fbNight` is a
+// date they were offered; anything else (a stale pick, an empty string) falls back to the
+// latest, which is what a fresh open always lands on.
+function fbNightsOf(fb) { return (fb && Array.isArray(fb.nights)) ? fb.nights.filter(n => n && n.date) : []; }
+function fbSelectedNight(fb) {
+  const list = fbNightsOf(fb);
+  return list.find(n => n.date === fbNight) || list[0] || null;
+}
+
+// Every night they played, as one tappable row each — the selected one included and
+// marked, so the list does not reshuffle under the finger as they move through it.
+function fbNightPickerHtml(fb, sel) {
+  const list = fbNightsOf(fb);
+  if (list.length < 2) return '';
+  const rows = list.map(n => {
+    const on = n.date === sel.date;
+    const state = n.mine ? '<span class="fb-night-state done">Sent</span>'
+      : (n.awardable ? '<span class="fb-night-state">+' + (Number(fb.points) || 0) + ' points</span>'
+        : '<span class="fb-night-state">Not yet</span>');
+    return '<button type="button" class="fb-night" aria-current="' + (on ? 'true' : 'false') + '"'
+      + ' onclick="fbPickNight(\'' + escHtml(n.date) + '\')"><span>' + escHtml(fbNightLabel(n.date)) + '</span>'
+      + (on ? '<span class="fb-night-state">Showing</span>' : state) + '</button>';
+  }).join('');
+  return '<details class="fb-more"><summary>Pick another night you played</summary>'
+    + '<div class="fb-nights">' + rows + '</div></details>';
+}
+
 function mbFeedbackHtml(d) {
   const fb = (d && d.feedback) || null;
   if (!fb || !fb.open) return '';
+  const sel = fbSelectedNight(fb);
+  if (!sel) return '';
   const pts = Number(fb.points) || 0;
-  const mine = fb.mine || null;
-  const when = fbNightLabel(fb.night);
+  const mine = sel.mine || null;
+  const when = fbNightLabel(sel.date);
+  const picker = fbNightPickerHtml(fb, sel);
 
   if (mine && !fbEditing) {
     const lines = []
       .concat((mine.good || []).map(id => '<li class="good"><span>✓</span>' + escHtml(fbLabelOf(fb, 'good', id)) + '</li>'))
       .concat((mine.bad || []).map(id => '<li class="bad"><span>✕</span>' + escHtml(fbLabelOf(fb, 'bad', id)) + '</li>'));
     return '<div class="fb-card">'
-      + '<div class="fb-head"><b>Thanks for the feedback</b>'
+      + '<div class="fb-head"><b>' + escHtml(when) + '</b>'
       + (mine.awardedPoints > 0 ? '<span class="fb-pts">+' + mine.awardedPoints + ' points</span>' : '') + '</div>'
-      + '<div class="fb-sub">What you said about ' + escHtml(when) + '.</div>'
+      + '<div class="fb-sub">Thanks &mdash; this is what you told us about that night.</div>'
       + (lines.length ? '<ul class="fb-done-list">' + lines.join('') + '</ul>' : '')
       + (mine.goodNote ? '<div class="fb-quote">' + escHtml(mine.goodNote) + '</div>' : '')
       + (mine.badNote ? '<div class="fb-quote">' + escHtml(mine.badNote) + '</div>' : '')
       + '<div class="fb-actions"><button class="btn btn-secondary btn-sm" onclick="fbStartEdit()">Edit my feedback</button></div>'
-      + '</div>';
+      + picker + '</div>';
   }
 
   return '<div class="fb-card">'
-    + '<div class="fb-head"><b>How was ' + escHtml(when) + '?</b>'
-    + (pts > 0 && !(mine && mine.awarded) ? '<span class="fb-pts">+' + pts + ' points</span>' : '') + '</div>'
-    + '<div class="fb-sub">Tap whatever fits. It only goes to the organiser.</div>'
+    + '<div class="fb-head"><b>' + escHtml(when) + '</b>'
+    + (sel.awardable ? '<span class="fb-pts">+' + pts + ' points</span>' : '') + '</div>'
+    + '<div class="fb-sub">' + (sel.latest ? 'Your latest session. ' : '') + 'How was it? Tap whatever fits &mdash; it only goes to the organiser.</div>'
     + '<div class="fb-secs">'
     + '<div class="fb-sec"><div class="fb-sec-lbl">What went well</div>'
     + fbChipsHtml(fb.goodOptions, mine && mine.good, 'good')
@@ -13469,16 +13522,30 @@ function mbFeedbackHtml(d) {
     + '</div>'
     + '<div class="fb-err" id="fbErr" aria-live="polite"></div>'
     + '<div class="fb-actions"><button class="btn btn-primary btn-sm" id="fbSendBtn" onclick="submitMemberFeedback()">'
-    + (mine ? 'Update my feedback' : 'Send feedback' + (pts > 0 ? ' · +' + pts + ' points' : '')) + '</button>'
+    + (mine ? 'Update my feedback' : 'Send feedback' + (sel.awardable ? ' · +' + pts + ' points' : '')) + '</button>'
     + (mine ? '<button class="btn btn-ghost btn-sm" onclick="fbCancelEdit()">Cancel</button>' : '')
-    + '</div></div>';
+    + '</div>'
+    // Only the latest night pays, so say so where an older one is on screen rather than
+    // leaving them to wonder why the points chip went missing.
+    + (pts > 0 && !sel.latest && !(mine && mine.awarded)
+      ? '<div class="fb-hint">Points are for your latest session, but older nights still help us fix things.</div>' : '')
+    + picker + '</div>';
 }
 
-// Editing an existing submission flips the card back to the form. Kept outside the
-// payload so re-opening the page always lands on the summary.
+// Which night is on screen, and whether it is showing the form or the read-back. Both are
+// kept outside the payload so re-opening the page always lands on the latest night's
+// summary rather than wherever they wandered off to last time.
 let fbEditing = false;
+let fbNight = '';
 function fbStartEdit() { fbEditing = true; fbRepaint(); }
 function fbCancelEdit() { fbEditing = false; fbRepaint(); }
+function fbPickNight(iso) {
+  fbNight = iso || '';
+  fbEditing = false;
+  fbRepaint();
+  const host = document.getElementById('mbFeedback');
+  if (host && host.scrollIntoView) host.scrollIntoView({ block: 'nearest' });
+}
 function fbRepaint() {
   const host = document.getElementById('mbFeedback');
   if (host && memberInfoCache) host.innerHTML = mbFeedbackHtml(memberInfoCache);
@@ -13501,13 +13568,17 @@ async function submitMemberFeedback() {
   const good = fbChosen('good'), bad = fbChosen('bad');
   const goodNote = (document.getElementById('fbGoodNote') || {}).value || '';
   const badNote = (document.getElementById('fbBadNote') || {}).value || '';
+  // Name the night on the wire: the card may be showing an older one. The server only
+  // accepts a night it listed for this player, so this is a choice, not a claim.
+  const sel = fbSelectedNight(memberInfoCache && memberInfoCache.feedback);
+  const night = sel ? sel.date : '';
   if (!good.length && !bad.length && !goodNote.trim() && !badNote.trim()) {
     if (err) err.textContent = 'Pick at least one option, or write a note.';
     return;
   }
   if (err) err.textContent = '';
   if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
-  const res = await acctPost('submitFeedback', { token: acctSession.token, good, bad, goodNote, badNote });
+  const res = await acctPost('submitFeedback', { token: acctSession.token, night, good, bad, goodNote, badNote });
   if (btn) btn.disabled = false;
   if (res.status === 401) {
     saveAcctSession(null); renderAccountWidget(); closeAccountModal();
@@ -13523,8 +13594,9 @@ async function submitMemberFeedback() {
   fbEditing = false;
   const awarded = Number(res.data.awarded) || 0;
   notify(awarded > 0 ? ('Thanks! +' + awarded + ' points added.') : 'Thanks — your feedback is updated.');
-  // Re-open the page so the points stat and the card both show the new truth.
-  openAccountModal();
+  // Re-open the page so the points stat and the card both show the new truth, staying on
+  // the night they just answered.
+  openAccountModal(night);
 }
 
 function memberPageHtml(d) {

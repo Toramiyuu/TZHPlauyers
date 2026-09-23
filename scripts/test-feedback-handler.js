@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /* test-feedback-handler — the server rules in lib/feedback.js: who may write feedback
- * about a night, which night that is (the SERVER decides, never the client), the
- * once-per-night points award, the audit trail, the settings action, and the API
- * wiring in api/state.js that keeps the records off the public poll and out of the
- * generic admin merge. Pure logic lives in public/feedback.js (test-feedback.js). */
+ * about a night, WHICH nights they are offered (every one they played, newest first — the
+ * client may pick from that list and nothing else), the once-per-night points award and
+ * its latest-night-only rule, the audit trail, the settings action, and the API wiring in
+ * api/state.js that keeps the records off the public poll and out of the generic admin
+ * merge. Pure logic lives in public/feedback.js (test-feedback.js). */
 'use strict';
 const path = require('path');
 const FBlib = require('../lib/feedback.js');
@@ -74,9 +75,124 @@ check('the live line-up only counts when sessionDate IS the night being written 
   return submit(s, { token: 'tok1', good: ['level'] }).status === 403;
 })());
 check('playedThatNight is pure and guards junk',
-  FBlib.playedThatNight(baseState(), FRI_NIGHT, 'p1') === true
-  && FBlib.playedThatNight(baseState(), null, 'p1') === false
-  && FBlib.playedThatNight(baseState(), FRI_NIGHT, null) === false);
+  FBlib.playedThatNight(baseState(), FRI_NIGHT, 'p1', NOW) === true
+  && FBlib.playedThatNight(baseState(), null, 'p1', NOW) === false
+  && FBlib.playedThatNight(baseState(), FRI_NIGHT, null, NOW) === false);
+check('an unpaid player is just as welcome as a paid one (attendance is the test, not money)', (() => {
+  const s = baseState({ players: [] });
+  s.attendance[FRI_NIGHT] = { date: FRI_NIGHT, entries: {
+    p1: { playerId: 'p1', present: true, paid: true, payment: { fee: 15, paidAt: 1 } },
+    p2: { playerId: 'p2', present: true, paid: false, payment: { fee: 15 } },
+  } };
+  return submit(s, { token: 'tok1', good: ['level'] }).status === 200
+    && submit(s, { token: 'tok2', good: ['level'] }).status === 200;
+})());
+
+// ── the nights on offer ──
+const nightsOf = (s, pid, nowMs) => FBlib.attendedNights(s, pid, nowMs || NOW);
+check('the live line-up puts tonight on the list', JSON.stringify(nightsOf(baseState(), 'p1')) === JSON.stringify([FRI_NIGHT]));
+check('a player with nothing to their name gets an empty list', nightsOf(baseState(), 'p2').length === 0);
+check('attendance records stack up, newest night first', (() => {
+  const s = baseState({ players: [] });
+  for (const d of ['2026-09-07', '2026-09-13', '2026-09-11', FRI_NIGHT]) {
+    s.attendance[d] = { date: d, entries: { p1: { playerId: 'p1', present: true } } };
+  }
+  // 2026-09-11 is a Friday, 09-13 a Sunday, 09-07 a Monday — all real game nights.
+  return JSON.stringify(nightsOf(s, 'p1')) === JSON.stringify([FRI_NIGHT, '2026-09-13', '2026-09-11', '2026-09-07']);
+})());
+check('present:false is left off the list entirely', (() => {
+  const s = baseState({ players: [] });
+  s.attendance['2026-09-11'] = { date: '2026-09-11', entries: { p1: { playerId: 'p1', present: false } } };
+  return nightsOf(s, 'p1').length === 0;
+})());
+check('a stray off-day record folds onto the night that owned it, without duplicating it', (() => {
+  const s = baseState({ players: [] });
+  // The ghost Saturday: a record written the morning after Friday's session.
+  s.attendance['2026-09-12'] = { date: '2026-09-12', entries: { p1: { playerId: 'p1', present: true } } };
+  s.attendance['2026-09-11'] = { date: '2026-09-11', entries: { p1: { playerId: 'p1', present: true } } };
+  return JSON.stringify(nightsOf(s, 'p1')) === JSON.stringify(['2026-09-11']);
+})());
+check('a session scheduled ahead is never offered (it has not happened yet)', (() => {
+  const s = baseState({ sessionDate: '2026-09-21', players: [{ id: 'p1' }] });
+  s.attendance['2026-09-21'] = { date: '2026-09-21', entries: { p1: { playerId: 'p1', present: true } } };
+  return nightsOf(s, 'p1').length === 0;
+})());
+check('nothing older than the prune cutoff is offered (the picker can never point at a ghost)', (() => {
+  const s = baseState({ players: [] });
+  const old = '2026-01-05';   // a Monday, ~8 months back
+  s.attendance[old] = { date: old, entries: { p1: { playerId: 'p1', present: true } } };
+  return !nightsOf(s, 'p1').includes(old);
+})());
+check('the list is capped, so the picker cannot grow without bound', (() => {
+  const s = baseState({ players: [] });
+  for (let i = 1; i <= 40; i++) {
+    const d = require('../public/weekly-draw.js').addDaysISO(FRI_NIGHT, -i);
+    if (!Night.isGameDay(d)) continue;
+    s.attendance[d] = { date: d, entries: { p1: { playerId: 'p1', present: true } } };
+  }
+  const list = nightsOf(s, 'p1');
+  return list.length === FBlib.MAX_PICKABLE_NIGHTS && list[0] === '2026-09-14';   // the Monday before
+})());
+check('attendedNights guards junk rather than throwing',
+  nightsOf(baseState(), null).length === 0 && FBlib.attendedNights(null, 'p1', NOW).length === 0
+  && nightsOf(baseState({ attendance: 'nope', players: null }), 'p1').length === 0);
+
+// ── picking a night ──
+function twoNights() {
+  const s = baseState({ players: [] });
+  s.attendance[FRI_NIGHT] = { date: FRI_NIGHT, entries: { p1: { playerId: 'p1', present: true } } };
+  s.attendance['2026-09-13'] = { date: '2026-09-13', entries: { p1: { playerId: 'p1', present: true } } };
+  return s;
+}
+check('no night named means their latest', (() => {
+  const s = twoNights();
+  return submit(s, { token: 'tok1', good: ['level'] }).body.night === FRI_NIGHT;
+})());
+check('a night they played is written where they asked', (() => {
+  const s = twoNights();
+  const r = submit(s, { token: 'tok1', bad: ['long-wait'], night: '2026-09-13' });
+  return r.status === 200 && r.body.night === '2026-09-13'
+    && s.feedback['2026-09-13'].p1.bad[0] === 'long-wait' && !s.feedback[FRI_NIGHT];
+})());
+check('a night they did NOT play is refused, never silently redirected', (() => {
+  const s = twoNights();
+  const r = submit(s, { token: 'tok1', good: ['level'], night: '2026-09-11' });
+  return r.status === 403 && /not one of the nights you played/i.test(r.body.error) && !s.feedback['2026-09-11'];
+})());
+check('a junk or out-of-window night is refused too', (() => {
+  const s = twoNights();
+  return submit(s, { token: 'tok1', good: ['level'], night: 'tomorrow' }).status === 403
+    && submit(s, { token: 'tok1', good: ['level'], night: '2026-09-21' }).status === 403
+    && submit(s, { token: 'tok1', good: ['level'], night: '2020-01-06' }).status === 403;
+})());
+check('a non-string night falls back to the latest rather than throwing', (() => {
+  const s = twoNights();
+  return submit(s, { token: 'tok1', good: ['level'], night: { evil: 1 } }).body.night === FRI_NIGHT;
+})());
+
+// ── only the latest night pays ──
+check('back-filling an older night earns nothing, but is still stored', (() => {
+  const s = twoNights();
+  const r = submit(s, { token: 'tok1', good: ['level'], night: '2026-09-13' });
+  return r.status === 200 && r.body.awarded === 0 && s.roster[0].points === 10
+    && s.feedback['2026-09-13'].p1.good[0] === 'level' && s.feedback['2026-09-13'].p1.awarded === false;
+})());
+check('the latest night still pays, whatever was back-filled before it', (() => {
+  const s = twoNights();
+  submit(s, { token: 'tok1', good: ['level'], night: '2026-09-13' });
+  const r = submit(s, { token: 'tok1', good: ['level'] });
+  return r.body.awarded === 5 && s.roster[0].points === 15;
+})());
+check('a night that paid nothing pays properly once it becomes their latest', (() => {
+  // They answer Monday late (no points), then Monday IS their latest next time they look.
+  const s = baseState({ players: [] });
+  s.attendance[FRI_NIGHT] = { date: FRI_NIGHT, entries: { p1: { playerId: 'p1', present: true } } };
+  s.attendance['2026-09-13'] = { date: '2026-09-13', entries: { p1: { playerId: 'p1', present: true } } };
+  submit(s, { token: 'tok1', good: ['level'], night: '2026-09-13' });   // older — 0
+  delete s.attendance[FRI_NIGHT];                                        // Friday struck off
+  const r = submit(s, { token: 'tok1', good: ['level'], night: '2026-09-13' });
+  return r.body.awarded === 5 && s.roster[0].points === 15;
+})());
 
 // ── the points award ──
 check('a first submission credits the points once, on roster AND lifetime', (() => {
@@ -198,6 +314,35 @@ check('a successful reply carries the refreshed feedback view', (() => {
     FBlib.feedbackViewFor(Object.assign(baseState(), { feedbackSettings: { enabled: false } }), acct, NOW).open === false);
   check('view: closed when there is no night at all (fresh install)',
     FBlib.feedbackViewFor(s, acct, Date.parse('2020-01-01T00:00:00Z')).open === false);
+  check('view: the nights list leads with the one the card opens on', (() => {
+    const v = FBlib.feedbackViewFor(twoNights(), acct, NOW);
+    return v.nights.length === 2 && v.nights[0].date === FRI_NIGHT && v.nights[0].latest === true
+      && v.nights[1].date === '2026-09-13' && v.nights[1].latest === false && v.night === v.nights[0].date;
+  })());
+  check('view: only the latest night is marked awardable', (() => {
+    const v = FBlib.feedbackViewFor(twoNights(), acct, NOW);
+    return v.nights[0].awardable === true && v.nights[1].awardable === false;
+  })());
+  check('view: a night already paid for stops being awardable', (() => {
+    const t = twoNights();
+    submit(t, { token: 'tok1', good: ['level'] });
+    const v = FBlib.feedbackViewFor(t, t.accounts[0], NOW);
+    return v.nights[0].awardable === false && v.nights[0].mine.awarded === true;
+  })());
+  check('view: nothing is awardable when the reward is switched down to zero', (() => {
+    const t = twoNights(); t.feedbackSettings = { enabled: true, points: 0 };
+    return FBlib.feedbackViewFor(t, t.accounts[0], NOW).nights.every(n => n.awardable === false);
+  })());
+  check('view: each night carries its own answer, and the older one is untouched', (() => {
+    const t = twoNights();
+    submit(t, { token: 'tok1', goodNote: 'friday words' });
+    const v = FBlib.feedbackViewFor(t, t.accounts[0], NOW);
+    return v.nights[0].mine.goodNote === 'friday words' && v.nights[1].mine === null;
+  })());
+  check('view: an account with no nights gets an empty list, not a phantom card', (() => {
+    const v = FBlib.feedbackViewFor(s, other, NOW);
+    return v.open === false && Array.isArray(v.nights) && v.nights.length === 0 && v.night === '';
+  })());
   check('view: an existing record comes back as `mine`', (() => {
     const t = baseState();
     submit(t, { token: 'tok1', good: ['level'], goodNote: 'fun' });
