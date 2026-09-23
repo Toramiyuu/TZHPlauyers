@@ -244,7 +244,7 @@ check('the tab reads ONLY the admin ops cache, never state (it is off the public
 // ── admin tab body ──
 {
   const render = new Function('escHtml', 'window', 'Feedback', 'document', 'state', 'adminOps', 'fbDate', 'fmtDateTime',
-    fn('fbFeedbackMap') + ';' + fn('fbRosterNames') + ';' + fn('fbTallyHtml') + ';' + fn('renderFbBody')
+    fn('fbFeedbackMap') + ';' + fn('fbRosterNames') + ';' + fn('fbTallyHtml') + ';' + fn('fbRowHtml') + ';' + fn('renderFbBody')
     + '; return renderFbBody;');
   const els = {};
   const doc = { getElementById: (id) => (els[id] = els[id] || { innerHTML: '' }) };

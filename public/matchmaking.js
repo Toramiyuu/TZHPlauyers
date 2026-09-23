@@ -241,6 +241,111 @@
     return pair.idx.reduce((s, i) => s + levels[i], 0);
   }
 
+  // ── Filling ONE round's blanks ───────────────────────────────────
+  // The whole-schedule generator above replaces everything. What an organiser
+  // actually does mid-session is arrange a court or two by hand and want the
+  // rest filled in — and filled with whoever has been sitting out longest,
+  // which the wholesale generator has no way to know (it re-derives its own
+  // rest rotation from scratch and cannot see who walked in late).
+
+  /** Slots holding no known player, court-major, Team A before Team B. Pure. */
+  function emptySlotsOf(round, isKnown) {
+    const known = typeof isKnown === 'function' ? isKnown : (id) => !!id;
+    const out = [];
+    const courts = (round && round.courts) || [];
+    for (let c = 0; c < courts.length; c++) {
+      const ct = courts[c] || {};
+      for (const team of ['team1', 'team2']) {
+        const arr = ct[team] || [];
+        for (let k = 0; k < 2; k++) {
+          const id = arr[k];
+          if (!id || !known(id)) out.push({ court: c, team, index: k });
+        }
+      }
+    }
+    return out;
+  }
+
+  /** Every ordering of a short list. Only ever called with ≤ 4 items. Pure. */
+  function permutations(list) {
+    if (list.length <= 1) return [list.slice()];
+    const out = [];
+    for (let i = 0; i < list.length; i++) {
+      const rest = list.slice(0, i).concat(list.slice(i + 1));
+      for (const p of permutations(rest)) out.push([list[i]].concat(p));
+    }
+    return out;
+  }
+
+  /**
+   * Fill a round's EMPTY slots from `candidates`, an ordered list of ids with
+   * the strongest claim to the next game first (longest wait — the caller
+   * decides and is responsible for leaving out anyone who has gone home).
+   *
+   * Two separate decisions, deliberately:
+   *   WHO plays  — strictly the candidate order, so the fairness the caller
+   *                computed is never quietly traded away for a neater court.
+   *   WHERE they go — chosen to bring each court's two team sums together.
+   *
+   * Anyone already placed stays exactly where they are: this only ever writes
+   * into blanks, so a hand-arranged court survives the button untouched. Pure.
+   * Returns { courts, placed, filled, short }.
+   */
+  function fillRound(round, candidates, metaById, isKnown) {
+    const meta = metaById || {};
+    const courts = ((round && round.courts) || []).map((ct) => ({
+      team1: [(ct && ct.team1 && ct.team1[0]) || '', (ct && ct.team1 && ct.team1[1]) || ''],
+      team2: [(ct && ct.team2 && ct.team2[0]) || '', (ct && ct.team2 && ct.team2[1]) || ''],
+    }));
+    const slots = emptySlotsOf({ courts }, isKnown);
+
+    // Never place someone twice, and never place someone the round already has.
+    const taken = new Set();
+    for (const ct of courts) {
+      for (const team of ['team1', 'team2']) for (const id of ct[team]) if (id) taken.add(id);
+    }
+    const picks = [];
+    for (const id of (candidates || [])) {
+      if (!id || taken.has(id)) continue;
+      taken.add(id);
+      picks.push(id);
+      if (picks.length >= slots.length) break;
+    }
+
+    // Spread the level range across the courts — strongest, weakest, next
+    // strongest… — so no court is handed only the bottom of the pool.
+    const byLevel = picks.slice().sort((a, b) =>
+      levelOf(b, meta) - levelOf(a, meta) || String(a).localeCompare(String(b)));
+    const dealt = [];
+    let lo = 0, hi = byLevel.length - 1, takeHigh = true;
+    while (lo <= hi) { dealt.push(takeHigh ? byLevel[lo++] : byLevel[hi--]); takeHigh = !takeHigh; }
+
+    const placed = [];
+    let cursor = 0;
+    for (let c = 0; c < courts.length; c++) {
+      const mine = slots.filter((s) => s.court === c);
+      if (!mine.length) continue;
+      const take = dealt.slice(cursor, cursor + mine.length);
+      cursor += take.length;
+      if (!take.length) continue;
+      let best = null, bestGap = Infinity;
+      for (const perm of permutations(take)) {
+        const trial = { team1: courts[c].team1.slice(), team2: courts[c].team2.slice() };
+        perm.forEach((id, idx) => { const s = mine[idx]; if (s) trial[s.team][s.index] = id; });
+        const gap = courtBalanceInfo(trial, meta).gap;
+        if (gap < bestGap - 1e-9) { bestGap = gap; best = perm; }
+      }
+      (best || take).forEach((id, idx) => {
+        const s = mine[idx];
+        if (!s) return;
+        courts[c][s.team][s.index] = id;
+        placed.push({ id, court: c, team: s.team, index: s.index });
+      });
+    }
+
+    return { courts, placed, filled: placed.length, short: slots.length - placed.length };
+  }
+
   // ── Session pair history (repeat-matchup warnings) ──────────────
   // How often each pair of players has been partners / opponents across a
   // session's rounds. Keys are 'idA|idB' with the ids sorted, so lookups are
@@ -288,6 +393,9 @@
     levelOf,
     courtBalanceInfo,
     smartSchedule,
+    emptySlotsOf,
+    permutations,
+    fillRound,
     pairKey,
     pairCounts,
     courtPairWarnings,

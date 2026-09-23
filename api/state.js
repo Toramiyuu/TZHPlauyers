@@ -98,6 +98,10 @@ const DEFAULT_STATE = {
   rounds: [],
   currentRound: 0,
   endingSoon: [],
+  // Player ids who have left for the night. They keep their attendance, payment
+  // and points — this only stops the bench and the auto-fill offering them
+  // another game. Cleared with the other per-night flags on a date change.
+  wentHome: [],
   sessionDate: todayISO(),
   sessions: {},
   // Session fee tier for the live day ('2h' = RM20, '3h' = RM25). Snapshotted with the
@@ -589,6 +593,9 @@ function applySessionDateChange(state, newDate, today) {
     next.courtStatus = [];
     next.courtLocks = [];
     next.courtLive = [];
+    // Same reasoning for "gone home": having left at 10pm on Friday says nothing
+    // about whether someone is playing on Sunday.
+    next.wentHome = [];
     next.sessions = sessions;
   }
   next.sessionDate = newDate;
@@ -1304,6 +1311,14 @@ const handler = async function handler(req, res) {
     // it outright is what makes the ledger safe from the whole-roster merge.
     if (updates.lifetimePoints !== undefined) {
       return res.status(400).json({ error: 'Lifetime points are kept by the server.' });
+    }
+    // "Gone home" rides the generic merge too, but only as a clean list of unique
+    // non-empty id strings — it decides who the auto-fill will offer a game to.
+    if (updates.wentHome !== undefined) {
+      if (!Array.isArray(updates.wentHome)) {
+        return res.status(400).json({ error: 'Invalid gone-home list.' });
+      }
+      updates.wentHome = [...new Set(updates.wentHome.filter((id) => typeof id === 'string' && id))].slice(0, MAX_ROSTER);
     }
     // Phone bottom-bar shortcuts ride the generic merge, but only as a clean list of
     // 1–4 known, unique tab ids (canonical order is enforced server-side).

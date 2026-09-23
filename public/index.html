@@ -273,6 +273,11 @@ body.in-3d #joinModal{z-index:1300}
 /* ── PLAYER PICKER (searchable popover; replaces the native <select>) ── */
 .pslot{display:inline-flex;align-items:center;gap:7px;min-width:150px;max-width:210px;flex:1 1 150px;background:var(--card);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:5px 8px;cursor:pointer;font-family:inherit;font-size:var(--fs-sm);color:var(--text);text-align:left;transition:border-color .15s,box-shadow .15s}
 .pslot:hover{border-color:var(--green)}
+/* A filled slot can be dragged onto another slot to swap the two names. */
+.pslot[draggable="true"]{cursor:grab}
+.pslot[draggable="true"]:active{cursor:grabbing}
+/* Save Round sits beside the per-round Auto-fill. */
+.rl-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .pslot.pslot-active,.pslot.dragover{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,113,227,.18)}
 .pslot .avatar{width:22px;height:22px;border-width:1px;box-shadow:none}
 .pslot-face{display:inline-flex;align-items:center;gap:7px;min-width:0;flex:1}
@@ -327,6 +332,14 @@ body.in-3d #joinModal{z-index:1300}
 .rest-chip.heat-2{background:rgba(229,72,77,.30);border-color:rgba(229,72,77,.52);color:#8f1f24}
 .rest-chip.heat-3{background:rgba(229,72,77,.62);border-color:rgba(229,72,77,.78);color:#fff}
 .rest-chip.heat-4{background:rgba(229,72,77,.86);border-color:#e5484d;color:#fff;box-shadow:0 0 0 2px rgba(229,72,77,.30)}
+/* "Gone home": the trailing house on every bench chip, and the quiet rail of
+   people who have already left (their chip's button is the way back in). */
+.chip-home{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-left:1px;padding:0;border:none;border-radius:100px;background:transparent;color:currentColor;opacity:.5;cursor:pointer;flex-shrink:0;transition:opacity .13s,background .13s}
+.chip-home svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.chip-home:hover,.chip-home:focus-visible{opacity:1;background:var(--card2)}
+.rest-side.gone-side{color:var(--muted)}
+.rest-chip.gone-chip{background:var(--card2);border-color:var(--border);color:var(--muted);cursor:default}
+.rest-chip.gone-chip .avatar{opacity:.55}
 
 /* ── UNIFIED MODALS ──────────────────────── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);z-index:300;align-items:center;justify-content:center;padding:var(--sp-md)}
@@ -1890,6 +1903,22 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .fb-tag.good{color:var(--green-light);background:var(--green-tint);border-color:transparent}
 .fb-tag.bad{color:var(--red);background:var(--card2)}
 @media(max-width:560px){.fbt-lbl{flex-basis:52%;font-size:var(--fs-xs)}}
+/* Feedback tab: Just in (overview) ⇄ One night. Same pill segment as the
+   Players Grid/List switch, so the two view toggles read as one control. */
+.fb-view-row{display:inline-flex;gap:2px;padding:3px;margin:2px 0 12px;background:var(--card2);border-radius:100px}
+.fb-view-btn{border:none;background:none;color:var(--text-2);font-size:13px;font-weight:600;padding:5px 18px;border-radius:100px;cursor:pointer;font-family:inherit;transition:var(--transition)}
+.fb-view-btn.active{background:var(--card);color:var(--text);box-shadow:var(--shadow-sm)}
+.fb-recent-note{font-size:var(--fs-sm);color:var(--muted);margin:0 0 4px}
+/* One night's worth of just-in replies. The heading is a button: it carries the
+   night the replies are ABOUT (which is often NOT the day they were sent) and
+   drops the tab into that night's full view. */
+.fb-grp{margin-top:14px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--card);overflow:hidden}
+.fb-grp-head{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:10px 12px;border:none;border-bottom:1px solid var(--border);background:var(--card2);cursor:pointer;font-family:inherit;text-align:left;color:var(--text)}
+.fb-grp-head:hover{background:var(--card)}
+.fb-grp-when{font-size:var(--fs-sm);font-weight:700}
+/* --green is the legacy token name for the blue accent (#0071e3) — see :root. */
+.fb-grp-go{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-xs);font-weight:600;color:var(--green)}
+.fb-grp-n{font-size:var(--fs-xs);color:var(--muted);font-weight:600}
 .fbs-field{display:flex;align-items:center;gap:9px;font-size:var(--fs-sm);font-weight:600;color:var(--text-2)}
 .fbs-num{width:74px;text-align:center}
 .mb-hist{margin-top:14px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--card);text-align:left}
@@ -2183,6 +2212,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .frb-slot .sd{font-weight:800;flex:none}
 .frb-slot.red .sd{color:var(--fv-red)} .frb-slot.blue .sd{color:var(--fv-blue)}
 .frb-slot .x{margin-left:auto;color:var(--muted);font-weight:700;font-size:15px;line-height:1}
+/* "Going home" on a court slot: sits just left of the remove ×, and the slot's
+   own margin-left:auto stays on the × so the two stay grouped at the end. */
+.crt-slot .chip-home{margin-left:auto}
+.crt-slot .chip-home+.x{margin-left:2px}
+.crt-slot .chip-home.back{opacity:1;color:var(--a-amber)}
 .frb-score{display:flex;align-items:center;gap:4px}
 .frb-score button{width:28px;height:28px;border-radius:8px;border:1px solid var(--border2);background:var(--dark);font-size:16px;font-weight:700;color:var(--text);cursor:pointer;line-height:1;font-family:inherit}
 .frb-score button:active{transform:scale(.93)}
@@ -3273,7 +3307,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   <!-- ── FEEDBACK TAB ───────────────────────────── -->
   <!-- What the players said about a night: the two tallies, then the named rows.
        Written by members from their own page (token-gated submitFeedback); read-only
-       here. Same calendar system as Payments / Session History. -->
+       here. Same calendar system as Payments / Session History.
+       Opens on the OVERVIEW (everything submitted in the last 2 days, whatever
+       night it is about) because members rate any night they played — picking a
+       date drops into that single night. -->
   <div class="admin-tab-panel" data-tab="feedback">
 
   <div class="admin-card">
@@ -3281,18 +3318,25 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <span><span><svg class="ic" viewBox="0 0 24 24"><path d="M20 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/><path d="M8.5 9.5h7M8.5 12.5h4"/></svg></span> Session feedback</span>
       <span class="admin-session-count" id="fbTabNote"></span>
     </div>
-    <div class="hist-nav pm-cal-nav">
-      <span class="cal-month-big pm-cal-month" id="fbCalMonth"></span>
-      <div class="hist-nav-btns">
-        <button class="cal-chevron" onclick="fbCalStep(-1)" aria-label="Previous month">&#8249;</button>
-        <button class="cal-chevron" onclick="fbCalStep(1)" aria-label="Next month">&#8250;</button>
-      </div>
+    <div class="fb-view-row">
+      <button type="button" class="fb-view-btn" id="fbViewRecent" data-view="recent" onclick="fbShowRecent()">Just in</button>
+      <button type="button" class="fb-view-btn" id="fbViewNight" data-view="night" onclick="fbShowNight()">One night</button>
     </div>
-    <div class="cal-strip-wrap pm-cal-wrap"><div class="cal-strip" id="fbCalGrid"></div></div>
-    <div class="pm-date-line"><span id="fbDateLabel">&ndash;</span></div>
-    <div class="mb-stats fb-stats" id="fbStats"></div>
-    <div id="fbTally"></div>
-    <div id="fbRows"></div>
+    <div id="fbNightPane">
+      <div class="hist-nav pm-cal-nav">
+        <span class="cal-month-big pm-cal-month" id="fbCalMonth"></span>
+        <div class="hist-nav-btns">
+          <button class="cal-chevron" onclick="fbCalStep(-1)" aria-label="Previous month">&#8249;</button>
+          <button class="cal-chevron" onclick="fbCalStep(1)" aria-label="Next month">&#8250;</button>
+        </div>
+      </div>
+      <div class="cal-strip-wrap pm-cal-wrap"><div class="cal-strip" id="fbCalGrid"></div></div>
+      <div class="pm-date-line"><span id="fbDateLabel">&ndash;</span></div>
+      <div class="mb-stats fb-stats" id="fbStats"></div>
+      <div id="fbTally"></div>
+      <div id="fbRows"></div>
+    </div>
+    <div id="fbRecentPane"></div>
   </div>
 
   </div><!-- /feedback tab -->
@@ -5511,14 +5555,26 @@ function renderCourtControls() {
   // Repeat-pairing notes on the card itself, off the same session-wide counts
   // the round editor uses — the card is where the pairing is actually edited.
   const sessionPairCounts = Matchmaking.pairCounts(state.rounds);
+  const goneNow = wentHomeSet();
   // A player slot on the court card: filled slots drag + clear like the
   // Friendly board's .frb-slot; any slot taps open the shared player picker.
   const slot = (court, i, team, k) => {
     const id = (court?.[team] || [])[k] || '';
     const p = id ? playerById(id) : null;
     const side = team === 'team1' ? 'red' : 'blue';
+    // "I'm off after this game" is announced mid-game, when the player is on a
+    // court and so nowhere near the bench. The house marks them without
+    // disturbing the game they are still playing — it only stops the auto-fill
+    // and the bench offering them another one.
+    const leaving = !!p && goneNow.has(id);
+    const home = p
+      ? `<button type="button" class="chip-home crt-home${leaving ? ' back' : ''}" onclick="event.stopPropagation();toggleWentHome('${id}')"`
+        + ` title="${escHtml(leaving ? `${p.name} is going home — tap to bring them back in` : `${p.name} is going home after this game`)}"`
+        + ` aria-label="${escHtml(leaving ? `Bring ${p.name} back in` : `${p.name} has gone home`)}">`
+        + `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-6.5 8 6.5"/><path d="M6.5 9.8V19h11V9.8"/></svg></button>`
+      : '';
     const inner = p
-      ? `${avatarHTML(p, 26)}<span class="nm">${escHtml(p.name)}</span><span class="x" onclick="event.stopPropagation();crtClearSlot(${i},'${team}',${k})" aria-label="Remove">&#215;</span>`
+      ? `${avatarHTML(p, 26)}<span class="nm">${escHtml(p.name)}</span>${home}<span class="x" onclick="event.stopPropagation();crtClearSlot(${i},'${team}',${k})" aria-label="Remove">&#215;</span>`
       : `<span class="sd">${side === 'red' ? 'A' : 'B'}</span><span class="nm">Add player</span>`;
     const drag = p ? ` draggable="true" ondragstart="crtDragStart(event,'${id}')"` : '';
     return `<div class="frb-slot crt-slot ${side}${p ? ' filled' : ''}"${drag} onclick="crtSlotTap(${i},'${team}',${k},this)" ondragover="frDragOver(event,this)" ondragleave="this.classList.remove('dragover')" ondrop="crtDrop(event,${i},'${team}',${k},this)">${inner}</div>`;
@@ -5661,6 +5717,50 @@ function restHeatLevel(streak) {
   return Math.min(4, s - 1);
 }
 
+// ── WENT HOME ─────────────────────────────────
+// Someone leaves at 10pm and the night carries on without them. They still
+// played, still owe for the session and still belong in attendance, payments and
+// the draw — the ONE thing that has to change is that nothing offers them another
+// game. Marking them keeps their id in `state.wentHome`, a plain list for the
+// LIVE night only; api/state.js clears it with the other per-night flags when the
+// session date moves on. Without it they sat on the bench all evening collecting
+// "18 ROUNDS", which made the wait column meaningless for everyone still there.
+function normalizeWentHome(list, players) {
+  const known = new Set((players || []).map(p => p && p.id).filter(Boolean));
+  const seen = new Set();
+  const out = [];
+  for (const id of (Array.isArray(list) ? list : [])) {
+    if (typeof id !== 'string' || !id || seen.has(id) || !known.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out;
+}
+// Live view of the list. Unticking someone for the night drops them from
+// state.players, and normalizeWentHome forgets them here on the next read.
+function wentHomeIds() { return normalizeWentHome(state && state.wentHome, state && state.players); }
+function wentHomeSet() { return new Set(wentHomeIds()); }
+
+async function toggleWentHome(id) {
+  if (!id) return;
+  const prev = wentHomeIds();
+  const leaving = !prev.includes(id);
+  const wentHome = leaving ? [...prev, id] : prev.filter(x => x !== id);
+  const who = playerById(id)?.name || 'Player';
+  state.wentHome = wentHome;                    // optimistic: the bench moves at once
+  renderCourtControls();
+  const res = await apiPost({ wentHome }).catch(() => ({ error: 'Network error. Not saved.' }));
+  if (res === null) return;                     // 401 — apiPost bounced to the login flow
+  // apiPost resolves on 4xx/5xx too, so the body has to be checked — see
+  // [[apipost-silent-success]]. A refused write must put the bench back.
+  if (!res || res.error || res.ok === false) {
+    state.wentHome = prev;
+    renderCourtControls();
+    return notify((res && res.error) || 'Could not save that.', 'warn');
+  }
+  notify(leaving ? `${who} has gone home.` : `${who} is back in.`);
+}
+
 function renderRestingPlayers(courtRounds) {
   const strip = document.getElementById('restingStrip');
   if (!strip || !state?.rounds?.length) { if (strip) strip.innerHTML = ''; return; }
@@ -5675,7 +5775,9 @@ function renderRestingPlayers(courtRounds) {
     }
   }
 
-  const resting = (state.players || []).filter(p => !activePlayers.has(p.id));
+  // Gone-home players leave the waiting list entirely — they are not waiting.
+  const gone = wentHomeSet();
+  const resting = (state.players || []).filter(p => !activePlayers.has(p.id) && !gone.has(p.id));
 
   // How many rounds each resting player has sat out in a row, measured up to the
   // furthest-progressed court. Resting this round guarantees ≥ 1; the redness
@@ -5699,17 +5801,41 @@ function renderRestingPlayers(courtRounds) {
     const heat = level ? ` heat-${level}` : '';
     const chips = players.map(p => {
       const title = `${p.name} hasn't played in ${n} round${n === 1 ? '' : 's'}`;
-      return `<span class="frb-chip rest-chip${heat}${__crtSel.pid === p.id ? ' picked' : ''}" draggable="true" onclick="crtPickPlayer('${p.id}')" ondragstart="crtDragStart(event,'${p.id}')" title="${escHtml(title)}">${avatarHTML(p, 22)} ${escHtml(p.name)}</span>`;
+      // The chip still drags and taps as before; the trailing button is the
+      // one-tap "they've left" so it can be done from the board being watched.
+      return `<span class="frb-chip rest-chip${heat}${__crtSel.pid === p.id ? ' picked' : ''}" draggable="true" onclick="crtPickPlayer('${p.id}')" ondragstart="crtDragStart(event,'${p.id}')" title="${escHtml(title)}">${avatarHTML(p, 22)} ${escHtml(p.name)}${goneHomeBtnHTML(p, false)}</span>`;
     }).join('');
     return `<div class="frb-side rest-side${heat}">${n} ROUND${n === 1 ? '' : 'S'}</div><div class="frb-rail">${chips}</div>`;
   }).join('');
 
+  // Everyone who has left, kept visible so the count is honest and a mistake is
+  // one tap from undone. They are out of the wait ranking above by definition.
+  const goneList = (state.players || []).filter(p => gone.has(p.id))
+    .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  const goneBlock = goneList.length
+    ? `<div class="frb-side rest-side gone-side">GONE HOME</div><div class="frb-rail">`
+      + goneList.map(p => `<span class="frb-chip rest-chip gone-chip" title="${escHtml(p.name)} has gone home">`
+        + `${avatarHTML(p, 22)} ${escHtml(p.name)}${goneHomeBtnHTML(p, true)}</span>`).join('')
+      + `</div>`
+    : '';
+
   strip.innerHTML = `
     <div class="frb-bench" ondragover="frBenchDragOver(event,this)" ondragleave="this.classList.remove('frb-bench-drop')" ondrop="crtDropToBench(event,this)">
-      <div class="frb-bench-hint">Bench: resting now, longest wait first. Open a round and drag a name into a slot, or tap a name then a court slot up top. Drop a name here to rest them.</div>
+      <div class="frb-bench-hint">Bench: resting now, longest wait first. Open a round and drag a name into a slot, or tap a name then a court slot up top. Drop a name here to rest them. The house button marks someone gone home.</div>
       ${blocks || `<div class="frb-rail empty">Everyone's on a court.</div>`}
+      ${goneBlock}
     </div>
   `;
+}
+
+// The house button on a bench chip. `back` flips it into the undo on a
+// gone-home chip. stopPropagation so it never counts as arming the chip.
+function goneHomeBtnHTML(p, back) {
+  const label = back ? `Bring ${p.name} back in` : `${p.name} has gone home`;
+  const icon = back
+    ? `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14l-4-4 4-4"/><path d="M5 10h9a5 5 0 0 1 0 10h-3"/></svg>`
+    : `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-6.5 8 6.5"/><path d="M6.5 9.8V19h11V9.8"/></svg>`;
+  return `<button type="button" class="chip-home${back ? ' back' : ''}" onclick="event.stopPropagation();toggleWentHome('${p.id}')" title="${escHtml(label)}" aria-label="${escHtml(label)}">${icon}</button>`;
 }
 
 // ── Courts board: bench ↔ court slot placement ─
@@ -5811,10 +5937,12 @@ function openCourtSlotPicker(el, i, team, k) {
     const lv = meta[id]?.level;
     return Number.isFinite(lv) ? lv.toFixed(1) : '';
   };
-  const free = [], resting = [], onCourt = [];
+  const gone = wentHomeSet();
+  const free = [], resting = [], onCourt = [], goneHome = [];
   (state.players || []).forEach(p => {
     if (!p || !p.id) return;
     if (assigned.has(p.id)) { onCourt.push({ p, court: assigned.get(p.id) }); return; }
+    if (gone.has(p.id) && p.id !== selectedId) { goneHome.push({ p }); return; }
     const n = streaks[p.id] || 0;
     if (n >= 1 && p.id !== selectedId) resting.push({ p, n });
     else free.push({ p, n });
@@ -5826,7 +5954,8 @@ function openCourtSlotPicker(el, i, team, k) {
   });
   resting.sort((a, b) => b.n - a.n || (a.p.name || '').localeCompare(b.p.name || ''));
   onCourt.sort((a, b) => a.court - b.court || (a.p.name || '').localeCompare(b.p.name || ''));
-  openPslotAt(el, { free, resting, onCourt, selectedId, levelOf }, (state.players || []).length, id => {
+  goneHome.sort((a, b) => (a.p.name || '').localeCompare(b.p.name || ''));
+  openPslotAt(el, { free, resting, onCourt, goneHome, selectedId, levelOf }, (state.players || []).length, id => {
     if (!id) crtClearSlot(i, team, k);
     else placeCourtPlayer(i, team, k, id);
   });
@@ -6576,6 +6705,13 @@ function buildMetaById() {
 // trailing "!" when they differ by more than ±0.5. A separate MX chip marks a
 // real mixed-doubles court (girl+guy vs girl+guy).
 function courtChipHTML(court, metaById) {
+  // An empty seat counts as 4.0 inside courtBalanceInfo, so a half-arranged
+  // court would otherwise claim a team sum it has not got — on a round added by
+  // hand (which now starts empty) every court read a confident, meaningless
+  // "8.0 v 8.0". Until all four seats are taken, say how many are still open.
+  const open = Matchmaking.emptySlotsOf({ courts: [court] },
+    id => (state.players || []).some(p => p.id === id)).length;
+  if (open) return `<span class="court-balance">${open} to fill</span>`;
   const b = Matchmaking.courtBalanceInfo(court, metaById);
   const off = b.gap > Matchmaking.TOL + 1e-9;
   let html = `<span class="court-balance${off ? ' off' : ''}">${b.sum1.toFixed(1)} v ${b.sum2.toFixed(1)}${off ? ' !' : ''}</span>`;
@@ -6635,20 +6771,105 @@ async function generateSchedule() {
     : `${rounds.length} rounds generated!${kept}`);
 }
 
+// Adding a round by hand gives you an EMPTY one. It used to seed each court
+// with the first 4N ids on file, which is never who should be playing — the
+// arrangement then had to be undone before it could be made. Fill it yourself,
+// or leave the courts you don't care about to autoFillRound.
 async function addEmptyRound() {
   const rounds = [...(state.rounds || [])];
   const n = rounds.length + 1;
   const numCourts = state.numCourts || 1;
-  const pids = (state.players || []).map(p => p.id);
-  const courts = Array.from({ length: numCourts }, (_, c) => ({
-    team1: [pids[c * 4] || '', pids[c * 4 + 1] || ''],
-    team2: [pids[c * 4 + 2] || '', pids[c * 4 + 3] || '']
-  }));
+  const courts = Array.from({ length: numCourts }, () => ({ team1: ['', ''], team2: ['', ''] }));
   rounds.push({ label: `Round ${n}`, courts });
   await apiPost({ rounds });
   state.rounds = rounds;
   expandedRound = rounds.length - 1;
   renderRoundList();
+}
+
+// ── AUTO-FILL ONE ROUND ───────────────────────
+// How many games each player has had in the rounds BEFORE `upto`. Pure — used
+// only to break ties between two people who have waited the same number of
+// rounds. Unit tested in scripts/test-auto-fill.js.
+function gamesPlayedUpTo(rounds, upto) {
+  const out = {};
+  const last = Math.max(0, Math.min(Number(upto) || 0, (rounds || []).length));
+  for (let r = 0; r < last; r++) {
+    for (const ct of ((rounds[r] && rounds[r].courts) || [])) {
+      if (!ct) continue;
+      for (const team of ['team1', 'team2']) {
+        for (const id of (ct[team] || [])) if (id) out[id] = (out[id] || 0) + 1;
+      }
+    }
+  }
+  return out;
+}
+
+// Who has the best claim to a seat in round `roundIndex`, best first: longest
+// wait, then fewest games all night, then name. Wait is measured on the rounds
+// BEFORE this one, so someone who walked in at round 4 and still hasn't played
+// ranks above a regular who sat out once — which is exactly the late-arrival
+// case the whole-schedule generator gets wrong. Gone-home players are out.
+function autoFillCandidates(roundIndex) {
+  const i = Number(roundIndex) || 0;
+  const gone = wentHomeSet();
+  const pool = (state.players || []).filter(p => p && p.id && !gone.has(p.id));
+  const streaks = i > 0 ? computeRestStreaks(state.rounds, pool, i - 1) : {};
+  const games = gamesPlayedUpTo(state.rounds, i);
+  return pool
+    .map(p => ({ id: p.id, name: p.name || '', wait: streaks[p.id] || 0, games: games[p.id] || 0 }))
+    .sort((a, b) => b.wait - a.wait || a.games - b.games || a.name.localeCompare(b.name));
+}
+
+async function autoFillRound(i) {
+  i = Number(i);
+  const rounds = JSON.parse(JSON.stringify(state.rounds || []));
+  const r = rounds[i];
+  if (!r) return;
+
+  // Read the round the admin is LOOKING at, not the one last saved: picks made
+  // in the editor live only in the DOM until Save Round, and "fill the rest"
+  // has to mean the rest of what is on screen.
+  const labelInput = document.getElementById(`rl_label_${i}`);
+  if (labelInput) r.label = labelInput.value.trim() || r.label;
+  (r.courts || []).forEach((ct, c) => {
+    const el = role => document.getElementById(`rl_${i}_c${c}_${role}`);
+    if (!el('t1p1')) return; // this court isn't rendered (round collapsed)
+    const v = role => el(role)?.value || '';
+    r.courts[c] = { team1: [v('t1p1'), v('t1p2')], team2: [v('t2p1'), v('t2p2')] };
+  });
+
+  const known = id => (state.players || []).some(p => p.id === id);
+  if (!Matchmaking.emptySlotsOf(r, known).length) {
+    return notify('Every slot in this round is filled. Clear one and it will be filled for you.', 'warn');
+  }
+  const ranked = autoFillCandidates(i);
+  const res = Matchmaking.fillRound(r, ranked.map(x => x.id), buildMetaById(), known);
+  if (!res.filled) return notify('Nobody is free to fill those slots.', 'warn');
+  r.courts = res.courts;
+
+  const saved = await apiPost({ rounds }).catch(() => ({ error: 'Network error. Nothing saved.' }));
+  if (saved === null) return;
+  if (!saved || saved.error || saved.ok === false) {
+    return notify((saved && saved.error) || 'Could not save that round.', 'warn');
+  }
+  state.rounds = rounds;
+  renderCourtControls();
+  renderRoundList();
+  renderViewer();
+
+  // Say who went in and how long they had been sitting — that is the whole
+  // reason for pressing this rather than picking four names.
+  const waitOf = {};
+  for (const x of ranked) waitOf[x.id] = x.wait;
+  const named = res.placed
+    .slice()
+    .sort((a, b) => (waitOf[b.id] || 0) - (waitOf[a.id] || 0))
+    .slice(0, 3)
+    .map(s => `${playerById(s.id)?.name || s.id} (${waitOf[s.id] || 0})`);
+  const short = res.short ? ` ${res.short} slot${res.short === 1 ? '' : 's'} left empty: nobody free.` : '';
+  notify(`Filled ${res.filled} slot${res.filled === 1 ? '' : 's'}. Longest waits in: ${named.join(', ')}.${short}`,
+    res.short ? 'warn' : undefined);
 }
 
 async function advanceCourt(courtIdx, delta) {
@@ -6779,8 +7000,12 @@ function playerSlotFace(id) {
 function buildPlayerSelect(elId, selectedId, roundIndex, courtIndex) {
   const known = (state.players || []).some(p => p.id === selectedId);
   const val = (known && selectedId) ? selectedId : '';
+  // A filled slot is draggable so a name can be pulled from one court to
+  // another — dropping it on a second slot swaps the two (see the delegated
+  // dragstart/drop handlers below). Typing/tapping still opens the picker.
   return `<button type="button" class="pslot${val ? '' : ' is-empty'}" id="${elId}" value="${escHtml(val)}"`
     + ` data-round="${roundIndex}" data-court="${courtIndex}" aria-haspopup="listbox"`
+    + ` draggable="${val ? 'true' : 'false'}"`
     + ` onclick="openPlayerPicker(this)">${playerSlotFace(val)}${pslotChevSVG()}</button>`;
 }
 
@@ -6879,7 +7104,11 @@ function renderRoundList() {
             onkeydown="if(event.key==='Enter')saveRound(${i})">
         </div>
         ${courtEditorsHTML}
-        <button class="btn btn-primary btn-sm" onclick="saveRound(${i})">Save Round</button>
+        <div class="rl-actions">
+          <button class="btn btn-primary btn-sm" onclick="saveRound(${i})">Save Round</button>
+          <button class="btn btn-ghost btn-sm" onclick="autoFillRound(${i})"
+            title="Fill only the empty slots in this round, longest-waiting players first. Anyone you have already placed stays put.">Auto-fill empty</button>
+        </div>
       </div>
     `;
     list.appendChild(div);
@@ -7043,10 +7272,14 @@ function openPlayerPicker(btn) {
     return Number.isFinite(lv) ? lv.toFixed(1) : '';
   };
 
-  const free = [], resting = [], onCourt = [];
+  const gone = wentHomeSet();
+  const free = [], resting = [], onCourt = [], goneHome = [];
   (state.players || []).forEach(p => {
     if (!p || !p.id) return;
     if (assigned.has(p.id)) { onCourt.push({ p, court: assigned.get(p.id) }); return; }
+    // Gone home: still listed (they can be put back if the admin mis-tapped)
+    // but out of "Free now", where they would otherwise look available.
+    if (gone.has(p.id) && p.id !== selectedId) { goneHome.push({ p }); return; }
     const n = streaks[p.id] || 0;
     if (n >= 1 && p.id !== selectedId) resting.push({ p, n });
     else free.push({ p, n });
@@ -7058,14 +7291,16 @@ function openPlayerPicker(btn) {
   });
   resting.sort((a, b) => b.n - a.n || (a.p.name || '').localeCompare(b.p.name || ''));
   onCourt.sort((a, b) => a.court - b.court || (a.p.name || '').localeCompare(b.p.name || ''));
+  goneHome.sort((a, b) => (a.p.name || '').localeCompare(b.p.name || ''));
 
-  openPslotAt(btn, { free, resting, onCourt, selectedId, levelOf }, (state.players || []).length);
+  openPslotAt(btn, { free, resting, onCourt, goneHome, selectedId, levelOf }, (state.players || []).length);
 }
 
 function renderPslotList(query) {
   const pop = document.getElementById('pslotPop');
   if (!pop || !pop._groups) return;
   const { free, resting, onCourt, selectedId, levelOf } = pop._groups;
+  const goneHome = pop._groups.goneHome || [];
   const q = (query || '').trim().toLowerCase();
   const match = p => !q || (p.name || '').toLowerCase().includes(q);
 
@@ -7085,14 +7320,19 @@ function renderPslotList(query) {
   const freeF = free.filter(x => match(x.p));
   const restF = resting.filter(x => match(x.p));
   const courtF = onCourt.filter(x => match(x.p));
-  const labels = Object.assign({ free: 'Free now', resting: 'Resting', onCourt: 'On another court' }, pop._groups.labels || {});
+  const goneF = goneHome.filter(x => match(x.p));
+  const labels = Object.assign({ free: 'Free now', resting: 'Resting', onCourt: 'On another court', goneHome: 'Gone home' }, pop._groups.labels || {});
   let html = '';
   if (freeF.length) html += `<div class="pslot-group">${labels.free}</div>` + freeF.map(x => rowHTML(x.p)).join('');
   if (restF.length) html += `<div class="pslot-group">${labels.resting}</div>`
     + restF.map(x => rowHTML(x.p, { badge: `Sat out ${x.n}`, badgeCls: 'warn' })).join('');
   if (courtF.length) html += `<div class="pslot-group">${labels.onCourt}</div>`
     + courtF.map(x => rowHTML(x.p, { badge: x.badge || `Court ${courtLabel(x.court)}`, badgeCls: 'court', dim: true })).join('');
-  if (!freeF.length && !restF.length && !courtF.length) html += '<div class="pslot-none">No players match.</div>';
+  // Last, dimmed: they have left for the night, so they are the answer to
+  // "why isn't X in the list?" rather than a suggestion.
+  if (goneF.length) html += `<div class="pslot-group">${labels.goneHome}</div>`
+    + goneF.map(x => rowHTML(x.p, { badge: 'Left', badgeCls: 'court', dim: true })).join('');
+  if (!freeF.length && !restF.length && !courtF.length && !goneF.length) html += '<div class="pslot-none">No players match.</div>';
 
   const listEl = document.getElementById('pslotList');
   listEl.innerHTML = html;
@@ -7101,7 +7341,7 @@ function renderPslotList(query) {
     el.addEventListener('click', () => pickPslot(el.dataset.id));
     el.addEventListener('mousemove', () => setPslotHighlight(idx));
   });
-  const shown = freeF.length + restF.length + courtF.length;
+  const shown = freeF.length + restF.length + courtF.length + goneF.length;
   document.getElementById('pslotCount').textContent = `${shown} / ${pop._total}`;
   let start = _pslotRows.findIndex(el => el.classList.contains('is-sel'));
   if (start < 0) start = _pslotRows.length ? 0 : -1;
@@ -7146,6 +7386,9 @@ function commitPslotValue(btn, id) {
   const val = (known && id) ? id : '';
   btn.value = val;
   btn.classList.toggle('is-empty', !val);
+  // An emptied slot must stop being a drag source, or it would offer the name
+  // that is no longer in it.
+  btn.setAttribute('draggable', val ? 'true' : 'false');
   btn.innerHTML = playerSlotFace(val) + pslotChevSVG();
   refreshCourtChip(btn);
 }
@@ -7167,6 +7410,20 @@ function pickPslot(id) {
 // Bench chips drag straight onto any player slot (.pslot) in the round /
 // Up Next editors — the slot takes the name in place, exactly like picking
 // from the popover. Delegated so every (re-)rendered slot is a drop target.
+//
+// A filled slot is also a drag SOURCE, so names can be moved up and down the
+// courts without opening a picker at all. It sends `id|pslot|<slotId>` — the
+// third field is what tells the drop below that this is a slot-to-slot move and
+// should swap rather than overwrite (a plain overwrite would duplicate the
+// dragged player and silently drop whoever was in the target).
+document.addEventListener('dragstart', e => {
+  const b = e.target.closest && e.target.closest('.pslot');
+  if (!b || !b.value) return;
+  try {
+    e.dataTransfer.setData('text/plain', b.value + '|pslot|' + b.id);
+    e.dataTransfer.effectAllowed = 'move';
+  } catch (_) {}
+});
 document.addEventListener('dragover', e => {
   const b = e.target.closest('.pslot');
   if (b) { e.preventDefault(); b.classList.add('dragover'); }
@@ -7180,8 +7437,21 @@ document.addEventListener('drop', e => {
   if (!b) return;
   e.preventDefault();
   b.classList.remove('dragover');
-  const id = ((e.dataTransfer && e.dataTransfer.getData('text/plain')) || '').split('|')[0];
-  if (id) commitPslotValue(b, id);
+  const parts = ((e.dataTransfer && e.dataTransfer.getData('text/plain')) || '').split('|');
+  const id = parts[0];
+  if (!id) return;
+  if (parts[1] === 'pslot' && parts[2] && parts[2] !== b.id) {
+    const from = document.getElementById(parts[2]);
+    // Swap: the target's occupant (possibly nobody) goes back to the slot the
+    // name came from, so a move can never lose or duplicate a player.
+    if (from && from.classList.contains('pslot')) {
+      const theirs = b.value || '';
+      commitPslotValue(b, id);
+      commitPslotValue(from, theirs);
+      return;
+    }
+  }
+  commitPslotValue(b, id);
 });
 
 // Live team-balance chip refresh after a pick (round editor only; Up Next has no
@@ -10155,6 +10425,13 @@ function fbNightToOpen() {
   return nights.length ? nights[0] : live;
 }
 
+// Which half of the tab is showing. 'recent' (the default) is the cross-night
+// overview: everything SUBMITTED in the last two days, whatever night it is
+// about. 'night' is the original calendar + single-night breakdown. Per-device.
+let fbView = 'recent';
+function fbShowRecent() { fbView = 'recent'; renderFeedbackTab(); }
+function fbShowNight() { fbView = 'night'; renderFeedbackTab(); }
+
 function renderFeedbackTab() {
   if (!state || !window.Feedback || !document.getElementById('fbRows')) return;
   if (!fbDate) fbDate = fbNightToOpen();
@@ -10164,8 +10441,47 @@ function renderFeedbackTab() {
   const note = document.getElementById('fbTabNote');
   const settings = Feedback.settingsOf(state);
   if (note) note.textContent = settings.enabled ? ('+' + settings.points + ' points per reply') : 'Feedback is off';
+  const recent = fbView === 'recent';
+  document.querySelectorAll('.fb-view-btn').forEach(b => b.classList.toggle('active', (b.dataset.view === 'recent') === recent));
+  const nightPane = document.getElementById('fbNightPane');
+  const recentPane = document.getElementById('fbRecentPane');
+  if (nightPane) nightPane.style.display = recent ? 'none' : '';
+  if (recentPane) recentPane.style.display = recent ? '' : 'none';
+  if (recent) { renderFbRecent(); return; }
   renderFbCalendar();
   renderFbBody();
+}
+
+// The overview. Grouped under the night each reply is ABOUT — a reply that came
+// in this morning is usually about last Friday, so the night heading is the
+// thing that carries the meaning, and tapping it opens that night in full.
+function renderFbRecent() {
+  const el = document.getElementById('fbRecentPane');
+  if (!el || !window.Feedback) return;
+  const live = state.sessionDate || todayISO();
+  const view = Feedback.recentSubmissions({ feedback: fbFeedbackMap() },
+    { nowMs: Date.now(), names: fbRosterNames() });
+  if (!view.count) {
+    el.innerHTML = '<div class="acct-empty">Nothing new. Replies land here as soon as players send them '
+      + 'from their own page &mdash; pick <b>One night</b> to read an older session.</div>';
+    return;
+  }
+  const head = view.fallback
+    ? 'Nothing in the last ' + view.days + ' days. The ' + view.count + ' most recent '
+      + (view.count === 1 ? 'reply' : 'replies') + ':'
+    : view.count + ' ' + (view.count === 1 ? 'reply' : 'replies') + ' in the last ' + view.days + ' days';
+  el.innerHTML = '<p class="fb-recent-note">' + escHtml(head) + '</p>'
+    + view.nights.map(g => {
+      const n = g.rows.length;
+      return '<div class="fb-grp">'
+        + '<button type="button" class="fb-grp-head" onclick="fbSelectDate(\'' + escHtml(g.night) + '\')" '
+        + 'aria-label="Open ' + escHtml(g.night) + ' in full">'
+        + '<span class="fb-grp-when">' + escHtml(pmDateLabel(g.night, true))
+        + (g.night === live ? ' &middot; tonight' : '') + '</span>'
+        + '<span class="fb-grp-go"><span class="fb-grp-n">' + n + ' ' + (n === 1 ? 'reply' : 'replies')
+        + '</span>Open &rarr;</span></button>'
+        + '<div class="mb-list">' + g.rows.map(fbRowHtml).join('') + '</div></div>';
+    }).join('');
 }
 
 function renderFbCalendar() {
@@ -10213,9 +10529,13 @@ function fbCalStep(dir) {
   if (fbCalMonth < 0) { fbCalMonth = 11; fbCalYear--; }
   renderFbCalendar();
 }
+// Picking a date always means "show me that night", so it leaves the overview
+// even when the date tapped is the one already selected.
 function fbSelectDate(iso) {
-  if (!iso || iso === fbDate) return;
+  if (!iso) return;
   fbDate = iso;
+  fbView = 'night';
+  fbMarkSeen();
   renderFeedbackTab();
 }
 
@@ -10260,15 +10580,19 @@ function renderFbBody() {
     return;
   }
   rowsEl.innerHTML = '<div class="md-sec-title">Who said what</div><div class="mb-list">'
-    + sum.rows.map(r => {
-      const chips = r.good.map(id => '<span class="fb-tag good">' + escHtml(Feedback.labelOf(id)) + '</span>')
-        .concat(r.bad.map(id => '<span class="fb-tag bad">' + escHtml(Feedback.labelOf(id)) + '</span>')).join('');
-      const notes = (r.goodNote ? '<div class="fb-quote">' + escHtml(r.goodNote) + '</div>' : '')
-        + (r.badNote ? '<div class="fb-quote">' + escHtml(r.badNote) + '</div>' : '');
-      return '<div class="fbr"><div class="fbr-head"><b>' + escHtml(r.name) + '</b>'
-        + '<span class="fbr-when">' + escHtml(fmtDateTime(r.updatedAt)) + (r.edited ? ' · edited' : '') + '</span></div>'
-        + (chips ? '<div class="fb-tags">' + chips + '</div>' : '') + notes + '</div>';
-    }).join('') + '</div>';
+    + sum.rows.map(fbRowHtml).join('') + '</div>';
+}
+
+// One reply. Shared by the single-night list and the overview groups so a row
+// reads identically wherever it is met.
+function fbRowHtml(r) {
+  const chips = r.good.map(id => '<span class="fb-tag good">' + escHtml(Feedback.labelOf(id)) + '</span>')
+    .concat(r.bad.map(id => '<span class="fb-tag bad">' + escHtml(Feedback.labelOf(id)) + '</span>')).join('');
+  const notes = (r.goodNote ? '<div class="fb-quote">' + escHtml(r.goodNote) + '</div>' : '')
+    + (r.badNote ? '<div class="fb-quote">' + escHtml(r.badNote) + '</div>' : '');
+  return '<div class="fbr"><div class="fbr-head"><b>' + escHtml(r.name) + '</b>'
+    + '<span class="fbr-when">' + escHtml(fmtDateTime(r.updatedAt)) + (r.edited ? ' · edited' : '') + '</span></div>'
+    + (chips ? '<div class="fb-tags">' + chips + '</div>' : '') + notes + '</div>';
 }
 
 // Past night with a saved session but no records yet: generate for that date (same idempotent action).

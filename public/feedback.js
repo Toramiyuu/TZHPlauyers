@@ -54,6 +54,14 @@
   const MAX_POINTS_PER = 50;     // guard rail on the Settings number input
   const RETENTION_DAYS = 100;    // matches lib/weekly.js ATTENDANCE_RETENTION_DAYS
   const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
+  // The admin tab opens on a cross-night "what came in lately" overview rather
+  // than on one night: members rate ANY night they played, so a reply that
+  // landed this morning can be about a night three weeks back and would never
+  // be seen from a per-night calendar. Window is measured on the SUBMISSION
+  // time, not the night.
+  const RECENT_DAYS = 2;
+  const RECENT_FALLBACK = 10;    // quiet fortnight: show the latest N instead of nothing
+  const DAY_MS = 86400000;
 
   const isValidISO = (s) => typeof s === 'string' && ISO_RE.test(s);
   const isGoodId = (id) => GOOD_IDS.includes(id);
@@ -180,6 +188,70 @@
     return { count: rows.length, good, bad, goodTotal, badTotal, rows };
   }
 
+  /**
+   * Every real row in the whole store, flattened and stamped with the night it
+   * is about, newest SUBMISSION first. Pure. Used to build the overview.
+   */
+  function allSubmissions(state, names) {
+    const all = state && isPlainMap(state.feedback) ? state.feedback : {};
+    const nameMap = isPlainMap(names) ? names : {};
+    const rows = [];
+    for (const night of Object.keys(all)) {
+      if (!isValidISO(night)) continue;
+      const day = isPlainMap(all[night]) ? all[night] : {};
+      for (const pid of Object.keys(day)) {
+        const rec = day[pid];
+        if (!hasContent(rec)) continue;
+        const at = Number(rec.at) || 0;
+        const updatedAt = Number(rec.updatedAt) || at;
+        rows.push({
+          night,
+          playerId: pid,
+          name: nameMap[pid] || rec.name || pid,
+          good: cleanOptions(rec.good, GOOD_IDS),
+          bad: cleanOptions(rec.bad, BAD_IDS),
+          goodNote: cleanNote(rec.goodNote),
+          badNote: cleanNote(rec.badNote),
+          at,
+          updatedAt,
+          edited: updatedAt > at,
+        });
+      }
+    }
+    rows.sort((a, b) => (b.updatedAt - a.updatedAt)
+      || b.night.localeCompare(a.night)
+      || String(a.name).localeCompare(String(b.name), undefined, { sensitivity: 'base' }));
+    return rows;
+  }
+
+  /**
+   * The overview: every reply SUBMITTED in the last `days` days, whatever night
+   * it is about, grouped under its night (newest night first) so the admin can
+   * jump straight to that date. When nothing landed in the window the latest
+   * `limit` replies are returned instead with `fallback:true` — an empty tab is
+   * worse than a slightly older one. Pure; `nowMs` is injected.
+   */
+  function recentSubmissions(state, ctx) {
+    const c = ctx && typeof ctx === 'object' ? ctx : {};
+    const nowMs = Number(c.nowMs) || 0;
+    const days = Number.isFinite(Number(c.days)) ? Number(c.days) : RECENT_DAYS;
+    const limit = Math.max(1, Math.trunc(Number(c.limit)) || RECENT_FALLBACK);
+    const rows = allSubmissions(state, c.names);
+    const since = nowMs - days * DAY_MS;
+    const inWindow = rows.filter((r) => r.updatedAt >= since);
+    const fallback = !inWindow.length && rows.length > 0;
+    const use = fallback ? rows.slice(0, limit) : inWindow;
+    const byNight = new Map();
+    for (const r of use) {
+      if (!byNight.has(r.night)) byNight.set(r.night, []);
+      byNight.get(r.night).push(r);
+    }
+    const nights = Array.from(byNight.keys())
+      .sort((a, b) => b.localeCompare(a))
+      .map((night) => ({ night, rows: byNight.get(night) }));
+    return { days, since, fallback, count: use.length, total: rows.length, rows: use, nights };
+  }
+
   /** Every night that has at least one real row, newest first. Pure. */
   function nightsWithFeedback(state) {
     const all = state && isPlainMap(state.feedback) ? state.feedback : {};
@@ -214,9 +286,11 @@
   return {
     GOOD_OPTIONS, BAD_OPTIONS, GOOD_IDS, BAD_IDS, LABELS,
     MAX_NOTE, DEFAULT_POINTS, MAX_POINTS_PER, RETENTION_DAYS,
+    RECENT_DAYS, RECENT_FALLBACK,
     isValidISO, isGoodId, isBadId, labelOf, isPointsValue,
     cleanOptions, cleanNote, settingsOf,
     buildSubmission, recordFor, hasContent,
     summarizeNight, nightsWithFeedback, countFor, pruneFeedback,
+    allSubmissions, recentSubmissions,
   };
 });
