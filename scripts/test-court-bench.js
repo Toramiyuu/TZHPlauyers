@@ -161,12 +161,14 @@ const court = (t1, t2) => ({ team1: t1, team2: t2 });
   check('wait-length group labels reuse the bench label class', benchSrc.includes('frb-side rest-side'));
   const pickerSrc = extractFn('openCourtSlotPicker', html) || '';
   check('slot tap opens the shared picker popover', pickerSrc.includes('openPslotAt'));
-  // Bench placement: beside the round list (sticky side panel), not the court cards.
+  // Bench placement: beside the QUEUE (sticky side panel), not the court cards.
+  // It sits with the queue because that is where a waiting name gets dragged
+  // into a seat; the cards above are the games already under way.
   const boardAt = html.indexOf('<div class="crt-board">');
-  check('bench board wraps the round list',
+  check('bench board wraps the queue',
     boardAt > -1 && html.indexOf('id="restingStrip"', boardAt) > -1
-    && html.indexOf('id="roundListWrap"', boardAt) > -1
-    && html.indexOf('id="roundListWrap"', boardAt) < html.indexOf('</div><!-- /courts tab -->'));
+    && html.indexOf('id="queueListWrap"', boardAt) > -1
+    && html.indexOf('id="queueListWrap"', boardAt) < html.indexOf('</div><!-- /courts tab -->'));
   check('court cards grid is no longer inside the bench board',
     html.indexOf('id="courtCtrlGrid"') < boardAt);
   // Bench chips drop onto round/Up Next editor slots via the shared commit.

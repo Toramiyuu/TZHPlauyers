@@ -30,13 +30,15 @@ const fn = (name) => extractFn(name, html) || '';
 // ── script include ──
 check('payments.js is loaded before the inline app script', html.indexOf('<script src="payments.js"></script>') > -1 && html.indexOf('<script src="payments.js"></script>') < html.lastIndexOf('<script>'));
 
-// ── Courts footer: End of the day bottom-right, next to Add Round Manually ──
+// ── Courts footer: End of the day bottom-right, next to "+ Add a game" ──
+// ("+ Add Round Manually" until the courts stopped sharing rounds; a game is
+// added to the shared queue now, one at a time, with no round around it.)
 const footAt = html.indexOf('class="crt-foot');
 const courtsEnd = html.indexOf('<!-- /courts tab -->');
 const foot = footAt > -1 ? html.slice(footAt, courtsEnd) : '';
 check('Courts footer exists inside the Courts tab', footAt > -1 && footAt < courtsEnd);
-check('footer holds Add Round Manually AND End of the day', foot.includes('addEmptyRound()') && foot.includes('id="eodBtn"'));
-check('End of the day sits to the right of Add Round', foot.indexOf('addEmptyRound()') < foot.indexOf('id="eodBtn"'));
+check('footer holds Add a game AND End of the day', foot.includes('addQueueGame()') && foot.includes('id="eodBtn"'));
+check('End of the day sits to the right of Add a game', foot.indexOf('addQueueGame()') < foot.indexOf('id="eodBtn"'));
 check('footer status line jumps to the Payments tab', foot.includes('id="eodStatus"') && foot.includes("setAdminTab('payments')"));
 check('.crt-foot flex row, right column', /\.crt-foot\{[^}]*justify-content:space-between/.test(html) && /\.crt-foot-end\{[^}]*align-items:flex-end/.test(html));
 

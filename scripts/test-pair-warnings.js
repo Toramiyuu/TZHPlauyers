@@ -104,10 +104,19 @@ const ok = (label, conds) => {
     }
     return null;
   }
-  ok('renderRoundList seeds .pair-warn blocks from session pair counts', [
-    (extractFn('renderRoundList', html) || '').includes('Matchmaking.pairCounts'),
-    (extractFn('renderRoundList', html) || '').includes('pw_${i}_${c}'),
+  // The queue editor replaced the round editor. Its counts come from
+  // pairCountsAll, which adds the games already PLAYED to the ones on the
+  // courts — counting only the live board would let the third time two people
+  // are put together go unremarked, because the first two are in the record.
+  ok('renderQueue seeds .pair-warn blocks from whole-night pair counts', [
+    (extractFn('renderQueue', html) || '').includes('pairCountsAll'),
+    (extractFn('renderQueue', html) || '').includes('pw_q_${i}'),
     (extractFn('selectorsRowHTML', html) || '').includes('pair-warn'),
+  ]);
+  ok('whole-night counts include the finished games, not just the live courts', [
+    (extractFn('pairCountsAll', html) || '').includes('Matchmaking.pairCounts'),
+    /played/.test(extractFn('pairCountsAll', html) || ''),
+    (extractFn('renderCourtControls', html) || '').includes('pairCountsAll'),
   ]);
   ok('live refresh: pick commits recompute warnings from the DOM slots', [
     (extractFn('refreshCourtChip', html) || '').includes('refreshPairWarnings'),

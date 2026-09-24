@@ -14,12 +14,12 @@
  *   normalizeCourtStatus / setCourtStatusAt   per-court 'live'|'next'|'final'
  *   normalizeCourtLocks  / setCourtLockAt     per-court lock booleans
  *   normalizeCourtLive   / setCourtLiveAt     per-court game-start stamps (ms)
- *   restampCourtLive                          restart the clock of Live courts
+ *   takeNextGame / putGameBack                restart one court's clock
  *                                             whose round changed
  *   formatElapsed                             ms -> M:SS / H:MM:SS
  *   setCourtNumberAt                          pick a court number (swaps on clash)
  *   applyCourtDrop                            drop one court slot from the day
- *   applyLockedFirstRound                     keep locked courts in round 1
+ *   (applyLockedFirstRound is gone: generating cannot touch a live court)
  *   liveClockHTML                             the shared clock chip markup
  *
  * Part 2 statically checks that both boards actually render the new controls.
@@ -60,9 +60,9 @@ const NAMES = [
   'normalizeCourtNumbers', 'normalizeEndingSoon',
   'normalizeCourtStatus', 'setCourtStatusAt',
   'normalizeCourtLocks', 'setCourtLockAt',
-  'normalizeCourtLive', 'setCourtLiveAt', 'restampCourtLive',
+  'normalizeCourtLive', 'setCourtLiveAt',
   'formatElapsed', 'setCourtNumberAt', 'applyCourtDrop',
-  'applyLockedFirstRound', 'liveClockHTML',
+  'liveClockHTML',
 ];
 const constSrc = (html.match(/const COURT_STATUSES = \[[^\]]*\];/) || [])[0];
 if (!constSrc) failures.push('COURT_STATUSES is not defined in public/index.html');
@@ -168,216 +168,16 @@ if (H.normalizeCourtStatus) {
     }
   }
 
-  // ── restampCourtLive ────────────────────────────────────────────
-  {
-    const { restampCourtLive: restamp } = H;
-    const NOW = 1700000000000;
-    // 1. A Live court that moved round restarts its clock.
-    {
-      const a = restamp([111, 222], ['live', 'live'], [0, 0], [1, 0], 2, NOW);
-      check('restampCourtLive: restarts the court that changed round', a && a[0] === NOW);
-      check('restampCourtLive: leaves the unchanged court alone', a && a[1] === 222);
-    }
-    // 2. A court that is NOT live has no game running — its clock stays stopped.
-    {
-      const a = restamp([111, 222], ['next', 'final'], [0, 0], [1, 1], 2, NOW);
-      check('restampCourtLive: a non-live court is stopped, not restarted', a && a[0] === 0 && a[1] === 0);
-    }
-    // 3. Nothing changed round -> null, so the caller can skip the write.
-    {
-      check('restampCourtLive: no round change -> null',
-        restamp([111, 222], ['live', 'live'], [0, 1], [0, 1], 2, NOW) === null);
-    }
-    // 4. Already-stopped non-live courts changing round is still null (no churn).
-    {
-      check('restampCourtLive: stopped non-live court -> null',
-        restamp([0, 0], ['next', 'next'], [0, 0], [1, 1], 2, NOW) === null);
-    }
-    // 5. Pure, and missing status/round arrays are tolerated.
-    {
-      const input = [111, 222];
-      restamp(input, ['live', 'live'], [0, 0], [1, 1], 2, NOW);
-      check('restampCourtLive: does not mutate input', input[0] === 111);
-      check('restampCourtLive: missing status -> treated as live',
-        (restamp([0, 0], undefined, [0, 0], [1, 1], 2, NOW) || [])[0] === NOW);
-    }
-  }
+  // restampCourtLive is GONE. It took a whole array of round indices and
+  // restarted the clock of every court whose index had moved, because an
+  // all-courts advance could restart several at once. Nothing moves more than
+  // one court now, so takeNextGame stamps the single court it touched and
+  // putGameBack winds that one back. Asserted against the source further down.
 
-  // ── formatElapsed ───────────────────────────────────────────────
-  {
-    const { formatElapsed: fmt } = H;
-    check('formatElapsed: zero', fmt(0) === '0:00');
-    check('formatElapsed: seconds pad to two digits', fmt(7000) === '0:07');
-    check('formatElapsed: minutes do not pad', fmt(9 * 60000 + 5000) === '9:05');
-    check('formatElapsed: past ten minutes', fmt(12 * 60000 + 34000) === '12:34');
-    check('formatElapsed: an hour switches to H:MM:SS', fmt(3600000) === '1:00:00');
-    check('formatElapsed: H:MM:SS pads minutes', fmt(3600000 + 5 * 60000 + 9000) === '1:05:09');
-    check('formatElapsed: rounds down to the whole second', fmt(1999) === '0:01');
-    // A future or junk stamp must read 0:00 — the clock never runs backwards.
-    check('formatElapsed: negative reads zero', fmt(-5000) === '0:00');
-    check('formatElapsed: junk reads zero', fmt('x') === '0:00' && fmt(undefined) === '0:00');
-  }
-
-  // ── setCourtNumberAt ────────────────────────────────────────────
-  {
-    const { setCourtNumberAt: set } = H;
-    // 1. A free number is simply taken.
-    {
-      const a = set([1, 2], 1, 2, 4);
-      check('setCourtNumberAt: takes a free number', a[0] === 1 && a[1] === 4);
-    }
-    // 2. A number another slot owns SWAPS the two — labels stay unique.
-    {
-      const a = set([3, 4], 0, 2, 4);
-      check('setCourtNumberAt: clashing number swaps the two slots', a[0] === 4 && a[1] === 3);
-      check('setCourtNumberAt: no duplicate labels after a swap', new Set(a).size === 2);
-    }
-    // 3. Re-picking the number a slot already has changes nothing.
-    {
-      const a = set([1, 2], 0, 2, 1);
-      check('setCourtNumberAt: re-picking the same number is a no-op', a[0] === 1 && a[1] === 2);
-    }
-    // 4. Junk, out-of-range slots and pre-feature state are all safe.
-    {
-      check('setCourtNumberAt: out-of-range slot is a no-op', set([1, 2], 5, 2, 3)[0] === 1);
-      check('setCourtNumberAt: junk number is a no-op', set([1, 2], 0, 2, 'x')[0] === 1);
-      check('setCourtNumberAt: zero/negative is a no-op', set([1, 2], 0, 2, 0)[0] === 1);
-      const a = set(undefined, 1, 2, 3);
-      check('setCourtNumberAt: missing courtNumbers falls back to slot+1', a[0] === 1 && a[1] === 3);
-    }
-    // 5. Pure.
-    {
-      const input = [1, 2];
-      set(input, 0, 2, 4);
-      check('setCourtNumberAt: does not mutate input', input[0] === 1);
-    }
-  }
-
-  // ── applyCourtDrop ──────────────────────────────────────────────
-  {
-    const { applyCourtDrop: drop } = H;
-    const base = () => ({
-      numCourts: 3,
-      currentRound: 0,
-      courtNumbers: [1, 2, 3],
-      courtRounds: [0, 1, 2],
-      endingSoon: [false, true, false],
-      courtStatus: ['live', 'next', 'final'],
-      courtLocks: [false, false, true],
-      courtLive: [0, 111, 222],
-      rounds: [
-        { label: 'R1', courts: [{ team1: ['a', 'b'], team2: ['c', 'd'] }, { team1: ['e', 'f'], team2: ['g', 'h'] }, { team1: ['i', 'j'], team2: ['k', 'l'] }] },
-        { label: 'R2', courts: [{ team1: ['1'], team2: ['2'] }, { team1: ['3'], team2: ['4'] }, { team1: ['5'], team2: ['6'] }] },
-      ],
-    });
-    // 1. Dropping the MIDDLE court shifts everything indexed by slot, so the
-    //    courts that stay keep their own pairings instead of inheriting.
-    {
-      const u = drop(base(), 1);
-      check('applyCourtDrop: numCourts falls by one', u.numCourts === 2);
-      check('applyCourtDrop: court numbers shift', u.courtNumbers.join() === '1,3');
-      check('applyCourtDrop: round pointers shift', u.courtRounds.join() === '0,2');
-      check('applyCourtDrop: ending-soon flags shift', u.endingSoon.join() === 'false,false');
-      check('applyCourtDrop: statuses shift', u.courtStatus.join() === 'live,final');
-      check('applyCourtDrop: locks shift', u.courtLocks.join() === 'false,true');
-      check('applyCourtDrop: game clocks shift', u.courtLive.join() === '0,222');
-      check('applyCourtDrop: every round loses that court slot',
-        u.rounds.length === 2 && u.rounds.every(r => r.courts.length === 2));
-      check('applyCourtDrop: the surviving courts keep their own players',
-        u.rounds[0].courts[0].team1.join() === 'a,b' && u.rounds[0].courts[1].team1.join() === 'i,j');
-      check('applyCourtDrop: round labels survive', u.rounds[1].label === 'R2');
-    }
-    // 2. Dropping the last slot works too.
-    {
-      const u = drop(base(), 2);
-      check('applyCourtDrop: drops the last slot', u.courtNumbers.join() === '1,2' && u.rounds[0].courts.length === 2);
-    }
-    // 3. Refuses to leave the day with no court, and ignores bad indexes.
-    {
-      check('applyCourtDrop: the last remaining court cannot be dropped',
-        drop({ numCourts: 1, rounds: [] }, 0) === null);
-      check('applyCourtDrop: out-of-range index -> null', drop(base(), 7) === null);
-      check('applyCourtDrop: negative index -> null', drop(base(), -1) === null);
-    }
-    // 4. Pure, and tolerant of pre-feature state that has only numCourts.
-    {
-      const input = base();
-      drop(input, 1);
-      check('applyCourtDrop: does not mutate input',
-        input.numCourts === 3 && input.rounds[0].courts.length === 3 && input.courtNumbers.join() === '1,2,3');
-      const u = drop({ numCourts: 2 }, 0);
-      check('applyCourtDrop: bare state still yields a full update',
-        u && u.numCourts === 1 && u.courtNumbers.join() === '2' && u.courtRounds.join() === '0'
-        && u.courtStatus.join() === 'live' && Array.isArray(u.rounds) && u.rounds.length === 0);
-    }
-  }
-
-  // ── applyLockedFirstRound ───────────────────────────────────────
-  {
-    const { applyLockedFirstRound: lock } = H;
-    const gen = () => [
-      { label: 'R1', courts: [
-        { team1: ['a', 'b'], team2: ['c', 'd'] },
-        { team1: ['e', 'f'], team2: ['g', 'h'] },
-      ] },
-      { label: 'R2', courts: [
-        { team1: ['a', 'c'], team2: ['e', 'g'] },
-        { team1: ['b', 'd'], team2: ['f', 'h'] },
-      ] },
-    ];
-    // 1. A locked court's four are swapped back onto it in round 1.
-    {
-      const want = { team1: ['a', 'e'], team2: ['c', 'g'] };
-      const out = lock(gen(), [true, false], [want, null]);
-      const c0 = out[0].courts[0];
-      check('applyLockedFirstRound: locked court gets its four back',
-        c0.team1.join() === 'a,e' && c0.team2.join() === 'c,g');
-      // Whoever they displaced took the seats the locked players came from, so
-      // round 1 still holds exactly the same eight players.
-      const ids = out[0].courts.flatMap(c => [...c.team1, ...c.team2]).sort().join();
-      check('applyLockedFirstRound: round 1 keeps the same eight players', ids === 'a,b,c,d,e,f,g,h');
-      check('applyLockedFirstRound: no player is seated twice',
-        new Set(out[0].courts.flatMap(c => [...c.team1, ...c.team2])).size === 8);
-    }
-    // 2. A locked player the scheduler had RESTING in round 1 still gets their
-    //    seat; the person they displace is the one who rests instead.
-    {
-      const out = lock(gen(), [true, false], [{ team1: ['a', 'z'], team2: ['c', 'd'] }, null]);
-      const c0 = out[0].courts[0];
-      check('applyLockedFirstRound: a resting locked player is seated',
-        c0.team1.join() === 'a,z' && c0.team2.join() === 'c,d');
-      check('applyLockedFirstRound: the displaced player is benched, not duplicated',
-        !out[0].courts.flatMap(c => [...c.team1, ...c.team2]).includes('b'));
-      check('applyLockedFirstRound: the other court is untouched by a bench swap',
-        out[0].courts[1].team1.join() === 'e,f' && out[0].courts[1].team2.join() === 'g,h');
-    }
-    // 3. Later rounds are left entirely to the scheduler.
-    {
-      const out = lock(gen(), [true, false], [{ team1: ['a', 'e'], team2: ['c', 'g'] }, null]);
-      check('applyLockedFirstRound: round 2 is untouched',
-        out[1].courts[0].team1.join() === 'a,c' && out[1].courts[1].team2.join() === 'f,h');
-    }
-    // 4. Unlocked, missing and empty pairings are skipped.
-    {
-      const out = lock(gen(), [false, false], [{ team1: ['x', 'y'], team2: ['z', 'w'] }, null]);
-      check('applyLockedFirstRound: an unlocked court is untouched',
-        out[0].courts[0].team1.join() === 'a,b');
-      const out2 = lock(gen(), [true, true], [null, undefined]);
-      check('applyLockedFirstRound: a locked court with no pairing is untouched',
-        out2[0].courts[0].team1.join() === 'a,b' && out2[0].courts[1].team1.join() === 'e,f');
-      const out3 = lock(gen(), [true, false], [{ team1: ['g', ''], team2: ['', ''] }, null]);
-      check('applyLockedFirstRound: empty slots in a pairing are skipped',
-        out3[0].courts[0].team1[0] === 'g' && out3[0].courts[0].team1[1] === 'b');
-    }
-    // 5. Pure, and safe on an empty schedule.
-    {
-      const input = gen();
-      lock(input, [true, false], [{ team1: ['a', 'e'], team2: ['c', 'g'] }, null]);
-      check('applyLockedFirstRound: does not mutate input', input[0].courts[0].team1.join() === 'a,b');
-      check('applyLockedFirstRound: empty schedule -> []', lock([], [true], [{}]).length === 0);
-      check('applyLockedFirstRound: missing rounds -> []', lock(undefined, [true], [{}]).length === 0);
-    }
-  }
+  // applyLockedFirstRound is GONE. Generating used to replace round 1, which
+  // WAS the live games, so a locked court's four had to be carried across by
+  // hand. Generating now only fills the queue and cannot touch a court that is
+  // playing, so the lock is honoured by construction.
 
   // ── liveClockHTML ───────────────────────────────────────────────
   {
@@ -434,7 +234,14 @@ if (H.normalizeCourtStatus) {
   check('Courts cards have a lock', courtsRender.includes('frb-lock') && courtsRender.includes('toggleCourtLock('));
   check('Courts cards have a drop (x) button', courtsRender.includes('fr-mu-del') && courtsRender.includes('dropCourt('));
   check('Courts cards use the pod team rows', courtsRender.includes('frb-row red') && courtsRender.includes('frb-row blue'));
-  check('Courts cards keep the round nav', courtsRender.includes('crt-rnav') && courtsRender.includes('advanceCourt('));
+  // The round stepper is gone. A card takes its next game off the shared queue
+  // and can put it back; it no longer walks a shared round index, because
+  // moving a court that is still playing is the unfairness this replaced.
+  check('Courts cards take the next game from the queue',
+    courtsRender.includes('crt-next') && courtsRender.includes('nextGameOnCourt('));
+  check('Courts cards can undo the game they just took', courtsRender.includes('undoCourtGame('));
+  check('Courts cards no longer step through rounds',
+    !courtsRender.includes('crt-rnav') && !courtsRender.includes('advanceCourt('));
   check('Courts cards show repeat-pairing warnings', courtsRender.includes('pairWarnHTML('));
   // "Layout only": the session board records no scores, so it must NOT grow the
   // Friendly score steppers or a Record button.
@@ -461,12 +268,23 @@ if (H.normalizeCourtStatus) {
   check('setting a Friendly pod Live stamps its clock', html.includes('m.liveSince = m.status === \'live\' ? Date.now() : 0'));
   check('recording a Friendly result restarts the clock', (extractFn('recordFriendlyResult', html) || '').includes('m.liveSince = Date.now()'));
 
-  // A new game on a court restarts its clock.
-  for (const fn of ['advanceCourt', 'startNextRound', 'stepAllCourts', 'setCurrentRound']) {
-    check(`${fn} restarts the clocks of courts that changed round`, (extractFn(fn, html) || '').includes('restampCourtLive('));
+  // A new game on a court restarts that court's clock, and only that one.
+  // restampCourtLive compared a whole round-index array because an all-courts
+  // advance could restart several clocks at once; nothing moves more than one
+  // court any more, so takeNextGame stamps the single court it touched.
+  check('taking the next game restarts that court\'s clock',
+    (extractFn('takeNextGame', html) || '').includes('setCourtLiveAt(s.courtLive, courtIdx'));
+  check('undoing a game puts the clock back to when that game started',
+    (extractFn('putGameBack', html) || '').includes('setCourtLiveAt(s.courtLive, courtIdx, numCourts, restoredAt)'));
+  for (const dead of ['restampCourtLive', 'applyLockedFirstRound']) {
+    check(`${dead}() stays deleted with the round model`, extractFn(dead, html) === null);
   }
-  check('a fresh schedule clears every game clock', (extractFn('generateSchedule', html) || '').includes('courtLive'));
-  check('a fresh schedule honours locked courts', (extractFn('generateSchedule', html) || '').includes('applyLockedFirstRound('));
+  // Generating only fills the QUEUE now, so it cannot disturb a game in
+  // progress at all — which is why locked courts need no special case in it.
+  check('generating never touches a live clock',
+    !(extractFn('generateSchedule', html) || '').includes('courtLive'));
+  check('generating only writes the queue',
+    (extractFn('generateSchedule', html) || '').includes('saveQueue(queue)'));
 
   // Viewer: Up Next / Final show a pill; a Live court looks exactly as before.
   check('viewer court cards take a status', /function buildCourtCard\(num, court, roundLabel, endingSoon, status\)/.test(html));
@@ -487,11 +305,11 @@ if (failures.length) {
   process.exit(1);
 } else {
   console.log('  PASS  per-court status / lock / clock arrays normalize, set and stay pure');
-  console.log('  PASS  a court changing round restarts its clock (Live only)');
+  console.log('  PASS  taking a game restarts one court clock; undo winds it back');
   console.log('  PASS  formatElapsed renders M:SS and H:MM:SS and never goes backwards');
   console.log('  PASS  picking a taken court number swaps the two slots');
   console.log('  PASS  dropping a court shifts every slot-indexed field with it');
-  console.log('  PASS  locked courts keep their four in round 1 of a new schedule');
+  console.log('  PASS  generating fills only the queue, so it cannot disturb a live court');
   console.log('  PASS  the clock chip only renders on a Live court, and one tap stops or starts it');
   console.log('  PASS  both boards render the pod controls; Courts stays score-free');
   console.log('\nRESULT: PASS — all court-card assertions green.');

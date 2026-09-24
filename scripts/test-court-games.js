@@ -1,25 +1,28 @@
 #!/usr/bin/env node
 /*
- * test-court-games.js — guard for the late-opening court label.
+ * test-court-games.js — guard for the game number on a court card.
  *
- * Not every court opens at 9pm. The 5:30 court joins a couple of rounds in, so
- * its courtRounds index sits permanently below the others': the board showed
- * "Round 11" on that card while the rest showed "Round 12", and it never caught
- * up. Nothing is actually wrong — that court has simply played fewer games — so
- * it is labelled by its OWN game count instead.
+ * WHAT CHANGED. This file used to be about ONE awkward case: not every court
+ * opens at 9pm, and the 5:30 court's round index sat permanently below the
+ * others', so its card read "Round 11" while the rest read "Round 12" and it
+ * never caught up. Nothing was wrong — that court had simply played fewer
+ * games — so it alone was labelled by its own count:
  *
- * PURE helpers in public/index.html:
+ *   courtHasLineup / courtFirstRound / courtGameNumber(rounds, court, roundIdx)
+ *   courtRoundLabel(rounds, court, roundIdx) -> "Round 12", or "Game 9" for a
+ *                                               court that opened late
  *
- *   courtHasLineup(round, courtIdx)        -> bool. The padded empty slot
- *       ({team1:['',''],team2:['','']}) is NOT a game.
- *   courtFirstRound(rounds, courtIdx)      -> first round index played, -1 if never.
- *   courtGameNumber(rounds, courtIdx, ri)  -> 1-based own-game number at ri; the
- *       current round always counts (filled or not); 0 before the court opens.
- *   courtRoundLabel(rounds, courtIdx, ri)  -> { text, title }. Courts that ran
- *       all night keep the shared round label unchanged; only a late court
- *       switches to "Game N".
+ * The special case is now the only case. Courts no longer share rounds at all,
+ * so there is no shared number left for a court to be "behind" on, and every
+ * card counts its own games out of the record of what has been played:
  *
- * Extracts the helpers from the inline <script> and asserts their behaviour.
+ *   courtGameNumber(played, courtIdx, onCourt) -> games played, +1 for the one on
+ *   courtGameLabel(played, courtIdx, onCourt)  -> "Game N", or "Free" between games
+ *
+ * courtHasLineup survives, because padding and the court-drop logic still ask
+ * whether a slot holds a real game or the empty {team1:['',''],team2:['','']}.
+ *
+ * Exit 0 = green, exit 1 = red.
  */
 'use strict';
 const fs = require('fs');
@@ -43,15 +46,15 @@ function extractFn(name, src) {
   return null;
 }
 
-const NAMES = ['courtHasLineup', 'courtFirstRound', 'courtGameNumber', 'courtRoundLabel'];
+const NAMES = ['courtHasLineup', 'courtGameNumber', 'courtGameLabel'];
 const srcs = NAMES.map(n => {
   const s = extractFn(n, html);
   if (!s) { console.error(`FAIL: ${n}() not found in public/index.html`); process.exit(1); }
   return s;
 });
-// All four are loaded together — courtRoundLabel calls the other three.
+// courtGameLabel calls courtGameNumber, so they load together.
 const api = new Function(`${srcs.join('\n')}; return { ${NAMES.join(', ')} };`)();
-const { courtHasLineup, courtFirstRound, courtGameNumber, courtRoundLabel } = api;
+const { courtHasLineup, courtGameNumber, courtGameLabel } = api;
 
 const failures = [];
 const check = (name, cond) => { if (!cond) failures.push(name); };
@@ -59,87 +62,84 @@ const check = (name, cond) => { if (!cond) failures.push(name); };
 const EMPTY = () => ({ team1: ['', ''], team2: ['', ''] });
 const filled = (n) => ({ team1: ['p' + n + 'a', 'p' + n + 'b'], team2: ['p' + n + 'c', 'p' + n + 'd'] });
 
-// Three courts (indices 0,1,2). Court index 1 is the 5:30 court: it sits empty
-// for rounds 0 and 1, then plays from round 2 on. 13 rounds, like the real board.
-const rounds = [];
-for (let r = 0; r < 13; r++) {
-  rounds.push({
-    label: `Round ${r + 1}`,
-    courts: [filled(r), r < 2 ? EMPTY() : filled(r + 100), filled(r + 200)],
-  });
-}
-
 // ── courtHasLineup ──
-check('courtHasLineup true for a filled slot', courtHasLineup(rounds[0], 0) === true);
-check('courtHasLineup false for the padded empty slot', courtHasLineup(rounds[0], 1) === false);
-check('courtHasLineup true once the late court opens', courtHasLineup(rounds[2], 1) === true);
-check('courtHasLineup false for a missing court slot', courtHasLineup(rounds[0], 9) === false);
-check('courtHasLineup false for a null round', courtHasLineup(null, 0) === false);
-check('courtHasLineup true when only one seat is filled',
-  courtHasLineup({ courts: [{ team1: ['x', ''], team2: ['', ''] }] }, 0) === true);
-
-// ── courtFirstRound ──
-check('courtFirstRound 0 for a court that ran all night', courtFirstRound(rounds, 0) === 0);
-check('courtFirstRound 2 for the 5:30 court', courtFirstRound(rounds, 1) === 2);
-check('courtFirstRound -1 for a court that never plays', courtFirstRound(rounds, 9) === -1);
-check('courtFirstRound -1 on a non-array', courtFirstRound(null, 0) === -1);
+// Still needed: padRoundsToCourts pads a new court with an empty slot, and that
+// padding is NOT a game.
+{
+  const row = { label: 'Live', courts: [filled(1), EMPTY(), filled(2)] };
+  check('courtHasLineup true for a filled slot', courtHasLineup(row, 0) === true);
+  check('courtHasLineup false for the padded empty slot', courtHasLineup(row, 1) === false);
+  check('courtHasLineup false for a court that does not exist', courtHasLineup(row, 9) === false);
+  check('courtHasLineup false on a missing row', courtHasLineup(null, 0) === false);
+  // One name is enough to make it a game: a half-arranged court is still in use.
+  check('courtHasLineup true with a single name',
+    courtHasLineup({ courts: [{ team1: ['x', ''], team2: ['', ''] }] }, 0) === true);
+}
 
 // ── courtGameNumber ──
-// A court that played every round: its game number IS the round number.
-check('all-night court: game number tracks the round number',
-  courtGameNumber(rounds, 0, 0) === 1 && courtGameNumber(rounds, 0, 11) === 12 && courtGameNumber(rounds, 0, 12) === 13);
-// The 5:30 court, two rounds behind: at Round 12 (index 11) it is on its 10th game.
-check('late court on round index 11 is its 10th game', courtGameNumber(rounds, 1, 11) === 10);
-check('late court on round index 10 is its 9th game', courtGameNumber(rounds, 1, 10) === 9);
-check('late court first game is game 1', courtGameNumber(rounds, 1, 2) === 1);
-check('late court is 0 before it opens', courtGameNumber(rounds, 1, 0) === 0 && courtGameNumber(rounds, 1, 1) === 0);
-check('never-played court is always 0', courtGameNumber(rounds, 9, 5) === 0);
-check('courtGameNumber 0 on empty rounds', courtGameNumber([], 0, 0) === 0);
-check('courtGameNumber clamps a round index past the end', courtGameNumber(rounds, 0, 999) === 13);
-
-// The current round always counts, so the number does not jump while the admin
-// fills the slots: an empty current round reads the same as a filled one.
-const midEdit = rounds.map((r, i) => (i === 11
-  ? { ...r, courts: r.courts.map((c, ci) => (ci === 1 ? EMPTY() : c)) } : r));
-check('current round counts even while still empty (no jump mid-edit)',
-  courtGameNumber(midEdit, 1, 11) === 10);
-
-// A court that stops early and resumes only counts the rounds it actually played.
-const gapped = rounds.map((r, i) => (i === 5
-  ? { ...r, courts: r.courts.map((c, ci) => (ci === 1 ? EMPTY() : c)) } : r));
-check('a skipped round does not count toward the game number',
-  courtGameNumber(gapped, 1, 11) === 9);
-
-// ── courtRoundLabel ──
-const all = courtRoundLabel(rounds, 0, 11);
-check('all-night court keeps the shared round label', all.text === 'Round 12');
-check('all-night court gets no hover text', all.title === '');
-const late = courtRoundLabel(rounds, 1, 11);
-check('late court reads as its own game', late.text === 'Game 10');
-check('late court hover still names the underlying round', late.title.indexOf('Round 12') === 0);
-const never = courtRoundLabel(rounds, 9, 11);
-check('never-played court falls back to the round label', never.text === 'Round 12' && never.title === '');
-check('label falls back to "Round N" when the round carries no label',
-  courtRoundLabel([{ courts: [filled(0)] }], 0, 0).text === 'Round 1');
-check('label survives a missing rounds array', courtRoundLabel(null, 0, 3).text === 'Round 4');
-
-// Inputs are never mutated.
-const before = JSON.stringify(rounds);
-courtRoundLabel(rounds, 1, 11);
-courtGameNumber(rounds, 1, 11);
-check('helpers never mutate the rounds they read', JSON.stringify(rounds) === before);
-
-// ── DOM glue: both boards must actually use the helper ──
-check('admin court card labels via courtRoundLabel',
-  /const rlab = courtRoundLabel\(state\.rounds, i, ri\)/.test(html)
-  && /class="crt-rnav-lbl"[^>]*>\$\{escHtml\(rlab\.text\)\}/.test(html));
-check('viewer court card labels via courtRoundLabel',
-  /courtRoundLabel\(state\.rounds, i, courtRounds\[i\] \?\? 0\)/.test(html)
-  && /buildCourtCard\(courtLabel\(i\), court, round \? rlab\.text : null/.test(html));
-
-if (failures.length) {
-  console.error('test-court-games.js FAILED:');
-  failures.forEach(f => console.error('  ✗ ' + f));
-  process.exit(1);
+{
+  const played = [
+    { court: 0, team1: ['a', 'b'], team2: ['c', 'd'] },
+    { court: 1, team1: ['e', 'f'], team2: ['g', 'h'] },
+    { court: 0, team1: ['i', 'j'], team2: ['k', 'l'] },
+  ];
+  check('a court counts only its own finished games', courtGameNumber(played, 0, false) === 2);
+  check('another court counts only its own', courtGameNumber(played, 1, false) === 1);
+  check('a court that has not played reads zero', courtGameNumber(played, 2, false) === 0);
+  // The game ON the court is the one the card is describing, so it counts.
+  check('the game in progress counts as this court\'s next number',
+    courtGameNumber(played, 0, true) === 3);
+  check('a court with nothing on it counts only what it finished',
+    courtGameNumber(played, 2, true) === 1);
+  check('an empty record is safe', courtGameNumber([], 0, false) === 0);
+  check('a missing record is safe', courtGameNumber(null, 0, true) === 1);
 }
-console.log('test-court-games.js: all checks passed');
+
+// A game recovered from a night saved under the old round model may carry no
+// court key at all. It must count against court 0 rather than vanishing.
+{
+  const played = [{ team1: ['a', 'b'], team2: ['c', 'd'] }];
+  check('a game with no court recorded counts as court 1', courtGameNumber(played, 0, false) === 1);
+  check('and is not counted against another court', courtGameNumber(played, 1, false) === 0);
+}
+
+// ── courtGameLabel ──
+{
+  const played = [{ court: 0, team1: ['a', 'b'], team2: ['c', 'd'] }];
+  check('a court with a game on it names its number', courtGameLabel(played, 0, true) === 'Game 2');
+  // "Game 1" on a court with nobody on it would be the number of a game that
+  // has already finished, which reads as though it were still running.
+  check('a court between games says it is free', courtGameLabel(played, 0, false) === 'Free');
+  check('the first game of the night on a fresh court is Game 1',
+    courtGameLabel([], 3, true) === 'Game 1');
+}
+
+// ── the round-based versions stay deleted ──
+// courtRoundLabel returned { text, title } and read a round index. Its return
+// would mean a card is describing a shared round again.
+for (const dead of ['courtFirstRound', 'courtRoundLabel']) {
+  check(`${dead}() stays deleted`, extractFn(dead, html) === null);
+}
+
+// Both the hall screen and the admin board must use the same label, or the
+// organiser's phone and the screen on the wall disagree about the same court.
+{
+  const viewer = extractFn('renderViewer', html) || '';
+  const admin = extractFn('renderCourtControls', html) || '';
+  check('the hall screen labels cards with courtGameLabel', /courtGameLabel\s*\(/.test(viewer));
+  check('the admin board labels cards with courtGameLabel', /courtGameLabel\s*\(/.test(admin));
+}
+
+// ── report ──
+console.log('\ntest-court-games — each court counts its own games\n');
+if (!failures.length) {
+  console.log('  PASS  the empty padding slot is not a game');
+  console.log('  PASS  a court counts only the games it played, plus the one on it');
+  console.log('  PASS  a court between games says Free rather than a finished number');
+  console.log('  PASS  the shared-round label stays deleted, and both screens agree');
+  console.log('\nRESULT: PASS — court game-number assertions green.');
+  process.exit(0);
+}
+for (const f of failures) console.log(`  FAIL  ${f}`);
+console.log(`\nRESULT: FAIL — ${failures.length} assertion(s) red.`);
+process.exit(1);

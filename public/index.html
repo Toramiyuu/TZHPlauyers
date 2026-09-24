@@ -216,7 +216,53 @@ body.in-3d #joinModal{z-index:1300}
 .round-list-header{display:flex;align-items:center;padding:6px 12px;background:var(--card2);border-bottom:1px solid var(--border);font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;gap:10px}
 .rl-hdr-round{min-width:83px;flex-shrink:0}
 .rl-hdr-match{flex:1}
-#roundList{display:flex;flex-direction:column}
+#roundList,#queueList{display:flex;flex-direction:column}
+/* ── The queue ──────────────────────────────────────────────────────────────
+   A queued game reuses the round row wholesale (same expand-to-edit, same
+   player pickers, same balance chip) so there is one way to arrange four names
+   in this app rather than two that can drift apart. What it adds is the
+   position, the up/down, and the one thing a round never had to say: whether
+   this game can actually go on right now. */
+.q-pos{font-size:var(--fs-base);font-weight:700;color:var(--muted);min-width:28px;flex-shrink:0;text-align:right;font-variant-numeric:tabular-nums}
+.q-move{display:flex;flex-direction:column;gap:1px;flex-shrink:0}
+.q-move button{background:none;border:1px solid var(--border2);color:var(--muted);border-radius:4px;width:24px;height:15px;line-height:1;cursor:pointer;font-size:9px;padding:0;display:flex;align-items:center;justify-content:center}
+.q-move button:hover:not(:disabled){border-color:var(--green);color:var(--green)}
+.q-move button:disabled{opacity:.3;cursor:default}
+/* The readiness marker. Green is silent on purpose: a queue where every game is
+   ready should not be a wall of badges, so only a game that CANNOT go on says
+   anything. Colour is never the only carrier — each one is a word. */
+.q-state{font-size:var(--fs-xs);font-weight:700;padding:2px 8px;border-radius:100px;white-space:nowrap;flex-shrink:0}
+.q-state.ready{color:var(--green);background:rgba(0,113,227,.12)}
+.q-state.clash{color:#b26b00;background:rgba(224,140,0,.14)}
+.q-state.short{color:var(--muted);background:rgba(120,120,120,.14)}
+.q-state.gone{color:#b00020;background:rgba(176,0,32,.10)}
+.q-why{font-size:var(--fs-xs);color:var(--muted);flex-basis:100%;padding-left:38px}
+.queue-empty{margin-top:10px}
+/* Tonight's results. A <details>, shut by default: it is a record, not
+   something to act on, but it is what every waiting time is measured from. */
+.played-wrap{margin-top:14px;border:1px solid var(--border);border-radius:8px;background:var(--dark);overflow:hidden}
+.played-summary{padding:9px 12px;cursor:pointer;font-size:var(--fs-sm);font-weight:600;color:var(--text-2);user-select:none;list-style:none}
+.played-summary::-webkit-details-marker{display:none}
+/* The disclosure marker swaps glyph rather than turning one: verify-redesign's
+   check (g) forbids a static rotate outside the Friendly block, and a second
+   character costs nothing here. Note that check scans the raw file, so it sees
+   comments too — describing the rule literally is enough to trip it. */
+.played-summary::before{content:'▸';display:inline-block;margin-right:7px;color:var(--muted)}
+.played-wrap[open] .played-summary::before{content:'▾'}
+.played-summary:hover{background:rgba(0,0,0,.03)}
+#playedList{border-top:1px solid var(--border);max-height:340px;overflow-y:auto}
+.pg-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);font-size:var(--fs-sm);flex-wrap:wrap}
+.pg-row:last-child{border-bottom:none}
+.pg-court{font-weight:700;color:var(--a-blue,#0071e3);min-width:58px;flex-shrink:0}
+.pg-teams{flex:1;min-width:0;color:var(--text-2)}
+.pg-time{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.pg-empty{padding:12px;color:var(--muted);font-size:var(--fs-sm)}
+/* The per-court Next / undo pair, in place of the old round stepper. */
+.crt-next{display:flex;align-items:center;gap:4px}
+.crt-next .crt-undo{background:none;border:1px solid var(--border2);color:var(--muted);border-radius:var(--radius-sm);padding:5px 8px;cursor:pointer;font-size:var(--fs-sm);line-height:1}
+.crt-next .crt-undo:hover:not(:disabled){border-color:var(--green);color:var(--green)}
+.crt-next .crt-undo:disabled{opacity:.35;cursor:default}
+.crt-gamelbl{font-size:var(--fs-sm);color:var(--muted);white-space:nowrap;margin-right:2px}
 .round-row{background:var(--dark);border:none;border-bottom:1px solid var(--border);border-left:3px solid transparent;overflow:hidden;transition:border-left-color .15s,background .15s}
 .round-row:last-child{border-bottom:none}
 .round-row.live{border-left-color:var(--green);background:rgba(0,113,227,.04)}
@@ -3277,61 +3323,64 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     </div>
     <div class="court-select-hint">Tick the courts your games are on today, e.g. just 3 &amp; 4. Court numbers show on the viewer.</div>
 
-    <!-- Quick round nav -->
-    <div class="quick-nav admin-mt">
-      <button class="nav-btn" id="prevRoundBtn" onclick="stepAllCourts(-1)">← Prev</button>
-      <div class="quick-nav-center">
-        <div class="current-round-pill" id="currentRoundPill">Round 1</div>
-      </div>
-      <button class="nav-btn" id="nextRoundBtn" onclick="stepAllCourts(1)">Next →</button>
-    </div>
-
-    <!-- Per-court controls: editable court cards (slots tap-open the picker) -->
-    <div class="admin-subsection-label">Individual Court Control</div>
-    <div class="admin-helper-text">One card per court. Tap a slot to swap a player, or drag a name from the bench below. The arrows move that court through the schedule; <b>Live</b> starts a game clock &mdash; tap it to stop, tap again to start it fresh. The clock button tells viewers the court is ending soon, and the padlock keeps those four together when you generate a new schedule.</div>
+    <!-- ON THE COURTS NOW. The main thing on this screen: one card per court,
+         each moving on its own. There is deliberately no all-courts stepper any
+         more — that was what dragged a court that had gone to deuce along with
+         the ones that finished early, which is the unfairness this whole tab was
+         rebuilt to remove. The only bulk control left cannot touch a court that
+         has a game on it. -->
+    <div class="admin-subsection-label">On the courts now</div>
+    <div class="admin-helper-text">One card per court, and each one moves on its own. <b>Next game</b> takes the top game from the queue below that can actually start, skipping any whose players are still on another court. Tap a slot to swap a player, or drag a name from the bench. <b>Live</b> starts a game clock &mdash; tap it to stop, tap again to start it fresh. The clock button tells viewers the court is ending soon, and the padlock keeps those four together when you generate.</div>
     <div class="court-ctrl-grid" id="courtCtrlGrid"></div>
 
-    <!-- Up Next controls -->
     <div class="admin-btn-row admin-mt">
-      <button class="btn btn-primary btn-sm" onclick="startNextRound()">Start Next Round →</button>
+      <button class="btn btn-primary btn-sm" id="fillFreeBtn" onclick="fillFreeCourts()">Fill every free court →</button>
       <label class="upnext-toggle"><input type="checkbox" id="showNextUpToggle" onchange="toggleNextUp(this.checked)"> Show &ldquo;Up Next&rdquo; on viewer</label>
     </div>
 
-    <!-- Up Next override editor -->
-    <div class="admin-subsection-label">Up Next: Override</div>
-    <div id="upNextEditor"></div>
-
     <div class="divider"></div>
 
-    <!-- Generate -->
+    <!-- THE QUEUE. One shared list belonging to no court. -->
+    <div class="admin-subsection-label">Up next: the queue</div>
+    <div class="admin-helper-text">Games waiting to go on, in order. They belong to no court: whichever court finishes first takes the top one that can start. A game whose players are still on court, or that is short of names, is passed over and keeps its place.</div>
+
     <div class="gen-row">
-      <label>Auto-generate</label>
-      <input id="numRoundsInput" type="number" min="1" max="50" value="10">
-      <label>rounds</label>
-      <button class="btn btn-primary btn-sm" id="generateBtn" onclick="handleGenerate()">Generate Schedule</button>
+      <label>Plan the next</label>
+      <input id="numGamesInput" type="number" min="1" max="60" value="12">
+      <label>games</label>
+      <button class="btn btn-primary btn-sm" id="generateBtn" onclick="handleGenerate()">Generate</button>
     </div>
 
-    <!-- Round list: resting bench (left, sticky) + schedule (right), same board
-         layout as the Friendly matchups tab. Bench chips drag into the round
-         editor's player slots; drop a chip on the bench to rest them. -->
+    <!-- Resting bench (top, sticky) + the queue, same board layout the Friendly
+         matchups tab uses. Bench chips drag into a queued game's slots. -->
     <div class="crt-board">
       <div class="crt-bench-panel" id="restingStrip"></div>
       <div class="crt-main">
-        <div class="round-list-wrap" id="roundListWrap" style="display:none">
+        <div class="round-list-wrap" id="queueListWrap" style="display:none">
           <div class="round-list-header">
-            <div class="rl-hdr-round">Round</div>
+            <div class="rl-hdr-round">Next</div>
             <div class="rl-hdr-match">Match</div>
           </div>
-          <div id="roundList"></div>
+          <div id="queueList"></div>
         </div>
-        <!-- Footer: manual round (left) + End of the day payment generation (bottom-right) -->
+        <div id="queueEmpty" class="admin-helper-text queue-empty">Nothing queued. Press <b>Generate</b> above, or add a game by hand.</div>
+
         <div class="crt-foot admin-mt">
-          <button class="btn btn-ghost btn-sm" onclick="addEmptyRound()">+ Add Round Manually</button>
+          <button class="btn btn-ghost btn-sm" onclick="addQueueGame()">+ Add a game</button>
           <div class="crt-foot-end">
             <button class="btn btn-eod btn-sm" id="eodBtn" onclick="openEodModal()"><svg class="ic" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>End of the day</button>
             <button type="button" class="crt-foot-status" id="eodStatus" style="display:none" onclick="setAdminTab('payments')"></button>
           </div>
         </div>
+
+        <!-- Tonight's results. Collapsed, because it is a record rather than
+             something to act on — but it is not decoration: the repeat-pairing
+             warnings, each court's game number and every waiting time on the
+             bench are all read out of it. -->
+        <details class="played-wrap" id="playedWrap">
+          <summary class="played-summary" id="playedSummary">Games played tonight</summary>
+          <div id="playedList"></div>
+        </details>
       </div>
     </div>
   </div>
@@ -3991,7 +4040,7 @@ let pollTimer = null;
 // Settings-tab cards). Guards against a reload that runs showAdmin() before
 // state has loaded — poll() does the first full render once state arrives.
 let adminInitDone = false;
-let expandedRound = null;
+let expandedQueue = null;
 let generatePending = false; // confirm-to-generate state
 
 // Social sign-up: fallback game days mirror the server DEFAULT_STATE, used before
@@ -4096,13 +4145,13 @@ function isEditing() {
 // poll() must NOT overwrite local state / rebuild admin edit surfaces while the
 // admin is mid-edit. A focused field (`editing`) is not enough: after picking
 // from a native <select> nothing is focused, yet the round editor is still open.
-// Rebuilding renderRoundList() in that window discards an in-progress manual
+// Rebuilding renderQueue() in that window discards an in-progress manual
 // arrangement and unfilled slots save as the first player ("names jump to
 // Thomas" — seen on slower machines where the edit window is wider). So also
 // hold whenever a round editor is expanded. Viewer devices (no admin panel)
 // must never hold — the live screen has to keep polling. Pure + testable.
-function shouldHoldAdminRender(adminOpen, editing, expandedRound) {
-  return !!adminOpen && (!!editing || expandedRound !== null);
+function shouldHoldAdminRender(adminOpen, editing, expandedQueue) {
+  return !!adminOpen && (!!editing || expandedQueue !== null);
 }
 
 async function poll() {
@@ -4132,7 +4181,7 @@ async function poll() {
   // both while a field is focused AND while a round editor is expanded (see
   // shouldHoldAdminRender) — the latter is what stops a poll tick from wiping a
   // manual court arrangement before "Save Round" reads it.
-  if (shouldHoldAdminRender(adminOpen, isEditing(), expandedRound)) return;
+  if (shouldHoldAdminRender(adminOpen, isEditing(), expandedQueue)) return;
   // An optimistic tick is still persisting — don't let this poll tick overwrite
   // local state and momentarily snap the card back to its pre-click position.
   if (adminOpen && pendingTicks.size > 0) return;
@@ -4150,7 +4199,7 @@ async function poll() {
     renderSessionDateSection();
     renderPlayersSection(); // B5: keep the admin player list fresh across devices
     renderCourtControls();
-    renderRoundList();
+    renderQueue();
     renderPaidPicker();
     renderDrawPool();
     renderDrawResult();
@@ -4267,30 +4316,21 @@ function courtLabel(i) {
   return Number.isFinite(v) && v > 0 ? Math.floor(v) : (i + 1);
 }
 
-// Pure: for each court that HAS a next round (current index + 1 < total), return
-// { court, roundIndex, match }. Courts on their last round, or with no court
-// slot in the next round, are omitted. No DOM, no mutation — unit tested in
-// scripts/test-next-up.js.
-function computeNextUp(rounds, courtRounds, numCourts) {
-  const out = [];
-  if (!Array.isArray(rounds) || !Array.isArray(courtRounds)) return out;
-  const total = rounds.length;
-  const n = numCourts || courtRounds.length;
-  for (let i = 0; i < n; i++) {
-    const ni = (courtRounds[i] ?? 0) + 1;
-    if (ni >= total) continue;
-    const court = rounds[ni] && rounds[ni].courts ? rounds[ni].courts[i] : null;
-    if (!court) continue;
-    out.push({ court: i, roundIndex: ni, match: court });
-  }
-  return out;
-}
+// How many queued games the hall screen shows. Enough that somebody sitting
+// down can see themselves coming; few enough that the panel does not become the
+// screen. The admin board shows the whole queue.
+const UPNEXT_SHOWN = 4;
 
-// Pure: advance every court forward one round, clamped to the last round index
-// (total-1), preserving per-court offsets. Returns a NEW array — unit tested.
-function nextCourtRounds(courtRounds, total) {
-  const max = (total || 1) - 1;
-  return (courtRounds || []).map(r => Math.min(max, (r ?? 0) + 1));
+// Pure: the next few games waiting, in order.
+//
+// This used to be "for each court, the round after the one it is on", which was
+// the round model showing through: it promised a specific court a specific game
+// at a time when nobody could know which court would free up first. A queued
+// game has no court until it goes on. Unit tested in scripts/test-next-up.js.
+function computeUpNext(queue, limit) {
+  if (!Array.isArray(queue)) return [];
+  const n = Math.max(0, Math.floor(Number(limit)) || 0);
+  return n ? queue.slice(0, n) : queue.slice();
 }
 
 // ── THE SHARED GAME QUEUE ─────────────────────
@@ -4422,6 +4462,22 @@ function playedGameCounts(played) {
   return out;
 }
 
+// Pure: repeat-pairing counts over the WHOLE night — the games on the courts
+// now and every game already finished. Counting only the live board would mean
+// the third time two people are put together goes unremarked, because the first
+// two are in the record rather than on a court.
+//
+// Matchmaking.pairCounts walks rounds[].courts[] and only ever reads team1 and
+// team2, so a flat list of played games passes through it as one "round". That
+// is why history needed no shape of its own.
+function pairCountsAll(rounds, played) {
+  const live = Matchmaking.pairCounts(Array.isArray(rounds) ? rounds : []);
+  const past = Matchmaking.pairCounts([{ courts: Array.isArray(played) ? played : [] }]);
+  const out = { ...live };
+  for (const k of Object.keys(past)) out[k] = (out[k] || 0) + past[k];
+  return out;
+}
+
 // Pure: minutes -> redness band 0..4, the same ramp restHeatLevel drove off
 // round counts. One band per WAIT_BAND_MINUTES, capped.
 function waitHeatLevel(minutes) {
@@ -4494,6 +4550,27 @@ function historicGamesOf(rounds, courtRounds, numCourts) {
 function courtIsFree(rounds, courtRounds, courtIdx) {
   const court = rounds?.[courtRounds?.[courtIdx] ?? 0]?.courts?.[courtIdx];
   return !gameIds(court).some(Boolean);
+}
+
+// Pure: how many games this court has played tonight, counting the one on it.
+// Every court counts its OWN games now. Under the round model only a court that
+// opened late did that, because the others shared a round number; with the
+// courts running independently there is no shared number left to share, so the
+// special case became the only case.
+function courtGameNumber(played, courtIdx, onCourt) {
+  let n = 0;
+  for (const g of (Array.isArray(played) ? played : [])) {
+    if ((g && g.court) === courtIdx || (courtIdx === 0 && !(g && g.court))) n++;
+  }
+  return n + (onCourt ? 1 : 0);
+}
+
+// Pure: the label on a court card, on the admin board and the hall screen
+// alike. A court between games says so rather than showing the number of a
+// game that has finished.
+function courtGameLabel(played, courtIdx, onCourt) {
+  if (!onCourt) return 'Free';
+  return 'Game ' + courtGameNumber(played, courtIdx, true);
 }
 
 // Pure: take one game off the queue and put it on court `courtIdx`, recording
@@ -4638,22 +4715,6 @@ function clearEndingSoonForCourt(endingSoon, courtIdx, numCourts) {
   return cur;
 }
 
-// Pure: clear the flag of EVERY court whose round index differs between
-// prevCourtRounds and nextCourtRounds — a fresh game means the court is no
-// longer "ending soon". Missing round entries count as 0. Returns a NEW
-// normalized array, or null when no set flag was cleared so callers can skip
-// a needless write. Unit tested in scripts/test-ending-soon.js.
-function clearEndingSoonForChangedCourts(endingSoon, prevCourtRounds, nextCourtRounds, numCourts) {
-  const cur = normalizeEndingSoon(endingSoon, numCourts);
-  let changed = false;
-  for (let i = 0; i < cur.length; i++) {
-    const prev = (Array.isArray(prevCourtRounds) ? prevCourtRounds[i] : 0) ?? 0;
-    const next = (Array.isArray(nextCourtRounds) ? nextCourtRounds[i] : 0) ?? 0;
-    if (cur[i] && prev !== next) { cur[i] = false; changed = true; }
-  }
-  return changed ? cur : null;
-}
-
 // ── COURT STATUS · LOCK · LIVE CLOCK ──────────
 // The Courts cards are the Friendly board's matchup pods applied to the session
 // schedule: a court number picker, a status (Live / Up Next / Final), the
@@ -4730,24 +4791,6 @@ function setCourtLiveAt(courtLive, courtIdx, numCourts, at) {
   return out;
 }
 
-// Pure: a court moving to a different round is a NEW game, so restart its clock
-// (Live courts) or leave it stopped (Up Next / Final). Returns a NEW array, or
-// null when nothing changed so callers can skip a needless write.
-function restampCourtLive(courtLive, courtStatus, prevCourtRounds, nextCourtRounds, numCourts, at) {
-  const cur = normalizeCourtLive(courtLive, numCourts);
-  const st = normalizeCourtStatus(courtStatus, numCourts);
-  const now = Math.floor(Number(at));
-  let changed = false;
-  for (let i = 0; i < cur.length; i++) {
-    const prev = (Array.isArray(prevCourtRounds) ? prevCourtRounds[i] : 0) ?? 0;
-    const next = (Array.isArray(nextCourtRounds) ? nextCourtRounds[i] : 0) ?? 0;
-    if (prev === next) continue;
-    const want = st[i] === 'live' && Number.isFinite(now) && now > 0 ? now : 0;
-    if (cur[i] !== want) { cur[i] = want; changed = true; }
-  }
-  return changed ? cur : null;
-}
-
 // Pure: how long a game has been on, as M:SS (H:MM:SS once past the hour).
 // A missing, invalid or future stamp reads 0:00 — the clock never runs backwards.
 function formatElapsed(ms) {
@@ -4801,52 +4844,6 @@ function applyCourtDrop(src, courtIdx) {
   };
 }
 
-// Pure: keep every LOCKED court's four current players on that court in the
-// FIRST round of a freshly generated schedule. Each locked player is SWAPPED
-// into their seat, so whoever they displace takes the seat the locked player
-// came from — round 1 keeps the same players, just rearranged. A locked player
-// the scheduler had resting in round 1 has no seat to give back, so the person
-// they displace is the one who rests instead. Later rounds are left to the
-// scheduler. `pairings[i]` is court i's live match ({team1,team2}); missing
-// entries and empty slots are skipped.
-function applyLockedFirstRound(rounds, locks, pairings) {
-  const out = Array.isArray(rounds) ? JSON.parse(JSON.stringify(rounds)) : [];
-  const round = out[0];
-  if (!round || !Array.isArray(round.courts)) return out;
-  const seatOf = (id) => {
-    for (let c = 0; c < round.courts.length; c++) {
-      const ct = round.courts[c];
-      if (!ct) continue;
-      for (const t of ['team1', 'team2']) {
-        const k = (ct[t] || []).indexOf(id);
-        if (k > -1) return { c, t, k };
-      }
-    }
-    return null;
-  };
-  for (let i = 0; i < round.courts.length; i++) {
-    if (!(locks || [])[i]) continue;
-    const want = (pairings || [])[i];
-    const target = round.courts[i];
-    if (!want || !target) continue;
-    for (const [t, k] of [['team1', 0], ['team1', 1], ['team2', 0], ['team2', 1]]) {
-      const id = (want[t] || [])[k];
-      if (!id) continue;
-      if (!Array.isArray(target[t])) target[t] = ['', ''];
-      if (target[t][k] === id) continue;
-      const from = seatOf(id);
-      const displaced = target[t][k];
-      target[t][k] = id;
-      if (from) {
-        const ct = round.courts[from.c];
-        if (!Array.isArray(ct[from.t])) ct[from.t] = ['', ''];
-        ct[from.t][from.k] = displaced;
-      }
-    }
-  }
-  return out;
-}
-
 // The Live clock chip, shared by the Courts cards and the Friendly pods. Drawn
 // only while a court is Live: with a start stamp it shows the running game time
 // (the ticker below rewrites it every second), without one it offers to start.
@@ -4885,34 +4882,6 @@ function startLiveClockTicker() {
   __liveClockTimer = setInterval(tickLiveClocks, 1000);
 }
 
-// Pure: apply per-court next-round edits onto a CLONE of rounds and report
-// duplicate player ids scoped PER next-round index. A player in two courts that
-// SHARE a next-round index is a duplicate; the same player in two DIFFERENT
-// next-round indices is not. Empty ('') slots are ignored. Unit tested.
-// edits: [{ court, roundIndex, team1:[a,b], team2:[c,d] }]
-function applyNextUpEdits(rounds, edits) {
-  const cloned = Array.isArray(rounds) ? JSON.parse(JSON.stringify(rounds)) : [];
-  const affected = new Set();
-  (edits || []).forEach(e => {
-    if (!e || typeof e.court !== 'number' || typeof e.roundIndex !== 'number') return;
-    const r = cloned[e.roundIndex];
-    if (!r || !Array.isArray(r.courts) || !r.courts[e.court]) return;
-    r.courts[e.court] = {
-      team1: [e.team1?.[0] || '', e.team1?.[1] || ''],
-      team2: [e.team2?.[0] || '', e.team2?.[1] || ''],
-    };
-    affected.add(e.roundIndex);
-  });
-  const duplicates = [];
-  [...affected].sort((a, b) => a - b).forEach(ni => {
-    const ids = (cloned[ni].courts || []).flatMap(c => [...(c.team1 || []), ...(c.team2 || [])]).filter(Boolean);
-    const seen = new Set(), dupes = new Set();
-    ids.forEach(id => { if (seen.has(id)) dupes.add(id); seen.add(id); });
-    if (dupes.size) duplicates.push({ roundIndex: ni, ids: [...dupes] });
-  });
-  return { rounds: cloned, duplicates };
-}
-
 // Cheap signatures so the 2s poll only rebuilds DOM when its inputs actually
 // changed (base64 photos are reduced to a length marker to keep the diff light).
 let __lastCourtSig = null;
@@ -4934,7 +4903,10 @@ function renderViewer() {
   // the device's admin login state changes (clickable rows in Task 4).
   // `up` keeps the between-nights "Coming soon" card live: without it a new
   // sign-up (slots left) or a settings change would not repaint until a round did.
-  const courtSig = stateSig({ nc: numCourts, cn: state.courtNumbers, crs: courtRounds, rounds: state.rounds, players: state.players, snu: state.showNextUp, es: state.endingSoon, cs: state.courtStatus, up: state.upcoming, soon: !!state.comingSoon, adm: !!sessionStorage.getItem('adminPwd') });
+  // `q` and `pl` are here because the Up Next panel is drawn from the queue and
+  // every court card's game number is counted out of the record. Without them a
+  // queue edit, or a game finishing, would not repaint the hall screen at all.
+  const courtSig = stateSig({ nc: numCourts, cn: state.courtNumbers, crs: courtRounds, rounds: state.rounds, players: state.players, snu: state.showNextUp, es: state.endingSoon, cs: state.courtStatus, up: state.upcoming, soon: !!state.comingSoon, adm: !!sessionStorage.getItem('adminPwd'), q: computeUpNext(state.queue, UPNEXT_SHOWN), pl: (state.played || []).length });
   if (courtSig !== __lastCourtSig) {
     __lastCourtSig = courtSig;
     const statuses = normalizeCourtStatus(state.courtStatus, numCourts);
@@ -4951,10 +4923,12 @@ function renderViewer() {
         const round = state.rounds?.[courtRounds[i]];
         const court = round?.courts?.[i];
         if (court) {
-          // Same late-court rule as the admin board: viewers see "Game N" on the
-          // 5:30 court rather than a round number that looks like it is lagging.
-          const rlab = courtRoundLabel(state.rounds, i, courtRounds[i] ?? 0);
-          container.appendChild(buildCourtCard(courtLabel(i), court, round ? rlab.text : null, !!state.endingSoon?.[i], statuses[i]));
+          // Each court counts its own games, the same helper the admin board
+          // uses, so the hall screen and the organiser's phone cannot disagree
+          // about which game a court is on.
+          const onCourt = gameIds(court).some(Boolean);
+          container.appendChild(buildCourtCard(courtLabel(i), court,
+            courtGameLabel(state.played, i, onCourt), !!state.endingSoon?.[i], statuses[i]));
         }
       }
       // No schedule at all: the loop built nothing and the screen used to go
@@ -5106,9 +5080,13 @@ function buildCourtCard(num, court, roundLabel, endingSoon, status) {
   return el;
 }
 
-// Viewer "Up Next" panel — one row per court that has a next round, so resting
-// players know they're up. Hidden when the admin toggle is off or no court has a
-// next round. Rebuilt only inside renderViewer's signature guard (flicker-free).
+// Viewer "Up Next" panel — the top few games waiting, in order.
+//
+// It no longer names a court, and it cannot: a game gets a court at the moment
+// a court frees up, and which court that will be is not known until it happens.
+// What the people sitting down the side actually want off this screen is "am I
+// in the next game", and that is a question about the list, not about a court.
+// Rebuilt only inside renderViewer's signature guard (flicker-free).
 function renderUpNext() {
   const panel = document.getElementById('upNextPanel');
   if (!panel) return;
@@ -5116,19 +5094,15 @@ function renderUpNext() {
   // The "Coming soon" takeover owns the whole viewer body — an Up Next list of
   // last night's pairings underneath it would undo the point of the switch.
   if (state.comingSoon) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
-  const rows = computeNextUp(state.rounds, getCourtRounds(), state.numCourts || 1);
+  const rows = computeUpNext(state.queue, UPNEXT_SHOWN);
   if (!rows.length) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
   const nameOf = id => playerById(id)?.name || 'TBD';
-  // On a logged-in admin device, rows are clickable to advance that one court.
-  const isAdmin = !!sessionStorage.getItem('adminPwd');
-  const rowHtml = rows.map(r => {
-    const c = r.match;
-    const matchTxt = `${nameOf(c.team1?.[0])} & ${nameOf(c.team1?.[1])} vs ${nameOf(c.team2?.[0])} & ${nameOf(c.team2?.[1])}`;
-    const cls = 'upnext-row' + (isAdmin ? ' clickable' : '');
-    const attrs = isAdmin
-      ? ` role="button" tabindex="0" title="Advance Court ${courtLabel(r.court)} to this round" onclick="advanceCourt(${r.court},1)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();advanceCourt(${r.court},1);}"`
-      : '';
-    return `<div class="${cls}"${attrs}><span class="upnext-court">Court ${courtLabel(r.court)}</span><span class="upnext-arrow" aria-hidden="true">→</span><span class="upnext-match">${escHtml(matchTxt)}</span></div>`;
+  const rowHtml = rows.map((g, i) => {
+    const ids = gameIds(g);
+    const matchTxt = `${nameOf(ids[0])} & ${nameOf(ids[1])} vs ${nameOf(ids[2])} & ${nameOf(ids[3])}`;
+    return `<div class="upnext-row"><span class="upnext-court">${i + 1}</span>`
+      + `<span class="upnext-arrow" aria-hidden="true">→</span>`
+      + `<span class="upnext-match">${escHtml(matchTxt)}</span></div>`;
   }).join('');
   panel.style.display = '';
   panel.innerHTML = `<div class="upnext-head">Up Next</div>${rowHtml}`;
@@ -6025,7 +5999,7 @@ function renderAdmin() {
   renderPlayersSection();
   renderCourtSelector();
   renderCourtControls();
-  renderRoundList();
+  renderQueue();
   renderPaidPicker();
   renderDrawPool();
   renderSignupsBadge();
@@ -6048,16 +6022,17 @@ function renderCourtControls() {
   if (!grid) return;
   const numCourts = state.numCourts || 1;
   const courtRounds = getCourtRounds();
-  const totalRounds = (state.rounds || []).length;
+  const queueLen = (state.queue || []).length;
   // Rebuilding the grid orphans a picker anchored on one of its slots — close
   // it first (same guard renderFriendlyMatchups uses for .frb-slot anchors).
   if (typeof _pslotBtn !== 'undefined' && _pslotBtn && _pslotBtn.classList?.contains('crt-slot')) closePlayerPicker();
   const statuses = normalizeCourtStatus(state.courtStatus, numCourts);
   const locks = normalizeCourtLocks(state.courtLocks, numCourts);
   const liveAt = normalizeCourtLive(state.courtLive, numCourts);
-  // Repeat-pairing notes on the card itself, off the same session-wide counts
-  // the round editor uses — the card is where the pairing is actually edited.
-  const sessionPairCounts = Matchmaking.pairCounts(state.rounds);
+  // Repeat-pairing notes on the card itself, over the whole night — what is on
+  // the courts now and everything already played. The card is where a pairing
+  // is actually edited, so it is where the warning has to appear.
+  const sessionPairCounts = pairCountsAll(state.rounds, state.played);
   const goneNow = wentHomeSet();
   // A player slot on the court card: filled slots drag + clear like the
   // Friendly board's .frb-slot; any slot taps open the shared player picker.
@@ -6094,20 +6069,22 @@ function renderCourtControls() {
   grid.innerHTML = '';
   for (let i = 0; i < numCourts; i++) {
     const ri = courtRounds[i] ?? 0;
-    // A court that opened late reads "Game N" (its own count) instead of a
-    // round number it will never catch up to — see courtRoundLabel.
-    const rlab = courtRoundLabel(state.rounds, i, ri);
     const court = state.rounds?.[ri]?.courts?.[i];
+    const onCourt = gameIds(court).some(Boolean);
+    const gameLbl = courtGameLabel(state.played, i, onCourt);
     const ending = !!state.endingSoon?.[i];
     const card = document.createElement('div');
     card.className = 'court-ctrl-card fr-matchup';
     card.innerHTML = `
       <div class="fr-mu-top">
         <div class="fr-mu-court">Court ${courtPicker(i)}</div>
-        <div class="crt-rnav" role="group" aria-label="Round shown on court ${courtLabel(i)}">
-          <button class="crt-rnav-btn" onclick="advanceCourt(${i},-1)" ${ri <= 0 ? 'disabled' : ''} aria-label="Previous round">&#8592;</button>
-          <span class="crt-rnav-lbl"${rlab.title ? ` title="${escHtml(rlab.title)}"` : ''}>${escHtml(rlab.text)}</span>
-          <button class="crt-rnav-btn" onclick="advanceCourt(${i},1)" ${ri >= totalRounds - 1 ? 'disabled' : ''} aria-label="Next round">&#8594;</button>
+        <div class="crt-next" role="group" aria-label="Games on court ${courtLabel(i)}">
+          <span class="crt-gamelbl">${escHtml(gameLbl)}</span>
+          <button class="crt-undo" onclick="undoCourtGame(${i})" ${onCourt ? '' : 'disabled'}
+            title="Put this game back at the front of the queue and bring the previous one back"
+            aria-label="Undo the last change on court ${courtLabel(i)}">&#8630;</button>
+          <button class="btn btn-primary btn-sm" onclick="nextGameOnCourt(${i})" ${queueLen ? '' : 'disabled'}
+            title="${queueLen ? 'Take the next game from the queue that can start' : 'Nothing in the queue'}">Next game &rarr;</button>
         </div>
         <div class="fr-mu-ctrls">
         ${liveClockHTML(statuses[i], liveAt[i], `toggleCourtClock(${i})`)}
@@ -6130,30 +6107,24 @@ function renderCourtControls() {
     grid.appendChild(card);
   }
 
-  // Update quick nav
-  const courtRoundsAll = getCourtRounds();
-  const allSame = courtRoundsAll.every(r => r === courtRoundsAll[0]);
-  const pill = document.getElementById('currentRoundPill');
-  if (pill) {
-    const idx = courtRoundsAll[0] ?? 0;
-    pill.textContent = allSame ? (state.rounds?.[idx]?.label || `Round ${idx + 1}`) : 'Mixed';
-  }
-  const prevBtn = document.getElementById('prevRoundBtn');
-  const nextBtn = document.getElementById('nextRoundBtn');
-  if (prevBtn && nextBtn) {
-    const minIdx = Math.min(...courtRoundsAll);
-    const maxIdx = Math.max(...courtRoundsAll);
-    prevBtn.disabled = minIdx <= 0;
-    nextBtn.disabled = maxIdx >= totalRounds - 1;
+  // "Fill every free court" is only worth offering when there is both something
+  // waiting and somewhere free to put it.
+  const fillBtn = document.getElementById('fillFreeBtn');
+  if (fillBtn) {
+    let free = 0;
+    for (let i = 0; i < numCourts; i++) if (courtIsFree(state.rounds, courtRounds, i)) free++;
+    fillBtn.disabled = !queueLen || !free;
+    fillBtn.title = !queueLen ? 'Nothing in the queue'
+      : !free ? 'Every court has a game on it'
+      : `Put a game on ${free} free court${free === 1 ? '' : 's'}`;
   }
 
   // Resting players strip
-  renderRestingPlayers(courtRoundsAll);
+  renderRestingPlayers(courtRounds);
 
-  // Up Next: sync the show/hide toggle (default ON) and render the override editor
+  // Up Next on the viewer: sync the show/hide toggle (default ON).
   const nextUpToggle = document.getElementById('showNextUpToggle');
   if (nextUpToggle) nextUpToggle.checked = state.showNextUp !== false;
-  renderNextUpEditor();
   // Hall-screen mode sits at the top of this same tab — keep it in step with the
   // poll so a second admin flipping it is reflected here too.
   renderComingSoonCard();
@@ -6182,98 +6153,13 @@ function padRoundsToCourts(rounds, numCourts) {
   return { rounds: changed ? out : rounds, changed };
 }
 
-// ── LATE-OPENING COURTS ───────────────────────
-// Not every court opens at 9pm. The 5:30 court joins a couple of rounds in, so
-// its courtRounds index sits permanently below everyone else's: the board reads
-// "Round 11" on that card while the rest show "Round 12", and it never catches
-// up. Nothing is actually wrong — that court has simply played fewer games — so
-// we label it by its OWN game count instead of the shared round number.
-// The three helpers below are pure. Unit tested in scripts/test-court-games.js.
-
-// Does this court have a real line-up in `round`? The empty slot
-// ({team1:['',''],team2:['','']}) is the padding padRoundsToCourts adds for a
-// court that wasn't in play yet, so it is NOT a game.
+// `courtHasLineup` survives from the round model because padRoundsToCourts and
+// the court-drop logic still ask it whether a slot holds a real game rather
+// than the empty padding ({team1:['',''],team2:['','']}).
 function courtHasLineup(round, courtIdx) {
   const c = round?.courts?.[courtIdx];
   if (!c) return false;
   return (c.team1 || []).some(id => id) || (c.team2 || []).some(id => id);
-}
-
-// First round index this court actually played; -1 if it never appears. A court
-// that opened late starts above 0 — that is exactly what makes it a late court.
-function courtFirstRound(rounds, courtIdx) {
-  if (!Array.isArray(rounds)) return -1;
-  for (let r = 0; r < rounds.length; r++) if (courtHasLineup(rounds[r], courtIdx)) return r;
-  return -1;
-}
-
-// This court's OWN game number at `roundIdx` (1-based), counting only rounds it
-// had a line-up. The current round ALWAYS counts as the game on the card, filled
-// or not, so the number doesn't jump around while the admin fills the slots.
-// Returns 0 when the court hasn't opened yet at that point in the night.
-function courtGameNumber(rounds, courtIdx, roundIdx) {
-  if (!Array.isArray(rounds) || !rounds.length) return 0;
-  const upto = Math.max(0, Math.min(Number(roundIdx) || 0, rounds.length - 1));
-  const first = courtFirstRound(rounds, courtIdx);
-  if (first < 0 || upto < first) return 0;
-  let played = 0;
-  for (let r = 0; r < upto; r++) if (courtHasLineup(rounds[r], courtIdx)) played++;
-  return played + 1;
-}
-
-// The label for one court card. Courts that ran all night keep the shared round
-// label exactly as before; only a late court switches to "Game N", so a normal
-// night looks untouched. Returns { text, title } — the title keeps the
-// underlying round visible on hover, since the ← → stepper still moves rounds.
-function courtRoundLabel(rounds, courtIdx, roundIdx) {
-  const base = rounds?.[roundIdx]?.label || ('Round ' + ((Number(roundIdx) || 0) + 1));
-  if (courtFirstRound(rounds, courtIdx) <= 0) return { text: base, title: '' };
-  const g = courtGameNumber(rounds, courtIdx, roundIdx);
-  if (!g) return { text: base, title: '' };
-  return { text: 'Game ' + g, title: base + ' — this court opened late, so it counts its own games' };
-}
-
-// Pure: for every player, count how many consecutive rounds — ending at and
-// including `uptoRound` — they did NOT appear on any court. A player active in
-// `uptoRound` scores 0; one resting the last two rounds scores 2; a player who
-// never appears through `uptoRound` scores uptoRound+1 (every round so far).
-// No DOM, no mutation. Unit tested in scripts/test-rest-streaks.js.
-function computeRestStreaks(rounds, players, uptoRound) {
-  const out = {};
-  if (!Array.isArray(rounds) || !Array.isArray(players) || !rounds.length) return out;
-  const u = Number.isFinite(uptoRound) ? uptoRound : rounds.length - 1;
-  const last = Math.max(0, Math.min(u, rounds.length - 1));
-  // Precompute the set of player ids active in each round once (O(rounds × courts)).
-  const activeByRound = [];
-  for (let r = 0; r <= last; r++) {
-    const set = new Set();
-    const courts = rounds[r]?.courts || [];
-    for (const court of courts) {
-      if (!court) continue;
-      (court.team1 || []).forEach(id => { if (id) set.add(id); });
-      (court.team2 || []).forEach(id => { if (id) set.add(id); });
-    }
-    activeByRound.push(set);
-  }
-  for (const p of players) {
-    if (!p || p.id == null) continue;
-    let streak = 0;
-    for (let r = last; r >= 0; r--) {
-      if (activeByRound[r].has(p.id)) break;
-      streak++;
-    }
-    out[p.id] = streak;
-  }
-  return out;
-}
-
-// Pure: map a rest streak to a heat level 0..4 driving the redness ramp on the
-// resting chips. 0–1 rounds = 0 (no tint); red begins at 2 rounds and deepens:
-// 2→1, 3→2, 4→3, 5+→4 (capped). Unit tested in scripts/test-rest-streaks.js.
-function restHeatLevel(streak) {
-  const s = Math.floor(Number(streak));
-  if (!Number.isFinite(s) || s < 2) return 0;
-  return Math.min(4, s - 1);
 }
 
 // ── WENT HOME ─────────────────────────────────
@@ -6322,49 +6208,62 @@ async function toggleWentHome(id) {
 
 function renderRestingPlayers(courtRounds) {
   const strip = document.getElementById('restingStrip');
-  if (!strip || !state?.rounds?.length) { if (strip) strip.innerHTML = ''; return; }
+  // The bench used to need a schedule to exist. It does not any more: at the
+  // start of the night every court is empty and everybody who has arrived is
+  // waiting, which is exactly when the organiser most wants to see the list.
+  if (!strip || !(state?.players || []).length) { if (strip) strip.innerHTML = ''; return; }
 
-  const activePlayers = new Set();
   const numCourts = state.numCourts || 1;
-  for (let i = 0; i < numCourts; i++) {
-    const round = state.rounds?.[courtRounds[i]];
-    const court = round?.courts?.[i];
-    if (court) {
-      [...court.team1, ...court.team2].forEach(id => activePlayers.add(id));
-    }
-  }
+  const activePlayers = liveCourtIds(state.rounds, courtRounds, numCourts);
 
   // Gone-home players leave the waiting list entirely — they are not waiting.
   const gone = wentHomeSet();
   const resting = (state.players || []).filter(p => !activePlayers.has(p.id) && !gone.has(p.id));
 
-  // How many rounds each resting player has sat out in a row, measured up to the
-  // furthest-progressed court. Resting this round guarantees ≥ 1; the redness
-  // heat ramps in from 2. Worst-waiting players are shown first.
-  const uptoRound = Math.max(...courtRounds.map(r => r ?? 0));
-  const streaks = computeRestStreaks(state.rounds, state.players, uptoRound);
+  // How long each resting player has actually been sitting, in minutes since
+  // their last game ended. This used to count ROUNDS, which stopped meaning
+  // anything the moment courts stopped sharing them: sitting out one long deuce
+  // game is a longer wait than sitting out two quick ones, and only a clock can
+  // say so. Longest wait first.
+  const mins = waitMinutes(state.played, state.players, activePlayers, Date.now());
+  const counts = playedGameCounts(state.played);
   const withCount = resting
-    .map(p => ({ p, n: Math.max(1, streaks[p.id] || 0) }))
+    .map(p => ({ p, n: mins[p.id] || 0, fresh: !counts[p.id] }))
     .sort((a, b) => b.n - a.n || (a.p.name || '').localeCompare(b.p.name || ''));
 
   // Same bench as the Friendly board (.frb-bench reused directly): a caps group
   // label per wait length (like the bench's RED/BLUE) over rails of chips that
   // tap-to-arm or drag onto a court slot. Dropping a playing player here rests them.
+  // Grouped by redness band rather than by exact minute: one group per distinct
+  // number would be a dozen groups of one on a busy night. The exact minutes
+  // stay on each chip, where the organiser looks when deciding between two
+  // people in the same band.
   const groups = [];
-  for (const { p, n } of withCount) {
+  for (const { p, n, fresh } of withCount) {
+    const level = waitHeatLevel(n);
     const g = groups[groups.length - 1];
-    if (g && g.n === n) g.players.push(p); else groups.push({ n, players: [p] });
+    if (g && g.level === level) g.players.push({ p, n, fresh });
+    else groups.push({ level, players: [{ p, n, fresh }] });
   }
-  const blocks = groups.map(({ n, players }) => {
-    const level = restHeatLevel(n);
+  const blocks = groups.map(({ level, players }) => {
     const heat = level ? ` heat-${level}` : '';
-    const chips = players.map(p => {
-      const title = `${p.name} hasn't played in ${n} round${n === 1 ? '' : 's'}`;
+    const chips = players.map(({ p, n, fresh }) => {
+      // Somebody who has not played at all is measured from the start of the
+      // night, which is the right way to rank them but the wrong thing to show:
+      // a bare number reads as though they played and have sat since.
+      const title = fresh
+        ? `${p.name} hasn't had a game yet tonight`
+        : `${p.name} came off ${n} minute${n === 1 ? '' : 's'} ago`;
       // The chip still drags and taps as before; the trailing button is the
       // one-tap "they've left" so it can be done from the board being watched.
       return `<span class="frb-chip rest-chip${heat}${__crtSel.pid === p.id ? ' picked' : ''}" draggable="true" onclick="crtPickPlayer('${p.id}')" ondragstart="crtDragStart(event,'${p.id}')" title="${escHtml(title)}">${avatarHTML(p, 22)} ${escHtml(p.name)}${goneHomeBtnHTML(p, false)}</span>`;
     }).join('');
-    return `<div class="frb-side rest-side${heat}">${n} ROUND${n === 1 ? '' : 'S'}</div><div class="frb-rail">${chips}</div>`;
+    // Everyone in the top band who has not played yet is the group the label
+    // should name, because "20+ MIN" beside somebody who has never been on is
+    // technically true and reads as though they had a game at nine o'clock.
+    const allFresh = players.every(x => x.fresh);
+    const label = allFresh ? 'NOT PLAYED YET' : waitBandLabel(level);
+    return `<div class="frb-side rest-side${heat}">${label}</div><div class="frb-rail">${chips}</div>`;
   }).join('');
 
   // Everyone who has left, kept visible so the count is honest and a mistake is
@@ -6380,7 +6279,7 @@ function renderRestingPlayers(courtRounds) {
 
   strip.innerHTML = `
     <div class="frb-bench" ondragover="frBenchDragOver(event,this)" ondragleave="this.classList.remove('frb-bench-drop')" ondrop="crtDropToBench(event,this)">
-      <div class="frb-bench-hint">Bench: resting now, longest wait first. Open a round and drag a name into a slot, or tap a name then a court slot up top. Drop a name here to rest them. The house button marks someone gone home.</div>
+      <div class="frb-bench-hint">Bench: waiting now, longest wait first, in minutes since their last game came off. Open a queued game and drag a name into a seat, or tap a name then a court slot up top. Drop a name here to take them off a court. The house button marks someone gone home.</div>
       ${blocks || `<div class="frb-rail empty">Everyone's on a court.</div>`}
       ${goneBlock}
     </div>
@@ -6447,7 +6346,7 @@ function applyCourtRemoval(rounds, courtRounds, numCourts, id) {
 async function commitCourtRounds(rounds) {
   state.rounds = rounds;
   renderCourtControls(); // re-renders the bench + Up Next too
-  renderRoundList();
+  renderQueue();
   renderViewer();
   await apiPost({ rounds });
 }
@@ -6490,7 +6389,11 @@ function openCourtSlotPicker(el, i, team, k) {
       if (id && !(j === i && t === team && kk === k) && !assigned.has(id)) assigned.set(id, j);
     }));
   }
-  const streaks = ri > 0 ? computeRestStreaks(state.rounds, state.players, ri - 1) : {};
+  // Minutes waiting, not rounds sat out. Anybody who has been off a court for
+  // at least a minute is shown as resting so the list is ordered by who has the
+  // best claim, which is the only reason this grouping exists.
+  const streaks = waitMinutes(state.played, state.players,
+    liveCourtIds(state.rounds, courtRounds, numCourts), Date.now());
   const meta = buildMetaById();
   const levelOf = id => {
     const lv = meta[id]?.level;
@@ -6547,56 +6450,117 @@ function crtDropToBench(e, el) {
   if (rounds) commitCourtRounds(rounds);
 }
 
-// ── QUICK ROUND NAV ───────────────────────────
-async function stepAllCourts(delta) {
-  const numCourts = state.numCourts || 1;
-  const courtRounds = getCourtRounds();
-  const totalRounds = (state.rounds || []).length;
-  const cur = courtRounds[0] ?? 0;
-  const next = Math.max(0, Math.min(totalRounds - 1, cur + delta));
-  if (next === cur) return;
-  const newCourtRounds = new Array(numCourts).fill(next);
-  // Courts that moved to a different round start a fresh game, so their
-  // "ending soon" flags no longer apply — clear them in the same write.
-  const cleared = clearEndingSoonForChangedCourts(state.endingSoon, courtRounds, newCourtRounds, numCourts);
-  const restamped = restampCourtLive(state.courtLive, state.courtStatus, courtRounds, newCourtRounds, numCourts, Date.now());
-  const updates = { currentRound: next, courtRounds: newCourtRounds };
-  if (cleared) updates.endingSoon = cleared;
-  if (restamped) updates.courtLive = restamped;
-  await apiPost(updates);
-  state.currentRound = next;
-  state.courtRounds = newCourtRounds;
-  if (cleared) state.endingSoon = cleared;
-  if (restamped) state.courtLive = restamped;
-  renderCourtControls();
-  renderRoundList();
-  renderViewer();
-  notify(`All courts → ${state.rounds?.[next]?.label || 'Round ' + (next + 1)}`);
+// ── TAKING THE NEXT GAME ──────────────────────
+// One court at a time, always. There is no "advance everything" here any more
+// and there must not be one: moving a court that is still playing is exactly
+// what made the old round model unfair.
+
+// Say what was passed over on the way to the game that went on. Worth saying in
+// words rather than a count, because "skipped 2" leaves the organiser looking at
+// a queue wondering what is wrong with it.
+function skipNote(skipped) {
+  if (!skipped || !skipped.length) return '';
+  const byState = {};
+  for (const s of skipped) byState[s.state] = (byState[s.state] || 0) + 1;
+  const bits = [];
+  if (byState.clash) {
+    const who = [...new Set(skipped.filter(s => s.state === 'clash').flatMap(s => s.ids))]
+      .map(id => playerById(id)?.name || id).slice(0, 2).join(', ');
+    bits.push(`${byState.clash} still on court (${who})`);
+  }
+  if (byState.short) bits.push(`${byState.short} short of players`);
+  if (byState.gone) bits.push(`${byState.gone} with someone gone home`);
+  return bits.length ? ` Skipped ${bits.join(', ')}.` : '';
 }
 
-// Advance EVERY court forward one round (preserving per-court offsets). No-op
-// (with a warn) when all courts are already on the last round.
-async function startNextRound() {
-  const total = (state.rounds || []).length;
-  if (!total) return notify('No schedule yet', 'warn');
-  const cur = getCourtRounds();
-  const next = nextCourtRounds(cur, total);
-  if (next.every((v, i) => v === cur[i])) return notify('All courts are on the last round', 'warn');
-  // Courts that advanced start a fresh game — their "ending soon" flags no
-  // longer apply, so clear them in the same write (clamped courts keep theirs).
-  const cleared = clearEndingSoonForChangedCourts(state.endingSoon, cur, next, state.numCourts || 1);
-  const restamped = restampCourtLive(state.courtLive, state.courtStatus, cur, next, state.numCourts || 1, Date.now());
-  const updates = { courtRounds: next };
-  if (cleared) updates.endingSoon = cleared;
-  if (restamped) updates.courtLive = restamped;
-  await apiPost(updates);
-  state.courtRounds = next;
-  if (cleared) state.endingSoon = cleared;
-  if (restamped) state.courtLive = restamped;
+// Shared write for everything that moves a court. Pulls the authoritative state
+// first (B4) because this now runs ~50 times a night from up to two admin
+// phones, and a lost update here would drop a game out of the record or, worse,
+// leave two courts pointing at the same four people.
+async function commitBoard(build, onDone) {
+  await refreshState();
+  const res = build(state);
+  if (!res) return null;
+  if (res.empty) return res;
+  const updates = {
+    rounds: res.rounds, queue: res.queue, played: res.played,
+    courtRounds: res.courtRounds, courtLive: res.courtLive, currentRound: 0,
+  };
+  const saved = await apiPost(updates).catch(() => ({ error: 'Network error. Nothing saved.' }));
+  if (saved === null) return null;
+  if (!saved || saved.error || saved.ok === false) {
+    notify((saved && saved.error) || 'Could not save that.', 'warn');
+    return null;
+  }
+  Object.assign(state, updates);
   renderCourtControls();
-  renderRoundList();
+  renderQueue();
   renderViewer();
-  notify('Started next round');
+  if (onDone) onDone(res);
+  return res;
+}
+
+// The button on a court card. Takes the top game from the shared queue that can
+// actually start, records whatever was on the court, and restarts its clock.
+async function nextGameOnCourt(courtIdx) {
+  if (!(state.queue || []).length) return notify('Nothing in the queue. Generate or add a game.', 'warn');
+  const res = await commitBoard(
+    s => takeNextGame(s, courtIdx, Date.now()),
+    r => {
+      const names = gameIds(r.took).map(id => playerById(id)?.name || '?').join(', ');
+      notify(`Court ${courtLabel(courtIdx)}: ${names}.${skipNote(r.skipped)}`);
+    });
+  if (res && res.empty) {
+    notify(`Nothing in the queue can go on Court ${courtLabel(courtIdx)} yet.${skipNote(res.skipped)}`, 'warn');
+  }
+  // The court is playing something new, so an "ending soon" flag set for the
+  // game that just came off no longer means anything.
+  const cleared = clearEndingSoonForCourt(state.endingSoon, courtIdx, state.numCourts || 1);
+  if (cleared && res && !res.empty) {
+    await apiPost({ endingSoon: cleared });
+    state.endingSoon = cleared;
+    renderCourtControls();
+    renderViewer();
+  }
+}
+
+// Undo: the game on this court goes back to the front of the queue and the one
+// before it comes back. For the "I pressed Next on the wrong court" moment,
+// which on a busy night happens roughly once an evening.
+async function undoCourtGame(courtIdx) {
+  const res = await commitBoard(
+    s => putGameBack(s, courtIdx),
+    r => notify(r.restored
+      ? `Court ${courtLabel(courtIdx)} back to the previous game.`
+      : `Court ${courtLabel(courtIdx)} cleared, game put back in the queue.`));
+  if (!res) notify('Nothing to undo on that court.', 'warn');
+}
+
+// Put a game on every court that has nothing on it, top of the queue first.
+// Deliberately cannot touch a court that is playing: that is the whole
+// difference between this and the "Start Next Round" it replaced.
+async function fillFreeCourts() {
+  const numCourts = state.numCourts || 1;
+  if (!(state.queue || []).length) return notify('Nothing in the queue. Generate or add a game.', 'warn');
+  const free = [];
+  for (let i = 0; i < numCourts; i++) if (courtIsFree(state.rounds, getCourtRounds(), i)) free.push(i);
+  if (!free.length) return notify('Every court has a game on it.', 'warn');
+
+  // One write per court rather than one big one: each take has to see the court
+  // filled by the take before it, or two courts get handed the same game.
+  let filled = 0;
+  let blocked = null;
+  for (const i of free) {
+    const res = await commitBoard(s => takeNextGame(s, i, Date.now()));
+    if (!res) return;
+    if (res.empty) { blocked = res; break; }
+    filled++;
+  }
+  if (!filled) {
+    return notify(`Nothing in the queue can go on yet.${blocked ? skipNote(blocked.skipped) : ''}`, 'warn');
+  }
+  notify(`Filled ${filled} court${filled === 1 ? '' : 's'}.`
+    + (blocked ? ` The rest are waiting for players who are still on court.` : ''));
 }
 
 // ── HALL SCREEN: "Coming soon" takeover ───────
@@ -6712,7 +6676,7 @@ async function pickCourtNumber(courtIdx, n) {
   await apiPost({ courtNumbers });
   state.courtNumbers = courtNumbers;
   renderCourtControls();
-  renderRoundList();
+  renderQueue();
   renderCourtSelector();
   renderViewer();
   notify(`This court is now Court ${courtLabel(courtIdx)}`);
@@ -6739,7 +6703,7 @@ async function dropCourt(courtIdx) {
   await apiPost(updates);
   Object.assign(state, updates);
   renderCourtControls();
-  renderRoundList();
+  renderQueue();
   renderCourtSelector();
   renderViewer();
   notify(`Court ${dropped} dropped from today`);
@@ -6943,7 +6907,7 @@ async function toggleRosterPlayer(id) {
   }
   pendingTicks.add(id);
   renderPlayersSection();
-  if (wasIn) { renderCourtControls(); renderRoundList(); renderViewer(); }
+  if (wasIn) { renderCourtControls(); renderQueue(); renderViewer(); }
 
   // 2) Background authoritative write — re-derive the delta on fresh state so a
   //    concurrent change on another device is preserved, not overwritten.
@@ -6975,7 +6939,7 @@ async function toggleRosterPlayer(id) {
     pendingTicks.delete(id);
     renderPlayersSection();
     renderCourtControls();
-    renderRoundList();
+    renderQueue();
     renderViewer();
   }
 }
@@ -6991,7 +6955,7 @@ async function removeFromSession(id) {
   state.players = players;
   if (changed) state.rounds = rounds;
   renderPlayersSection();
-  if (changed) { renderCourtControls(); renderRoundList(); renderViewer(); }
+  if (changed) { renderCourtControls(); renderQueue(); renderViewer(); }
 }
 
 async function deleteRosterPlayer(id, btn) {
@@ -7036,7 +7000,7 @@ async function deleteRosterPlayer(id, btn) {
   if (sessionsChanged) state.sessions = sessions;
   if (roundsChanged) state.rounds = cleanedRounds;
   if (regularsChanged) { state.regulars = regulars; regularsDraft = regularsClone(regulars); }
-  renderPlayersSection(); renderCourtControls(); renderRoundList(); renderViewer();
+  renderPlayersSection(); renderCourtControls(); renderQueue(); renderViewer();
   notify('Removed from roster.');
 }
 
@@ -7065,7 +7029,7 @@ async function saveRosterName(id, name) {
   const players = (state.players || []).map(p => p.id === id ? { ...p, name: trimmed } : p);
   await apiPost({ roster, players });
   state.roster = roster; state.players = players;
-  renderPlayersSection(); renderRoundList();
+  renderPlayersSection(); renderQueue();
   notify('Name saved.');
 }
 
@@ -7252,7 +7216,7 @@ async function saveActiveCourts() {
   state.courtNumbers = nums;
   if (changed) state.rounds = rounds;
   renderCourtControls();
-  renderRoundList();
+  renderQueue();
   renderViewer();
   notify(nums.length === 1 ? `Active court: ${nums[0]}` : `Active courts: ${nums.join(', ')}`);
 }
@@ -7260,19 +7224,22 @@ async function saveActiveCourts() {
 // Inline generate confirmation
 function handleGenerate() {
   const btn = document.getElementById('generateBtn');
-  if (!state?.rounds?.length || generatePending) {
+  // Generating REPLACES the queue, so an existing one asks first. It cannot
+  // touch a game in progress, which is why this is a confirm rather than the
+  // warning it had to be under the round model.
+  if (!(state?.queue || []).length || generatePending) {
     generatePending = false;
-    btn.textContent = 'Generate Schedule';
+    btn.textContent = 'Generate';
     btn.className = 'btn btn-primary btn-sm';
     generateSchedule();
   } else {
     generatePending = true;
-    btn.textContent = 'Confirm replace';
+    btn.textContent = 'Replace queue?';
     btn.className = 'btn btn-danger btn-sm';
     setTimeout(() => {
       if (generatePending) {
         generatePending = false;
-        btn.textContent = 'Generate Schedule';
+        btn.textContent = 'Generate';
         btn.className = 'btn btn-primary btn-sm';
       }
     }, 4000);
@@ -7311,236 +7278,180 @@ function courtChipHTML(court, metaById) {
   return html;
 }
 
+// Fill the queue with the next N games.
+//
+// The balanced matchmaker still does the work, but its output is flattened from
+// rounds into a flat list. That flattening IS the feature: the courts no longer
+// move together, so a row of four simultaneous games is not a thing that exists
+// any more — only an order in which games should go on.
+//
+// It never touches what is on the courts. Under the round model, generating
+// replaced round 1 and therefore the live games, which is why locked courts had
+// to be carried across by hand; now a generate cannot disturb a game in
+// progress at all, so the lock needs no special case here.
 async function generateSchedule() {
-  const numRounds = parseInt(document.getElementById('numRoundsInput').value) || 10;
+  const want = Math.max(1, Math.min(60, parseInt(document.getElementById('numGamesInput').value) || 12));
   const players = state.players || [];
   const numCourts = state.numCourts || 1;
-  const perRound = numCourts * 4;
 
   if (players.length < 4) return notify('Need at least 4 players.');
-  if (players.length < perRound) return notify(`Need at least ${perRound} players for ${numCourts} court(s).`);
 
   const metaById = buildMetaById();
-  let rounds = Matchmaking.smartSchedule(players, numCourts, numRounds, metaById);
-  // Locked courts keep their current four together in the first round of the
-  // new schedule (rounds 2+ are the scheduler's to arrange as usual).
-  const locks = normalizeCourtLocks(state.courtLocks, numCourts);
-  let lockedCount = 0;
-  if (locks.some(Boolean)) {
-    const cur = getCourtRounds();
-    const pairings = locks.map((on, i) => {
-      if (!on) return null;
-      const match = state.rounds?.[cur[i] ?? 0]?.courts?.[i];
-      if (match) lockedCount++;
-      return match || null;
-    });
-    rounds = applyLockedFirstRound(rounds, locks, pairings);
-  }
-  const currentRound = 0;
-  const courtRounds = new Array(numCourts).fill(0);
-  // A brand-new schedule starts fresh games on every court, so no "ending
-  // soon" flag can still apply and no game clock is running yet.
-  const endingSoon = new Array(numCourts).fill(false);
-  const courtLive = new Array(numCourts).fill(0);
-  await apiPost({ rounds, currentRound, courtRounds, endingSoon, courtLive });
-  state.rounds = rounds;
-  state.currentRound = 0;
-  state.courtRounds = courtRounds;
-  state.endingSoon = endingSoon;
-  state.courtLive = courtLive;
-  expandedRound = null;
-  renderCourtControls();
-  renderRoundList();
-  // Count courts outside ±0.5 so the admin knows how many need a hand-tweak
-  // (those chips are tinted amber in the round editor).
-  let over = 0;
-  rounds.forEach(rd => (rd.courts || []).forEach(c => {
-    if (Matchmaking.courtBalanceInfo(c, metaById).gap > Matchmaking.TOL + 1e-9) over++;
-  }));
-  const kept = lockedCount ? ` ${lockedCount} locked court${lockedCount === 1 ? '' : 's'} kept for round 1.` : '';
-  notify(over
-    ? `${rounds.length} rounds generated. ${over} court${over === 1 ? '' : 's'} over ±0.5 (marked amber).${kept}`
-    : `${rounds.length} rounds generated!${kept}`);
-}
+  // Longest waiting first, so the front of the queue goes to the people who
+  // have been sitting. smartSchedule breaks its own ties by position in this
+  // list, so the order it is handed is the order it favours.
+  const gone = wentHomeSet();
+  const ranked = autoFillCandidates();
+  const ordered = ranked.map(x => players.find(p => p.id === x.id)).filter(Boolean);
+  for (const p of players) if (!gone.has(p.id) && !ordered.some(o => o.id === p.id)) ordered.push(p);
+  if (ordered.length < 4) return notify('Need at least 4 players who have not gone home.');
 
-// Adding a round by hand gives you an EMPTY one. It used to seed each court
-// with the first 4N ids on file, which is never who should be playing — the
-// arrangement then had to be undone before it could be made. Fill it yourself,
-// or leave the courts you don't care about to autoFillRound.
-async function addEmptyRound() {
-  const rounds = [...(state.rounds || [])];
-  const n = rounds.length + 1;
-  const numCourts = state.numCourts || 1;
-  const courts = Array.from({ length: numCourts }, () => ({ team1: ['', ''], team2: ['', ''] }));
-  rounds.push({ label: `Round ${n}`, courts });
-  await apiPost({ rounds });
-  state.rounds = rounds;
-  expandedRound = rounds.length - 1;
-  renderRoundList();
-}
+  // How many games one generated "round" yields, so enough rounds are asked for
+  // to cover the games wanted. Capped by who is actually available.
+  const perRound = Math.max(1, Math.min(numCourts, Math.floor(ordered.length / 4)));
+  const rounds = Matchmaking.smartSchedule(ordered, perRound, Math.ceil(want / perRound), metaById);
 
-// ── AUTO-FILL ONE ROUND ───────────────────────
-// How many games each player has had in the rounds BEFORE `upto`. Pure — used
-// only to break ties between two people who have waited the same number of
-// rounds. Unit tested in scripts/test-auto-fill.js.
-function gamesPlayedUpTo(rounds, upto) {
-  const out = {};
-  const last = Math.max(0, Math.min(Number(upto) || 0, (rounds || []).length));
-  for (let r = 0; r < last; r++) {
-    for (const ct of ((rounds[r] && rounds[r].courts) || [])) {
-      if (!ct) continue;
-      for (const team of ['team1', 'team2']) {
-        for (const id of (ct[team] || [])) if (id) out[id] = (out[id] || 0) + 1;
-      }
+  const queue = [];
+  for (const rd of rounds) {
+    for (const c of (rd.courts || [])) {
+      if (queue.length >= want) break;
+      queue.push({ id: newGameId(), team1: [...c.team1], team2: [...c.team2] });
     }
   }
-  return out;
+
+  expandedQueue = null;
+  if (!await saveQueue(queue)) return;
+
+  // Count games outside ±0.5 so the organiser knows how many want a hand-tweak
+  // (those chips are tinted amber in the queue).
+  let over = 0;
+  for (const g of queue) {
+    if (Matchmaking.courtBalanceInfo({ team1: g.team1, team2: g.team2 }, metaById).gap > Matchmaking.TOL + 1e-9) over++;
+  }
+  notify(over
+    ? `${queue.length} games queued. ${over} over ±0.5 (marked amber).`
+    : `${queue.length} games queued.`);
 }
 
-// Who has the best claim to a seat in round `roundIndex`, best first: longest
-// wait, then fewest games all night, then name. Wait is measured on the rounds
-// BEFORE this one, so someone who walked in at round 4 and still hasn't played
-// ranks above a regular who sat out once — which is exactly the late-arrival
-// case the whole-schedule generator gets wrong. Gone-home players are out.
-function autoFillCandidates(roundIndex) {
-  const i = Number(roundIndex) || 0;
+// ── WHO GETS THE NEXT SEAT ────────────────────
+// Best claim first: longest wait, then fewest games all night, then name.
+//
+// The wait is real minutes since their last game came off, not a count of
+// rounds. Somebody who walked in at half past nine and still has not played is
+// measured from the start of the night, so they rank above a regular who has
+// sat out one game — which is the late-arrival case the whole-schedule
+// generator always got wrong. Gone-home players are out of it entirely.
+function autoFillCandidates() {
   const gone = wentHomeSet();
   const pool = (state.players || []).filter(p => p && p.id && !gone.has(p.id));
-  const streaks = i > 0 ? computeRestStreaks(state.rounds, pool, i - 1) : {};
-  const games = gamesPlayedUpTo(state.rounds, i);
+  const live = liveCourtIds(state.rounds, getCourtRounds(), state.numCourts || 1);
+  const mins = waitMinutes(state.played, pool, live, Date.now());
+  const games = playedGameCounts(state.played);
   return pool
-    .map(p => ({ id: p.id, name: p.name || '', wait: streaks[p.id] || 0, games: games[p.id] || 0 }))
+    .map(p => ({ id: p.id, name: p.name || '', wait: mins[p.id] || 0, games: games[p.id] || 0 }))
     .sort((a, b) => b.wait - a.wait || a.games - b.games || a.name.localeCompare(b.name));
 }
 
-async function autoFillRound(i) {
-  i = Number(i);
-  const rounds = JSON.parse(JSON.stringify(state.rounds || []));
-  const r = rounds[i];
-  if (!r) return;
+// ── EDITING THE QUEUE ─────────────────────────
+// A queued game is four names and nothing else: no court, no round, no time.
+// It gains a court at the moment a court takes it, and not before.
 
-  // Read the round the admin is LOOKING at, not the one last saved: picks made
-  // in the editor live only in the DOM until Save Round, and "fill the rest"
-  // has to mean the rest of what is on screen.
-  const labelInput = document.getElementById(`rl_label_${i}`);
-  if (labelInput) r.label = labelInput.value.trim() || r.label;
-  (r.courts || []).forEach((ct, c) => {
-    const el = role => document.getElementById(`rl_${i}_c${c}_${role}`);
-    if (!el('t1p1')) return; // this court isn't rendered (round collapsed)
-    const v = role => el(role)?.value || '';
-    r.courts[c] = { team1: [v('t1p1'), v('t1p2')], team2: [v('t2p1'), v('t2p2')] };
-  });
+// Ids for queued games are only ever local handles — they key the DOM rows and
+// nothing looks them up across devices — so a timestamp plus a counter is
+// enough and needs no coordination.
+let __qSeq = 0;
+function newGameId() { return 'q' + Date.now().toString(36) + (__qSeq++).toString(36); }
 
-  const known = id => (state.players || []).some(p => p.id === id);
-  if (!Matchmaking.emptySlotsOf(r, known).length) {
-    return notify('Every slot in this round is filled. Clear one and it will be filled for you.', 'warn');
-  }
-  const ranked = autoFillCandidates(i);
-  const res = Matchmaking.fillRound(r, ranked.map(x => x.id), buildMetaById(), known);
-  if (!res.filled) return notify('Nobody is free to fill those slots.', 'warn');
-  r.courts = res.courts;
-
-  const saved = await apiPost({ rounds }).catch(() => ({ error: 'Network error. Nothing saved.' }));
-  if (saved === null) return;
+async function saveQueue(queue, note) {
+  const saved = await apiPost({ queue }).catch(() => ({ error: 'Network error. Nothing saved.' }));
+  if (saved === null) return false;
   if (!saved || saved.error || saved.ok === false) {
-    return notify((saved && saved.error) || 'Could not save that round.', 'warn');
+    notify((saved && saved.error) || 'Could not save the queue.', 'warn');
+    return false;
   }
-  state.rounds = rounds;
+  state.queue = queue;
+  renderQueue();
   renderCourtControls();
-  renderRoundList();
   renderViewer();
+  if (note) notify(note);
+  return true;
+}
 
-  // Say who went in and how long they had been sitting — that is the whole
-  // reason for pressing this rather than picking four names.
+// A game added by hand starts EMPTY. Seeding it with names is never who should
+// be playing, and the arrangement then has to be undone before it can be made.
+async function addQueueGame() {
+  const queue = [...(state.queue || []), { id: newGameId(), team1: ['', ''], team2: ['', ''] }];
+  expandedQueue = queue.length - 1;
+  await saveQueue(queue);
+}
+
+async function deleteQueueGame(i) {
+  const queue = (state.queue || []).filter((_, j) => j !== i);
+  if (expandedQueue === i) expandedQueue = null;
+  else if (expandedQueue > i) expandedQueue--;
+  await saveQueue(queue);
+}
+
+// Move a game up or down the order. This is the whole control an organiser has
+// over who plays next, so it stays a plain two-button nudge rather than a drag:
+// it has to work on a phone, in a hall, one-handed.
+async function moveQueueGame(i, delta) {
+  const queue = [...(state.queue || [])];
+  const j = i + delta;
+  if (j < 0 || j >= queue.length) return;
+  [queue[i], queue[j]] = [queue[j], queue[i]];
+  if (expandedQueue === i) expandedQueue = j;
+  else if (expandedQueue === j) expandedQueue = i;
+  await saveQueue(queue);
+}
+
+// Read one queued game out of its OPEN editor. Picks live only in the DOM until
+// this runs, exactly as the round editor worked.
+function queueGameFromDom(i, fallback) {
+  const el = role => document.getElementById(`q_${i}_${role}`);
+  if (!el('t1p1')) return fallback;
+  const v = role => el(role)?.value || '';
+  return { id: fallback?.id || newGameId(), team1: [v('t1p1'), v('t1p2')], team2: [v('t2p1'), v('t2p2')] };
+}
+
+async function saveQueueGame(i) {
+  const queue = (state.queue || []).map((g, j) => (j === i ? queueGameFromDom(i, g) : g));
+  await saveQueue(queue, 'Game saved.');
+}
+
+// Fill only the empty seats in one queued game, longest waiting first, leaving
+// anybody already placed exactly where they are.
+async function autoFillQueueGame(i) {
+  const cur = queueGameFromDom(i, (state.queue || [])[i]);
+  if (!cur) return;
+  const known = id => (state.players || []).some(p => p.id === id);
+  const asRound = { courts: [{ team1: [...cur.team1], team2: [...cur.team2] }] };
+  if (!Matchmaking.emptySlotsOf(asRound, known).length) {
+    return notify('Every seat in that game is taken. Clear one and it will be filled for you.', 'warn');
+  }
+  // Anyone already queued AHEAD of this game is spoken for: putting them in
+  // here too would build a clash by hand and guarantee one of the two is
+  // skipped. Anyone on a court right now is likewise unavailable.
+  const spokenFor = new Set(liveCourtIds(state.rounds, getCourtRounds(), state.numCourts || 1));
+  (state.queue || []).forEach((g, j) => {
+    if (j < i) for (const id of gameIds(g)) if (id) spokenFor.add(id);
+  });
+  const ranked = autoFillCandidates().filter(x => !spokenFor.has(x.id));
+  const res = Matchmaking.fillRound(asRound, ranked.map(x => x.id), buildMetaById(), known);
+  if (!res.filled) return notify('Nobody is free to fill those seats.', 'warn');
+
+  const filled = res.courts[0];
+  const queue = (state.queue || []).map((g, j) => (j === i
+    ? { id: cur.id, team1: [...filled.team1], team2: [...filled.team2] } : g));
   const waitOf = {};
   for (const x of ranked) waitOf[x.id] = x.wait;
-  const named = res.placed
-    .slice()
-    .sort((a, b) => (waitOf[b.id] || 0) - (waitOf[a.id] || 0))
-    .slice(0, 3)
-    .map(s => `${playerById(s.id)?.name || s.id} (${waitOf[s.id] || 0})`);
-  const short = res.short ? ` ${res.short} slot${res.short === 1 ? '' : 's'} left empty: nobody free.` : '';
-  notify(`Filled ${res.filled} slot${res.filled === 1 ? '' : 's'}. Longest waits in: ${named.join(', ')}.${short}`,
+  const named = res.placed.slice()
+    .sort((a, b) => (waitOf[b.id] || 0) - (waitOf[a.id] || 0)).slice(0, 3)
+    .map(s => `${playerById(s.id)?.name || s.id} (${waitOf[s.id] || 0}m)`);
+  const short = res.short ? ` ${res.short} seat${res.short === 1 ? '' : 's'} left empty: nobody free.` : '';
+  await saveQueue(queue);
+  notify(`Filled ${res.filled} seat${res.filled === 1 ? '' : 's'}. Longest waits in: ${named.join(', ')}.${short}`,
     res.short ? 'warn' : undefined);
-}
-
-async function advanceCourt(courtIdx, delta) {
-  const prevRounds = getCourtRounds();
-  const courtRounds = [...prevRounds];
-  const next = Math.max(0, Math.min((state.rounds?.length || 1) - 1, courtRounds[courtIdx] + delta));
-  courtRounds[courtIdx] = next;
-  // A fresh game on this court means it is no longer "ending soon" — clear the
-  // flag in the same write (null when there was nothing set, so no extra churn).
-  const cleared = clearEndingSoonForCourt(state.endingSoon, courtIdx, state.numCourts || 1);
-  // ...and the game clock restarts, because this is a new game.
-  const restamped = restampCourtLive(state.courtLive, state.courtStatus, prevRounds, courtRounds, state.numCourts || 1, Date.now());
-  const updates = { courtRounds };
-  if (cleared) updates.endingSoon = cleared;
-  if (restamped) updates.courtLive = restamped;
-  await apiPost(updates);
-  state.courtRounds = courtRounds;
-  if (cleared) state.endingSoon = cleared;
-  if (restamped) state.courtLive = restamped;
-  renderCourtControls();
-  renderRoundList();
-  renderViewer(); // refresh the viewer (and its Up Next panel) immediately, incl. clicks from the viewer
-  notify(`Court ${courtLabel(courtIdx)} → ${state.rounds?.[next]?.label || 'Round ' + (next + 1)}`);
-}
-
-async function setCurrentRound(i) {
-  const numCourts = state.numCourts || 1;
-  const prevRounds = getCourtRounds();
-  const courtRounds = new Array(numCourts).fill(i);
-  // Courts that moved to a different round start a fresh game — their
-  // "ending soon" flags no longer apply, so clear them in the same write, and
-  // their game clocks restart.
-  const cleared = clearEndingSoonForChangedCourts(state.endingSoon, prevRounds, courtRounds, numCourts);
-  const restamped = restampCourtLive(state.courtLive, state.courtStatus, prevRounds, courtRounds, numCourts, Date.now());
-  const updates = { currentRound: i, courtRounds };
-  if (cleared) updates.endingSoon = cleared;
-  if (restamped) updates.courtLive = restamped;
-  await apiPost(updates);
-  state.currentRound = i;
-  state.courtRounds = courtRounds;
-  if (cleared) state.endingSoon = cleared;
-  if (restamped) state.courtLive = restamped;
-  renderCourtControls();
-  renderRoundList();
-  renderViewer();
-  notify('All courts → ' + (state.rounds?.[i]?.label || 'Round ' + (i + 1)));
-}
-
-async function deleteRound(i) {
-  const rounds = state.rounds.filter((_, j) => j !== i);
-  const currentRound = Math.min(state.currentRound, Math.max(0, rounds.length - 1));
-  await apiPost({ rounds, currentRound });
-  state.rounds = rounds;
-  state.currentRound = currentRound;
-  if (expandedRound === i) expandedRound = null;
-  else if (expandedRound > i) expandedRound--;
-  renderCourtControls();
-  renderRoundList();
-}
-
-async function saveRound(i) {
-  const rounds = JSON.parse(JSON.stringify(state.rounds));
-  const r = rounds[i];
-  const labelInput = document.getElementById(`rl_label_${i}`);
-  if (labelInput) r.label = labelInput.value.trim() || r.label;
-
-  const numCourts = r.courts.length;
-  for (let c = 0; c < numCourts; c++) {
-    const get = (role) => document.getElementById(`rl_${i}_c${c}_${role}`)?.value || '';
-    r.courts[c] = {
-      team1: [get('t1p1'), get('t1p2')],
-      team2: [get('t2p1'), get('t2p2')]
-    };
-  }
-
-  await apiPost({ rounds });
-  state.rounds = rounds;
-  renderRoundList();
-  notify('Round saved!');
 }
 
 // One line per match in the round row. Each match is its own element so a phone
@@ -7650,132 +7561,123 @@ function refreshPairWarnings(i) {
   });
 }
 
-function renderRoundList() {
-  const list = document.getElementById('roundList');
+// One match on one line, for a queued game and for a finished one. The court
+// version (roundSummary) prints a court number per match; a queued game has no
+// court to print, because it does not have one until a court takes it.
+function gameSummary(game) {
+  const n = id => escHtml(playerById(id)?.name || '?');
+  const ids = gameIds(game);
+  return `<span class="rs-m"><span class="rs-t">${n(ids[0])} &amp; ${n(ids[1])}</span>`
+    + `<i class="rs-v">v</i>`
+    + `<span class="rs-t">${n(ids[2])} &amp; ${n(ids[3])}</span></span>`;
+}
+
+// The queue, in order. Each row is the round editor's row with the court
+// removed and a readiness marker added, so there is one way to arrange four
+// names in this app rather than two that can drift apart.
+function renderQueue() {
+  const list = document.getElementById('queueList');
   if (!list) return;
+  const queue = state.queue || [];
+  const wrap = document.getElementById('queueListWrap');
+  if (wrap) wrap.style.display = queue.length ? '' : 'none';
+  const empty = document.getElementById('queueEmpty');
+  if (empty) empty.style.display = queue.length ? 'none' : '';
   list.innerHTML = '';
-  const wrap = document.getElementById('roundListWrap');
-  if (wrap) wrap.style.display = (state.rounds || []).length ? '' : 'none';
-  const activeCourts = getCourtRounds();
+
   const metaById = buildMetaById();
-  const sessionPairCounts = Matchmaking.pairCounts(state.rounds);
-  (state.rounds || []).forEach((round, i) => {
-    const isLive = activeCourts.includes(i);
-    const isExpanded = i === expandedRound;
+  // Repeat-pairing warnings count the whole night: what is on the courts now
+  // AND what has already been played, or the third time two people are put
+  // together goes unremarked because the first two are in the record.
+  const pairs = pairCountsAll(state.rounds, state.played);
+  const gone = wentHomeSet();
+  // Readiness is measured against the courts as they stand. It is advice, not a
+  // verdict: a clash usually clears itself the moment that court finishes.
+  const live = liveCourtIds(state.rounds, getCourtRounds(), state.numCourts || 1);
+
+  queue.forEach((game, i) => {
+    const isExpanded = i === expandedQueue;
+    const court = { team1: [...(game.team1 || ['', ''])], team2: [...(game.team2 || ['', ''])] };
+    const r = gameReadiness(game, live, gone);
+    const why = {
+      ready: '',
+      short: 'Needs four names before it can go on.',
+      gone: `${r.ids.map(id => playerById(id)?.name || id).join(', ')} has gone home.`,
+      clash: `${r.ids.map(id => playerById(id)?.name || id).join(', ')} still on court. It will go on once they finish.`,
+    }[r.state];
+    const label = { ready: 'Ready', short: 'Short', gone: 'Gone home', clash: 'Waiting' }[r.state];
+
     const div = document.createElement('div');
-    div.className = 'round-row' + (isLive ? ' live' : '') + (isExpanded ? ' expanded' : '');
-
-    let courtEditorsHTML = '';
-    (round.courts || []).forEach((court, c) => {
-      courtEditorsHTML += `
-        <div class="court-editor">
-          <h4>Court ${courtLabel(c)} <span id="chip_${i}_${c}">${courtChipHTML(court, metaById)}</span></h4>
-          ${selectorsRowHTML(`rl_${i}_c${c}`, i, c, court, { id: `pw_${i}_${c}`, html: pairWarnHTML(court, sessionPairCounts) })}
-        </div>
-      `;
-    });
-
-    const liveLabel = isLive
-      ? `<span class="live-badge">● Live</span>`
-      : '';
-
+    div.className = 'round-row' + (r.state === 'ready' ? ' live' : '') + (isExpanded ? ' expanded' : '');
     div.innerHTML = `
-      <div class="round-row-header" onclick="toggleRoundExpand(${i})">
-        <div class="round-live-dot"></div>
-        <span class="rl">${escHtml(round.label)}</span>
-        <span class="rsummary">${roundSummary(round)}</span>
-        ${liveLabel}
-        <button class="btn btn-accent btn-sm rl-set-live" onclick="event.stopPropagation();setCurrentRound(${i})">${isLive ? 'All Live ✓' : 'Set Live'}</button>
-        <button class="btn btn-ghost btn-sm rl-delete" onclick="event.stopPropagation();deleteRound(${i})" title="Delete round">✕</button>
+      <div class="round-row-header" onclick="toggleQueueExpand(${i})">
+        <span class="q-pos">${i + 1}</span>
+        <div class="q-move" onclick="event.stopPropagation()">
+          <button onclick="moveQueueGame(${i},-1)" ${i === 0 ? 'disabled' : ''} aria-label="Move up" title="Move up">▲</button>
+          <button onclick="moveQueueGame(${i},1)" ${i === queue.length - 1 ? 'disabled' : ''} aria-label="Move down" title="Move down">▼</button>
+        </div>
+        <span class="rsummary">${gameSummary(game)}</span>
+        <span class="q-state ${r.state}">${label}</span>
+        <button class="btn btn-ghost btn-sm rl-delete" onclick="event.stopPropagation();deleteQueueGame(${i})" title="Remove this game" aria-label="Remove this game">✕</button>
+        ${why ? `<span class="q-why">${escHtml(why)}</span>` : ''}
       </div>
       <div class="round-editor">
-        <div class="row rl-label-row">
-          <label class="admin-form-label">Label:</label>
-          <input id="rl_label_${i}" type="text" value="${escHtml(round.label)}"
-            class="rl-label-input"
-            onkeydown="if(event.key==='Enter')saveRound(${i})">
+        <div class="court-editor">
+          <h4>Game ${i + 1} <span id="chip_q_${i}">${courtChipHTML(court, metaById)}</span></h4>
+          ${selectorsRowHTML(`q_${i}`, i, 0, court, { id: `pw_q_${i}`, html: pairWarnHTML(court, pairs) })}
         </div>
-        ${courtEditorsHTML}
         <div class="rl-actions">
-          <button class="btn btn-primary btn-sm" onclick="saveRound(${i})">Save Round</button>
-          <button class="btn btn-ghost btn-sm" onclick="autoFillRound(${i})"
-            title="Fill only the empty slots in this round, longest-waiting players first. Anyone you have already placed stays put.">Auto-fill empty</button>
+          <button class="btn btn-primary btn-sm" onclick="saveQueueGame(${i})">Save game</button>
+          <button class="btn btn-ghost btn-sm" onclick="autoFillQueueGame(${i})"
+            title="Fill only the empty seats, longest-waiting players first. Anyone you have already placed stays put, and anybody spoken for by an earlier game is left out.">Auto-fill empty</button>
         </div>
       </div>
     `;
     list.appendChild(div);
   });
+
+  renderPlayed();
 }
 
-function toggleRoundExpand(i) {
-  expandedRound = expandedRound === i ? null : i;
-  renderRoundList();
+function toggleQueueExpand(i) {
+  expandedQueue = expandedQueue === i ? null : i;
+  renderQueue();
 }
 
-// ── UP NEXT OVERRIDE EDITOR ───────────────────
-// Per-court dropdowns for each court's NEXT round, reusing the round-editor
-// primitives. Rebuilt by renderCourtControls every poll; an in-progress
-// selection is preserved by poll()'s isEditing() guard (focused <select>).
-function renderNextUpEditor() {
-  const box = document.getElementById('upNextEditor');
+// Tonight's results. Newest first, because the question being asked of it is
+// almost always "who just came off".
+function renderPlayed() {
+  const box = document.getElementById('playedList');
   if (!box) return;
-  const numCourts = state.numCourts || 1;
-  const courtRounds = getCourtRounds();
-  const total = (state.rounds || []).length;
-  if (!total) { box.innerHTML = '<div class="admin-helper-text">Generate a schedule to edit the next round.</div>'; return; }
-  let html = '';
-  let anyEditable = false;
-  for (let i = 0; i < numCourts; i++) {
-    const ni = (courtRounds[i] ?? 0) + 1;
-    if (ni >= total) {
-      html += `<div class="court-editor"><h4>Court ${courtLabel(i)}</h4><div class="admin-helper-text">On last round. No next round. Add or generate more rounds.</div></div>`;
-      continue;
-    }
-    const court = state.rounds?.[ni]?.courts?.[i];
-    if (!court) {
-      html += `<div class="court-editor"><h4>Court ${courtLabel(i)}</h4><div class="admin-helper-text">No match slot in the next round.</div></div>`;
-      continue;
-    }
-    anyEditable = true;
-    const label = state.rounds?.[ni]?.label || `Round ${ni + 1}`;
-    html += `
-      <div class="court-editor">
-        <h4>Court ${courtLabel(i)} <span class="upnext-edit-round">${escHtml(label)}</span></h4>
-        ${selectorsRowHTML(`un_c${i}`, ni, i, court)}
-      </div>`;
+  const played = (state.played || []).slice().reverse();
+  const summary = document.getElementById('playedSummary');
+  if (summary) {
+    summary.textContent = played.length
+      ? `Games played tonight (${played.length})`
+      : 'Games played tonight';
   }
-  if (anyEditable) html += `<button class="btn btn-primary btn-sm" onclick="saveNextUp()">Save Up Next</button>`;
-  box.innerHTML = html;
-}
-
-async function saveNextUp() {
-  const numCourts = state.numCourts || 1;
-  const courtRounds = getCourtRounds();
-  const total = (state.rounds || []).length;
-  const edits = [];
-  for (let i = 0; i < numCourts; i++) {
-    const ni = (courtRounds[i] ?? 0) + 1;
-    if (ni >= total) continue;
-    const get = role => document.getElementById(`un_c${i}_${role}`)?.value;
-    if (get('t1p1') === undefined) continue; // no editor rendered for this court
-    edits.push({
-      court: i, roundIndex: ni,
-      team1: [get('t1p1'), get('t1p2')],
-      team2: [get('t2p1'), get('t2p2')],
-    });
+  if (!played.length) {
+    box.innerHTML = `<div class="pg-empty">Nothing finished yet. A game is recorded here when its court moves on.</div>`;
+    return;
   }
-  if (!edits.length) return notify('Nothing to save', 'warn');
-  const { rounds, duplicates } = applyNextUpEdits(state.rounds, edits);
-  if (duplicates.length) {
-    const names = [...new Set(duplicates.flatMap(d => d.ids).map(id => playerById(id)?.name || id))];
-    return notify(`Duplicate player: ${names.join(', ')}`, 'warn');
-  }
-  await apiPost({ rounds });
-  state.rounds = rounds;
-  renderCourtControls();
-  renderRoundList();
-  renderViewer();
-  notify('Up Next saved!');
+  const clock = (ms) => {
+    if (!ms) return '';
+    const d = new Date(ms);
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  };
+  box.innerHTML = played.map(g => {
+    // A game recovered from a night saved under the old round model has no
+    // clock, because none was ever recorded. Saying nothing is honest; an
+    // invented time would not be.
+    const from = clock(g.startedAt), to = clock(g.endedAt);
+    const mins = g.startedAt && g.endedAt ? Math.max(0, Math.round((g.endedAt - g.startedAt) / 60000)) : 0;
+    const when = from && to ? `${from}–${to}${mins ? ` · ${mins}m` : ''}` : '';
+    return `<div class="pg-row">
+      <span class="pg-court">Court ${courtLabel(g.court || 0)}</span>
+      <span class="pg-teams">${gameSummary(g)}</span>
+      <span class="pg-time">${escHtml(when)}</span>
+    </div>`;
+  }).join('');
 }
 
 // ── PLAYER PICKER POPOVER ─────────────────────
@@ -7842,11 +7744,10 @@ function openPlayerPicker(btn) {
   const roundIndex = parseInt(btn.dataset.round, 10);
   const selectedId = btn.value || '';
 
-  // Who is placed elsewhere in this same round, read live from sibling buttons.
-  // Scope to the active button's OWN editor: the round editor and the Up Next
-  // editor can both target the same round index, and scanning across both would
+  // Who is placed elsewhere in the SAME game, read live from sibling buttons.
+  // Scope to the active button's own editor so two open editors cannot
   // double-count (e.g. flag the current pick as "on another court").
-  const scope = btn.closest('.round-editor') || btn.closest('#upNextEditor') || document;
+  const scope = btn.closest('.round-editor') || document;
   const assigned = new Map(); // id -> court index (0-based)
   scope.querySelectorAll('.pslot').forEach(b => {
     if (b === btn) return;
@@ -7855,9 +7756,10 @@ function openPlayerPicker(btn) {
     if (v && !assigned.has(v)) assigned.set(v, parseInt(b.dataset.court, 10));
   });
 
-  // "Sat out N" = consecutive rounds benched immediately before this round.
-  const streaks = roundIndex > 0
-    ? computeRestStreaks(state.rounds, state.players, roundIndex - 1) : {};
+  // "Sat out N" is minutes waiting now, measured the same way the bench is, so
+  // the picker and the bench cannot rank the same two people differently.
+  const streaks = waitMinutes(state.played, state.players,
+    liveCourtIds(state.rounds, getCourtRounds(), state.numCourts || 1), Date.now());
   const meta = buildMetaById();
   const levelOf = id => {
     const lv = meta[id]?.level;
@@ -7917,7 +7819,7 @@ function renderPslotList(query) {
   let html = '';
   if (freeF.length) html += `<div class="pslot-group">${labels.free}</div>` + freeF.map(x => rowHTML(x.p)).join('');
   if (restF.length) html += `<div class="pslot-group">${labels.resting}</div>`
-    + restF.map(x => rowHTML(x.p, { badge: `Sat out ${x.n}`, badgeCls: 'warn' })).join('');
+    + restF.map(x => rowHTML(x.p, { badge: `Waiting ${x.n}m`, badgeCls: 'warn' })).join('');
   if (courtF.length) html += `<div class="pslot-group">${labels.onCourt}</div>`
     + courtF.map(x => rowHTML(x.p, { badge: x.badge || `Court ${courtLabel(x.court)}`, badgeCls: 'court', dim: true })).join('');
   // Last, dimmed: they have left for the night, so they are the answer to
@@ -8507,7 +8409,7 @@ async function saveRegulars() {
   state.regulars = regulars;
   if (toAdd.length) {
     state.players = players;
-    renderPlayersSection(); renderCourtControls(); renderRoundList(); renderViewer();
+    renderPlayersSection(); renderCourtControls(); renderQueue(); renderViewer();
   }
   regularsDraft = regularsClone(regulars);
   renderRegularsCard();
@@ -8557,7 +8459,7 @@ async function addAllRegulars() {
   state.players = players;
   renderPlayersSection();
   renderCourtControls();
-  renderRoundList();
+  renderQueue();
   renderViewer();
   notify(`Added ${additions.length} regular${additions.length > 1 ? 's' : ''} to today.`);
 }
@@ -8654,7 +8556,7 @@ async function setSessionDate() {
   renderSessionDateSection();
   renderPlayersSection();
   renderCourtControls();
-  renderRoundList();
+  renderQueue();
   renderViewer();
   pmDate = null; // Payments tab follows the new live day
   renderEodStatus();
