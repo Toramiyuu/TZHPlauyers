@@ -57,14 +57,14 @@ function extractFn(name, src) {
 
 // buildMatchesFromState depends on the other two — eval all three in one scope.
 function loadHelpers() {
-  const names = ['resolvePlayer', 'getArenaCourtRounds', 'buildMatchesFromState', 'buildNextUpFromState'];
+  const names = ['resolvePlayer', 'getArenaCourtRounds', 'arenaGameLabel', 'buildMatchesFromState', 'buildNextUpFromState'];
   const sources = names.map(n => {
     const s = extractFn(n, html);
     if (!s) throw new Error(`MISSING helper in arena-webgl.html: ${n}`);
     return s;
   });
   // eslint-disable-next-line no-new-func
-  return new Function(`${sources.join('\n')}; return { resolvePlayer, getArenaCourtRounds, buildMatchesFromState, buildNextUpFromState };`)();
+  return new Function(`var ARENA_UPNEXT_SHOWN = 4;\n${sources.join('\n')}; return { resolvePlayer, getArenaCourtRounds, arenaGameLabel, buildMatchesFromState, buildNextUpFromState };`)();
 }
 
 const failures = [];
@@ -96,6 +96,9 @@ const state = {
     { id: 'p7', name: 'Yit Fung', photo: null },
   ],
   players: [],
+  // One game finished on court 1 tonight, so its card reads "Game 2" while
+  // court 2, which has finished nothing, reads "Game 1".
+  played: [{ id: 'x1', court: 0, team1: ['p0', 'p1'], team2: ['p2', 'p3'], startedAt: 1, endedAt: 2 }],
   rounds: [
     { label: 'Round 1', courts: [
       { team1: ['p0', 'p1'], team2: ['p2', 'p3'] },
@@ -131,8 +134,15 @@ const m = H.buildMatchesFromState(state);
 check('buildMatches → one entry per court', m.length === 2);
 check('buildMatches court 1 number', m[0].court === 1);
 // court 0 is on round index 0; court 1 is on round index 1 (per courtRounds)
-check('buildMatches court 1 uses its round index', m[0].round === 1 && m[0].roundLabel === 'Round 1');
-check('buildMatches court 2 uses its round index', m[1].round === 2 && m[1].roundLabel === 'Round 2');
+// The card label is this court's OWN game number now, counted out of state.played.
+// It used to be the shared round label, which no longer exists: the board is a
+// single live row, so every card would have read the same word.
+check('buildMatches labels court 1 by its own games', m[0].roundLabel === 'Game 2');
+check('buildMatches labels court 2 by its own games', m[1].roundLabel === 'Game 1');
+check('arenaGameLabel counts only that court', H.arenaGameLabel(state, 0) === 'Game 2' && H.arenaGameLabel(state, 1) === 'Game 1');
+check('arenaGameLabel with nothing played is Game 1', H.arenaGameLabel({ played: [] }, 0) === 'Game 1');
+check('a recovered game with no court counts as court 1',
+  H.arenaGameLabel({ played: [{ team1: ['a'], team2: ['b'] }] }, 0) === 'Game 2');
 check('buildMatches resolves team1 names', m[0].t1.join(',') === 'Thomas,Desmond');
 check('buildMatches resolves team2 names', m[0].t2.join(',') === 'Celine,Sharmin');
 check('buildMatches court 2 team1 from round 2', m[1].t1.join(',') === 'Alex,Kokyan');
@@ -177,44 +187,48 @@ check('buildMatches carries endingSoon per court', me[0].endingSoon === true && 
 check('buildMatches endingSoon defaults false when absent', H.buildMatchesFromState(state).every(x => x.endingSoon === false));
 
 // ── buildNextUpFromState ──────────────────────────────────────────────────
-// The main `state` fixture has 2 rounds; courtRounds=[0,1]. Court 0 has a next
-// round (index 1); court 1 is already on the last round → omitted.
-const nu = H.buildNextUpFromState(state);
-check('nextUp → one row (court on its last round omitted)', nu.length === 1);
-check('nextUp uses the court number', nu[0].court === 1);
-check('nextUp text is the next-round matchup', nu[0].text === 'Desmond & Celine vs Sharmin & Terence');
-
-// a court whose NEXT round has no court slot is omitted; the other still shows
-const nuSparse = {
-  numCourts: 2, currentRound: 0, courtRounds: [0, 0],
+// It reads the shared QUEUE now, not "the round after the one each court is
+// on". A queued game has no court: which court takes it is decided when a court
+// frees up, so promising one in advance was the round model showing through.
+// `court` is the game's POSITION in the queue, kept under that name because the
+// row renderer prints it in the same badge.
+const nuState = {
   roster: [{ id: 'a', name: 'Ann' }, { id: 'b', name: 'Ben' }, { id: 'c', name: 'Cy' }, { id: 'd', name: 'Di' }],
-  rounds: [
-    { label: 'R1', courts: [{ team1: ['a', 'b'], team2: ['c', 'd'] }, { team1: ['c', 'd'], team2: ['a', 'b'] }] },
-    { label: 'R2', courts: [{ team1: ['a', 'c'], team2: ['b', 'd'] }] }, // only court 0 has a next slot
+  queue: [
+    { id: 'g1', team1: ['a', 'b'], team2: ['c', 'd'] },
+    { id: 'g2', team1: ['a', 'c'], team2: ['b', 'd'] },
   ],
 };
-const nu2 = H.buildNextUpFromState(nuSparse);
-check('nextUp omits a court with no next slot', nu2.length === 1 && nu2[0].court === 1);
-check('nextUp resolves the next-round names', nu2[0].text === 'Ann & Cy vs Ben & Di');
+const nu = H.buildNextUpFromState(nuState);
+check('nextUp → one row per queued game, in order', nu.length === 2);
+check('nextUp numbers rows by queue position', nu[0].court === 1 && nu[1].court === 2);
+check('nextUp text is the queued matchup', nu[0].text === 'Ann & Ben vs Cy & Di');
+check('nextUp keeps the queue order', nu[1].text === 'Ann & Cy vs Ben & Di');
+
+// It must agree with the 2D viewer, which is the whole reason both exist.
+check('nextUp caps at the same count the 2D viewer uses', (() => {
+  const many = { roster: nuState.roster, queue: [1,2,3,4,5,6].map(n => ({ id: 'g'+n, team1: ['a','b'], team2: ['c','d'] })) };
+  const cap = Number((html.match(/ARENA_UPNEXT_SHOWN\s*=\s*(\d+)/) || [])[1]);
+  const twoD = fs.readFileSync(path.join(path.resolve(__dirname, '..'), 'public', 'index.html'), 'utf8');
+  const cap2 = Number((twoD.match(/UPNEXT_SHOWN\s*=\s*(\d+)/) || [])[1]);
+  return cap === cap2 && H.buildNextUpFromState(many).length === cap;
+})());
 
 // singles (missing partner) shows TBD — matches the 2D viewer's row text
-const nuSingles = {
-  numCourts: 1, currentRound: 0, courtRounds: [0],
-  roster: [{ id: 'a', name: 'Ann' }, { id: 'b', name: 'Ben' }],
-  rounds: [
-    { label: 'R1', courts: [{ team1: ['a'], team2: ['b'] }] },
-    { label: 'R2', courts: [{ team1: ['a'], team2: ['b'] }] },
-  ],
-};
 check('nextUp shows TBD for a missing partner (2D parity)',
-  H.buildNextUpFromState(nuSingles)[0].text === 'Ann & TBD vs Ben & TBD');
+  H.buildNextUpFromState({ roster: nuState.roster, queue: [{ team1: ['a'], team2: ['b'] }] })[0].text
+    === 'Ann & TBD vs Ben & TBD');
 
-// last round → nothing up next; null/empty state never throws
-check('nextUp empty when no next round exists',
-  H.buildNextUpFromState({ numCourts: 1, currentRound: 0, courtRounds: [0],
-    roster: [{ id: 'a', name: 'Ann' }, { id: 'b', name: 'Ben' }],
-    rounds: [{ label: 'R1', courts: [{ team1: ['a'], team2: ['b'] }] }] }).length === 0);
+// nothing queued → nothing up next; null/empty state never throws
+check('nextUp empty when the queue is empty',
+  H.buildNextUpFromState({ roster: nuState.roster, queue: [] }).length === 0);
+check('nextUp empty when there is no queue at all',
+  H.buildNextUpFromState({ roster: nuState.roster }).length === 0);
 check('nextUp handles null state', Array.isArray(H.buildNextUpFromState(null)) && H.buildNextUpFromState(null).length === 0);
+
+// The arena must not go back to naming a court for a queued game.
+check('the arena no longer reads rounds for Up Next',
+  !/function buildNextUpFromState[\s\S]{0,600}courtRounds/.test(html));
 
 // ── report ────────────────────────────────────────────────────────────────
 if (failures.length) {

@@ -236,6 +236,13 @@ body.in-3d #joinModal{z-index:1300}
 .q-state.clash{color:#b26b00;background:rgba(224,140,0,.14)}
 .q-state.short{color:var(--muted);background:rgba(120,120,120,.14)}
 .q-state.gone{color:#b00020;background:rgba(176,0,32,.10)}
+/* The reason sits on its own line under the match. It needs the header to
+   wrap: .round-row-header is nowrap by default, and a flex-basis:100% child in
+   a nowrap row does not move down, it squeezes its siblings — which collapsed
+   .rsummary (min-width:0) to nothing and left the row showing a badge and a
+   reason with no match between them. Found by looking at it. */
+#queueList .round-row-header{flex-wrap:wrap;row-gap:4px}
+#queueList .rsummary{min-width:140px}
 .q-why{font-size:var(--fs-xs);color:var(--muted);flex-basis:100%;padding-left:38px}
 .queue-empty{margin-top:10px}
 /* Tonight's results. A <details>, shut by default: it is a record, not
@@ -9133,14 +9140,19 @@ function setNavBadge(id, val, opts) {
   el.style.display = show ? 'inline-flex' : 'none';
 }
 
-// Live counts on the nav (Session players, current round, unhandled sign-ups).
+// Live counts on the nav (Session players, games queued, unhandled sign-ups).
 function updateAdminNavBadges() {
   if (!state) return;
   const sessionIds = new Set((state.players || []).map(p => p.id));
   const guests = (state.players || []).filter(p => p.guest);
   const playing = (state.roster || []).filter(r => sessionIds.has(r.id)).length + guests.length;
   setNavBadge('navBadgeSession', playing);
-  setNavBadge('navBadgeCourts', 'R' + ((state.currentRound || 0) + 1), { always: true });
+  // How many games are waiting, which is the number the organiser acts on. It
+  // used to read 'R' + currentRound, a shared round number that stopped being
+  // true the moment two courts were on different games — and by the end of the
+  // night was simply a count of how many rounds had ever been generated.
+  const queued = (state.queue || []).length;
+  setNavBadge('navBadgeCourts', queued ? queued + ' up' : 'none', { always: true });
   const lib = window.MonthlyDraw;
   const su = lib ? lib.unhandledCount(state.signups || []) : (state.signups || []).filter(s => s && !s.handled).length;
   setNavBadge('navBadgeSignups', su);

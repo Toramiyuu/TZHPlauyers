@@ -328,6 +328,20 @@ function getArenaCourtRounds(state){
   var out = []; for (var i=0;i<numCourts;i++) out.push(base); return out;
 }
 
+// This court's own game number, counted out of the record of finished games —
+// the ES5 twin of courtGameLabel() in index.html. It used to print the shared
+// round label, which no longer exists: the board is one live row now, so every
+// card would have read the same word.
+function arenaGameLabel(state, courtIdx){
+  var played = (state && state.played) || [];
+  var n = 0;
+  for (var k=0;k<played.length;k++){
+    var c = played[k] && played[k].court;
+    if (c === courtIdx || (courtIdx === 0 && !c)) n++;
+  }
+  return 'Game ' + (n + 1);
+}
+
 // state → [{ court, round, roundLabel, t1:[names], t2:[names], photos1, photos2 }]
 // One entry per court that has a court slot in its current round. Unknown/empty
 // player ids are dropped from a team rather than rendered as ghosts.
@@ -349,7 +363,7 @@ function buildMatchesFromState(state){
     out.push({
       court: i + 1,
       round: ri + 1,
-      roundLabel: (round && round.label) || ('Round ' + (ri + 1)),
+      roundLabel: arenaGameLabel(state, i),
       endingSoon: !!(state.endingSoon && state.endingSoon[i]),
       t1: r1.map(function(p){ return p.name; }),
       t2: r2.map(function(p){ return p.name; }),
@@ -360,25 +374,27 @@ function buildMatchesFromState(state){
   return out;
 }
 
-// state → [{ court, text }] — the upcoming matchup for each court that HAS a next
-// round (its current index + 1 < total). Courts on their last round, or without a
-// court slot in the next round, are omitted. Mirrors index.html's computeNextUp()
-// and its row text so the 2D and 3D "Up Next" always agree; unknown/empty ids
-// resolve to 'TBD'. Unit-tested in scripts/test-arena-data.js.
+// How many queued games the arena shows. Mirrors UPNEXT_SHOWN in index.html.
+var ARENA_UPNEXT_SHOWN = 4;
+
+// state → [{ court, text }] — the next few games waiting, in order.
+//
+// This used to be "for each court, the round after the one it is on". It cannot
+// be any more: courts no longer share rounds, and a queued game gets a court
+// only at the moment a court frees up, which depends on whether the game on
+// court 2 goes to deuce. `court` is now the game's POSITION in the queue, kept
+// under that name because the row renderer prints it in the same badge.
+// Mirrors index.html's computeUpNext() and its row text so the 2D and 3D "Up
+// Next" always agree; unknown/empty ids resolve to 'TBD'.
+// Unit-tested in scripts/test-arena-data.js.
 function buildNextUpFromState(state){
   if (!state) return [];
-  var numCourts = state.numCourts || 1;
-  var courtRounds = getArenaCourtRounds(state);
-  var rounds = state.rounds || [];
-  var total = rounds.length;
+  var queue = (state && state.queue) || [];
   var out = [];
-  for (var i=0;i<numCourts;i++){
-    var ni = ((courtRounds[i] != null) ? courtRounds[i] : 0) + 1;
-    if (ni >= total) continue;
-    var court = (rounds[ni] && rounds[ni].courts) ? rounds[ni].courts[i] : null;
-    if (!court) continue;
-    var nameOf = function(id){ var p = resolvePlayer(state, id); return p ? p.name : 'TBD'; };
-    var t1 = court.team1 || [], t2 = court.team2 || [];
+  var nameOf = function(id){ var p = resolvePlayer(state, id); return p ? p.name : 'TBD'; };
+  for (var i=0;i<queue.length && i<ARENA_UPNEXT_SHOWN;i++){
+    var g = queue[i] || {};
+    var t1 = g.team1 || [], t2 = g.team2 || [];
     out.push({
       court: i + 1,
       text: nameOf(t1[0]) + ' & ' + nameOf(t1[1]) + ' vs ' + nameOf(t2[0]) + ' & ' + nameOf(t2[1])
@@ -433,8 +449,10 @@ function renderCards(matches){
 }
 
 // ── DOM: "Up Next" panel (mirrors the 2D viewer) ──────────────────────────
-// One row per court that has a next round. Hidden when the admin's "Up Next"
-// toggle is off (state.showNextUp === false) or no court has a next round.
+// One row per queued game, in order, numbered by its place in the queue.
+// It does NOT name a court: which court takes a game is decided when a court
+// frees up. Hidden when the admin's "Up Next" toggle is off
+// (state.showNextUp === false) or there is nothing queued.
 function renderNextUp(state){
   var el = document.getElementById('upNext');
   if (!el) return;
@@ -443,7 +461,7 @@ function renderNextUp(state){
   el.style.display = '';
   el.innerHTML = '<div class="un-head">Up Next</div>' + rows.map(function(r){
     return '<div class="un-row">'+
-      '<span class="un-court">Court '+r.court+'</span>'+
+      '<span class="un-court">'+r.court+'</span>'+
       '<span class="un-arrow" aria-hidden="true">→</span>'+
       '<span class="un-match">'+escapeHtml(r.text)+'</span>'+
     '</div>';
