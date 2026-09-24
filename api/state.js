@@ -96,8 +96,33 @@ const DEFAULT_STATE = {
   players: [],
   numCourts: 2,
   courtNumbers: [1, 2],
+  // `rounds` is now a ONE-ROW live board: rounds[0].courts[i] is the game on
+  // court slot i right now, and courtRounds is [0,0,...]. It keeps the old
+  // shape (and the old key) because four independent readers address a live
+  // game as rounds[courtRounds[i]].courts[i] — the 2D viewer, the admin cards,
+  // the slot editors and the 3D arena, which fetches this endpoint itself and
+  // re-implements the lookup in ES5. A one-row array is a shape all four
+  // already handle, so nights saved under the old multi-round model still
+  // render and need no migration. Nothing appends to it any more.
   rounds: [],
+  // Legacy: every court sits on row 0 now. Kept so an old saved night, whose
+  // courtRounds point across many rows, still restores exactly as it was.
   currentRound: 0,
+  // The shared queue of games waiting to go on. Belongs to NO court: whichever
+  // court frees up first takes the top game that can actually start. That is
+  // the whole point — a court that went to deuce for twenty minutes no longer
+  // drags the other three along behind it, it just takes its next game later.
+  // [{ id, team1:[id,id], team2:[id,id] }]
+  queue: [],
+  // Append-only record of games finished tonight, in its own key because it has
+  // to be immutable and inside `rounds` it would not be: applyCourtDrop filters
+  // a court out of every row (dropping a court at 10pm would erase every game
+  // played on it), and saveRound / applyNextUpEdits / Matchmaking.fillRound all
+  // rebuild a court as a bare {team1,team2}, silently dropping anything stored
+  // beside it. It feeds the repeat-pairing warnings, each court's "Game N", and
+  // how long each player has been waiting.
+  // [{ id, court, team1, team2, startedAt, endedAt }]
+  played: [],
   endingSoon: [],
   // Player ids who have left for the night. They keep their attendance, payment
   // and points — this only stops the bench and the auto-fill offering them
@@ -404,6 +429,56 @@ const MAX_ROSTER = 300;
 const MAX_BULK_ADD = 100;
 const MAX_ROSTER_NAME = 40;
 
+// ── GAME QUEUE + PLAYED LOG ──────────────────────────────────────────────────
+// Both ride the generic POST merge, which accepts anything it is not told to
+// refuse, so they get the same treatment wentHome and adminShortcuts get: a
+// shape check that throws junk away rather than writing it into the blob. A
+// night is ~50 games; the caps are generous enough never to bite an organiser
+// and small enough that a malformed client cannot grow the blob without bound.
+const MAX_QUEUE = 200;
+const MAX_PLAYED = 400;
+
+// Pure: coerce an arbitrary value into a clean list of games. A game needs four
+// slots; each slot is a player id string or '' for an empty seat, because a
+// half-arranged game is a legitimate thing to have in the queue (it is simply
+// skipped when a court asks for it). Anything else in the entry is dropped.
+// `keepPlayed` also carries the court and the two timestamps a finished game has.
+// Unit tested in scripts/test-game-queue.js.
+function normalizeGameList(value, cap, keepPlayed) {
+  if (!Array.isArray(value)) return [];
+  const slot = (v) => (typeof v === 'string' ? v.slice(0, 64) : '');
+  const pair = (v) => [slot(Array.isArray(v) ? v[0] : ''), slot(Array.isArray(v) ? v[1] : '')];
+  // Timestamps are epoch ms, so 0 means "not stamped". The COURT is a 0-based
+  // slot index, where 0 is court 1 and is perfectly valid, so it cannot share
+  // this coercion — reading it through here would silently move every game on
+  // the first court to... the first court, and every game on a garbage court
+  // there too.
+  const stamp = (v) => {
+    const n = Math.floor(Number(v));
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  };
+  const courtIdx = (v) => {
+    const n = Math.floor(Number(v));
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+  };
+  const out = [];
+  for (const raw of value.slice(0, cap)) {
+    if (!raw || typeof raw !== 'object') continue;
+    const game = {
+      id: typeof raw.id === 'string' && raw.id ? raw.id.slice(0, 64) : 'g' + out.length,
+      team1: pair(raw.team1),
+      team2: pair(raw.team2),
+    };
+    if (keepPlayed) {
+      game.court = courtIdx(raw.court);
+      game.startedAt = stamp(raw.startedAt);
+      game.endedAt = stamp(raw.endedAt);
+    }
+    out.push(game);
+  }
+  return out;
+}
+
 /**
  * Build the roster entries for a bulk add. Pure — the caller passes the current
  * roster and a clock and gets back either an error or the new player objects.
@@ -559,6 +634,10 @@ function applySessionDateChange(state, newDate, today) {
     const snapshot = {
       players: (state.players || []).map((p) => ({ id: p.id, name: p.name })),
       rounds: state.rounds || [],
+      // The night's games waiting and the night's games played. Both belong to
+      // the day, not to the club, so both ride the snapshot with `rounds`.
+      queue: state.queue || [],
+      played: state.played || [],
       numCourts: state.numCourts || 1,
       courtNumbers: state.courtNumbers || [],
       courtRounds: state.courtRounds || [],
@@ -575,6 +654,11 @@ function applySessionDateChange(state, newDate, today) {
       // Revisiting a saved day — bring its data back to life.
       next.players = Array.isArray(saved.players) ? saved.players : [];
       next.rounds = Array.isArray(saved.rounds) ? saved.rounds : [];
+      // A night saved before the queue existed has neither key; both default to
+      // empty, which reads as "nothing waiting, nothing recorded" rather than
+      // throwing. Its `rounds` still hold the games, so the board still draws.
+      next.queue = Array.isArray(saved.queue) ? saved.queue : [];
+      next.played = Array.isArray(saved.played) ? saved.played : [];
       next.numCourts = saved.numCourts || state.numCourts || 1;
       next.courtNumbers = Array.isArray(saved.courtNumbers) ? saved.courtNumbers : [];
       next.courtRounds = Array.isArray(saved.courtRounds) ? saved.courtRounds : [];
@@ -585,6 +669,10 @@ function applySessionDateChange(state, newDate, today) {
       // weekday (Harvey always comes Monday, etc.). Keeps the venue's court setup.
       next.players = seedRegularPlayers(state, newDate);
       next.rounds = [];
+      // A game queued for Friday means nothing on Sunday, and Friday's results
+      // belong to Friday. Same reasoning as the per-court flags just below.
+      next.queue = [];
+      next.played = [];
       next.courtRounds = [];
       next.feeTier = Payments.DEFAULT_TIER; // a fresh night starts on the default fee
     }
@@ -1330,6 +1418,22 @@ const handler = async function handler(req, res) {
       }
       updates.wentHome = [...new Set(updates.wentHome.filter((id) => typeof id === 'string' && id))].slice(0, MAX_ROSTER);
     }
+    // The waiting games and the night's results ride the generic merge, cleaned
+    // to a known shape first. Refusing outright (the way lifetimePoints does)
+    // would be wrong: unlike that ledger these ARE written by the client, on
+    // every game that goes on a court.
+    if (updates.queue !== undefined) {
+      if (!Array.isArray(updates.queue)) {
+        return res.status(400).json({ error: 'Invalid game queue.' });
+      }
+      updates.queue = normalizeGameList(updates.queue, MAX_QUEUE, false);
+    }
+    if (updates.played !== undefined) {
+      if (!Array.isArray(updates.played)) {
+        return res.status(400).json({ error: 'Invalid played list.' });
+      }
+      updates.played = normalizeGameList(updates.played, MAX_PLAYED, true);
+    }
     // Phone bottom-bar shortcuts ride the generic merge, but only as a clean list of
     // 1–4 known, unique tab ids (canonical order is enforced server-side).
     if (updates.adminShortcuts !== undefined) {
@@ -1397,5 +1501,8 @@ module.exports.buildRosterPointsUpdate = buildRosterPointsUpdate;
 module.exports.isPointsValue = isPointsValue;
 module.exports.MAX_POINTS = MAX_POINTS;
 module.exports.MAX_ROSTER = MAX_ROSTER;
+module.exports.normalizeGameList = normalizeGameList;
+module.exports.MAX_QUEUE = MAX_QUEUE;
+module.exports.MAX_PLAYED = MAX_PLAYED;
 module.exports.MAX_BULK_ADD = MAX_BULK_ADD;
 module.exports.MAX_ROSTER_NAME = MAX_ROSTER_NAME;

@@ -4293,6 +4293,317 @@ function nextCourtRounds(courtRounds, total) {
   return (courtRounds || []).map(r => Math.min(max, (r ?? 0) + 1));
 }
 
+// ── THE SHARED GAME QUEUE ─────────────────────
+// The night used to be planned in ROUNDS: one row of state.rounds held every
+// court playing at once. That is unfair and it is not a small unfairness.
+// Court 2 goes to deuce and takes twenty minutes while courts 3 and 4 finish in
+// eight; 3 and 4 move to round 2 without it, and from that moment the word
+// "round" is a lie — the board claims three courts are in round 2 when two of
+// them are, and the people who happened to draw the slow court quietly play
+// fewer games all night. Nothing measured it, so nothing corrected it.
+//
+// Now: state.rounds is a ONE-ROW live board (rounds[0].courts[i] is what is on
+// court i, courtRounds is [0,0,...]), state.queue is a shared ordered list of
+// games belonging to no court, and state.played is the record of what finished.
+// Whichever court frees up first takes the top game that can actually start, so
+// a long game costs nobody anything but the four people in it.
+//
+// Everything below is pure. Unit tested in scripts/test-game-queue.js.
+
+// How long a wait has to be to move up one redness band on the bench, and the
+// band the ramp stops at. Five minutes is about a third of a game here.
+const WAIT_BAND_MINUTES = 5;
+const WAIT_MAX_BAND = 4;
+
+// Pure: the four ids in a game, in seat order, empties included.
+function gameIds(game) {
+  const g = game || {};
+  return [...(Array.isArray(g.team1) ? g.team1 : []), ...(Array.isArray(g.team2) ? g.team2 : [])].slice(0, 4);
+}
+
+// Pure: every player id on a court right now. `exceptCourt` leaves one court
+// out, which is what a court asking for its next game needs: its own four are
+// walking off, so they must not count as busy against the game replacing them.
+function liveCourtIds(rounds, courtRounds, numCourts, exceptCourt) {
+  const out = new Set();
+  const n = Math.max(0, numCourts || 0);
+  for (let i = 0; i < n; i++) {
+    if (i === exceptCourt) continue;
+    const court = rounds?.[courtRounds?.[i] ?? 0]?.courts?.[i];
+    for (const id of gameIds(court)) if (id) out.add(id);
+  }
+  return out;
+}
+
+// Pure: may this queued game go on now? Four answers, because the admin is told
+// WHY a game was passed over and "not yet" is useless on its own.
+//   'short' — fewer than four names, or the same person twice. Not a game.
+//   'gone'  — somebody in it has gone home.
+//   'clash' — somebody in it is still mid-match on another court.
+//   'ready' — put it on.
+// Order matters: 'short' is checked first because a half-arranged game is the
+// admin's own unfinished work, and saying "clash" about a blank seat would send
+// them looking at the wrong thing.
+function gameReadiness(game, liveIds, goneHome) {
+  const ids = gameIds(game);
+  const live = liveIds instanceof Set ? liveIds : new Set(liveIds || []);
+  const gone = goneHome instanceof Set ? goneHome : new Set(goneHome || []);
+  const filled = ids.filter(Boolean);
+  if (filled.length < 4 || new Set(filled).size < 4) return { state: 'short', ids: [] };
+  const goneIds = filled.filter(id => gone.has(id));
+  if (goneIds.length) return { state: 'gone', ids: goneIds };
+  const busy = filled.filter(id => live.has(id));
+  if (busy.length) return { state: 'clash', ids: busy };
+  return { state: 'ready', ids: [] };
+}
+
+// Pure: the first game in the queue that can start, and everything passed over
+// on the way to it. Skipped games KEEP their place — a clash is temporary (the
+// other court will finish) and deleting somebody's plan because of a timing
+// accident would be the app overruling the organiser.
+// Returns { index, game, skipped: [{ index, game, state, ids }] }; index is -1
+// when nothing in the queue can go on.
+function nextPlayableGame(queue, liveIds, goneHome) {
+  const list = Array.isArray(queue) ? queue : [];
+  const skipped = [];
+  for (let i = 0; i < list.length; i++) {
+    const r = gameReadiness(list[i], liveIds, goneHome);
+    if (r.state === 'ready') return { index: i, game: list[i], skipped };
+    skipped.push({ index: i, game: list[i], state: r.state, ids: r.ids });
+  }
+  return { index: -1, game: null, skipped };
+}
+
+// Pure: how many whole minutes each player has been waiting, from the record of
+// finished games. This replaces counting rounds, which stopped meaning anything
+// the moment courts stopped sharing them: sitting through one long deuce game
+// is a longer wait than sitting through two quick ones, and only a clock can
+// say so.
+//
+// Somebody on a court is not waiting, so they read 0. Somebody who has not
+// played at all is measured from the night's first game, which is the truth and
+// also puts them ahead of everyone who has had a game, with no special case.
+// Before the first game of the night there is nothing to measure from and
+// everybody reads 0, exactly as the round count used to at round 0.
+function waitMinutes(played, players, liveIds, now) {
+  const out = {};
+  const log = Array.isArray(played) ? played : [];
+  const live = liveIds instanceof Set ? liveIds : new Set(liveIds || []);
+  const t = Number(now) || 0;
+  let nightStart = 0;
+  const lastEnd = {};
+  for (const g of log) {
+    const s = Math.floor(Number(g && g.startedAt)) || 0;
+    if (s > 0 && (nightStart === 0 || s < nightStart)) nightStart = s;
+    const e = Math.floor(Number(g && g.endedAt)) || 0;
+    if (!e) continue;
+    for (const id of gameIds(g)) {
+      if (!id) continue;
+      if (!lastEnd[id] || e > lastEnd[id]) lastEnd[id] = e;
+    }
+  }
+  for (const p of (Array.isArray(players) ? players : [])) {
+    if (!p || !p.id) continue;
+    if (live.has(p.id)) { out[p.id] = 0; continue; }
+    const since = lastEnd[p.id] || nightStart;
+    out[p.id] = since > 0 ? Math.max(0, Math.floor((t - since) / 60000)) : 0;
+  }
+  return out;
+}
+
+// Pure: has this player had a game tonight at all? The bench says "not played
+// yet" rather than a minute count for them, because a number measured from the
+// start of the night reads as though they played at 9pm and have sat since.
+function playedGameCounts(played) {
+  const out = {};
+  for (const g of (Array.isArray(played) ? played : [])) {
+    for (const id of gameIds(g)) if (id) out[id] = (out[id] || 0) + 1;
+  }
+  return out;
+}
+
+// Pure: minutes -> redness band 0..4, the same ramp restHeatLevel drove off
+// round counts. One band per WAIT_BAND_MINUTES, capped.
+function waitHeatLevel(minutes) {
+  const m = Math.floor(Number(minutes));
+  if (!Number.isFinite(m) || m < WAIT_BAND_MINUTES) return 0;
+  return Math.min(WAIT_MAX_BAND, Math.floor(m / WAIT_BAND_MINUTES));
+}
+
+// Pure: the caps label over a bench band. The top band is open-ended, so it
+// says "20+ MIN" rather than claiming an upper bound it does not have.
+function waitBandLabel(level) {
+  const l = Math.max(0, Math.min(WAIT_MAX_BAND, Math.floor(Number(level)) || 0));
+  const from = l * WAIT_BAND_MINUTES;
+  if (l >= WAIT_MAX_BAND) return `${from}+ MIN`;
+  return `${from}–${from + WAIT_BAND_MINUTES - 1} MIN`;
+}
+
+// Pure: the live board is ONE row holding what is on each court right now.
+//
+// It is built from each court's own pointer rather than from rounds[0], and
+// that is what makes a night saved under the old multi-round model safe. Such a
+// night has many rows and courtRounds pointing all over them; reading rounds[0]
+// would quietly put round 1 back on every court. Reading courtRounds[i] gives
+// the same answer for a new night (every pointer is 0, so it is the identity)
+// and the right answer for an old one.
+function liveBoardRow(rounds, courtRounds, numCourts) {
+  const n = Math.max(1, numCourts || 1);
+  const courts = [];
+  for (let i = 0; i < n; i++) {
+    const court = rounds?.[courtRounds?.[i] ?? 0]?.courts?.[i];
+    courts.push(gameIds(court).some(Boolean)
+      ? { team1: [...(court.team1 || ['', ''])].slice(0, 2), team2: [...(court.team2 || ['', ''])].slice(0, 2) }
+      : { team1: ['', ''], team2: ['', ''] });
+  }
+  return { label: 'Live', courts };
+}
+
+// Pure: the games an old multi-round night had already played, in played[]
+// shape, so collapsing it to a single live row does not throw its history away.
+// For each court that is a game in every row BEFORE the one it is sitting on.
+//
+// There are no timestamps to recover, so startedAt and endedAt are 0. That is
+// honest — the clock was never recorded — and the two things history actually
+// feeds cope with it: the repeat-pairing warnings only read the names, and the
+// waiting minutes fall back to the start of the night for anyone with no ended
+// game, which is exactly what an unknown time should mean.
+function historicGamesOf(rounds, courtRounds, numCourts) {
+  const out = [];
+  if (!Array.isArray(rounds) || rounds.length <= 1) return out;
+  const n = Math.max(1, numCourts || 1);
+  for (let i = 0; i < n; i++) {
+    const upto = courtRounds?.[i] ?? 0;
+    for (let r = 0; r < upto && r < rounds.length; r++) {
+      const court = rounds[r]?.courts?.[i];
+      if (!gameIds(court).some(Boolean)) continue;
+      out.push({
+        id: 'h' + r + '-' + i,
+        court: i,
+        team1: [...(court.team1 || ['', ''])].slice(0, 2),
+        team2: [...(court.team2 || ['', ''])].slice(0, 2),
+        startedAt: 0,
+        endedAt: 0,
+      });
+    }
+  }
+  return out;
+}
+
+// Pure: is this court slot empty (nobody on it)?
+function courtIsFree(rounds, courtRounds, courtIdx) {
+  const court = rounds?.[courtRounds?.[courtIdx] ?? 0]?.courts?.[courtIdx];
+  return !gameIds(court).some(Boolean);
+}
+
+// Pure: take one game off the queue and put it on court `courtIdx`, recording
+// whatever was on that court as finished. Returns the three arrays to write
+// plus what happened, or null when there is nothing playable to take.
+//
+// The court's OWN players are excluded from the clash test: they are the ones
+// walking off. Without that, a court could never be handed a game containing
+// anybody who had just been on it, which is a rule nobody asked for.
+function takeNextGame(src, courtIdx, at) {
+  const s = src || {};
+  const numCourts = Math.max(1, s.numCourts || 1);
+  if (courtIdx < 0 || courtIdx >= numCourts) return null;
+  const rounds = JSON.parse(JSON.stringify(Array.isArray(s.rounds) ? s.rounds : []));
+  const queue = (Array.isArray(s.queue) ? s.queue : []).slice();
+  const played = (Array.isArray(s.played) ? s.played : []).slice();
+  const courtRounds = Array.isArray(s.courtRounds) && s.courtRounds.length >= numCourts
+    ? s.courtRounds.slice(0, numCourts) : new Array(numCourts).fill(0);
+  const stamp = Math.floor(Number(at)) || 0;
+
+  const live = liveCourtIds(rounds, courtRounds, numCourts, courtIdx);
+  const pick = nextPlayableGame(queue, live, s.wentHome || []);
+  if (pick.index < 0) return { empty: true, skipped: pick.skipped };
+
+  // First touch of a night saved under the old round model: fold the games it
+  // had already played into the record before collapsing it to one row. Rows
+  // are only ever collapsed once, because after this there is only one of them.
+  for (const g of historicGamesOf(rounds, courtRounds, numCourts)) played.push(g);
+
+  // Whatever was on the court is finished now. A court with nothing on it has
+  // nothing to record, which is what makes "fill every free court" harmless.
+  const row = liveBoardRow(rounds, courtRounds, numCourts);
+  const leaving = row.courts[courtIdx];
+  const finished = gameIds(leaving).some(Boolean)
+    ? {
+        id: 'x' + stamp.toString(36) + courtIdx,
+        court: courtIdx,
+        team1: [...(leaving.team1 || ['', ''])].slice(0, 2),
+        team2: [...(leaving.team2 || ['', ''])].slice(0, 2),
+        startedAt: Math.floor(Number((s.courtLive || [])[courtIdx])) || 0,
+        endedAt: stamp,
+      }
+    : null;
+  if (finished) played.push(finished);
+
+  row.courts[courtIdx] = {
+    team1: [...(pick.game.team1 || ['', ''])].slice(0, 2),
+    team2: [...(pick.game.team2 || ['', ''])].slice(0, 2),
+  };
+  queue.splice(pick.index, 1);
+
+  return {
+    rounds: [row],
+    queue,
+    played,
+    courtRounds: new Array(numCourts).fill(0),
+    courtLive: setCourtLiveAt(s.courtLive, courtIdx, numCourts, stamp),
+    took: pick.game,
+    finished,
+    skipped: pick.skipped,
+  };
+}
+
+// Pure: the undo. The game on `courtIdx` goes back to the FRONT of the queue
+// and that court's last finished game returns to it. Front, not back, because
+// undo means "put it back where it was about to be played", and the organiser
+// pressing this has just decided that game should not have started yet.
+function putGameBack(src, courtIdx) {
+  const s = src || {};
+  const numCourts = Math.max(1, s.numCourts || 1);
+  if (courtIdx < 0 || courtIdx >= numCourts) return null;
+  const rounds = JSON.parse(JSON.stringify(Array.isArray(s.rounds) ? s.rounds : []));
+  const queue = (Array.isArray(s.queue) ? s.queue : []).slice();
+  const played = (Array.isArray(s.played) ? s.played : []).slice();
+  const courtRounds = Array.isArray(s.courtRounds) && s.courtRounds.length >= numCourts
+    ? s.courtRounds.slice(0, numCourts) : new Array(numCourts).fill(0);
+  for (const g of historicGamesOf(rounds, courtRounds, numCourts)) played.push(g);
+  const row = liveBoardRow(rounds, courtRounds, numCourts);
+  const current = row.courts[courtIdx];
+  if (!gameIds(current).some(Boolean)) return null; // nothing on it to undo
+
+  queue.unshift({
+    id: 'q' + Date.now().toString(36) + courtIdx,
+    team1: [...(current.team1 || ['', ''])].slice(0, 2),
+    team2: [...(current.team2 || ['', ''])].slice(0, 2),
+  });
+
+  // The most recent game finished on THIS court comes back, if there is one.
+  let restoredAt = 0;
+  let back = null;
+  for (let i = played.length - 1; i >= 0; i--) {
+    if ((played[i].court ?? -1) !== courtIdx) continue;
+    back = played.splice(i, 1)[0];
+    restoredAt = Math.floor(Number(back.startedAt)) || 0;
+    break;
+  }
+  row.courts[courtIdx] = back
+    ? { team1: [...(back.team1 || ['', ''])].slice(0, 2), team2: [...(back.team2 || ['', ''])].slice(0, 2) }
+    : { team1: ['', ''], team2: ['', ''] };
+
+  return {
+    rounds: [row],
+    queue,
+    played,
+    courtRounds: new Array(numCourts).fill(0),
+    courtLive: setCourtLiveAt(s.courtLive, courtIdx, numCourts, restoredAt),
+    restored: back,
+  };
+}
+
 // ── ENDING SOON ───────────────────────────────
 // Per-court boolean flags (aligned to court index) the admin sets so resting
 // players know which court is about to free up. The three helpers below hold
