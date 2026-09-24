@@ -314,5 +314,29 @@ check('both savers check the reply before the green toast (apiPost does not thro
 check('the card is painted with the rest of the admin panel and on tab entry',
   fn('renderAdmin').includes('renderFeedbackSettingsCard()') && fn('setAdminTab').includes("if (name === 'settings') renderFeedbackSettingsCard();"));
 
+// ── open-ended replies are colour-coded ──
+// A page of replies is read at a glance, so the free-text box is blue when it is
+// a compliment and red when it is a complaint — on BOTH the admin list and the
+// member's own card, and on the two boxes they type into.
+check('the admin reply list tags each note blue / red',
+  fn('fbRowHtml').includes(`'<div class="fb-quote good">' + escHtml(r.goodNote)`)
+  && fn('fbRowHtml').includes(`'<div class="fb-quote bad">' + escHtml(r.badNote)`));
+check("the member's own card tags them the same way",
+  html.includes(`'<div class="fb-quote good">' + escHtml(mine.goodNote)`)
+  && html.includes(`'<div class="fb-quote bad">' + escHtml(mine.badNote)`));
+check('the two write boxes carry the matching classes',
+  /<textarea class="fb-ta good" id="fbGoodNote"/.test(html)
+  && /<textarea class="fb-ta bad" id="fbBadNote"/.test(html));
+check('good is the blue accent, bad is red',
+  /\.fb-quote\.good\{color:var\(--a-blue-2\);border-left-color:var\(--a-blue\);background:var\(--a-blue-tint\)\}/.test(html)
+  && /\.fb-quote\.bad\{color:var\(--red-active\);border-left-color:var\(--red\);background:var\(--red-tint\)\}/.test(html));
+check('the red tint token is declared, so var() resolves',
+  /--red-tint:rgba\(229,72,77,\.1\)/.test(html));
+// Body text on a tint has to stay readable: the flat --red (#e5484d) is only
+// 3.7:1 on white and fails AA, so the darker shades carry the text.
+check('note text uses the darker shades, not the flat accent',
+  !/\.fb-quote\.(good|bad)\{color:var\(--red\)[;}]/.test(html)
+  && !/\.fb-quote\.good\{color:var\(--a-blue\)[;}]/.test(html));
+
 console.log('\nfeedback ui: ' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

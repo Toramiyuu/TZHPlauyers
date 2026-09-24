@@ -15,6 +15,7 @@ const { pushAudit } = require('../lib/audit.js');
 const Payments = require('../public/payments.js');
 const AdminNav = require('../public/admin-nav.js');
 const Night = require('../public/night.js');
+const MD = require('../public/monthly-draw.js');
 
 // Accepts env vars from Vercel Marketplace (KV_REST_API_URL) or direct Upstash (UPSTASH_REDIS_REST_URL)
 let redis = null;
@@ -109,9 +110,11 @@ const DEFAULT_STATE = {
   feeTier: Payments.DEFAULT_TIER,
   luckyDraw: { entries: [], paid: [], drawDate: todayISO(), spin: null, results: [], history: [] },
   socialGames: [
-    { id: 'sg-fri', day: 'Friday', weekday: 5, time: '9–11pm', enabled: true },
-    { id: 'sg-sun', day: 'Sunday', weekday: 0, time: '9–11pm', enabled: true },
-    { id: 'sg-mon', day: 'Monday', weekday: 1, time: '9–11pm', enabled: true },
+    // `level` (free text) and `capacity` (0 = no limit) feed the viewer's
+    // "Coming soon" card — see MonthlyDraw.upcomingSession.
+    { id: 'sg-fri', day: 'Friday', weekday: 5, time: '9–11pm', level: '', capacity: 0, enabled: true },
+    { id: 'sg-sun', day: 'Sunday', weekday: 0, time: '9–11pm', level: '', capacity: 0, enabled: true },
+    { id: 'sg-mon', day: 'Monday', weekday: 1, time: '9–11pm', level: '', capacity: 0, enabled: true },
   ],
   signups: [],
   // Weekly regulars: weekday (0=Sun..6=Sat) -> array of roster ids who always
@@ -728,7 +731,8 @@ async function autoCloseNight(opts) {
   if (state.sessionDate !== night) return { ok: true, changed: false, night, reason: 'session date is not the current night' };
   const day = (state.attendance || {})[night];
   if (day && day.payments) return { ok: true, changed: false, night, reason: 'already generated' };
-  const r = handlePaymentAdminAction(state, { action: 'generatePayments', date: night }, { nowMs: o.nowMs != null ? o.nowMs : Date.now() });
+  const r = handlePaymentAdminAction(state, { action: 'generatePayments', date: night },
+    { nowMs: o.nowMs != null ? o.nowMs : Date.now(), by: 'auto' });
   if (!r || !r.changed) {
     return { ok: true, changed: false, night, reason: (r && r.body && r.body.error) || 'nothing to generate' };
   }
@@ -946,14 +950,20 @@ const handler = async function handler(req, res) {
           // site code — that is the whole point of it — so the locked screen
           // carries a thin teaser (name, date, "entries open") and the code box.
           // KN.teaser never includes entrants, brackets or category codes.
-          return res.status(200).json({ locked: true, socialGames: openGames, knockout: KN.teaser(current.knockout), today: todayISO() });
+          return res.status(200).json({ locked: true, socialGames: openGames, knockout: KN.teaser(current.knockout),
+            upcoming: MD.upcomingSession(current.socialGames, current.signups, todayISO()), today: todayISO() });
         }
       }
       // publicProjection strips the accounts array (credentials) AND the private
       // attendance/audit/monthly-eligibility data — so a GET payload can never
       // leak one player's private data (attendance/payment/password) to another.
       // Admins get full data via their authenticated poll (redactState only).
-      return res.json({ ...publicProjection(current), serverTime: Date.now(), today: todayISO() });
+      // `upcoming` is what the viewer shows BETWEEN nights (the "Coming soon"
+      // card, where an empty court grid used to be). Computed here rather than
+      // on the client so the card carries counts only — never a sign-up name or
+      // phone number. See MonthlyDraw.upcomingSession.
+      return res.json({ ...publicProjection(current), upcoming: MD.upcomingSession(current.socialGames, current.signups, todayISO()),
+        serverTime: Date.now(), today: todayISO() });
     } catch (e) {
       console.error('KV read error:', e.message);
       return res.json({ ...publicProjection(DEFAULT_STATE), serverTime: Date.now(), today: todayISO() });

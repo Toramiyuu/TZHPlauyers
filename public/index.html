@@ -21,7 +21,7 @@
   --text:#1d1d1f;--text-2:#424245;--muted:#86868b;
   /* ── semantic ─── */
   --accent:#f0b429;--accent-line:rgba(240,180,41,.3);
-  --red:#e5484d;--blue:#4f97ff;--warn:#cd7d2c;
+  --red:#e5484d;--blue:#4f97ff;--warn:#cd7d2c;--red-tint:rgba(229,72,77,.1);
   --pink:#d6519f;/* Girl toggle + mixed-doubles chip */
   /* ── design tokens ─── */
   --sp-xs:4px;--sp-sm:8px;--sp-md:16px;--sp-lg:24px;--sp-xl:32px;--sp-2xl:48px;
@@ -73,6 +73,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 .vh-nav #membersBtn,.vh-nav #lbBtn,.vh-nav #viewerJoinBtn,.vh-nav #td3Btn,.vh-nav #drawBtn{font-family:var(--font-apple);font-size:14px;font-weight:500;letter-spacing:-.01em;text-transform:none;padding:8px 16px;border-radius:980px;border:none;background:var(--a-card-2);color:var(--a-ink);cursor:pointer;transition:background .2s ease;display:inline-flex;align-items:center;gap:7px;min-height:36px;text-decoration:none}
 .vh-nav #membersBtn:hover,.vh-nav #lbBtn:hover,.vh-nav #viewerJoinBtn:hover,.vh-nav #td3Btn:hover,.vh-nav #drawBtn:hover{background:#ececee;color:var(--a-ink)}
 .vh-nav #membersBtn .ic,.vh-nav #lbBtn .ic,.vh-nav #viewerJoinBtn .ic,.vh-nav #td3Btn .ic,.vh-nav #drawBtn .ic{width:15px;height:15px;color:var(--a-ink-2)}
+/* "Coming soon" — the one button in the header that answers "when's the next
+   game?", so it carries the accent rather than the grey of its neighbours and
+   shows the date inline. Always visible, whether or not a game is on tonight. */
+.vh-nav #viewerSoonBtn{font-family:var(--font-apple);font-size:14px;font-weight:500;letter-spacing:-.01em;padding:8px 16px;border-radius:980px;border:none;background:var(--a-blue);color:#fff;cursor:pointer;transition:background .2s ease;display:inline-flex;align-items:center;gap:7px;min-height:36px}
+.vh-nav #viewerSoonBtn:hover{background:var(--a-blue-2)}
+.vh-nav #viewerSoonBtn .ic{width:15px;height:15px;color:#fff}
+.vh-nav #viewerSoonBtn .vsb-date{font-weight:600;padding-left:8px;margin-left:1px;border-left:1px solid rgba(255,255,255,.4)}
+.vh-nav #viewerSoonBtn .vsb-date:empty{display:none}
 /* 3D arena overlay — full-screen iframe host, toggled by enter3D()/exit3D() */
 #arena3d{position:fixed;inset:0;z-index:1200;background:#eef4fd;display:none}
 #arena3d.open{display:block}
@@ -93,6 +101,22 @@ body.in-3d #joinModal{z-index:1300}
    a normal night's viewer looks exactly as it always has. */
 .acourt-status{font-size:clamp(12px,1.3vw,13px);font-weight:600;color:var(--text-2);background:var(--card2);padding:5px 12px;border-radius:980px;white-space:nowrap}
 .acourt.ending{border-color:var(--a-amber);box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(154,77,0,.13)}
+/* "Coming soon" — what the hall screen shows BETWEEN nights, where an empty
+   court grid used to leave the page blank. Spans the whole #courtsDisplay grid. */
+.vsoon{grid-column:1/-1;background:var(--a-card);border:1px solid var(--a-line);border-radius:24px;padding:clamp(30px,3.4vw,52px) clamp(24px,3vw,44px);display:flex;flex-direction:column;align-items:center;text-align:center;gap:clamp(14px,1.8vw,22px);box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(0,0,0,.05)}
+.vsoon-kicker{display:inline-flex;align-items:center;gap:8px;font-size:clamp(12px,1.3vw,14px);font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--a-blue);background:var(--a-blue-tint);padding:6px 14px;border-radius:980px}
+.vsoon-kicker::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--a-blue);flex-shrink:0;animation:pulse 1.8s infinite}
+.vsoon-date{font-size:clamp(28px,4.2vw,56px);font-weight:600;letter-spacing:-.022em;color:var(--a-ink);line-height:1.05}
+.vsoon-time{font-size:clamp(18px,2.2vw,28px);font-weight:500;color:var(--a-ink-2);letter-spacing:-.01em}
+.vsoon-meta{display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(10px,1.4vw,18px);margin-top:2px}
+.vsoon-chip{display:inline-flex;flex-direction:column;align-items:center;gap:3px;min-width:132px;padding:12px 20px;border-radius:16px;background:var(--a-card-2);border:1px solid var(--a-line)}
+.vsoon-chip .k{font-size:clamp(11px,1.1vw,12px);font-weight:500;letter-spacing:.03em;text-transform:uppercase;color:var(--a-ink-3)}
+.vsoon-chip .v{font-size:clamp(16px,1.9vw,22px);font-weight:600;color:var(--a-ink);letter-spacing:-.01em}
+.vsoon-chip.full .v{color:var(--a-amber)}
+.vsoon-join{font-family:var(--font-apple);font-size:clamp(15px,1.6vw,18px);font-weight:500;letter-spacing:-.01em;padding:13px 34px;border-radius:980px;border:none;background:var(--a-blue);color:#fff;cursor:pointer;transition:background .2s ease;display:inline-flex;align-items:center;gap:9px;min-height:48px;margin-top:4px}
+.vsoon-join:hover{background:var(--a-blue-2)}
+.vsoon-join .ic{width:17px;height:17px}
+.vsoon-note{font-size:clamp(12px,1.3vw,15px);color:var(--a-ink-3)}
 .acourt-ending{display:inline-flex;align-items:center;gap:7px;font-size:clamp(12px,1.3vw,13px);font-weight:600;color:var(--a-amber);background:var(--a-amber-tint);padding:5px 12px;border-radius:980px;white-space:nowrap;letter-spacing:.01em}
 .acourt-ending::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--a-amber);flex-shrink:0;animation:pulse 1.8s infinite}
 @media(prefers-reduced-motion:reduce){.acourt-ending::before{animation:none}}
@@ -114,6 +138,13 @@ body.in-3d #joinModal{z-index:1300}
 .upnext-arrow{flex:0 0 auto;color:var(--a-blue);font-weight:600}
 .upnext-match{flex:1;min-width:0;font-weight:500;color:var(--a-ink);letter-spacing:-.01em}
 .upnext-toggle{display:inline-flex;align-items:center;gap:8px;font-size:var(--fs-sm);color:var(--text-2);cursor:pointer;user-select:none}
+/* Hall-screen mode switch (Courts tab) */
+.csoon-row{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-md);flex-wrap:wrap}
+.csoon-copy{min-width:0}
+.csoon-state{font-size:var(--fs-md);font-weight:600;color:var(--text)}
+.csoon-state.on{color:var(--a-blue)}
+.csoon-sub{font-size:var(--fs-sm);color:var(--muted);margin-top:2px}
+.csoon-row .btn{min-height:44px;white-space:nowrap}
 .upnext-toggle input{cursor:pointer;margin:0}
 .upnext-edit-round{font-weight:500;color:var(--muted);font-size:var(--fs-xs)}
 .upnext-row.clickable{cursor:pointer}
@@ -485,6 +516,8 @@ body.in-3d #joinModal{z-index:1300}
 .social-games-row:last-child{border-bottom:none}
 .social-games-row .sg-day{flex:1;min-width:130px}
 .social-games-row .sg-time{width:120px}
+.social-games-row .sg-level{width:170px}
+.social-games-row .sg-cap{width:90px}
 .sg-toggle{display:inline-flex;align-items:center;min-height:44px;padding:0 6px;cursor:pointer}
 .sg-toggle input{width:20px;height:20px;accent-color:var(--a-blue);cursor:pointer}
 /* Settings: Weekly Regulars editor */
@@ -776,6 +809,14 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 #siteGate .gate-content{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center}
 
 /* ── LEADERBOARD ─────────────────────────── */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+/* "Coming soon" modal — the header button's target. Reuses the .vsoon card. */
+#soonModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:350;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+#soonModal.open{display:flex}
+.soon-box{width:100%;max-width:620px;margin:auto;position:relative}
+.soon-box .vsoon{border-radius:var(--radius-lg)}
+.soon-box .lb-close{z-index:1;color:var(--a-ink-3)}
+.soon-box .lb-close:hover{color:var(--a-ink)}
 #lbModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:350;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
 #lbModal.open{display:flex}
 .lb-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);width:100%;max-width:520px;padding:28px 24px 24px;margin:auto;position:relative}
@@ -1859,6 +1900,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .fb-chip[aria-pressed="true"]:hover{background:var(--green)}
 .fb-ta{width:100%;margin-top:7px;min-height:58px;resize:vertical;font-family:inherit;font-size:var(--fs-sm);line-height:1.5;color:var(--text);background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px}
 .fb-ta::placeholder{color:var(--muted)}
+/* The write side matches the read side: the "what went well" box is blue, the
+   "what could be better" box red, so the two never get mixed up. */
+.fb-ta.good{border-color:var(--a-blue);background:var(--a-blue-tint);color:var(--a-blue-2)}
+.fb-ta.bad{border-color:var(--red);background:var(--red-tint);color:var(--red-active)}
+.fb-ta.good:focus{outline:2px solid var(--a-blue);outline-offset:1px}
+.fb-ta.bad:focus{outline:2px solid var(--red);outline-offset:1px}
 .fb-actions{display:flex;align-items:center;gap:10px;margin-top:13px}
 .fb-actions .btn{flex:1}
 .fb-err{font-size:var(--fs-xs);color:var(--red);margin-top:8px;min-height:0}
@@ -1868,6 +1915,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .fb-done-list li.good span{color:var(--green-light)}
 .fb-done-list li.bad span{color:var(--red)}
 .fb-quote{font-size:var(--fs-sm);color:var(--text-2);font-style:italic;line-height:1.5;margin-top:7px;padding-left:10px;border-left:2px solid var(--border)}
+/* Open-ended replies are colour-coded so a long list scans at a glance: the
+   compliment box blue, the complaint box red. The darker text shades (not the
+   flat --red/--a-blue) keep a whole paragraph legible on white. */
+.fb-quote.good,.fb-quote.bad{padding:8px 11px;border-radius:var(--radius-sm);font-style:normal}
+.fb-quote.good{color:var(--a-blue-2);border-left-color:var(--a-blue);background:var(--a-blue-tint)}
+.fb-quote.bad{color:var(--red-active);border-left-color:var(--red);background:var(--red-tint)}
 .fb-hint{font-size:var(--fs-xs);color:var(--muted);line-height:1.45;margin-top:9px}
 /* The collapsed row under the card: every other night they played, newest first. */
 .fb-more{margin-top:13px;border-top:1px solid var(--border)}
@@ -2919,8 +2972,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       </div>
     </div>
     <div class="vh-right">
-      <span class="vh-live"><span class="status-dot"></span>Live</span>
+      <span class="vh-live" id="viewerLive"><span class="status-dot"></span>Live</span>
       <div class="vh-nav">
+        <button id="viewerSoonBtn" onclick="openSoonModal()" title="What's on next"><svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3.5V6M16 3.5V6"/></svg> <span class="vsb-lab">Coming soon</span><span class="vsb-date" id="viewerSoonDate"></span></button>
         <button id="membersBtn" onclick="openMembersModal()"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 3 2.4M17 6h2.5a2.5 2.5 0 0 1-3 2.4M10 12.5h4M12 12.5V16M9 20h6M10 20l.5-4M14 20l-.5-4"/></svg> Members</button>
         <button id="drawBtn" onclick="openDrawPage()"><svg class="ic" viewBox="0 0 24 24"><path d="M7 4h10v3a5 5 0 0 1-10 0z"/><path d="M10 12.5h4M12 12.5V16M9 20h6"/></svg> Lucky Draw</button>
         <button id="lbBtn" onclick="openLbModal()"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M8.5 12 7 21l5-2.8 5 2.8-1.5-9"/></svg> Leaderboard</button>
@@ -2956,6 +3010,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 </div>
 
 <!-- Leaderboard Modal -->
+<!-- "Coming soon" — the next session on demand, from the viewer header button.
+     Same content as the between-nights card (buildComingSoonCard), so there is
+     one place to change what a session advertises. -->
+<div id="soonModal" role="dialog" aria-modal="true" aria-labelledby="soonTitle">
+  <div class="soon-box">
+    <button class="lb-close" onclick="closeSoonModal()" aria-label="Close">&#x2715;</button>
+    <h2 class="sr-only" id="soonTitle">Next session</h2>
+    <div id="soonBody"></div>
+  </div>
+</div>
+
 <div id="lbModal" role="dialog" aria-modal="true" aria-labelledby="lbTitle">
   <div class="lb-box">
     <button class="lb-close" onclick="closeLbModal()" aria-label="Close leaderboard">&#x2715;</button>
@@ -3184,6 +3249,21 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
   <!-- ── COURTS TAB ──────────────────────────── -->
   <div class="admin-tab-panel" data-tab="courts">
+
+  <!-- Viewer display mode. Between sessions the hall screen would otherwise sit
+       on last night's courts (or a grid of TBDs); this swaps it for the next
+       session's details until the admin switches it back. -->
+  <div class="admin-card">
+    <div class="admin-card-title"><span><svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3.5V6M16 3.5V6"/></svg></span> Hall screen</div>
+    <div class="csoon-row">
+      <div class="csoon-copy">
+        <div class="csoon-state" id="csoonState">Showing courts</div>
+        <div class="csoon-sub" id="csoonSub"></div>
+      </div>
+      <button class="btn btn-primary" id="csoonBtn" onclick="toggleComingSoon()">Show &ldquo;Coming soon&rdquo;</button>
+    </div>
+    <div class="admin-helper-text">Replaces the courts and &ldquo;Up Next&rdquo; on the viewer with the next session&rsquo;s date, time, level and places left. Set the level and slots per game day in <b>Settings &rarr; Social game days</b>.</div>
+  </div>
 
   <!-- Courts & Schedule -->
   <div class="admin-card">
@@ -3918,9 +3998,9 @@ let generatePending = false; // confirm-to-generate state
 // any state has loaded. `lockedSocialGames` holds the open days the locked GET
 // surfaces so the lockscreen CTA can render before the site code is entered.
 const DEFAULT_SOCIAL_GAMES = [
-  { id: 'sg-fri', day: 'Friday', weekday: 5, time: '9–11pm', enabled: true },
-  { id: 'sg-sun', day: 'Sunday', weekday: 0, time: '9–11pm', enabled: true },
-  { id: 'sg-mon', day: 'Monday', weekday: 1, time: '9–11pm', enabled: true },
+  { id: 'sg-fri', day: 'Friday', weekday: 5, time: '9–11pm', level: '', capacity: 0, enabled: true },
+  { id: 'sg-sun', day: 'Sunday', weekday: 0, time: '9–11pm', level: '', capacity: 0, enabled: true },
+  { id: 'sg-mon', day: 'Monday', weekday: 1, time: '9–11pm', level: '', capacity: 0, enabled: true },
 ];
 let lockedSocialGames = null;
 // Same idea for the competition: the locked GET carries a thin teaser (name,
@@ -4532,6 +4612,7 @@ function stateSig(obj) {
 function renderViewer() {
   if (!state) return;
   renderAccountWidget(); // poll-safe (sig-guarded) — keeps the avatar/name live
+  renderSoonButton();    // cheap: two text writes, outside the court-card sig guard
   const dateEl = document.getElementById('viewerDate');
   if (dateEl) dateEl.textContent = state.sessionDate ? formatDisplayDate(state.sessionDate) : '';
   const courtRounds = getCourtRounds();
@@ -4540,27 +4621,53 @@ function renderViewer() {
   // Skip the court-card rebuild (the visible flicker source) when nothing changed.
   // snu/adm are included so the Up Next panel rebuilds when the toggle flips or
   // the device's admin login state changes (clickable rows in Task 4).
-  const courtSig = stateSig({ nc: numCourts, cn: state.courtNumbers, crs: courtRounds, rounds: state.rounds, players: state.players, snu: state.showNextUp, es: state.endingSoon, cs: state.courtStatus, adm: !!sessionStorage.getItem('adminPwd') });
+  // `up` keeps the between-nights "Coming soon" card live: without it a new
+  // sign-up (slots left) or a settings change would not repaint until a round did.
+  const courtSig = stateSig({ nc: numCourts, cn: state.courtNumbers, crs: courtRounds, rounds: state.rounds, players: state.players, snu: state.showNextUp, es: state.endingSoon, cs: state.courtStatus, up: state.upcoming, soon: !!state.comingSoon, adm: !!sessionStorage.getItem('adminPwd') });
   if (courtSig !== __lastCourtSig) {
     __lastCourtSig = courtSig;
     const statuses = normalizeCourtStatus(state.courtStatus, numCourts);
     const container = document.getElementById('courtsDisplay');
     container.innerHTML = '';
-    for (let i = 0; i < numCourts; i++) {
-      const round = state.rounds?.[courtRounds[i]];
-      const court = round?.courts?.[i];
-      if (court) {
-        container.appendChild(buildCourtCard(courtLabel(i), court, round?.label || null, !!state.endingSoon?.[i], statuses[i]));
+    // The admin's "Coming soon" switch (Courts tab) takes the hall screen over
+    // completely: no court cards, no Up Next. Between sessions the alternative
+    // is last night's courts or a grid of TBDs, which reads as a live game.
+    const soonMode = !!state.comingSoon;
+    if (soonMode) {
+      container.appendChild(buildComingSoonCard());
+    } else {
+      for (let i = 0; i < numCourts; i++) {
+        const round = state.rounds?.[courtRounds[i]];
+        const court = round?.courts?.[i];
+        if (court) {
+          // Same late-court rule as the admin board: viewers see "Game N" on the
+          // 5:30 court rather than a round number that looks like it is lagging.
+          const rlab = courtRoundLabel(state.rounds, i, courtRounds[i] ?? 0);
+          container.appendChild(buildCourtCard(courtLabel(i), court, round ? rlab.text : null, !!state.endingSoon?.[i], statuses[i]));
+        }
       }
+      // No schedule at all: the loop built nothing and the screen used to go
+      // blank under a "Live" dot. Fall back to the same card unprompted.
+      if (!container.children.length) container.appendChild(buildComingSoonCard());
     }
+    // "Live" and the finished session's date are both wrong next to a card
+    // advertising the NEXT session, so they go while it is up.
+    const nothingOn = soonMode || container.firstElementChild?.classList.contains('vsoon');
+    const livePill = document.getElementById('viewerLive');
+    if (livePill) livePill.style.display = nothingOn ? 'none' : '';
+    if (dateEl) dateEl.style.display = nothingOn ? 'none' : '';
     const stats = document.getElementById('viewerFootStats');
     if (stats) {
-      const ids = new Set();
-      for (let i = 0; i < numCourts; i++) {
-        const c = state.rounds?.[courtRounds[i]]?.courts?.[i];
-        if (c) (c.team1 || []).concat(c.team2 || []).forEach(id => id && ids.add(id));
+      if (nothingOn) {
+        stats.textContent = 'Members Only';
+      } else {
+        const ids = new Set();
+        for (let i = 0; i < numCourts; i++) {
+          const c = state.rounds?.[courtRounds[i]]?.courts?.[i];
+          if (c) (c.team1 || []).concat(c.team2 || []).forEach(id => id && ids.add(id));
+        }
+        stats.textContent = `${numCourts} Court${numCourts > 1 ? 's' : ''} · ${ids.size} Players · Members Only`;
       }
-      stats.textContent = `${numCourts} Court${numCourts > 1 ? 's' : ''} · ${ids.size} Players · Members Only`;
     }
     renderUpNext();
   }
@@ -4574,6 +4681,88 @@ function aAvatarHTML(p) {
   if (!p) return '<div class="aav aav-empty">&ndash;</div>';
   if (p.photo) return `<img class="aav" src="${p.photo}" alt="${escHtml(p.name)}">`;
   return `<div class="aav">${getInitials(p.name)}</div>`;
+}
+
+// ── "Coming soon" (viewer, between nights) ────
+// With no schedule loaded the court grid built nothing, so the hall screen sat
+// blank under a "Live" dot — which reads as broken rather than as "no game on".
+// This fills that gap with the next session: date, time, level, places left and
+// a Join button. `state.upcoming` is computed server-side (counts only, never a
+// sign-up's name or number — see MonthlyDraw.upcomingSession); the local
+// fallback covers the admin's authenticated poll, which doesn't carry it.
+function upcomingSessionInfo() {
+  if (state && state.upcoming) return state.upcoming;
+  if (!state || !window.MonthlyDraw) return null;
+  return MonthlyDraw.upcomingSession(state.socialGames, state.signups, getJoinToday());
+}
+
+/** DD/MM/YY for the header button — short enough to sit inside a nav pill. */
+function soonShortDate(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  return m ? `${m[3]}/${m[2]}/${m[1].slice(2)}` : '';
+}
+
+// The header button is ALWAYS there — during a game as much as between nights,
+// because "when's the next one?" is the question people ask mid-session too.
+function renderSoonButton() {
+  const btn = document.getElementById('viewerSoonBtn');
+  if (!btn) return;
+  const up = upcomingSessionInfo();
+  const dateEl = document.getElementById('viewerSoonDate');
+  if (dateEl) dateEl.textContent = up ? soonShortDate(up.date) : '';
+  btn.title = up
+    ? 'Next session ' + formatDisplayDate(up.date) + (up.time ? ' · ' + up.time : '')
+    : 'No session scheduled yet';
+}
+
+function openSoonModal() {
+  const body = document.getElementById('soonBody');
+  if (body) { body.innerHTML = ''; body.appendChild(buildComingSoonCard()); }
+  document.getElementById('soonModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSoonModal() {
+  document.getElementById('soonModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+// The same card is used on the idle screen AND inside the modal, so the Join
+// button has to hand over cleanly from either: close the modal first (when it
+// is the one open) rather than stacking two backdrops.
+function soonJoin() {
+  if (document.getElementById('soonModal').classList.contains('open')) closeSoonModal();
+  openJoinModal();
+}
+
+function buildComingSoonCard() {
+  const el = document.createElement('div');
+  el.className = 'vsoon';
+  const up = upcomingSessionInfo();
+  if (!up) {
+    // No game day is switched on at all — say so plainly rather than teasing a
+    // session that isn't scheduled, and don't offer a Join that can't be filled.
+    el.innerHTML = '<div class="vsoon-date">No session scheduled</div>'
+      + '<div class="vsoon-note">Check back soon for the next social game.</div>';
+    return el;
+  }
+  const chip = (k, v, full) => `<div class="vsoon-chip${full ? ' full' : ''}"><span class="k">${escHtml(k)}</span><span class="v">${escHtml(v)}</span></div>`;
+  const slots = up.capacity > 0
+    ? chip('Slots', up.full ? 'Full' : up.slotsLeft + ' left', up.full)
+    : chip('Slots', 'Open', false);
+  const plusIcon = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+  el.innerHTML = `
+    <span class="vsoon-kicker">Coming soon</span>
+    <div class="vsoon-date">${escHtml(formatDisplayDate(up.date))}</div>
+    ${up.time ? `<div class="vsoon-time">${escHtml(up.time)}</div>` : ''}
+    <div class="vsoon-meta">
+      ${up.level ? chip('Level', up.level, false) : ''}
+      ${slots}
+    </div>
+    ${up.full
+      ? '<div class="vsoon-note">Tonight is full — sign up and we’ll let you know if a place opens.</div>'
+      : ''}
+    <button type="button" class="vsoon-join" onclick="soonJoin()">${plusIcon} Join this session</button>
+  `;
+  return el;
 }
 
 function buildCourtCard(num, court, roundLabel, endingSoon, status) {
@@ -4613,6 +4802,9 @@ function renderUpNext() {
   const panel = document.getElementById('upNextPanel');
   if (!panel) return;
   if (state.showNextUp === false) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
+  // The "Coming soon" takeover owns the whole viewer body — an Up Next list of
+  // last night's pairings underneath it would undo the point of the switch.
+  if (state.comingSoon) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
   const rows = computeNextUp(state.rounds, getCourtRounds(), state.numCourts || 1);
   if (!rows.length) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
   const nameOf = id => playerById(id)?.name || 'TBD';
@@ -5591,7 +5783,9 @@ function renderCourtControls() {
   grid.innerHTML = '';
   for (let i = 0; i < numCourts; i++) {
     const ri = courtRounds[i] ?? 0;
-    const label = state.rounds?.[ri]?.label || `Round ${ri + 1}`;
+    // A court that opened late reads "Game N" (its own count) instead of a
+    // round number it will never catch up to — see courtRoundLabel.
+    const rlab = courtRoundLabel(state.rounds, i, ri);
     const court = state.rounds?.[ri]?.courts?.[i];
     const ending = !!state.endingSoon?.[i];
     const card = document.createElement('div');
@@ -5601,7 +5795,7 @@ function renderCourtControls() {
         <div class="fr-mu-court">Court ${courtPicker(i)}</div>
         <div class="crt-rnav" role="group" aria-label="Round shown on court ${courtLabel(i)}">
           <button class="crt-rnav-btn" onclick="advanceCourt(${i},-1)" ${ri <= 0 ? 'disabled' : ''} aria-label="Previous round">&#8592;</button>
-          <span class="crt-rnav-lbl">${escHtml(label)}</span>
+          <span class="crt-rnav-lbl"${rlab.title ? ` title="${escHtml(rlab.title)}"` : ''}>${escHtml(rlab.text)}</span>
           <button class="crt-rnav-btn" onclick="advanceCourt(${i},1)" ${ri >= totalRounds - 1 ? 'disabled' : ''} aria-label="Next round">&#8594;</button>
         </div>
         <div class="fr-mu-ctrls">
@@ -5649,6 +5843,9 @@ function renderCourtControls() {
   const nextUpToggle = document.getElementById('showNextUpToggle');
   if (nextUpToggle) nextUpToggle.checked = state.showNextUp !== false;
   renderNextUpEditor();
+  // Hall-screen mode sits at the top of this same tab — keep it in step with the
+  // poll so a second admin flipping it is reflected here too.
+  renderComingSoonCard();
 }
 
 // Pure: ensure every round carries a court slot for each active court. A
@@ -5672,6 +5869,57 @@ function padRoundsToCourts(rounds, numCourts) {
     return { ...round, courts };
   });
   return { rounds: changed ? out : rounds, changed };
+}
+
+// ── LATE-OPENING COURTS ───────────────────────
+// Not every court opens at 9pm. The 5:30 court joins a couple of rounds in, so
+// its courtRounds index sits permanently below everyone else's: the board reads
+// "Round 11" on that card while the rest show "Round 12", and it never catches
+// up. Nothing is actually wrong — that court has simply played fewer games — so
+// we label it by its OWN game count instead of the shared round number.
+// The three helpers below are pure. Unit tested in scripts/test-court-games.js.
+
+// Does this court have a real line-up in `round`? The empty slot
+// ({team1:['',''],team2:['','']}) is the padding padRoundsToCourts adds for a
+// court that wasn't in play yet, so it is NOT a game.
+function courtHasLineup(round, courtIdx) {
+  const c = round?.courts?.[courtIdx];
+  if (!c) return false;
+  return (c.team1 || []).some(id => id) || (c.team2 || []).some(id => id);
+}
+
+// First round index this court actually played; -1 if it never appears. A court
+// that opened late starts above 0 — that is exactly what makes it a late court.
+function courtFirstRound(rounds, courtIdx) {
+  if (!Array.isArray(rounds)) return -1;
+  for (let r = 0; r < rounds.length; r++) if (courtHasLineup(rounds[r], courtIdx)) return r;
+  return -1;
+}
+
+// This court's OWN game number at `roundIdx` (1-based), counting only rounds it
+// had a line-up. The current round ALWAYS counts as the game on the card, filled
+// or not, so the number doesn't jump around while the admin fills the slots.
+// Returns 0 when the court hasn't opened yet at that point in the night.
+function courtGameNumber(rounds, courtIdx, roundIdx) {
+  if (!Array.isArray(rounds) || !rounds.length) return 0;
+  const upto = Math.max(0, Math.min(Number(roundIdx) || 0, rounds.length - 1));
+  const first = courtFirstRound(rounds, courtIdx);
+  if (first < 0 || upto < first) return 0;
+  let played = 0;
+  for (let r = 0; r < upto; r++) if (courtHasLineup(rounds[r], courtIdx)) played++;
+  return played + 1;
+}
+
+// The label for one court card. Courts that ran all night keep the shared round
+// label exactly as before; only a late court switches to "Game N", so a normal
+// night looks untouched. Returns { text, title } — the title keeps the
+// underlying round visible on hover, since the ← → stepper still moves rounds.
+function courtRoundLabel(rounds, courtIdx, roundIdx) {
+  const base = rounds?.[roundIdx]?.label || ('Round ' + ((Number(roundIdx) || 0) + 1));
+  if (courtFirstRound(rounds, courtIdx) <= 0) return { text: base, title: '' };
+  const g = courtGameNumber(rounds, courtIdx, roundIdx);
+  if (!g) return { text: base, title: '' };
+  return { text: 'Game ' + g, title: base + ' — this court opened late, so it counts its own games' };
 }
 
 // Pure: for every player, count how many consecutive rounds — ending at and
@@ -6038,6 +6286,39 @@ async function startNextRound() {
   renderRoundList();
   renderViewer();
   notify('Started next round');
+}
+
+// ── HALL SCREEN: "Coming soon" takeover ───────
+// Persisted as state.comingSoon (default OFF) so every viewer switches together
+// and the mode survives a reload. While it is on the viewer shows the next
+// session INSTEAD of the courts — see renderViewer.
+async function toggleComingSoon() {
+  const on = !(state && state.comingSoon);
+  if (await apiPost({ comingSoon: on }) === null) return;
+  state.comingSoon = on;
+  renderComingSoonCard();
+  renderViewer();
+  notify(on ? 'Viewer is showing “Coming soon”' : 'Viewer is back on the courts');
+}
+
+// Admin-side status for the switch. Named for the card, not the button, because
+// the same block reports the mode whether or not it was this admin who flipped it.
+function renderComingSoonCard() {
+  const stateEl = document.getElementById('csoonState');
+  const subEl = document.getElementById('csoonSub');
+  const btn = document.getElementById('csoonBtn');
+  if (!stateEl || !btn || !state) return;
+  const on = !!state.comingSoon;
+  const up = upcomingSessionInfo();
+  stateEl.textContent = on ? 'Showing “Coming soon”' : 'Showing courts';
+  stateEl.classList.toggle('on', on);
+  if (subEl) {
+    subEl.textContent = up
+      ? 'Next session ' + formatDisplayDate(up.date) + (up.time ? ' · ' + up.time : '')
+      : 'No game day is switched on, so the viewer would show “No session scheduled”.';
+  }
+  btn.textContent = on ? 'Back to courts' : 'Show “Coming soon”';
+  btn.className = on ? 'btn btn-secondary' : 'btn btn-primary';
 }
 
 // Show/hide the viewer "Up Next" panel (persisted as state.showNextUp, default ON).
@@ -7746,6 +8027,8 @@ function renderSocialGamesCard(rows) {
       <label class="sg-toggle"><input type="checkbox" ${g.enabled ? 'checked' : ''} aria-label="Enable this day"></label>
       <select class="admin-form-input sg-day" aria-label="Day of week">${options}</select>
       <input type="text" class="admin-form-input sg-time" value="${escHtml(g.time || '')}" placeholder="9–11pm" aria-label="Time">
+      <input type="text" class="admin-form-input sg-level" value="${escHtml(g.level || '')}" placeholder="Level (optional)" aria-label="Level" title="Shown on the viewer's Coming soon card, e.g. &quot;Intermediate – Advanced&quot;">
+      <input type="number" class="admin-form-input sg-cap" value="${g.capacity > 0 ? +g.capacity : ''}" min="0" step="1" placeholder="Slots" aria-label="Player slots" title="How many places this session has. Leave blank for no limit.">
       <button class="btn btn-ghost btn-sm sg-remove" onclick="removeSocialGameDay(this)" aria-label="Remove day">Remove</button>
     </div>`;
   }).join('');
@@ -7756,15 +8039,20 @@ function readSocialGamesFromDOM() {
     const weekday = parseInt(row.querySelector('.sg-day').value, 10);
     const enabled = row.querySelector('input[type="checkbox"]').checked;
     const time = row.querySelector('.sg-time').value.trim();
+    const level = row.querySelector('.sg-level').value.trim();
+    // Blank / 0 / junk all mean "no limit" — the Coming soon card then says
+    // "Open" rather than a misleading "0 slots left".
+    const cap = Math.floor(Number(row.querySelector('.sg-cap').value));
+    const capacity = Number.isFinite(cap) && cap > 0 ? cap : 0;
     const id = row.dataset.id || ('sg' + Date.now() + idx + Math.random().toString(36).slice(2, 5));
     const day = WEEKDAY_NAMES[weekday] || '';
-    return { id, day, weekday, time, enabled };
+    return { id, day, weekday, time, level, capacity, enabled };
   });
 }
 
 function addSocialGameDay() {
   const rows = readSocialGamesFromDOM();
-  rows.push({ id: 'sg' + Date.now() + Math.random().toString(36).slice(2, 5), day: 'Friday', weekday: 5, time: '9–11pm', enabled: true });
+  rows.push({ id: 'sg' + Date.now() + Math.random().toString(36).slice(2, 5), day: 'Friday', weekday: 5, time: '9–11pm', level: '', capacity: 0, enabled: true });
   renderSocialGamesCard(rows);
 }
 
@@ -10588,8 +10876,8 @@ function renderFbBody() {
 function fbRowHtml(r) {
   const chips = r.good.map(id => '<span class="fb-tag good">' + escHtml(Feedback.labelOf(id)) + '</span>')
     .concat(r.bad.map(id => '<span class="fb-tag bad">' + escHtml(Feedback.labelOf(id)) + '</span>')).join('');
-  const notes = (r.goodNote ? '<div class="fb-quote">' + escHtml(r.goodNote) + '</div>' : '')
-    + (r.badNote ? '<div class="fb-quote">' + escHtml(r.badNote) + '</div>' : '');
+  const notes = (r.goodNote ? '<div class="fb-quote good">' + escHtml(r.goodNote) + '</div>' : '')
+    + (r.badNote ? '<div class="fb-quote bad">' + escHtml(r.badNote) + '</div>' : '');
   return '<div class="fbr"><div class="fbr-head"><b>' + escHtml(r.name) + '</b>'
     + '<span class="fbr-when">' + escHtml(fmtDateTime(r.updatedAt)) + (r.edited ? ' · edited' : '') + '</span></div>'
     + (chips ? '<div class="fb-tags">' + chips + '</div>' : '') + notes + '</div>';
@@ -11358,9 +11646,13 @@ async function submitJoinForm() {
   setTimeout(closeJoinModal, 2600);
 }
 
-// ESC closes the join modal (no other handler covers it).
+// ESC closes the join modal (no other handler covers it). The "Coming soon"
+// modal rides the same handler; join wins when both are open, since it is the
+// one on top and the one holding the user's half-filled form.
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && document.getElementById('joinModal').classList.contains('open')) closeJoinModal();
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('joinModal').classList.contains('open')) { closeJoinModal(); return; }
+  if (document.getElementById('soonModal').classList.contains('open')) closeSoonModal();
 });
 
 // ── ADMIN SIGN-UPS REVIEW ────────────────────
@@ -13207,6 +13499,7 @@ function closeOpenOverlays() {
   if (isOpen('historyModal')) { closeHistoryModal(); closed = true; }
   if (isOpen('moreSheet'))    { closeMoreSheet();    closed = true; }
   if (isOpen('joinModal'))    { closeJoinModal();    closed = true; }
+  if (isOpen('soonModal'))    { closeSoonModal();    closed = true; }
   if (isOpen('eodModal'))     { closeEodModal();     closed = true; }
   if (isOpen('pmModal'))      { closePmModal();      closed = true; }
   if (isOpen('acctProfile'))  { closeAcctProfile();  closed = true; }
@@ -13826,8 +14119,8 @@ function mbFeedbackHtml(d) {
       + (mine.awardedPoints > 0 ? '<span class="fb-pts">+' + mine.awardedPoints + ' points</span>' : '') + '</div>'
       + '<div class="fb-sub">Thanks &mdash; this is what you told us about that night.</div>'
       + (lines.length ? '<ul class="fb-done-list">' + lines.join('') + '</ul>' : '')
-      + (mine.goodNote ? '<div class="fb-quote">' + escHtml(mine.goodNote) + '</div>' : '')
-      + (mine.badNote ? '<div class="fb-quote">' + escHtml(mine.badNote) + '</div>' : '')
+      + (mine.goodNote ? '<div class="fb-quote good">' + escHtml(mine.goodNote) + '</div>' : '')
+      + (mine.badNote ? '<div class="fb-quote bad">' + escHtml(mine.badNote) + '</div>' : '')
       + '<div class="fb-actions"><button class="btn btn-secondary btn-sm" onclick="fbStartEdit()">Edit my feedback</button></div>'
       + picker + '</div>';
   }
@@ -13839,10 +14132,10 @@ function mbFeedbackHtml(d) {
     + '<div class="fb-secs">'
     + '<div class="fb-sec"><div class="fb-sec-lbl">What went well</div>'
     + fbChipsHtml(fb.goodOptions, mine && mine.good, 'good')
-    + '<textarea class="fb-ta" id="fbGoodNote" rows="2" maxlength="500" placeholder="Anything else that was good?">' + escHtml((mine && mine.goodNote) || '') + '</textarea></div>'
+    + '<textarea class="fb-ta good" id="fbGoodNote" rows="2" maxlength="500" placeholder="Anything else that was good?">' + escHtml((mine && mine.goodNote) || '') + '</textarea></div>'
     + '<div class="fb-sec"><div class="fb-sec-lbl">What could be better</div>'
     + fbChipsHtml(fb.badOptions, mine && mine.bad, 'bad')
-    + '<textarea class="fb-ta" id="fbBadNote" rows="2" maxlength="500" placeholder="Anything else we should fix?">' + escHtml((mine && mine.badNote) || '') + '</textarea></div>'
+    + '<textarea class="fb-ta bad" id="fbBadNote" rows="2" maxlength="500" placeholder="Anything else we should fix?">' + escHtml((mine && mine.badNote) || '') + '</textarea></div>'
     + '</div>'
     + '<div class="fb-err" id="fbErr" aria-live="polite"></div>'
     + '<div class="fb-actions"><button class="btn btn-primary btn-sm" id="fbSendBtn" onclick="submitMemberFeedback()">'

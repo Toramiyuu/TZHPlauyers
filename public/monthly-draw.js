@@ -172,6 +172,98 @@
     return ny + '-' + String(nmo + 1).padStart(2, '0') + '-' + String(nd).padStart(2, '0');
   }
 
+  /** Add n days to an ISO date. Pure; returns the input unchanged if unparseable. */
+  function addDaysISO(iso, n) {
+    const m = _ISO_RE.exec(String(iso));
+    if (!m) return String(iso);
+    const dt = new Date(+m[1], +m[2] - 1, +m[3] + (Math.trunc(Number(n)) || 0));
+    return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+  }
+
+  // ── the next session ("Coming soon" on the viewer) ────────────────────
+  // Between nights the hall screen used to render an EMPTY court grid: no
+  // cards, just the header and a "Live" dot, which reads as broken. These
+  // helpers answer "what's on next?" from the configured game days, so the
+  // screen can show the date, time, level and how many places are left.
+
+  const MAX_SEARCH_DAYS = 400; // a year+ — enough to find the next enabled day, or give up
+
+  /**
+   * Coerce one socialGames row to a full game day. `level` and `capacity` are
+   * later additions, so old saved rows have neither: level defaults to '' (the
+   * card just omits the line) and capacity to 0, meaning "no cap set" — which
+   * renders as "open" rather than a misleading "0 slots left".
+   */
+  function normalizeGameDay(g) {
+    const row = g && typeof g === 'object' ? g : {};
+    const wd = Number.isFinite(row.weekday) ? row.weekday : WD_NAMES.indexOf(row.day);
+    const cap = Math.floor(Number(row.capacity));
+    return {
+      id: String(row.id || ''),
+      day: WD_NAMES[wd] || String(row.day || ''),
+      weekday: wd >= 0 && wd <= 6 ? wd : -1,
+      time: String(row.time || ''),
+      level: String(row.level || ''),
+      capacity: Number.isFinite(cap) && cap > 0 ? cap : 0,
+      enabled: !!row.enabled,
+    };
+  }
+
+  /**
+   * The next enabled game day on or after `fromISO`, as {date, game}, or null.
+   * `fromISO` is included, so on a Friday the answer is that same Friday — the
+   * viewer shows tonight's session all day until it actually starts.
+   */
+  function nextGameDate(games, fromISO) {
+    if (!isValidISO(fromISO)) return null;
+    const rows = (Array.isArray(games) ? games : []).map(normalizeGameDay).filter(g => g.enabled && g.weekday >= 0);
+    if (!rows.length) return null;
+    const byWeekday = new Map();
+    rows.forEach(g => { if (!byWeekday.has(g.weekday)) byWeekday.set(g.weekday, g); });
+    for (let i = 0; i < MAX_SEARCH_DAYS; i++) {
+      const iso = addDaysISO(fromISO, i);
+      const g = byWeekday.get(isoWeekday(iso));
+      if (g) return { date: iso, game: g };
+    }
+    return null;
+  }
+
+  /** How many people hold a place on `iso`. One signup row = one person. */
+  function signupsOnDate(signups, iso) {
+    if (!isValidISO(iso) || !Array.isArray(signups)) return 0;
+    let n = 0;
+    for (const s of signups) {
+      if (s && Array.isArray(s.dates) && s.dates.indexOf(iso) > -1) n++;
+    }
+    return n;
+  }
+
+  /**
+   * Everything the "Coming soon" card needs, or null when no game day is open.
+   * Returns { date, day, time, level, capacity, taken, slotsLeft, full }.
+   * capacity 0 means no cap was configured: slotsLeft is then null (the card
+   * says "Open" instead of a number) and `full` is never true.
+   * NOTE the shape carries COUNTS only, never a name or a phone number — it is
+   * built for the public GET, which anyone with the site code can read.
+   */
+  function upcomingSession(games, signups, fromISO) {
+    const hit = nextGameDate(games, fromISO);
+    if (!hit) return null;
+    const g = hit.game;
+    const taken = signupsOnDate(signups, hit.date);
+    const slotsLeft = g.capacity > 0 ? Math.max(0, g.capacity - taken) : null;
+    return {
+      date: hit.date,
+      day: g.day,
+      time: g.time,
+      level: g.level,
+      capacity: g.capacity,
+      taken,
+      slotsLeft,
+      full: g.capacity > 0 && slotsLeft === 0,
+    };
+  }
+
   /**
    * Validate a calendar join request. Returns {ok, error, clean?} where clean =
    * {name, phone, skill, dates:uniqueSorted(≤12), days:uniqueWeekdayNames}.
@@ -253,6 +345,7 @@
   return {
     ordinal, nextMonthKey, monthLabel, reindexRanks, removeHistoryEntry,
     validateSignup, unhandledCount, timeAgo,
-    SKILLS, isValidISO, isoWeekday, weekdayName, addMonthsISO, validateJoinRequest, validateJoinRequests,
+    SKILLS, isValidISO, isoWeekday, weekdayName, addMonthsISO, addDaysISO, validateJoinRequest, validateJoinRequests,
+    normalizeGameDay, nextGameDate, signupsOnDate, upcomingSession,
   };
 });
