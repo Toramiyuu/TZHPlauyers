@@ -216,10 +216,8 @@
    */
   function nextGameDate(games, fromISO) {
     if (!isValidISO(fromISO)) return null;
-    const rows = (Array.isArray(games) ? games : []).map(normalizeGameDay).filter(g => g.enabled && g.weekday >= 0);
-    if (!rows.length) return null;
-    const byWeekday = new Map();
-    rows.forEach(g => { if (!byWeekday.has(g.weekday)) byWeekday.set(g.weekday, g); });
+    const byWeekday = _gamesByWeekday(games);
+    if (!byWeekday.size) return null;
     for (let i = 0; i < MAX_SEARCH_DAYS; i++) {
       const iso = addDaysISO(fromISO, i);
       const g = byWeekday.get(isoWeekday(iso));
@@ -262,6 +260,144 @@
       slotsLeft,
       full: g.capacity > 0 && slotsLeft === 0,
     };
+  }
+
+  // ── "Coming soon" on a clock (automatic hall-screen mode) ─────────────
+  // The takeover used to be a switch someone had to remember to flip twice a
+  // week. These helpers answer it from the game days instead: the card is up
+  // from the end of the last night's play until an hour before the next
+  // session's first shuttle (Friday 9pm -> the courts come back at 8pm Friday).
+  // Everything here is pure and the instant is always injected, so the viewer,
+  // the admin card and the tests all agree on what the screen is doing.
+
+  const SOON_LEAD_MIN = 60;       // the card comes down this long before the start
+  const SOON_PLAY_HOURS = 4;      // a 9pm start owns the screen until 1am
+  const SOON_DEFAULT_START = 21 * 60; // 9pm — used when a game day's time is unreadable
+  const SOON_TZ_OFFSET = 8;       // Asia/Kuala_Lumpur, no DST
+
+  /**
+   * Minutes past midnight the session STARTS, read out of the free-text time
+   * field admins type ("9–11pm", "9pm", "8.30pm - 11pm", "21:00"). Returns null
+   * when there is no number to read at all.
+   *
+   * am/pm is taken from the first marker at or after the start number, so
+   * "9–11pm" is 9pm (the marker on the END time governs both). With no marker
+   * anywhere an hour of 13+ is a 24-hour clock and anything lower is evening —
+   * the club plays at night, so a bare "9–11" means 9pm, never 9am.
+   */
+  function parseStartMinutes(time) {
+    const s = String(time == null ? '' : time).toLowerCase();
+    const m = /(\d{1,2})\s*[:.]?\s*(\d{2})?/.exec(s);
+    if (!m) return null;
+    let h = parseInt(m[1], 10);
+    const mi = m[2] == null ? 0 : parseInt(m[2], 10);
+    if (!Number.isFinite(h) || h > 23 || !Number.isFinite(mi) || mi > 59) return null;
+    const mark = /(am|pm)/.exec(s.slice(m.index + m[0].length));
+    if (mark) {
+      if (mark[1] === 'pm') h = h === 12 ? 12 : h + 12;
+      else h = h === 12 ? 0 : h;
+    } else if (h <= 12) {
+      h = h === 12 ? 12 : h + 12;
+    }
+    if (h > 23) return null;
+    return h * 60 + mi;
+  }
+
+  /** Epoch ms of the first shuttle on `iso`, Malaysia wall-clock. */
+  function gameStartInstant(iso, time, offsetHours) {
+    const m = _ISO_RE.exec(String(iso));
+    if (!m) return NaN;
+    const mins = parseStartMinutes(time);
+    const start = mins == null ? SOON_DEFAULT_START : mins;
+    const off = offsetHours == null ? SOON_TZ_OFFSET : Number(offsetHours);
+    return Date.UTC(+m[1], +m[2] - 1, +m[3], 0, start) - off * 3600 * 1000;
+  }
+
+  /** Malaysia-local calendar date of an instant — the clock's own idea of today. */
+  function mytDateOf(nowMs, offsetHours) {
+    const now = Number(nowMs);
+    if (!Number.isFinite(now)) return '';
+    const off = offsetHours == null ? SOON_TZ_OFFSET : Number(offsetHours);
+    return new Date(now + off * 3600 * 1000).toISOString().slice(0, 10);
+  }
+
+  /** Enabled game days as weekday -> row, the same shape nextGameDate walks. */
+  function _gamesByWeekday(games) {
+    const byWeekday = new Map();
+    (Array.isArray(games) ? games : []).map(normalizeGameDay)
+      .filter(g => g.enabled && g.weekday >= 0)
+      .forEach(g => { if (!byWeekday.has(g.weekday)) byWeekday.set(g.weekday, g); });
+    return byWeekday;
+  }
+
+  /**
+   * The most recent enabled game day whose start has already passed, as
+   * {date, game, startAt}, or null. Walking back by START (not by date) is what
+   * keeps a Sunday night that ran past midnight in charge of the screen: at
+   * 00:30 on Monday, Monday's own 9pm has not happened yet, so Sunday answers.
+   */
+  function lastStartedGame(games, fromISO, nowMs, offsetHours) {
+    if (!isValidISO(fromISO) || !Number.isFinite(Number(nowMs))) return null;
+    const byWeekday = _gamesByWeekday(games);
+    if (!byWeekday.size) return null;
+    for (let i = 0; i < MAX_SEARCH_DAYS; i++) {
+      const iso = addDaysISO(fromISO, -i);
+      const g = byWeekday.get(isoWeekday(iso));
+      if (!g) continue;
+      const startAt = gameStartInstant(iso, g.time, offsetHours);
+      if (startAt <= Number(nowMs)) return { date: iso, game: g, startAt };
+    }
+    return null;
+  }
+
+  /**
+   * What the hall screen should be doing at `nowMs` on automatic:
+   *   { on, nextDate, nextStartAt, changesAt }
+   * `on` true = show "Coming soon"; changesAt is the instant `on` flips (null
+   * when nothing is scheduled, so nothing will ever change it).
+   *
+   * The instant is the ONLY input: "today" is derived from it rather than passed
+   * in, so a stale server date and a running clock can never disagree about
+   * which night the screen is in.
+   */
+  function comingSoonStatus(games, nowMs, offsetHours) {
+    // A missing clock reads as 0 through Number(), which would put the screen in
+    // 1970 and answer "Coming soon" forever — so demand a real instant.
+    const now = nowMs == null ? NaN : Number(nowMs);
+    const off = { on: false, nextDate: null, nextStartAt: null, changesAt: null };
+    if (!Number.isFinite(now) || now <= 0) return off;
+    const todayISO = mytDateOf(now, offsetHours);
+    const playMs = SOON_PLAY_HOURS * 3600 * 1000;
+    const leadMs = SOON_LEAD_MIN * 60 * 1000;
+    const last = lastStartedGame(games, todayISO, now, offsetHours);
+    const next = nextGameDate(games, todayISO);   // today counts as its own next
+    const nextStartAt = next ? gameStartInstant(next.date, next.game.time, offsetHours) : null;
+    const base = { nextDate: next ? next.date : null, nextStartAt };
+    // Tonight's session owns the screen from the lead-in until play is over; so
+    // does a session that started yesterday and is still inside its window.
+    const holder = (nextStartAt != null && now >= nextStartAt - leadMs) ? { startAt: nextStartAt }
+      : (last && now < last.startAt + playMs) ? last : null;
+    if (holder) return Object.assign(base, { on: false, changesAt: holder.startAt + playMs });
+    if (nextStartAt == null) return off;
+    return Object.assign(base, { on: true, changesAt: nextStartAt - leadMs });
+  }
+
+  /** Just the answer: should the viewer be on "Coming soon" at `nowMs`? */
+  function comingSoonAuto(games, nowMs, offsetHours) {
+    return comingSoonStatus(games, nowMs, offsetHours).on;
+  }
+
+  /**
+   * The stored hall-screen mode, tolerant of what is actually in Redis:
+   * 'auto' | 'on' | 'off'. Sites saved before automatic mode existed carry only
+   * the old `comingSoon` boolean — a true there was a deliberate takeover and
+   * stays on until someone picks a mode; anything else starts on automatic.
+   */
+  function comingSoonMode(state) {
+    const s = state || {};
+    const mode = String(s.comingSoonMode == null ? '' : s.comingSoonMode);
+    if (mode === 'auto' || mode === 'on' || mode === 'off') return mode;
+    return s.comingSoon === true ? 'on' : 'auto';
   }
 
   /**
@@ -347,5 +483,7 @@
     validateSignup, unhandledCount, timeAgo,
     SKILLS, isValidISO, isoWeekday, weekdayName, addMonthsISO, addDaysISO, validateJoinRequest, validateJoinRequests,
     normalizeGameDay, nextGameDate, signupsOnDate, upcomingSession,
+    SOON_LEAD_MIN, SOON_PLAY_HOURS, parseStartMinutes, gameStartInstant, mytDateOf,
+    lastStartedGame, comingSoonStatus, comingSoonAuto, comingSoonMode,
   };
 });

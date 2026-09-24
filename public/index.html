@@ -144,7 +144,11 @@ body.in-3d #joinModal{z-index:1300}
 .csoon-state{font-size:var(--fs-md);font-weight:600;color:var(--text)}
 .csoon-state.on{color:var(--a-blue)}
 .csoon-sub{font-size:var(--fs-sm);color:var(--muted);margin-top:2px}
+.csoon-plan{display:block;margin-top:1px}
 .csoon-row .btn{min-height:44px;white-space:nowrap}
+.csoon-seg{flex-shrink:0}
+.csoon-seg .rl-seg-btn{min-height:36px;padding:6px 14px;font-size:var(--fs-sm);white-space:nowrap}
+.csoon-seg .rl-seg-btn.on{color:var(--green-light)}
 .upnext-toggle input{cursor:pointer;margin:0}
 .upnext-edit-round{font-weight:500;color:var(--muted);font-size:var(--fs-xs)}
 .upnext-row.clickable{cursor:pointer}
@@ -1134,21 +1138,23 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .admin-nav-item.active .nav-badge.accent{color:#fff}
 .nav-badge.accent{min-width:18px;height:18px;padding:0 6px;border-radius:100px;background:var(--a-blue);color:#fff;display:inline-flex;align-items:center;justify-content:center}
 
+/* "View Display" — pinned under the search, above the nav (see the markup) */
+.asb-view-btn{width:100%;justify-content:center;gap:8px}
+
 /* Sidebar footer */
 .asb-foot{display:flex;flex-direction:column;gap:var(--sp-sm);padding-top:var(--sp-sm);border-top:1px solid var(--border)}
-.asb-foot-view{width:100%;justify-content:center;gap:8px}
 .asb-foot-row{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-sm)}
 .asb-foot-logout{background:none;border:none;color:var(--muted);font-size:var(--fs-sm);font-weight:600;font-family:inherit;cursor:pointer;padding:6px 8px;border-radius:var(--radius-sm);transition:var(--transition)}
 .asb-foot-logout:hover{color:var(--red);background:var(--card2)}
 
 /* Collapsed icon rail */
 .admin-sidebar.collapsed{width:66px;padding:var(--sp-md) 10px}
-.admin-sidebar.collapsed .asb-brand,.admin-sidebar.collapsed .asb-search,.admin-sidebar.collapsed .admin-nav-grouplabel,.admin-sidebar.collapsed .ani-label,.admin-sidebar.collapsed .nav-badge,.admin-sidebar.collapsed .asb-foot-logout,.admin-sidebar.collapsed .asb-foot-view .ani-label{display:none}
+.admin-sidebar.collapsed .asb-brand,.admin-sidebar.collapsed .asb-search,.admin-sidebar.collapsed .admin-nav-grouplabel,.admin-sidebar.collapsed .ani-label,.admin-sidebar.collapsed .nav-badge,.admin-sidebar.collapsed .asb-foot-logout,.admin-sidebar.collapsed .asb-view-btn .ani-label{display:none}
 .admin-sidebar.collapsed .asb-brand-row{justify-content:center}
 .admin-sidebar.collapsed .asb-collapse .ic{transform:scaleX(-1)}
 .admin-sidebar.collapsed .admin-nav-item{justify-content:center;padding:11px 0}
 .admin-sidebar.collapsed .asb-foot{align-items:center}
-.admin-sidebar.collapsed .asb-foot-view{padding:9px 0}
+.admin-sidebar.collapsed .asb-view-btn{padding:9px 0}
 
 /* Desktop main section title */
 .admin-main-hdr{display:flex;align-items:center;min-height:34px}
@@ -1778,6 +1784,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
   .crt-foot-status{text-align:center;white-space:normal;min-height:32px}
   .fee-seg{display:flex;width:100%}
   .fee-seg .rl-seg-btn{min-height:44px;flex:1}
+  .csoon-seg{display:flex;width:100%}
+  .csoon-seg .rl-seg-btn{flex:1;min-height:44px;padding:6px 4px}
   .pm-tier-seg .rl-seg-btn,.pm-seg .rl-seg-btn{min-height:44px}
   .pm-cal-wrap .cal-strip-btn{width:44px;height:44px}
   .pm-cal-nav .cal-chevron{width:40px;height:40px}
@@ -3188,6 +3196,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       <svg class="ic asb-search-ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       <input id="sidebarSearch" type="text" class="asb-search-input" placeholder="Find a player…" autocomplete="off" aria-label="Find a player" oninput="sidebarSearchInput(this.value)" onkeydown="if(event.key==='Escape'){this.value='';sidebarSearchInput('');}">
     </div>
+    <!-- "View Display" sits ABOVE the nav, not in the footer: the benches dock
+         into this sidebar mid-session, so the footer is often a long scroll away
+         and this is the button admins reach for most. -->
+    <button class="btn btn-secondary btn-sm asb-view-btn" onclick="showViewer()"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span><span class="ani-label">View Display</span></button>
     <nav class="asb-nav">
       <div class="admin-nav-group">
         <div class="admin-nav-grouplabel">Today</div>
@@ -3211,7 +3223,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
     <!-- Friendly Red/Blue bench renders here on desktop (renderFriendlyMatchups) -->
     <div id="frBenchDock"></div>
     <div class="asb-foot">
-      <button class="btn btn-secondary btn-sm asb-foot-view" onclick="showViewer()"><span class="ani-ic"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span><span class="ani-label">View Display</span></button>
       <div class="asb-foot-row">
         <button class="asb-foot-logout" onclick="logout()"><span class="ani-label">Log out</span></button>
         <button class="admin-help-btn" id="adminHelpBtn" onclick="openHelp()" aria-label="Help and guided tour" title="Help &amp; guided tour">?</button>
@@ -3313,9 +3324,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <div class="csoon-state" id="csoonState">Showing courts</div>
         <div class="csoon-sub" id="csoonSub"></div>
       </div>
-      <button class="btn btn-primary" id="csoonBtn" onclick="toggleComingSoon()">Show &ldquo;Coming soon&rdquo;</button>
+      <div class="rl-seg csoon-seg" id="csoonSeg" role="group" aria-label="Hall screen mode">
+        <button class="rl-seg-btn" data-mode="auto" onclick="setComingSoonMode('auto')">Automatic</button>
+        <button class="rl-seg-btn" data-mode="on" onclick="setComingSoonMode('on')">Coming soon</button>
+        <button class="rl-seg-btn" data-mode="off" onclick="setComingSoonMode('off')">Courts</button>
+      </div>
     </div>
-    <div class="admin-helper-text">Replaces the courts and &ldquo;Up Next&rdquo; on the viewer with the next session&rsquo;s date, time, level and places left. Set the level and slots per game day in <b>Settings &rarr; Social game days</b>.</div>
+    <div class="admin-helper-text">Replaces the courts and &ldquo;Up Next&rdquo; on the viewer with the next session&rsquo;s date, time, level and places left. <b>Automatic</b> puts it up between nights and takes it down an hour before the next session starts &mdash; a 9pm game clears the screen at 8pm. Set each game day&rsquo;s time, level and slots in <b>Settings &rarr; Social game days</b>.</div>
   </div>
 
   <!-- Courts & Schedule -->
@@ -4913,16 +4928,17 @@ function renderViewer() {
   // `q` and `pl` are here because the Up Next panel is drawn from the queue and
   // every court card's game number is counted out of the record. Without them a
   // queue edit, or a game finishing, would not repaint the hall screen at all.
-  const courtSig = stateSig({ nc: numCourts, cn: state.courtNumbers, crs: courtRounds, rounds: state.rounds, players: state.players, snu: state.showNextUp, es: state.endingSoon, cs: state.courtStatus, up: state.upcoming, soon: !!state.comingSoon, adm: !!sessionStorage.getItem('adminPwd'), q: computeUpNext(state.queue, UPNEXT_SHOWN), pl: (state.played || []).length });
+  const courtSig = stateSig({ nc: numCourts, cn: state.courtNumbers, crs: courtRounds, rounds: state.rounds, players: state.players, snu: state.showNextUp, es: state.endingSoon, cs: state.courtStatus, up: state.upcoming, soon: comingSoonOn(), adm: !!sessionStorage.getItem('adminPwd'), q: computeUpNext(state.queue, UPNEXT_SHOWN), pl: (state.played || []).length });
   if (courtSig !== __lastCourtSig) {
     __lastCourtSig = courtSig;
     const statuses = normalizeCourtStatus(state.courtStatus, numCourts);
     const container = document.getElementById('courtsDisplay');
     container.innerHTML = '';
-    // The admin's "Coming soon" switch (Courts tab) takes the hall screen over
-    // completely: no court cards, no Up Next. Between sessions the alternative
-    // is last night's courts or a grid of TBDs, which reads as a live game.
-    const soonMode = !!state.comingSoon;
+    // "Coming soon" takes the hall screen over completely: no court cards, no
+    // Up Next. Between sessions the alternative is last night's courts or a grid
+    // of TBDs, which reads as a live game. On automatic (the default) this is
+    // the clock talking — see comingSoonOn.
+    const soonMode = comingSoonOn();
     if (soonMode) {
       container.appendChild(buildComingSoonCard());
     } else {
@@ -5100,7 +5116,7 @@ function renderUpNext() {
   if (state.showNextUp === false) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
   // The "Coming soon" takeover owns the whole viewer body — an Up Next list of
   // last night's pairings underneath it would undo the point of the switch.
-  if (state.comingSoon) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
+  if (comingSoonOn()) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
   const rows = computeUpNext(state.queue, UPNEXT_SHOWN);
   if (!rows.length) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
   const nameOf = id => playerById(id)?.name || 'TBD';
@@ -6571,16 +6587,36 @@ async function fillFreeCourts() {
 }
 
 // ── HALL SCREEN: "Coming soon" takeover ───────
-// Persisted as state.comingSoon (default OFF) so every viewer switches together
-// and the mode survives a reload. While it is on the viewer shows the next
-// session INSTEAD of the courts — see renderViewer.
-async function toggleComingSoon() {
-  const on = !(state && state.comingSoon);
-  if (await apiPost({ comingSoon: on }) === null) return;
+// Persisted as state.comingSoonMode ('auto' | 'on' | 'off', default auto) so
+// every viewer switches together and the mode survives a reload. While it is on
+// the viewer shows the next session INSTEAD of the courts — see renderViewer.
+function comingSoonMode() {
+  return window.MonthlyDraw ? MonthlyDraw.comingSoonMode(state) : 'off';
+}
+
+// The live answer for this instant. On 'auto' the game days decide: the card is
+// up until an hour before the next session's first shuttle, and comes back once
+// that night's play window has run out (Friday 9pm -> courts 8pm Fri to 1am Sat).
+// clockNow() is the server-synced clock, so every screen flips together.
+function comingSoonOn() {
+  const mode = comingSoonMode();
+  if (mode !== 'auto') return mode === 'on';
+  if (!state || !window.MonthlyDraw) return false;
+  return MonthlyDraw.comingSoonAuto(state.socialGames, clockNow());
+}
+
+async function setComingSoonMode(mode) {
+  if (comingSoonMode() === mode) return;
+  // `comingSoon` is written alongside so an old viewer tab still mid-poll (and
+  // the admin's own optimistic state) agrees with the new field.
+  const on = mode === 'on';
+  if (await apiPost({ comingSoonMode: mode, comingSoon: on }) === null) return;
+  state.comingSoonMode = mode;
   state.comingSoon = on;
   renderComingSoonCard();
   renderViewer();
-  notify(on ? 'Viewer is showing “Coming soon”' : 'Viewer is back on the courts');
+  notify(mode === 'auto' ? 'Hall screen back on automatic'
+    : on ? 'Viewer is showing “Coming soon”' : 'Viewer is back on the courts');
 }
 
 // Admin-side status for the switch. Named for the card, not the button, because
@@ -6588,19 +6624,31 @@ async function toggleComingSoon() {
 function renderComingSoonCard() {
   const stateEl = document.getElementById('csoonState');
   const subEl = document.getElementById('csoonSub');
-  const btn = document.getElementById('csoonBtn');
-  if (!stateEl || !btn || !state) return;
-  const on = !!state.comingSoon;
+  const seg = document.getElementById('csoonSeg');
+  if (!stateEl || !seg || !state) return;
+  const mode = comingSoonMode();
+  const on = comingSoonOn();
   const up = upcomingSessionInfo();
   stateEl.textContent = on ? 'Showing “Coming soon”' : 'Showing courts';
   stateEl.classList.toggle('on', on);
-  if (subEl) {
-    subEl.textContent = up
-      ? 'Next session ' + formatDisplayDate(up.date) + (up.time ? ' · ' + up.time : '')
-      : 'No game day is switched on, so the viewer would show “No session scheduled”.';
+  seg.querySelectorAll('.rl-seg-btn').forEach(b => b.classList.toggle('on', b.dataset.mode === mode));
+  if (!subEl) return;
+  if (!up) {
+    subEl.textContent = 'No game day is switched on, so the viewer would show “No session scheduled”.';
+    return;
   }
-  btn.textContent = on ? 'Back to courts' : 'Show “Coming soon”';
-  btn.className = on ? 'btn btn-secondary' : 'btn btn-primary';
+  // Line 1 is always what's next; line 2 is what the mode is going to do about
+  // it, so an admin can see at a glance that nobody has to touch this tonight.
+  const next = 'Next session ' + formatDisplayDate(up.date) + (up.time ? ' · ' + up.time : '');
+  let plan = 'Held by hand — pick Automatic to follow the game days again.';
+  if (mode === 'auto') {
+    const st = MonthlyDraw.comingSoonStatus(state.socialGames, clockNow());
+    const at = st.changesAt ? Payments.fmtMYTDateTime(st.changesAt) : '';
+    plan = at
+      ? 'Automatic: ' + (on ? 'courts come back ' : 'back to “Coming soon” ') + at
+      : 'Automatic.';
+  }
+  setHtmlIfChanged(subEl, escHtml(next) + '<span class="csoon-plan">' + escHtml(plan) + '</span>');
 }
 
 // Show/hide the viewer "Up Next" panel (persisted as state.showNextUp, default ON).

@@ -134,9 +134,14 @@ const DEFAULT_STATE = {
   // session; "End of the day" (lib/payments.js) generates payment records at this tier.
   feeTier: Payments.DEFAULT_TIER,
   luckyDraw: { entries: [], paid: [], drawDate: todayISO(), spin: null, results: [], history: [] },
+  // What the hall screen shows: 'auto' (the game days decide — "Coming soon"
+  // between nights, courts from an hour before the first shuttle), or 'on'/'off'
+  // to hold it by hand. See MonthlyDraw.comingSoonStatus.
+  comingSoonMode: 'auto',
   socialGames: [
     // `level` (free text) and `capacity` (0 = no limit) feed the viewer's
-    // "Coming soon" card — see MonthlyDraw.upcomingSession.
+    // "Coming soon" card — see MonthlyDraw.upcomingSession. `time` is free text
+    // but IS parsed for automatic hall-screen mode (MonthlyDraw.parseStartMinutes).
     { id: 'sg-fri', day: 'Friday', weekday: 5, time: '9–11pm', level: '', capacity: 0, enabled: true },
     { id: 'sg-sun', day: 'Sunday', weekday: 0, time: '9–11pm', level: '', capacity: 0, enabled: true },
     { id: 'sg-mon', day: 'Monday', weekday: 1, time: '9–11pm', level: '', capacity: 0, enabled: true },

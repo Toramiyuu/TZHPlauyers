@@ -142,27 +142,30 @@ check('Escape closes the Coming soon modal, but join wins when both are open',
 check('the 3D arena Escape relay knows about the modal too',
   /isOpen\('soonModal'\)\)\s+\{ closeSoonModal\(\);/.test(html));
 
-// ── the admin-triggered takeover ──
+// ── the takeover ──
 // The card as a fallback only covered "no schedule at all". Between sessions the
 // hall screen usually still HAS last night's rounds (or a grid of TBDs), which
-// reads as a live game — so the admin flips the whole viewer over by hand.
+// reads as a live game — so the whole viewer flips over.
 check('the admin Courts tab carries the hall-screen switch',
-  /id="csoonBtn" onclick="toggleComingSoon\(\)"/.test(html)
-  && /HALL SCREEN|Hall screen/.test(html));
-check('the switch persists as state.comingSoon so every viewer follows',
-  /apiPost\(\{ comingSoon: on \}\)/.test(html) && /state\.comingSoon = on/.test(html));
-check('the switch is a toggle, not a one-way trip',
-  /const on = !\(state && state\.comingSoon\)/.test(html)
-  && /btn\.textContent = on \? 'Back to courts' : 'Show .Coming soon.'/.test(html));
+  /id="csoonSeg"/.test(html) && /HALL SCREEN|Hall screen/.test(html));
+check('the switch offers all three modes',
+  /data-mode="auto" onclick="setComingSoonMode\('auto'\)"/.test(html)
+  && /data-mode="on" onclick="setComingSoonMode\('on'\)"/.test(html)
+  && /data-mode="off" onclick="setComingSoonMode\('off'\)"/.test(html));
+check('the mode persists as state.comingSoonMode so every viewer follows',
+  /apiPost\(\{ comingSoonMode: mode, comingSoon: on \}\)/.test(html)
+  && /state\.comingSoonMode = mode/.test(html));
+check('the legacy boolean is written too, so an old viewer never disagrees',
+  /state\.comingSoon = on;/.test(html));
 check('the takeover replaces the court cards entirely',
-  /const soonMode = !!state\.comingSoon;\s*\n\s*if \(soonMode\) \{\s*\n\s*container\.appendChild\(buildComingSoonCard\(\)\);\s*\n\s*\} else \{/.test(html));
+  /const soonMode = comingSoonOn\(\);\s*\n\s*if \(soonMode\) \{\s*\n\s*container\.appendChild\(buildComingSoonCard\(\)\);\s*\n\s*\} else \{/.test(html));
 check('the takeover also hides Up Next',
-  /if \(state\.comingSoon\) \{ panel\.style\.display = 'none'; panel\.innerHTML = ''; return; \}/.test(html));
+  /if \(comingSoonOn\(\)\) \{ panel\.style\.display = 'none'; panel\.innerHTML = ''; return; \}/.test(html));
 check('"Live" and the finished date go while the takeover is up',
   /const nothingOn = soonMode \|\| container\.firstElementChild\?\.classList\.contains\('vsoon'\)/.test(html));
 check('the footer drops the court/player tally during the takeover',
   /if \(nothingOn\) \{\s*\n\s*stats\.textContent = 'Members Only';/.test(html));
-check('the takeover repaints when the switch flips', /soon: !!state\.comingSoon/.test(html));
+check('the takeover repaints when the mode (or the clock) flips it', /soon: comingSoonOn\(\)/.test(html));
 check('the zero-schedule fallback still stands',
   /if \(!container\.children\.length\) container\.appendChild\(buildComingSoonCard\(\)\)/.test(html));
 check('the admin card stays in step with the 2s poll',
@@ -186,6 +189,94 @@ check('the admin editor reads back level + capacity',
   && /return \{ id, day, weekday, time, level, capacity, enabled \}/.test(html));
 check('the admin editor renders the level + capacity inputs',
   /class="admin-form-input sg-level"/.test(html) && /class="admin-form-input sg-cap"/.test(html));
+
+// ── AUTOMATIC MODE (2026-09-24) ──
+// The takeover used to be a switch someone had to remember to flip twice a week.
+// On 'auto' the game days decide: up between nights, down an hour before the
+// first shuttle, back once that night's play window has run out.
+const AUTO = [
+  { id: 'sg-fri', day: 'Friday', weekday: 5, time: '9–11pm', enabled: true },
+  { id: 'sg-sun', day: 'Sunday', weekday: 0, time: '9–11pm', enabled: true },
+  { id: 'sg-mon', day: 'Monday', weekday: 1, time: '9–11pm', enabled: true },
+];
+// Malaysia wall-clock (fixed +8) -> epoch ms, and the calendar date it lands on.
+const myt = (iso, h, mi) => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10), h, mi || 0) - 8 * 3600e3;
+const dateOf = ms => new Date(ms + 8 * 3600e3).toISOString().slice(0, 10);
+const autoAt = (iso, h, mi, games) => MD.comingSoonAuto(games || AUTO, myt(iso, h, mi));
+// 2026-09-25 Fri, 26 Sat, 27 Sun, 28 Mon.
+check('the card is up on a game day right until the lead-in',
+  autoAt('2026-09-25', 12) === true && autoAt('2026-09-25', 19, 59) === true);
+check('a 9pm game clears the hall screen at 8pm — the whole point',
+  autoAt('2026-09-25', 20, 0) === false);
+check('the courts stay up through play', autoAt('2026-09-25', 22) === false);
+check('a night that runs past midnight KEEPS the courts',
+  autoAt('2026-09-26', 0, 30) === false);
+check('the card returns once the play window is over',
+  autoAt('2026-09-26', 1, 0) === true && autoAt('2026-09-26', 9) === true);
+check('an off day sits on the card all day', autoAt('2026-09-26', 15) === true);
+// Sunday night spilling into Monday is the case a plain "is today a game day?"
+// test gets wrong: Monday IS a game day, but its own 9pm has not happened yet.
+check('Sunday night past midnight is not mistaken for Monday’s run-up',
+  autoAt('2026-09-28', 0, 30) === false);
+check('Monday daytime is back on the card', autoAt('2026-09-28', 15) === true);
+check('an 8pm game day clears the screen at 7pm, not 8',
+  autoAt('2026-09-25', 19, 0, [{ day: 'Friday', weekday: 5, time: '8–10pm', enabled: true }]) === false
+  && autoAt('2026-09-25', 18, 59, [{ day: 'Friday', weekday: 5, time: '8–10pm', enabled: true }]) === true);
+check('no game days at all means no automatic takeover',
+  autoAt('2026-09-25', 12, 0, []) === false
+  && autoAt('2026-09-25', 12, 0, AUTO.map(g => ({ ...g, enabled: false }))) === false);
+check('junk input never throws and never takes the screen over',
+  MD.comingSoonAuto(AUTO, NaN) === false
+  && MD.comingSoonAuto(AUTO, null) === false
+  && MD.comingSoonAuto(null, myt('2026-09-25', 12)) === false);
+// The instant is the only input: a stale server "today" cannot disagree with it.
+check('"today" is derived from the clock, not passed in',
+  MD.mytDateOf(myt('2026-09-26', 0, 30)) === '2026-09-26'
+  && MD.mytDateOf(myt('2026-09-25', 23, 59)) === '2026-09-25');
+
+// The admin card reads the flip instant off the same helper the viewer uses.
+const st = MD.comingSoonStatus(AUTO, myt('2026-09-25', 12));
+check('status carries the next session and when the screen changes',
+  st.on === true && st.nextDate === '2026-09-25'
+  && st.nextStartAt === myt('2026-09-25', 21) && st.changesAt === myt('2026-09-25', 20));
+const st2 = MD.comingSoonStatus(AUTO, myt('2026-09-25', 22));
+check('mid-session the flip instant is the end of the play window',
+  st2.on === false && st2.changesAt === myt('2026-09-26', 1));
+check('nothing scheduled means nothing will ever change it',
+  MD.comingSoonStatus([], myt('2026-09-25', 12)).changesAt === null);
+
+// The `time` field is free text an admin types, so the parser has to cope.
+check('parseStartMinutes reads the START of a range', MD.parseStartMinutes('9–11pm') === 21 * 60);
+check('the pm on the end time governs the start', MD.parseStartMinutes('9-11pm') === 21 * 60);
+check('a start with its own marker wins', MD.parseStartMinutes('9am–11am') === 9 * 60);
+check('minutes come through either separator',
+  MD.parseStartMinutes('8.30pm-11pm') === 20 * 60 + 30 && MD.parseStartMinutes('7:30pm – 10pm') === 19 * 60 + 30);
+check('a 24-hour clock needs no marker', MD.parseStartMinutes('21:00') === 21 * 60);
+check('a bare evening hour is pm — the club plays at night', MD.parseStartMinutes('9-11') === 21 * 60);
+check('12pm is noon and 12am is midnight',
+  MD.parseStartMinutes('12pm–2pm') === 12 * 60 && MD.parseStartMinutes('12am–2am') === 0);
+check('unreadable text gives null', MD.parseStartMinutes('noon') === null
+  && MD.parseStartMinutes('') === null && MD.parseStartMinutes(null) === null);
+check('an unreadable time falls back to 9pm rather than dropping the day',
+  MD.gameStartInstant('2026-09-25', 'evening') === myt('2026-09-25', 21));
+
+// ── the stored mode ──
+check('no stored mode means automatic', MD.comingSoonMode({}) === 'auto'
+  && MD.comingSoonMode(null) === 'auto' && MD.comingSoonMode({ comingSoonMode: 'weird' }) === 'auto');
+check('each mode reads back', MD.comingSoonMode({ comingSoonMode: 'on' }) === 'on'
+  && MD.comingSoonMode({ comingSoonMode: 'off' }) === 'off'
+  && MD.comingSoonMode({ comingSoonMode: 'auto', comingSoon: true }) === 'auto');
+check('a site left on the OLD boolean switch keeps its takeover',
+  MD.comingSoonMode({ comingSoon: true }) === 'on' && MD.comingSoonMode({ comingSoon: false }) === 'auto');
+
+// ── wiring: the viewer must ask the clock, not just the flag ──
+check('the viewer resolves the mode through the shared helper',
+  /function comingSoonOn\(\)[\s\S]{0,400}MonthlyDraw\.comingSoonAuto\(state\.socialGames, clockNow\(\)\)/.test(html));
+check('automatic is the default, so an untouched site follows the clock',
+  /comingSoonMode: 'auto'/.test(api));
+check('the admin card says when the screen will change',
+  /MonthlyDraw\.comingSoonStatus\(state\.socialGames, clockNow\(\)\)/.test(html)
+  && /Payments\.fmtMYTDateTime\(st\.changesAt\)/.test(html));
 
 console.log(`coming soon: ${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
