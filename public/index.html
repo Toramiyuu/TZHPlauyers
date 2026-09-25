@@ -132,9 +132,13 @@ body.in-3d #joinModal{z-index:1300}
 .viewer-main{flex:1;display:flex;flex-direction:column;gap:clamp(20px,2.5vw,32px);min-height:0}
 .upnext-panel{flex:0 0 auto;background:var(--a-card);border:1px solid var(--a-line);border-radius:var(--radius-xl);padding:clamp(16px,2vw,26px) clamp(20px,2.4vw,32px);box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(0,0,0,.05)}
 .upnext-head{font-size:clamp(13px,1.4vw,15px);font-weight:600;color:var(--a-ink-3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:clamp(10px,1.2vw,16px)}
+/* One column per court — the queue is per court, so the panel is too. */
+.upnext-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(clamp(240px,26vw,340px),1fr));gap:clamp(16px,2vw,30px)}
+.upnext-colhead{font-size:clamp(14px,1.5vw,17px);font-weight:700;color:var(--a-ink);letter-spacing:-.01em;padding-bottom:clamp(6px,.8vw,10px)}
+.upnext-none{padding:clamp(10px,1.2vw,15px) 0;border-top:1px solid var(--a-line);font-size:clamp(14px,1.4vw,17px);color:var(--a-ink-3)}
 .upnext-row{display:flex;align-items:center;gap:clamp(10px,1.4vw,18px);padding:clamp(10px,1.2vw,15px) 0;border-top:1px solid var(--a-line);font-size:clamp(15px,1.6vw,20px)}
-.upnext-row:first-of-type{border-top:none}
-.upnext-court{flex:0 0 auto;font-weight:600;color:var(--a-ink-2);min-width:clamp(74px,7vw,104px)}
+.upnext-col .upnext-row:first-of-type{border-top:1px solid var(--a-line)}
+.upnext-court{flex:0 0 auto;font-weight:600;color:var(--a-ink-2);min-width:1.4em}
 .upnext-arrow{flex:0 0 auto;color:var(--a-blue);font-weight:600}
 .upnext-match{flex:1;min-width:0;font-weight:500;color:var(--a-ink);letter-spacing:-.01em}
 .upnext-toggle{display:inline-flex;align-items:center;gap:8px;font-size:var(--fs-sm);color:var(--text-2);cursor:pointer;user-select:none}
@@ -220,7 +224,35 @@ body.in-3d #joinModal{z-index:1300}
 .round-list-header{display:flex;align-items:center;padding:6px 12px;background:var(--card2);border-bottom:1px solid var(--border);font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:1px;gap:10px}
 .rl-hdr-round{min-width:83px;flex-shrink:0}
 .rl-hdr-match{flex:1}
-#roundList,#queueList{display:flex;flex-direction:column}
+#roundList,.qlane-list{display:flex;flex-direction:column}
+/* ── One queue lane per court ────────────────────────────────────────────────
+   Each active court owns a block: its heading, its own Generate, its games and
+   its own "+ Add a game". Nothing is shared between lanes, which is the whole
+   point — court 1 taking its next game can never depend on court 2. */
+.qlane{border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--sp-md);margin-top:var(--sp-md);background:var(--card)}
+.qlane-head{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-sm);flex-wrap:wrap}
+.qlane-title{font-size:var(--fs-md);font-weight:700;color:var(--text);display:flex;align-items:baseline;gap:8px}
+.qlane-count{font-size:var(--fs-xs);font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.qlane-gen{display:flex;align-items:center;gap:8px;font-size:var(--fs-sm);color:var(--muted)}
+.qlane-n{width:56px;min-height:34px;text-align:center;background:var(--dark);border:1px solid var(--border2);color:var(--text);border-radius:var(--radius-sm);font-family:inherit;font-size:var(--fs-base)}
+.qlane-empty{padding:12px;font-size:var(--fs-sm);color:var(--muted)}
+/* Drag to reorder, or onto another court's lane. The grip is the only handle:
+   the row header expands to edit and the arrows are buttons, so a drag that
+   began anywhere on the row would swallow both. */
+.q-grip{display:inline-flex;align-items:center;justify-content:center;width:18px;flex-shrink:0;cursor:grab;color:var(--border2);touch-action:none}
+.q-grip:hover{color:var(--muted)}
+.q-grip svg{width:10px;height:16px;fill:currentColor}
+.round-row.q-dragging{opacity:.85;box-shadow:var(--shadow-md);position:relative;z-index:5;cursor:grabbing}
+.round-row.q-dragging .q-grip{cursor:grabbing}
+/* While a row is in the air every lane shows where it could land, including the
+   empty ones — otherwise an empty court looks like it is not a drop target. */
+.q-dragging-on .qlane-list{outline:1px dashed var(--border2);outline-offset:2px;border-radius:var(--radius-sm);min-height:44px}
+.qlane-add{margin-top:8px}
+.qlane-parked{margin-top:var(--sp-md);font-size:var(--fs-sm);color:var(--muted);border-left:3px solid var(--border2);padding-left:10px}
+/* Send one game to another court's lane, from inside its editor. */
+.q-tocourt-row{display:inline-flex;gap:6px;align-items:center;margin-left:auto}
+.q-tocourt{background:none;border:1px solid var(--border2);color:var(--muted);border-radius:var(--radius-sm);padding:5px 9px;font-size:var(--fs-xs);font-weight:600;font-family:inherit;cursor:pointer;min-height:32px}
+.q-tocourt:hover{border-color:var(--green);color:var(--green)}
 /* ── The queue ──────────────────────────────────────────────────────────────
    A queued game reuses the round row wholesale (same expand-to-edit, same
    player pickers, same balance chip) so there is one way to arrange four names
@@ -245,8 +277,8 @@ body.in-3d #joinModal{z-index:1300}
    a nowrap row does not move down, it squeezes its siblings — which collapsed
    .rsummary (min-width:0) to nothing and left the row showing a badge and a
    reason with no match between them. Found by looking at it. */
-#queueList .round-row-header{flex-wrap:wrap;row-gap:4px}
-#queueList .rsummary{min-width:140px}
+.qlane-list .round-row-header{flex-wrap:wrap;row-gap:4px}
+.qlane-list .rsummary{min-width:140px}
 .q-why{font-size:var(--fs-xs);color:var(--muted);flex-basis:100%;padding-left:38px}
 .queue-empty{margin-top:10px}
 /* Tonight's results. A <details>, shut by default: it is a record, not
@@ -269,10 +301,12 @@ body.in-3d #joinModal{z-index:1300}
 .pg-time{font-size:var(--fs-xs);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 .pg-empty{padding:12px;color:var(--muted);font-size:var(--fs-sm)}
 /* The per-court Next / undo pair, in place of the old round stepper. */
-.crt-next{display:flex;align-items:center;gap:4px}
-.crt-next .crt-undo{background:none;border:1px solid var(--border2);color:var(--muted);border-radius:var(--radius-sm);padding:5px 8px;cursor:pointer;font-size:var(--fs-sm);line-height:1}
-.crt-next .crt-undo:hover:not(:disabled){border-color:var(--green);color:var(--green)}
-.crt-next .crt-undo:disabled{opacity:.35;cursor:default}
+.crt-next{display:flex;align-items:center;gap:6px}
+/* Previous and Next are the same control pointing opposite ways, so they look
+   the same. The old Previous was a bare icon square, which read as a footnote
+   next to the blue Next and was missed. */
+.crt-next .crt-prev,.crt-next .btn-primary{white-space:nowrap}
+.crt-next .btn:disabled{opacity:.4;cursor:default}
 .crt-gamelbl{font-size:var(--fs-sm);color:var(--muted);white-space:nowrap;margin-right:2px}
 .round-row{background:var(--dark);border:none;border-bottom:1px solid var(--border);border-left:3px solid transparent;overflow:hidden;transition:border-left-color .15s,background .15s}
 .round-row:last-child{border-bottom:none}
@@ -3362,33 +3396,18 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 
     <div class="divider"></div>
 
-    <!-- THE QUEUE. One shared list belonging to no court. -->
-    <div class="admin-subsection-label">Up next: the queue</div>
-    <div class="admin-helper-text">Games waiting to go on, in order. They belong to no court: whichever court finishes first takes the top one that can start. A game whose players are still on court, or that is short of names, is passed over and keeps its place.</div>
+    <!-- THE QUEUE. One lane per active court — see renderQueue. -->
+    <div class="admin-subsection-label">Up next: one queue per court</div>
+    <div class="admin-helper-text">Each active court has its own queue. <b>Next game &rarr;</b> on a court card takes the top game from THAT court's queue and puts it on, whoever is in it &mdash; if somebody is still playing elsewhere you are told, but the game goes on. Switch a court off and its queue is parked, not lost.</div>
 
-    <div class="gen-row">
-      <label>Plan the next</label>
-      <input id="numGamesInput" type="number" min="1" max="60" value="12">
-      <label>games</label>
-      <button class="btn btn-primary btn-sm" id="generateBtn" onclick="handleGenerate()">Generate</button>
-    </div>
-
-    <!-- Resting bench (top, sticky) + the queue, same board layout the Friendly
+    <!-- Resting bench (top, sticky) + the lanes, same board layout the Friendly
          matchups tab uses. Bench chips drag into a queued game's slots. -->
     <div class="crt-board">
       <div class="crt-bench-panel" id="restingStrip"></div>
       <div class="crt-main">
-        <div class="round-list-wrap" id="queueListWrap" style="display:none">
-          <div class="round-list-header">
-            <div class="rl-hdr-round">Next</div>
-            <div class="rl-hdr-match">Match</div>
-          </div>
-          <div id="queueList"></div>
-        </div>
-        <div id="queueEmpty" class="admin-helper-text queue-empty">Nothing queued. Press <b>Generate</b> above, or add a game by hand.</div>
+        <div id="queueLanes"></div>
 
         <div class="crt-foot admin-mt">
-          <button class="btn btn-ghost btn-sm" onclick="addQueueGame()">+ Add a game</button>
           <div class="crt-foot-end">
             <button class="btn btn-eod btn-sm" id="eodBtn" onclick="openEodModal()"><svg class="ic" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>End of the day</button>
             <button type="button" class="crt-foot-status" id="eodStatus" style="display:none" onclick="setAdminTab('payments')"></button>
@@ -4063,7 +4082,6 @@ let pollTimer = null;
 // state has loaded — poll() does the first full render once state arrives.
 let adminInitDone = false;
 let expandedQueue = null;
-let generatePending = false; // confirm-to-generate state
 
 // Social sign-up: fallback game days mirror the server DEFAULT_STATE, used before
 // any state has loaded. `lockedSocialGames` holds the open days the locked GET
@@ -4150,6 +4168,9 @@ function isEditing() {
   // A seed-row drag in progress counts as editing — a poll re-render would
   // destroy the DOM node being dragged mid-gesture.
   if (typeof __frSeedDrag !== 'undefined' && __frSeedDrag) return true;
+  // A queue row mid-drag is the same story: the poll rebuilding the lanes would
+  // destroy the node under the pointer.
+  if (typeof __qDrag !== 'undefined' && __qDrag) return true;
   // An armed bench chip on the Courts board is a pick-in-progress — a poll
   // state overwrite could yank the player out from under the pending slot tap.
   if (typeof __crtSel !== 'undefined' && __crtSel.pid) return true;
@@ -4343,19 +4364,28 @@ function courtLabel(i) {
 // screen. The admin board shows the whole queue.
 const UPNEXT_SHOWN = 4;
 
-// Pure: the next few games waiting, in order.
-//
-// This used to be "for each court, the round after the one it is on", which was
-// the round model showing through: it promised a specific court a specific game
-// at a time when nobody could know which court would free up first. A queued
-// game has no court until it goes on. Unit tested in scripts/test-next-up.js.
-function computeUpNext(queue, limit) {
+// Pure: the next few games waiting on ONE court, in order. The hall screen asks
+// per court now, because the queue is per court — see computeUpNextByCourt.
+// Unit tested in scripts/test-next-up.js.
+function computeUpNext(queue, limit, courtIdx) {
   if (!Array.isArray(queue)) return [];
+  const lane = courtIdx == null ? queue.slice() : laneOf(queue, courtIdx).map(x => x.game);
   const n = Math.max(0, Math.floor(Number(limit)) || 0);
-  return n ? queue.slice(0, n) : queue.slice();
+  return n ? lane.slice(0, n) : lane;
 }
 
-// ── THE SHARED GAME QUEUE ─────────────────────
+// Pure: every active court's next few games, as [{ court, games }]. Courts with
+// nothing queued come back with an empty list rather than being dropped, so the
+// hall screen can keep its columns in court order and say "nothing queued yet"
+// against the right one.
+function computeUpNextByCourt(queue, numCourts, limit) {
+  const n = Math.max(0, Math.floor(Number(numCourts)) || 0);
+  const out = [];
+  for (let i = 0; i < n; i++) out.push({ court: i, games: computeUpNext(queue, limit, i) });
+  return out;
+}
+
+// ── THE PER-COURT GAME QUEUE ──────────────────
 // The night used to be planned in ROUNDS: one row of state.rounds held every
 // court playing at once. That is unfair and it is not a small unfairness.
 // Court 2 goes to deuce and takes twenty minutes while courts 3 and 4 finish in
@@ -4364,13 +4394,121 @@ function computeUpNext(queue, limit) {
 // them are, and the people who happened to draw the slow court quietly play
 // fewer games all night. Nothing measured it, so nothing corrected it.
 //
-// Now: state.rounds is a ONE-ROW live board (rounds[0].courts[i] is what is on
-// court i, courtRounds is [0,0,...]), state.queue is a shared ordered list of
-// games belonging to no court, and state.played is the record of what finished.
-// Whichever court frees up first takes the top game that can actually start, so
-// a long game costs nobody anything but the four people in it.
+// That was replaced by one SHARED queue belonging to no court, which fixed the
+// unfairness and introduced a different problem: with every court drawing from
+// one list, most queued games contained somebody still mid-match somewhere, so
+// pressing "Next game" reported eight skips and put nothing on. The organiser
+// was left reading the app's arithmetic instead of running the night.
+//
+// Now each court has its OWN lane. state.rounds is a one-row live board
+// (rounds[0].courts[i] is what is on court i), state.queue is still one flat
+// ordered array but every game carries `court` — the 0-based index of the court
+// it is planned for — and lane i is simply the games with court === i, in
+// order. "Next game" on court i takes the top of lane i and puts it on. It
+// never skips and never refuses: the organiser planned that lane, so the app
+// does what it was told and only WARNS when somebody in the game is still on
+// another court.
+//
+// A lane belonging to a court that is currently switched off is parked, not
+// deleted: turn the court back on and its games are exactly where they were.
 //
 // Everything below is pure. Unit tested in scripts/test-game-queue.js.
+
+// Pure: which court a queued game is planned for. Games saved before lanes
+// existed have no `court` at all and answer 0 — the first court, which is the
+// only one every venue has.
+function queueCourtOf(game) {
+  const n = Math.floor(Number(game && game.court));
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
+// Pure: one court's lane — its games in order, each with the index it holds in
+// the flat queue. The index travels with the game because every edit (save,
+// delete, reorder) addresses the flat array, while everything on screen is
+// numbered by position in the lane.
+function laneOf(queue, courtIdx) {
+  const list = Array.isArray(queue) ? queue : [];
+  const want = Math.floor(Number(courtIdx));
+  const out = [];
+  for (let i = 0; i < list.length; i++) {
+    if (queueCourtOf(list[i]) === want) out.push({ index: i, game: list[i] });
+  }
+  return out;
+}
+
+// Pure: the game this court plays next — the top of its own lane, full stop.
+// { index, game }, index -1 when the lane is empty.
+function nextInLane(queue, courtIdx) {
+  const lane = laneOf(queue, courtIdx);
+  return lane.length ? lane[0] : { index: -1, game: null };
+}
+
+// Pure: put a game at the FRONT of a court's lane (what undo needs — the game
+// coming off was about to be played, so it goes back to the top, not the end).
+// With the lane empty it joins the end of the queue, where a new lane starts.
+function unshiftIntoLane(queue, courtIdx, game) {
+  const list = Array.isArray(queue) ? queue.slice() : [];
+  const lane = laneOf(list, courtIdx);
+  const row = Object.assign({}, game, { court: Math.max(0, Math.floor(Number(courtIdx)) || 0) });
+  if (lane.length) list.splice(lane[0].index, 0, row);
+  else list.push(row);
+  return list;
+}
+
+// Pure: move a game one place up or down WITHIN its own lane. Swapping with the
+// neighbouring element of the flat array would swap it with whatever court
+// happened to be stored next to it, which is not a move anyone asked for.
+// Returns a new array (unchanged when the game is already at the end it is
+// being moved towards).
+function moveWithinLane(queue, index, delta) {
+  const list = Array.isArray(queue) ? queue.slice() : [];
+  if (index < 0 || index >= list.length) return list;
+  const lane = laneOf(list, queueCourtOf(list[index]));
+  const at = lane.findIndex(x => x.index === index);
+  const to = at + (Number(delta) < 0 ? -1 : 1);
+  if (at < 0 || to < 0 || to >= lane.length) return list;
+  const a = lane[at].index, b = lane[to].index;
+  [list[a], list[b]] = [list[b], list[a]];
+  return list;
+}
+
+// Pure: rebuild the flat queue from what the lanes look like after a drag.
+// `laneOrders` is [{ court, indexes }] where indexes are positions in the CURRENT
+// queue, in their new on-screen order — which is exactly what the DOM can report.
+// A game is re-stamped with the court of the lane it ended up in, so dragging a
+// row from court 1 to court 2 is the same operation as moving it up two places.
+// Anything no lane mentioned (a parked court's games) keeps its place at the end
+// rather than being dropped: the DOM only knows about the lanes it drew.
+function queueFromLaneOrder(queue, laneOrders) {
+  const list = Array.isArray(queue) ? queue : [];
+  const out = [];
+  const seen = new Set();
+  for (const lane of (Array.isArray(laneOrders) ? laneOrders : [])) {
+    const court = Math.max(0, Math.floor(Number(lane && lane.court)) || 0);
+    for (const raw of (lane && Array.isArray(lane.indexes) ? lane.indexes : [])) {
+      const i = Math.floor(Number(raw));
+      if (!Number.isFinite(i) || !list[i] || seen.has(i)) continue;
+      seen.add(i);
+      out.push(Object.assign({}, list[i], { court }));
+    }
+  }
+  list.forEach((g, i) => { if (!seen.has(i)) out.push(g); });
+  return out;
+}
+
+// Pure: lanes holding games for a court that is not switched on right now, as
+// [{ court, count }] in court order. Surfaced in the admin so parked work is
+// visible rather than quietly missing.
+function parkedLanes(queue, numCourts) {
+  const list = Array.isArray(queue) ? queue : [];
+  const n = Math.max(0, Math.floor(Number(numCourts)) || 0);
+  const counts = new Map();
+  for (const g of list) {
+    const c = queueCourtOf(g);
+    if (c >= n) counts.set(c, (counts.get(c) || 0) + 1);
+  }
+  return [...counts.entries()].sort((a, b) => a[0] - b[0]).map(([court, count]) => ({ court, count }));
+}
 
 // How long a wait has to be to move up one redness band on the bench, and the
 // band the ramp stops at. Five minutes is about a third of a game here.
@@ -4397,12 +4535,13 @@ function liveCourtIds(rounds, courtRounds, numCourts, exceptCourt) {
   return out;
 }
 
-// Pure: may this queued game go on now? Four answers, because the admin is told
-// WHY a game was passed over and "not yet" is useless on its own.
-//   'short' — fewer than four names, or the same person twice. Not a game.
+// Pure: what is worth saying about this queued game. Four answers — and since
+// lanes arrived they are ADVICE, never a veto: the court takes the top of its
+// lane whatever this says.
+//   'short' — fewer than four names, or the same person twice.
 //   'gone'  — somebody in it has gone home.
 //   'clash' — somebody in it is still mid-match on another court.
-//   'ready' — put it on.
+//   'ready' — nothing to say.
 // Order matters: 'short' is checked first because a half-arranged game is the
 // admin's own unfinished work, and saying "clash" about a blank seat would send
 // them looking at the wrong thing.
@@ -4419,22 +4558,6 @@ function gameReadiness(game, liveIds, goneHome) {
   return { state: 'ready', ids: [] };
 }
 
-// Pure: the first game in the queue that can start, and everything passed over
-// on the way to it. Skipped games KEEP their place — a clash is temporary (the
-// other court will finish) and deleting somebody's plan because of a timing
-// accident would be the app overruling the organiser.
-// Returns { index, game, skipped: [{ index, game, state, ids }] }; index is -1
-// when nothing in the queue can go on.
-function nextPlayableGame(queue, liveIds, goneHome) {
-  const list = Array.isArray(queue) ? queue : [];
-  const skipped = [];
-  for (let i = 0; i < list.length; i++) {
-    const r = gameReadiness(list[i], liveIds, goneHome);
-    if (r.state === 'ready') return { index: i, game: list[i], skipped };
-    skipped.push({ index: i, game: list[i], state: r.state, ids: r.ids });
-  }
-  return { index: -1, game: null, skipped };
-}
 
 // Pure: how many whole minutes each player has been waiting, from the record of
 // finished games. This replaces counting rounds, which stopped meaning anything
@@ -4613,9 +4736,15 @@ function takeNextGame(src, courtIdx, at) {
     ? s.courtRounds.slice(0, numCourts) : new Array(numCourts).fill(0);
   const stamp = Math.floor(Number(at)) || 0;
 
+  // The top of THIS court's lane, and nothing else. No scan, no skip: the
+  // organiser planned this lane for this court, so it goes on as planned.
+  const pick = nextInLane(queue, courtIdx);
+  if (pick.index < 0) return { empty: true, court: courtIdx };
+  // Said, not obeyed. The court's own four are walking off, so they never count
+  // against the game replacing them; anyone else still mid-match does, and the
+  // organiser is told so they can swap a name if they want to.
   const live = liveCourtIds(rounds, courtRounds, numCourts, courtIdx);
-  const pick = nextPlayableGame(queue, live, s.wentHome || []);
-  if (pick.index < 0) return { empty: true, skipped: pick.skipped };
+  const warn = gameReadiness(pick.game, live, s.wentHome || []);
 
   // First touch of a night saved under the old round model: fold the games it
   // had already played into the record before collapsing it to one row. Rows
@@ -4652,20 +4781,20 @@ function takeNextGame(src, courtIdx, at) {
     courtLive: setCourtLiveAt(s.courtLive, courtIdx, numCourts, stamp),
     took: pick.game,
     finished,
-    skipped: pick.skipped,
+    warn,
   };
 }
 
-// Pure: the undo. The game on `courtIdx` goes back to the FRONT of the queue
-// and that court's last finished game returns to it. Front, not back, because
-// undo means "put it back where it was about to be played", and the organiser
-// pressing this has just decided that game should not have started yet.
+// Pure: the undo. The game on `courtIdx` goes back to the FRONT of that court's
+// own lane and the court's last finished game returns to it. Front, not back,
+// because undo means "put it back where it was about to be played", and the
+// organiser pressing this has just decided it should not have started yet.
 function putGameBack(src, courtIdx) {
   const s = src || {};
   const numCourts = Math.max(1, s.numCourts || 1);
   if (courtIdx < 0 || courtIdx >= numCourts) return null;
   const rounds = JSON.parse(JSON.stringify(Array.isArray(s.rounds) ? s.rounds : []));
-  const queue = (Array.isArray(s.queue) ? s.queue : []).slice();
+  let queue = (Array.isArray(s.queue) ? s.queue : []).slice();
   const played = (Array.isArray(s.played) ? s.played : []).slice();
   const courtRounds = Array.isArray(s.courtRounds) && s.courtRounds.length >= numCourts
     ? s.courtRounds.slice(0, numCourts) : new Array(numCourts).fill(0);
@@ -4674,7 +4803,7 @@ function putGameBack(src, courtIdx) {
   const current = row.courts[courtIdx];
   if (!gameIds(current).some(Boolean)) return null; // nothing on it to undo
 
-  queue.unshift({
+  queue = unshiftIntoLane(queue, courtIdx, {
     id: 'q' + Date.now().toString(36) + courtIdx,
     team1: [...(current.team1 || ['', ''])].slice(0, 2),
     team2: [...(current.team2 || ['', ''])].slice(0, 2),
@@ -5117,18 +5246,24 @@ function renderUpNext() {
   // The "Coming soon" takeover owns the whole viewer body — an Up Next list of
   // last night's pairings underneath it would undo the point of the switch.
   if (comingSoonOn()) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
-  const rows = computeUpNext(state.queue, UPNEXT_SHOWN);
-  if (!rows.length) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
+  const lanes = computeUpNextByCourt(state.queue, state.numCourts || 1, UPNEXT_SHOWN);
+  if (!lanes.some(l => l.games.length)) { panel.style.display = 'none'; panel.innerHTML = ''; return; }
   const nameOf = id => playerById(id)?.name || 'TBD';
-  const rowHtml = rows.map((g, i) => {
-    const ids = gameIds(g);
-    const matchTxt = `${nameOf(ids[0])} & ${nameOf(ids[1])} vs ${nameOf(ids[2])} & ${nameOf(ids[3])}`;
-    return `<div class="upnext-row"><span class="upnext-court">${i + 1}</span>`
-      + `<span class="upnext-arrow" aria-hidden="true">→</span>`
-      + `<span class="upnext-match">${escHtml(matchTxt)}</span></div>`;
+  // A column per court, because the queue is per court: somebody sitting beside
+  // court 2 wants court 2's list, not a shared one they have to read past.
+  const colHtml = lanes.map(l => {
+    const rows = l.games.map((g, i) => {
+      const ids = gameIds(g);
+      const matchTxt = `${nameOf(ids[0])} & ${nameOf(ids[1])} vs ${nameOf(ids[2])} & ${nameOf(ids[3])}`;
+      return `<div class="upnext-row"><span class="upnext-court">${i + 1}</span>`
+        + `<span class="upnext-arrow" aria-hidden="true">→</span>`
+        + `<span class="upnext-match">${escHtml(matchTxt)}</span></div>`;
+    }).join('');
+    return `<div class="upnext-col"><div class="upnext-colhead">Court ${escHtml(String(courtLabel(l.court)))}</div>`
+      + (rows || `<div class="upnext-none">Nothing queued yet</div>`) + `</div>`;
   }).join('');
   panel.style.display = '';
-  panel.innerHTML = `<div class="upnext-head">Up Next</div>${rowHtml}`;
+  panel.innerHTML = `<div class="upnext-head">Up Next</div><div class="upnext-cols">${colHtml}</div>`;
 }
 
 // ══ FRIENDLY GAMES · RED vs BLUE ══════════════════════════════
@@ -6045,7 +6180,9 @@ function renderCourtControls() {
   if (!grid) return;
   const numCourts = state.numCourts || 1;
   const courtRounds = getCourtRounds();
-  const queueLen = (state.queue || []).length;
+  // Each court's button reads ITS OWN lane: a court with nothing queued says so
+  // on the button rather than being enabled and then refusing.
+  const laneLen = i => laneOf(state.queue, i).length;
   // Rebuilding the grid orphans a picker anchored on one of its slots — close
   // it first (same guard renderFriendlyMatchups uses for .frb-slot anchors).
   if (typeof _pslotBtn !== 'undefined' && _pslotBtn && _pslotBtn.classList?.contains('crt-slot')) closePlayerPicker();
@@ -6103,11 +6240,11 @@ function renderCourtControls() {
         <div class="fr-mu-court">Court ${courtPicker(i)}</div>
         <div class="crt-next" role="group" aria-label="Games on court ${courtLabel(i)}">
           <span class="crt-gamelbl">${escHtml(gameLbl)}</span>
-          <button class="crt-undo" onclick="undoCourtGame(${i})" ${onCourt ? '' : 'disabled'}
-            title="Put this game back at the front of the queue and bring the previous one back"
-            aria-label="Undo the last change on court ${courtLabel(i)}">&#8630;</button>
-          <button class="btn btn-primary btn-sm" onclick="nextGameOnCourt(${i})" ${queueLen ? '' : 'disabled'}
-            title="${queueLen ? 'Take the next game from the queue that can start' : 'Nothing in the queue'}">Next game &rarr;</button>
+          <button class="btn btn-primary btn-sm crt-prev" onclick="undoCourtGame(${i})" ${onCourt ? '' : 'disabled'}
+            title="Put this game back at the top of this court's queue and bring the previous one back"
+            aria-label="Previous game on court ${courtLabel(i)}">&larr; Previous game</button>
+          <button class="btn btn-primary btn-sm" onclick="nextGameOnCourt(${i})" ${laneLen(i) ? '' : 'disabled'}
+            title="${laneLen(i) ? `Put Court ${courtLabel(i)}'s next queued game on` : `Nothing queued for Court ${courtLabel(i)}`}">Next game &rarr;</button>
         </div>
         <div class="fr-mu-ctrls">
         ${liveClockHTML(statuses[i], liveAt[i], `toggleCourtClock(${i})`)}
@@ -6134,12 +6271,16 @@ function renderCourtControls() {
   // waiting and somewhere free to put it.
   const fillBtn = document.getElementById('fillFreeBtn');
   if (fillBtn) {
-    let free = 0;
-    for (let i = 0; i < numCourts; i++) if (courtIsFree(state.rounds, courtRounds, i)) free++;
-    fillBtn.disabled = !queueLen || !free;
-    fillBtn.title = !queueLen ? 'Nothing in the queue'
-      : !free ? 'Every court has a game on it'
-      : `Put a game on ${free} free court${free === 1 ? '' : 's'}`;
+    let free = 0, ready = 0;
+    for (let i = 0; i < numCourts; i++) {
+      if (!courtIsFree(state.rounds, courtRounds, i)) continue;
+      free++;
+      if (laneLen(i)) ready++;
+    }
+    fillBtn.disabled = !ready;
+    fillBtn.title = !free ? 'Every court has a game on it'
+      : !ready ? 'The free courts have nothing queued'
+      : `Put a game on ${ready} free court${ready === 1 ? '' : 's'}`;
   }
 
   // Resting players strip
@@ -6478,22 +6619,16 @@ function crtDropToBench(e, el) {
 // and there must not be one: moving a court that is still playing is exactly
 // what made the old round model unfair.
 
-// Say what was passed over on the way to the game that went on. Worth saying in
-// words rather than a count, because "skipped 2" leaves the organiser looking at
-// a queue wondering what is wrong with it.
-function skipNote(skipped) {
-  if (!skipped || !skipped.length) return '';
-  const byState = {};
-  for (const s of skipped) byState[s.state] = (byState[s.state] || 0) + 1;
-  const bits = [];
-  if (byState.clash) {
-    const who = [...new Set(skipped.filter(s => s.state === 'clash').flatMap(s => s.ids))]
-      .map(id => playerById(id)?.name || id).slice(0, 2).join(', ');
-    bits.push(`${byState.clash} still on court (${who})`);
-  }
-  if (byState.short) bits.push(`${byState.short} short of players`);
-  if (byState.gone) bits.push(`${byState.gone} with someone gone home`);
-  return bits.length ? ` Skipped ${bits.join(', ')}.` : '';
+// The game went on regardless — this is only the note that follows it. Naming
+// the people is the point: "1 clash" leaves the organiser hunting, whereas
+// "Celine was on Court 2" tells them exactly whose name to swap.
+function tookNote(warn) {
+  if (!warn || warn.state === 'ready') return '';
+  const who = (warn.ids || []).map(id => playerById(id)?.name || id).slice(0, 3).join(', ');
+  if (warn.state === 'clash') return ` ${who} ${warn.ids.length > 1 ? 'were' : 'was'} still on another court.`;
+  if (warn.state === 'gone') return ` ${who} has gone home.`;
+  if (warn.state === 'short') return ' That game is short of names — fill the empty seats on the court card.';
+  return '';
 }
 
 // Shared write for everything that moves a court. Pulls the authoritative state
@@ -6523,18 +6658,19 @@ async function commitBoard(build, onDone) {
   return res;
 }
 
-// The button on a court card. Takes the top game from the shared queue that can
-// actually start, records whatever was on the court, and restarts its clock.
+// The button on a court card. Takes the top game from THIS court's own lane,
+// records whatever was on the court, and restarts its clock. It never reaches
+// into another court's lane: a court with an empty lane says so and waits.
 async function nextGameOnCourt(courtIdx) {
-  if (!(state.queue || []).length) return notify('Nothing in the queue. Generate or add a game.', 'warn');
   const res = await commitBoard(
     s => takeNextGame(s, courtIdx, Date.now()),
     r => {
       const names = gameIds(r.took).map(id => playerById(id)?.name || '?').join(', ');
-      notify(`Court ${courtLabel(courtIdx)}: ${names}.${skipNote(r.skipped)}`);
+      notify(`Court ${courtLabel(courtIdx)}: ${names}.${tookNote(r.warn)}`,
+        r.warn && r.warn.state !== 'ready' ? 'warn' : undefined);
     });
   if (res && res.empty) {
-    notify(`Nothing in the queue can go on Court ${courtLabel(courtIdx)} yet.${skipNote(res.skipped)}`, 'warn');
+    notify(`Nothing queued for Court ${courtLabel(courtIdx)}. Generate or add a game to its queue.`, 'warn');
   }
   // The court is playing something new, so an "ending soon" flag set for the
   // game that just came off no longer means anything.
@@ -6547,43 +6683,41 @@ async function nextGameOnCourt(courtIdx) {
   }
 }
 
-// Undo: the game on this court goes back to the front of the queue and the one
-// before it comes back. For the "I pressed Next on the wrong court" moment,
+// Undo: the game on this court goes back to the front of its own lane and the
+// one before it comes back. For the "I pressed Next on the wrong court" moment,
 // which on a busy night happens roughly once an evening.
 async function undoCourtGame(courtIdx) {
   const res = await commitBoard(
     s => putGameBack(s, courtIdx),
     r => notify(r.restored
       ? `Court ${courtLabel(courtIdx)} back to the previous game.`
-      : `Court ${courtLabel(courtIdx)} cleared, game put back in the queue.`));
+      : `Court ${courtLabel(courtIdx)} cleared, game put back at the top of its queue.`));
   if (!res) notify('Nothing to undo on that court.', 'warn');
 }
 
-// Put a game on every court that has nothing on it, top of the queue first.
+// Put a game on every court that has nothing on it, each from its OWN lane.
 // Deliberately cannot touch a court that is playing: that is the whole
 // difference between this and the "Start Next Round" it replaced.
 async function fillFreeCourts() {
   const numCourts = state.numCourts || 1;
-  if (!(state.queue || []).length) return notify('Nothing in the queue. Generate or add a game.', 'warn');
   const free = [];
   for (let i = 0; i < numCourts; i++) if (courtIsFree(state.rounds, getCourtRounds(), i)) free.push(i);
   if (!free.length) return notify('Every court has a game on it.', 'warn');
 
   // One write per court rather than one big one: each take has to see the court
-  // filled by the take before it, or two courts get handed the same game.
+  // filled by the take before it. An empty lane no longer stops the loop —
+  // court 2 having nothing queued is no reason for court 3 to sit idle.
   let filled = 0;
-  let blocked = null;
+  const bare = [];
   for (const i of free) {
     const res = await commitBoard(s => takeNextGame(s, i, Date.now()));
     if (!res) return;
-    if (res.empty) { blocked = res; break; }
-    filled++;
+    if (res.empty) bare.push(courtLabel(i));
+    else filled++;
   }
-  if (!filled) {
-    return notify(`Nothing in the queue can go on yet.${blocked ? skipNote(blocked.skipped) : ''}`, 'warn');
-  }
-  notify(`Filled ${filled} court${filled === 1 ? '' : 's'}.`
-    + (blocked ? ` The rest are waiting for players who are still on court.` : ''));
+  const note = bare.length ? ` Nothing queued for Court ${bare.join(', Court ')}.` : '';
+  if (!filled) return notify(`Nothing queued for the free courts yet.`, 'warn');
+  notify(`Filled ${filled} court${filled === 1 ? '' : 's'}.${note}`, bare.length ? 'warn' : undefined);
 }
 
 // ── HALL SCREEN: "Coming soon" takeover ───────
@@ -7276,29 +7410,24 @@ async function saveActiveCourts() {
   notify(nums.length === 1 ? `Active court: ${nums[0]}` : `Active courts: ${nums.join(', ')}`);
 }
 
-// Inline generate confirmation
-function handleGenerate() {
-  const btn = document.getElementById('generateBtn');
-  // Generating REPLACES the queue, so an existing one asks first. It cannot
-  // touch a game in progress, which is why this is a confirm rather than the
-  // warning it had to be under the round model.
-  if (!(state?.queue || []).length || generatePending) {
-    generatePending = false;
-    btn.textContent = 'Generate';
-    btn.className = 'btn btn-primary btn-sm';
-    generateSchedule();
-  } else {
-    generatePending = true;
-    btn.textContent = 'Replace queue?';
-    btn.className = 'btn btn-danger btn-sm';
-    setTimeout(() => {
-      if (generatePending) {
-        generatePending = false;
-        btn.textContent = 'Generate';
-        btn.className = 'btn btn-primary btn-sm';
-      }
-    }, 4000);
+// Inline generate confirmation, per lane. Generating REPLACES that court's
+// queue, so a lane with games in it asks first. The pending court is held here
+// rather than in the button, because the 2s poll re-renders the lanes and would
+// otherwise wipe the question mid-ask.
+let genPendingLane = null;
+let genPendingTimer = null;
+function handleGenerateLane(courtIdx) {
+  const c = Math.max(0, Math.floor(Number(courtIdx)) || 0);
+  const armed = genPendingLane === c;
+  clearTimeout(genPendingTimer);
+  genPendingLane = null;
+  if (armed || !laneOf(state && state.queue, c).length) {
+    renderQueue();
+    return generateLane(c);
   }
+  genPendingLane = c;
+  renderQueue();
+  genPendingTimer = setTimeout(() => { genPendingLane = null; renderQueue(); }, 4000);
 }
 
 // Build the id -> {level, girl, mixed} map the balanced generator and the live
@@ -7333,59 +7462,70 @@ function courtChipHTML(court, metaById) {
   return html;
 }
 
-// Fill the queue with the next N games.
+// Fill ONE court's lane with its next N games.
 //
-// The balanced matchmaker still does the work, but its output is flattened from
-// rounds into a flat list. That flattening IS the feature: the courts no longer
-// move together, so a row of four simultaneous games is not a thing that exists
-// any more — only an order in which games should go on.
+// Generating is per court because the queue is per court: the organiser decides
+// court 2 needs four more games and asks for four more games on court 2, which
+// is a smaller and more truthful question than "plan the night". The balanced
+// matchmaker still does the work — a one-court schedule of N rounds is N games
+// for that lane, rotated fairly across whoever is available.
 //
-// It never touches what is on the courts. Under the round model, generating
-// replaced round 1 and therefore the live games, which is why locked courts had
-// to be carried across by hand; now a generate cannot disturb a game in
-// progress at all, so the lock needs no special case here.
-async function generateSchedule() {
-  const want = Math.max(1, Math.min(60, parseInt(document.getElementById('numGamesInput').value) || 12));
+// It never touches what is on the courts, and it never touches another lane.
+async function generateLane(courtIdx) {
+  const court = Math.max(0, Math.floor(Number(courtIdx)) || 0);
+  const input = document.getElementById(`qgen_${court}`);
+  const want = Math.max(1, Math.min(30, parseInt(input && input.value, 10) || QUEUE_GEN_DEFAULT));
   const players = state.players || [];
-  const numCourts = state.numCourts || 1;
-
   if (players.length < 4) return notify('Need at least 4 players.');
 
   const metaById = buildMetaById();
-  // Longest waiting first, so the front of the queue goes to the people who
-  // have been sitting. smartSchedule breaks its own ties by position in this
-  // list, so the order it is handed is the order it favours.
+  // Longest waiting first, so the front of the lane goes to the people who have
+  // been sitting. smartSchedule breaks its own ties by position in this list, so
+  // the order it is handed is the order it favours.
   const gone = wentHomeSet();
   const ranked = autoFillCandidates();
-  const ordered = ranked.map(x => players.find(p => p.id === x.id)).filter(Boolean);
+  let ordered = ranked.map(x => players.find(p => p.id === x.id)).filter(Boolean);
   for (const p of players) if (!gone.has(p.id) && !ordered.some(o => o.id === p.id)) ordered.push(p);
   if (ordered.length < 4) return notify('Need at least 4 players who have not gone home.');
 
-  // How many games one generated "round" yields, so enough rounds are asked for
-  // to cover the games wanted. Capped by who is actually available.
-  const perRound = Math.max(1, Math.min(numCourts, Math.floor(ordered.length / 4)));
-  const rounds = Matchmaking.smartSchedule(ordered, perRound, Math.ceil(want / perRound), metaById);
-
-  const queue = [];
-  for (const rd of rounds) {
-    for (const c of (rd.courts || [])) {
-      if (queue.length >= want) break;
-      queue.push({ id: newGameId(), team1: [...c.team1], team2: [...c.team2] });
-    }
+  // Anyone mid-match, or already spoken for by another court's lane, drops to
+  // the BACK of the ranking rather than out of it. Preferred, not enforced: with
+  // four lanes and twenty people the lanes would run dry after one pass, and the
+  // organiser asked for a court's worth of games, not a lecture about overlap.
+  // Without this the generator hands out the people standing on the courts and
+  // every row it produces carries a warning it caused itself.
+  const spokenFor = new Set(liveCourtIds(state.rounds, getCourtRounds(), state.numCourts || 1));
+  for (const g of (state.queue || [])) {
+    if (queueCourtOf(g) !== court) for (const id of gameIds(g)) if (id) spokenFor.add(id);
+  }
+  if (spokenFor.size) {
+    ordered = [...ordered.filter(p => !spokenFor.has(p.id)), ...ordered.filter(p => spokenFor.has(p.id))];
   }
 
+  const rounds = Matchmaking.smartSchedule(ordered, 1, want, metaById);
+  const fresh = [];
+  for (const rd of rounds) {
+    for (const c of (rd.courts || [])) {
+      if (fresh.length >= want) break;
+      fresh.push({ id: newGameId(), court, team1: [...c.team1], team2: [...c.team2] });
+    }
+  }
+  if (!fresh.length) return notify('Could not plan a game from who is available.', 'warn');
+
+  // This lane is replaced; every other lane is left exactly as it was.
+  const queue = [...(state.queue || []).filter(g => queueCourtOf(g) !== court), ...fresh];
   expandedQueue = null;
   if (!await saveQueue(queue)) return;
 
   // Count games outside ±0.5 so the organiser knows how many want a hand-tweak
   // (those chips are tinted amber in the queue).
   let over = 0;
-  for (const g of queue) {
+  for (const g of fresh) {
     if (Matchmaking.courtBalanceInfo({ team1: g.team1, team2: g.team2 }, metaById).gap > Matchmaking.TOL + 1e-9) over++;
   }
   notify(over
-    ? `${queue.length} games queued. ${over} over ±0.5 (marked amber).`
-    : `${queue.length} games queued.`);
+    ? `${fresh.length} games queued for Court ${courtLabel(court)}. ${over} over ±0.5 (marked amber).`
+    : `${fresh.length} games queued for Court ${courtLabel(court)}.`);
 }
 
 // ── WHO GETS THE NEXT SEAT ────────────────────
@@ -7408,8 +7548,9 @@ function autoFillCandidates() {
 }
 
 // ── EDITING THE QUEUE ─────────────────────────
-// A queued game is four names and nothing else: no court, no round, no time.
-// It gains a court at the moment a court takes it, and not before.
+// A queued game is four names and the court it is planned for. Editing always
+// addresses the FLAT index in state.queue (which is what the DOM ids key on);
+// what the organiser sees is the position within that court's lane.
 
 // Ids for queued games are only ever local handles — they key the DOM rows and
 // nothing looks them up across devices — so a timestamp plus a counter is
@@ -7434,10 +7575,30 @@ async function saveQueue(queue, note) {
 
 // A game added by hand starts EMPTY. Seeding it with names is never who should
 // be playing, and the arrangement then has to be undone before it can be made.
-async function addQueueGame() {
-  const queue = [...(state.queue || []), { id: newGameId(), team1: ['', ''], team2: ['', ''] }];
+// It joins the end of one court's lane, because a game has to belong to a court
+// before it can be queued for one.
+async function addQueueGame(courtIdx) {
+  const court = Math.max(0, Math.floor(Number(courtIdx)) || 0);
+  const queue = [...(state.queue || []), { id: newGameId(), court, team1: ['', ''], team2: ['', ''] }];
   expandedQueue = queue.length - 1;
   await saveQueue(queue);
+}
+
+// Move one queued game to another court's lane, at the end of it. The lane a
+// game sits in is the whole plan now, so changing your mind about which court
+// it belongs on has to be one tap rather than a delete and a retype.
+async function moveQueueGameToCourt(i, courtIdx) {
+  const cur = (state.queue || [])[i];
+  if (!cur) return;
+  const court = Math.max(0, Math.floor(Number(courtIdx)) || 0);
+  if (queueCourtOf(cur) === court) return;
+  // Read the open editor first: moving a game must not throw away names that
+  // have been picked but not yet saved.
+  const edited = queueGameFromDom(i, cur);
+  const rest = (state.queue || []).filter((_, j) => j !== i);
+  const queue = [...rest, Object.assign({}, edited, { court })];
+  expandedQueue = queue.length - 1;
+  await saveQueue(queue, `Moved to Court ${courtLabel(court)}.`);
 }
 
 async function deleteQueueGame(i) {
@@ -7447,26 +7608,32 @@ async function deleteQueueGame(i) {
   await saveQueue(queue);
 }
 
-// Move a game up or down the order. This is the whole control an organiser has
-// over who plays next, so it stays a plain two-button nudge rather than a drag:
-// it has to work on a phone, in a hall, one-handed.
+// Move a game up or down ITS OWN lane. This is the whole control an organiser
+// has over who plays next on that court, so it stays a plain two-button nudge
+// rather than a drag: it has to work on a phone, in a hall, one-handed.
 async function moveQueueGame(i, delta) {
-  const queue = [...(state.queue || [])];
-  const j = i + delta;
-  if (j < 0 || j >= queue.length) return;
-  [queue[i], queue[j]] = [queue[j], queue[i]];
+  const before = state.queue || [];
+  if (!before[i]) return;
+  const lane = laneOf(before, queueCourtOf(before[i]));
+  const at = lane.findIndex(x => x.index === i);
+  const to = at + (delta < 0 ? -1 : 1);
+  if (at < 0 || to < 0 || to >= lane.length) return;   // already at the end it is moving towards
+  const j = lane[to].index;
   if (expandedQueue === i) expandedQueue = j;
   else if (expandedQueue === j) expandedQueue = i;
-  await saveQueue(queue);
+  await saveQueue(moveWithinLane(before, i, delta));
 }
 
 // Read one queued game out of its OPEN editor. Picks live only in the DOM until
-// this runs, exactly as the round editor worked.
+// this runs, exactly as the round editor worked. The court rides along: it is
+// part of the game now, and dropping it here would silently move the game to
+// court 1 every time it was saved.
 function queueGameFromDom(i, fallback) {
   const el = role => document.getElementById(`q_${i}_${role}`);
   if (!el('t1p1')) return fallback;
   const v = role => el(role)?.value || '';
-  return { id: fallback?.id || newGameId(), team1: [v('t1p1'), v('t1p2')], team2: [v('t2p1'), v('t2p2')] };
+  return { id: fallback?.id || newGameId(), court: queueCourtOf(fallback),
+    team1: [v('t1p1'), v('t1p2')], team2: [v('t2p1'), v('t2p2')] };
 }
 
 async function saveQueueGame(i) {
@@ -7484,20 +7651,27 @@ async function autoFillQueueGame(i) {
   if (!Matchmaking.emptySlotsOf(asRound, known).length) {
     return notify('Every seat in that game is taken. Clear one and it will be filled for you.', 'warn');
   }
-  // Anyone already queued AHEAD of this game is spoken for: putting them in
-  // here too would build a clash by hand and guarantee one of the two is
-  // skipped. Anyone on a court right now is likewise unavailable.
+  // Anyone on a court now, and anyone already queued ahead of this game — in
+  // this lane or any other — is spoken for. They go to the BACK of the ranking
+  // rather than being struck off it: with lanes the queue routinely holds more
+  // seats than there are people, and refusing to fill would leave the organiser
+  // typing names by hand all night. Whoever is genuinely free is preferred.
   const spokenFor = new Set(liveCourtIds(state.rounds, getCourtRounds(), state.numCourts || 1));
+  const myLane = laneOf(state.queue, queueCourtOf(cur));
+  const aheadOfMe = new Set(myLane.slice(0, Math.max(0, myLane.findIndex(x => x.index === i)))
+    .flatMap(x => gameIds(x.game)).filter(Boolean));
   (state.queue || []).forEach((g, j) => {
-    if (j < i) for (const id of gameIds(g)) if (id) spokenFor.add(id);
+    if (j !== i && queueCourtOf(g) !== queueCourtOf(cur)) for (const id of gameIds(g)) if (id) spokenFor.add(id);
   });
-  const ranked = autoFillCandidates().filter(x => !spokenFor.has(x.id));
+  for (const id of aheadOfMe) spokenFor.add(id);
+  const all = autoFillCandidates();
+  const ranked = [...all.filter(x => !spokenFor.has(x.id)), ...all.filter(x => spokenFor.has(x.id))];
   const res = Matchmaking.fillRound(asRound, ranked.map(x => x.id), buildMetaById(), known);
   if (!res.filled) return notify('Nobody is free to fill those seats.', 'warn');
 
   const filled = res.courts[0];
   const queue = (state.queue || []).map((g, j) => (j === i
-    ? { id: cur.id, team1: [...filled.team1], team2: [...filled.team2] } : g));
+    ? { id: cur.id, court: queueCourtOf(cur), team1: [...filled.team1], team2: [...filled.team2] } : g));
   const waitOf = {};
   for (const x of ranked) waitOf[x.id] = x.wait;
   const named = res.placed.slice()
@@ -7617,8 +7791,8 @@ function refreshPairWarnings(i) {
 }
 
 // One match on one line, for a queued game and for a finished one. The court
-// version (roundSummary) prints a court number per match; a queued game has no
-// court to print, because it does not have one until a court takes it.
+// version (roundSummary) prints a court number per match; a queued game prints
+// none, because the lane it is sitting in already says which court it is for.
 function gameSummary(game) {
   const n = id => escHtml(playerById(id)?.name || '?');
   const ids = gameIds(game);
@@ -7627,49 +7801,50 @@ function gameSummary(game) {
     + `<span class="rs-t">${n(ids[2])} &amp; ${n(ids[3])}</span></span>`;
 }
 
-// The queue, in order. Each row is the round editor's row with the court
-// removed and a readiness marker added, so there is one way to arrange four
-// names in this app rather than two that can drift apart.
-function renderQueue() {
-  const list = document.getElementById('queueList');
-  if (!list) return;
-  const queue = state.queue || [];
-  const wrap = document.getElementById('queueListWrap');
-  if (wrap) wrap.style.display = queue.length ? '' : 'none';
-  const empty = document.getElementById('queueEmpty');
-  if (empty) empty.style.display = queue.length ? 'none' : '';
-  list.innerHTML = '';
+// How many games a lane's Generate plans by default. Four is about an hour on
+// one court, which is as far ahead as an organiser will trust a plan.
+const QUEUE_GEN_DEFAULT = 4;
 
-  const metaById = buildMetaById();
-  // Repeat-pairing warnings count the whole night: what is on the courts now
-  // AND what has already been played, or the third time two people are put
-  // together goes unremarked because the first two are in the record.
-  const pairs = pairCountsAll(state.rounds, state.played);
-  const gone = wentHomeSet();
-  // Readiness is measured against the courts as they stand. It is advice, not a
-  // verdict: a clash usually clears itself the moment that court finishes.
-  const live = liveCourtIds(state.rounds, getCourtRounds(), state.numCourts || 1);
+// Pure-ish: what a queue row should SAY, which is not the same as what is true
+// of it right now. A clash only matters for the game about to go on: the third
+// game down this lane will not be played for half an hour, by which time those
+// people are long off court, so warning about it is noise the organiser has to
+// learn to ignore — and a warning you learn to ignore is worse than none.
+// "Short" and "gone home" are wrong at any depth, so they are always said.
+function queueRowState(game, pos, ctx) {
+  const r = gameReadiness(game, ctx.live, ctx.gone);
+  return (r.state === 'clash' && pos > 0) ? { state: 'ready', ids: [] } : r;
+}
 
-  queue.forEach((game, i) => {
-    const isExpanded = i === expandedQueue;
-    const court = { team1: [...(game.team1 || ['', ''])], team2: [...(game.team2 || ['', ''])] };
-    const r = gameReadiness(game, live, gone);
-    const why = {
-      ready: '',
-      short: 'Needs four names before it can go on.',
-      gone: `${r.ids.map(id => playerById(id)?.name || id).join(', ')} has gone home.`,
-      clash: `${r.ids.map(id => playerById(id)?.name || id).join(', ')} still on court. It will go on once they finish.`,
-    }[r.state];
-    const label = { ready: 'Ready', short: 'Short', gone: 'Gone home', clash: 'Waiting' }[r.state];
-
-    const div = document.createElement('div');
-    div.className = 'round-row' + (r.state === 'ready' ? ' live' : '') + (isExpanded ? ' expanded' : '');
-    div.innerHTML = `
+// One row: a queued game, numbered by its position in ITS lane, wired to its
+// index in the flat queue. Each row is the round editor's row with the court
+// heading removed and an advisory marker added, so there is one way to arrange
+// four names in this app rather than two that can drift apart.
+function queueRowHTML(game, i, pos, laneLen, ctx) {
+  const isExpanded = i === expandedQueue;
+  const court = { team1: [...(game.team1 || ['', ''])], team2: [...(game.team2 || ['', ''])] };
+  const r = queueRowState(game, pos, ctx);
+  // Advice, not a verdict. The game goes on when its court asks for it whatever
+  // this says, so the wording no longer promises to wait for anybody.
+  const why = {
+    ready: '',
+    short: 'Needs four names — it will go on with empty seats.',
+    gone: `${r.ids.map(id => playerById(id)?.name || id).join(', ')} has gone home.`,
+    clash: `${r.ids.map(id => playerById(id)?.name || id).join(', ')} on another court right now.`,
+  }[r.state];
+  const label = { ready: 'Ready', short: 'Short', gone: 'Gone home', clash: 'On court' }[r.state];
+  const moveTo = ctx.courts.filter(c => c !== queueCourtOf(game))
+    .map(c => `<button class="q-tocourt" onclick="moveQueueGameToCourt(${i},${c})" title="Move this game to Court ${courtLabel(c)}">&rarr; C${courtLabel(c)}</button>`).join('');
+  return `
       <div class="round-row-header" onclick="toggleQueueExpand(${i})">
-        <span class="q-pos">${i + 1}</span>
+        <span class="q-grip" onpointerdown="qDragStart(event,${i})" onclick="event.stopPropagation()"
+          title="Drag to reorder, or onto another court" aria-hidden="true">
+          <svg viewBox="0 0 10 16"><circle cx="3" cy="3" r="1.2"/><circle cx="7" cy="3" r="1.2"/><circle cx="3" cy="8" r="1.2"/><circle cx="7" cy="8" r="1.2"/><circle cx="3" cy="13" r="1.2"/><circle cx="7" cy="13" r="1.2"/></svg>
+        </span>
+        <span class="q-pos">${pos + 1}</span>
         <div class="q-move" onclick="event.stopPropagation()">
-          <button onclick="moveQueueGame(${i},-1)" ${i === 0 ? 'disabled' : ''} aria-label="Move up" title="Move up">▲</button>
-          <button onclick="moveQueueGame(${i},1)" ${i === queue.length - 1 ? 'disabled' : ''} aria-label="Move down" title="Move down">▼</button>
+          <button onclick="moveQueueGame(${i},-1)" ${pos === 0 ? 'disabled' : ''} aria-label="Move up" title="Move up">▲</button>
+          <button onclick="moveQueueGame(${i},1)" ${pos === laneLen - 1 ? 'disabled' : ''} aria-label="Move down" title="Move down">▼</button>
         </div>
         <span class="rsummary">${gameSummary(game)}</span>
         <span class="q-state ${r.state}">${label}</span>
@@ -7678,18 +7853,92 @@ function renderQueue() {
       </div>
       <div class="round-editor">
         <div class="court-editor">
-          <h4>Game ${i + 1} <span id="chip_q_${i}">${courtChipHTML(court, metaById)}</span></h4>
-          ${selectorsRowHTML(`q_${i}`, i, 0, court, { id: `pw_q_${i}`, html: pairWarnHTML(court, pairs) })}
+          <h4>Game ${pos + 1} <span id="chip_q_${i}">${courtChipHTML(court, ctx.metaById)}</span></h4>
+          ${selectorsRowHTML(`q_${i}`, i, 0, court, { id: `pw_q_${i}`, html: pairWarnHTML(court, ctx.pairs) })}
         </div>
         <div class="rl-actions">
           <button class="btn btn-primary btn-sm" onclick="saveQueueGame(${i})">Save game</button>
           <button class="btn btn-ghost btn-sm" onclick="autoFillQueueGame(${i})"
-            title="Fill only the empty seats, longest-waiting players first. Anyone you have already placed stays put, and anybody spoken for by an earlier game is left out.">Auto-fill empty</button>
+            title="Fill only the empty seats, longest-waiting players first. Anyone you have already placed stays put; whoever is genuinely free is preferred.">Auto-fill empty</button>
+          ${moveTo ? `<span class="q-tocourt-row">${moveTo}</span>` : ''}
+        </div>
+      </div>`;
+}
+
+// The queue: one lane per active court, in court order. A court's lane is the
+// whole answer to "what goes on here next" — nothing is shared, so nothing has
+// to be skipped.
+function renderQueue() {
+  const host = document.getElementById('queueLanes');
+  if (!host) return;
+  const queue = state.queue || [];
+  const numCourts = Math.max(1, state.numCourts || 1);
+
+  const ctx = {
+    metaById: buildMetaById(),
+    // Repeat-pairing warnings count the whole night: what is on the courts now
+    // AND what has already been played, or the third time two people are put
+    // together goes unremarked because the first two are in the record.
+    pairs: pairCountsAll(state.rounds, state.played),
+    gone: wentHomeSet(),
+    live: liveCourtIds(state.rounds, getCourtRounds(), numCourts),
+    courts: Array.from({ length: numCourts }, (_, c) => c),
+  };
+
+  host.innerHTML = '';
+  for (let c = 0; c < numCourts; c++) {
+    const lane = laneOf(queue, c);
+    const el = document.createElement('div');
+    el.className = 'qlane';
+    el.innerHTML = `
+      <div class="qlane-head">
+        <div class="qlane-title">Court ${courtLabel(c)} <span class="qlane-count">${lane.length ? lane.length + (lane.length === 1 ? ' game' : ' games') : 'empty'}</span></div>
+        <div class="qlane-gen">
+          <label for="qgen_${c}">Plan</label>
+          <input id="qgen_${c}" class="qlane-n" type="number" min="1" max="30" value="${QUEUE_GEN_DEFAULT}" aria-label="How many games to plan for Court ${courtLabel(c)}">
+          <button class="btn ${genPendingLane === c ? 'btn-danger' : 'btn-secondary'} btn-sm" onclick="handleGenerateLane(${c})" title="Replace this court's queue with freshly balanced games">${genPendingLane === c ? 'Replace queue?' : 'Generate'}</button>
         </div>
       </div>
-    `;
-    list.appendChild(div);
-  });
+      <div class="round-list-wrap">
+        ${lane.length ? `<div class="round-list-header"><div class="rl-hdr-round">Next</div><div class="rl-hdr-match">Match</div></div>` : ''}
+        <div class="qlane-list" id="queueList_${c}" data-court="${c}"></div>
+      </div>
+      <button class="btn btn-ghost btn-sm qlane-add" onclick="addQueueGame(${c})">+ Add a game to Court ${courtLabel(c)}</button>`;
+    host.appendChild(el);
+
+    const list = el.querySelector(`#queueList_${c}`);
+    if (list) {
+      lane.forEach((row, pos) => {
+        const div = document.createElement('div');
+        const r = queueRowState(row.game, pos, ctx);
+        div.className = 'round-row' + (r.state === 'ready' ? ' live' : '')
+          + (row.index === expandedQueue ? ' expanded' : '');
+        // The FLAT index rides on the row: a drag reports DOM order, and the
+        // commit has to turn that back into positions in state.queue.
+        div.dataset.qi = row.index;
+        div.innerHTML = queueRowHTML(row.game, row.index, pos, lane.length, ctx);
+        list.appendChild(div);
+      });
+      // The empty note lives INSIDE the list so the list itself is the drop
+      // target even with nothing in it, and LAST so the rows stay :nth-child(1..n).
+      const note = document.createElement('div');
+      note.className = 'qlane-empty';
+      note.innerHTML = `Nothing queued for Court ${escHtml(String(courtLabel(c)))}. Press <b>Generate</b>, add a game, or drag one over from another court.`;
+      list.appendChild(note);
+    }
+  }
+  syncLaneEmpties();
+
+  // Games planned for a court that is switched off are kept, not dropped —
+  // saying so is the difference between "parked" and "the app ate my plan".
+  const parked = parkedLanes(queue, numCourts);
+  if (parked.length) {
+    const note = document.createElement('div');
+    note.className = 'qlane-parked';
+    note.textContent = parked.map(p => `${p.count} game${p.count === 1 ? '' : 's'} parked on Court ${courtLabel(p.court)}`).join(' · ')
+      + ' — switched off. Turn the court back on and they are still here, in order.';
+    host.appendChild(note);
+  }
 
   renderPlayed();
 }
@@ -7697,6 +7946,105 @@ function renderQueue() {
 function toggleQueueExpand(i) {
   expandedQueue = expandedQueue === i ? null : i;
   renderQueue();
+}
+
+// Show a lane's "nothing queued" line only while it really is empty, and keep
+// the count chip and the position numbers honest. Called after every render and
+// on every drag move, so what the organiser is looking at mid-drag is what they
+// will get when they let go.
+function syncLaneEmpties() {
+  document.querySelectorAll('#queueLanes .qlane').forEach(el => {
+    const list = el.querySelector('.qlane-list');
+    if (!list) return;
+    const rows = list.querySelectorAll('.round-row');
+    const empty = list.querySelector('.qlane-empty');
+    if (empty) empty.style.display = rows.length ? 'none' : '';
+    const hdr = el.querySelector('.round-list-header');
+    if (hdr) hdr.style.display = rows.length ? '' : 'none';
+    const count = el.querySelector('.qlane-count');
+    if (count) count.textContent = rows.length ? rows.length + (rows.length === 1 ? ' game' : ' games') : 'empty';
+    rows.forEach((r, i) => {
+      const pos = r.querySelector('.q-pos');
+      if (pos) pos.textContent = i + 1;
+    });
+  });
+}
+
+// ── DRAGGING A QUEUED GAME ────────────────────
+// Reorder within a lane, or drop the row into another court's lane — which is
+// the same edit, because a game's lane IS its court. Mirrors the friendly seed
+// drag: the row is live-moved through the DOM and the order commits on release,
+// so what is under the finger is what gets saved.
+//
+// It starts on the grip only. The row header is a click target (expand to edit)
+// and the ▲▼ are buttons; a drag that could begin anywhere on the row would
+// swallow both. The buttons stay for phones, where this does not run at all.
+let __qDrag = null;
+function qDragStart(e, i) {
+  if (__qDrag || (e.button !== undefined && e.button !== 0)) return;
+  const row = e.currentTarget.closest('.round-row');
+  const list = row && row.parentElement;
+  if (!row || !list) return;
+  // Nothing to reorder and nowhere else to drop it.
+  if (document.querySelectorAll('#queueLanes .round-row').length < 2
+    && document.querySelectorAll('#queueLanes .qlane-list').length < 2) return;
+  e.preventDefault();
+  e.stopPropagation();
+  __qDrag = { index: i, row, from: list };
+  row.classList.add('q-dragging');
+  document.getElementById('queueLanes')?.classList.add('q-dragging-on');
+  if (row.setPointerCapture) { try { row.setPointerCapture(e.pointerId); } catch (_) {} }
+  window.addEventListener('pointermove', qDragMove);
+  window.addEventListener('pointerup', qDragEnd);
+  window.addEventListener('pointercancel', qDragEnd);
+}
+
+function qDragMove(e) {
+  const d = __qDrag; if (!d) return;
+  // Which lane is the pointer over? Falling back to the lane it came from means
+  // dragging off the side of the board holds the row where it is rather than
+  // flinging it onto court 1.
+  const lists = [...document.querySelectorAll('#queueLanes .qlane-list')];
+  let target = null;
+  for (const l of lists) {
+    const r = l.getBoundingClientRect();
+    if (e.clientY >= r.top - 12 && e.clientY <= r.bottom + 12 && e.clientX >= r.left && e.clientX <= r.right) { target = l; break; }
+  }
+  if (!target) target = d.row.parentElement || d.from;
+
+  const others = [...target.querySelectorAll('.round-row')].filter(r => r !== d.row);
+  let before = null;
+  for (const r of others) {
+    const rect = r.getBoundingClientRect();
+    if (e.clientY < rect.top + rect.height / 2) { before = r; break; }
+  }
+  if (d.row.parentElement !== target || (before !== d.row && before !== d.row.nextSibling)) {
+    target.insertBefore(d.row, before);
+    syncLaneEmpties();
+  }
+}
+
+async function qDragEnd() {
+  const d = __qDrag; if (!d) return;
+  __qDrag = null;
+  window.removeEventListener('pointermove', qDragMove);
+  window.removeEventListener('pointerup', qDragEnd);
+  window.removeEventListener('pointercancel', qDragEnd);
+  d.row.classList.remove('q-dragging');
+  document.getElementById('queueLanes')?.classList.remove('q-dragging-on');
+
+  const laneOrders = [...document.querySelectorAll('#queueLanes .qlane-list')].map(list => ({
+    court: Number(list.dataset.court),
+    indexes: [...list.querySelectorAll('.round-row')].map(r => Number(r.dataset.qi)),
+  }));
+  const queue = queueFromLaneOrder(state.queue, laneOrders);
+  // Nothing actually moved — don't write, and don't flash a toast at somebody
+  // who picked a row up and put it straight back down.
+  if (JSON.stringify(queue) === JSON.stringify(state.queue || [])) return renderQueue();
+  const movedTo = laneOrders.find(l => l.indexes.includes(d.index));
+  const changedCourt = movedTo && movedTo.court !== queueCourtOf((state.queue || [])[d.index]);
+  expandedQueue = null;
+  await saveQueue(queue, changedCourt ? `Moved to Court ${courtLabel(movedTo.court)}.` : undefined);
 }
 
 // Tonight's results. Newest first, because the question being asked of it is

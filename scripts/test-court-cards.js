@@ -279,12 +279,14 @@ if (H.normalizeCourtStatus) {
   for (const dead of ['restampCourtLive', 'applyLockedFirstRound']) {
     check(`${dead}() stays deleted with the round model`, extractFn(dead, html) === null);
   }
-  // Generating only fills the QUEUE now, so it cannot disturb a game in
+  // Generating only fills ONE COURT'S queue now, so it cannot disturb a game in
   // progress at all — which is why locked courts need no special case in it.
   check('generating never touches a live clock',
-    !(extractFn('generateSchedule', html) || '').includes('courtLive'));
+    !(extractFn('generateLane', html) || '').includes('courtLive'));
   check('generating only writes the queue',
-    (extractFn('generateSchedule', html) || '').includes('saveQueue(queue)'));
+    (extractFn('generateLane', html) || '').includes('saveQueue(queue)'));
+  check('generating leaves every other court\'s queue alone',
+    (extractFn('generateLane', html) || '').includes('filter(g => queueCourtOf(g) !== court)'));
 
   // Viewer: Up Next / Final show a pill; a Live court looks exactly as before.
   check('viewer court cards take a status', /function buildCourtCard\(num, court, roundLabel, endingSoon, status\)/.test(html));

@@ -165,10 +165,10 @@ const court = (t1, t2) => ({ team1: t1, team2: t2 });
   // It sits with the queue because that is where a waiting name gets dragged
   // into a seat; the cards above are the games already under way.
   const boardAt = html.indexOf('<div class="crt-board">');
-  check('bench board wraps the queue',
+  check('bench board wraps the queue lanes',
     boardAt > -1 && html.indexOf('id="restingStrip"', boardAt) > -1
-    && html.indexOf('id="queueListWrap"', boardAt) > -1
-    && html.indexOf('id="queueListWrap"', boardAt) < html.indexOf('</div><!-- /courts tab -->'));
+    && html.indexOf('id="queueLanes"', boardAt) > -1
+    && html.indexOf('id="queueLanes"', boardAt) < html.indexOf('</div><!-- /courts tab -->'));
   check('court cards grid is no longer inside the bench board',
     html.indexOf('id="courtCtrlGrid"') < boardAt);
   // Bench chips drop onto round/Up Next editor slots via the shared commit.

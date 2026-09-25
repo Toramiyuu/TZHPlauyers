@@ -1,16 +1,23 @@
 #!/usr/bin/env node
 /*
- * test-game-queue.js — guard for the shared game queue.
+ * test-game-queue.js — guard for the per-court game queue.
  *
  * The night used to be planned in ROUNDS: one row of state.rounds held every
  * court at once. Court 2 goes to deuce and takes twenty minutes while 3 and 4
  * finish in eight, so 3 and 4 advance without it and the people on the slow
  * court quietly play fewer games all night.
  *
- * Now there is ONE shared queue belonging to no court. Whichever court frees up
- * first takes the top game that can actually start; a game whose players are
- * still on another court, or which is short of names, is passed over and KEEPS
- * its place. state.rounds is a one-row live board, state.played is the record.
+ * That became ONE shared queue belonging to no court, which fixed the fairness
+ * and broke the usefulness: with every court drawing from one list, most queued
+ * games held somebody still mid-match, so "Next game" reported eight skips and
+ * put nothing on.
+ *
+ * Now every court has its OWN lane. state.queue is still one flat array, but
+ * each game carries `court` and lane i is the games with court === i, in order.
+ * "Next game" on court i takes the top of lane i and puts it on — no scan, no
+ * skip, no refusal; a clash is REPORTED, never obeyed. A lane whose court is
+ * switched off is parked, not deleted. state.rounds is a one-row live board,
+ * state.played is the record.
  *
  * PURE helpers in public/index.html:
  *
@@ -19,7 +26,19 @@
  *                                         out the court that is asking, whose
  *                                         four are walking off
  *   gameReadiness(game, live, gone)    -> { state:'ready'|'short'|'gone'|'clash', ids }
- *   nextPlayableGame(queue, live, gone)-> { index, game, skipped[] }
+ *                                         ADVICE now: nothing acts on it
+ *   queueCourtOf(game)                 -> the court a game is planned for
+ *   laneOf(queue, court)               -> [{ index, game }] for one court
+ *   nextInLane(queue, court)           -> { index, game } — the top of a lane
+ *   unshiftIntoLane(queue, court, g)   -> g at the FRONT of that lane (undo)
+ *   moveWithinLane(queue, index, d)    -> reorder inside one lane only
+ *   parkedLanes(queue, numCourts)      -> [{ court, count }] for courts now off
+ *   queueRowState(game, pos, ctx)      -> what a row SAYS, which is not what is
+ *                                         true of it: a clash only matters for
+ *                                         the game about to go on
+ *   queueFromLaneOrder(queue, orders)  -> the queue rebuilt from a drag: lanes
+ *                                         in their new DOM order, each game
+ *                                         re-stamped with the lane it landed in
  *   waitMinutes(played, players, live, now) -> { id: whole minutes waiting }
  *   playedGameCounts(played)           -> { id: games tonight }
  *   waitHeatLevel(min) / waitBandLabel(level)
@@ -58,7 +77,9 @@ function extractFn(name, src) {
 // so the clock helpers load alongside them — same pattern as test-court-games.
 const NAMES = [
   'normalizeCourtLive', 'setCourtLiveAt',
-  'gameIds', 'liveCourtIds', 'gameReadiness', 'nextPlayableGame',
+  'gameIds', 'liveCourtIds', 'gameReadiness',
+  'queueCourtOf', 'laneOf', 'nextInLane', 'unshiftIntoLane', 'moveWithinLane', 'parkedLanes',
+  'queueRowState', 'queueFromLaneOrder',
   'waitMinutes', 'playedGameCounts', 'waitHeatLevel', 'waitBandLabel',
   'liveBoardRow', 'historicGamesOf', 'courtIsFree', 'takeNextGame', 'putGameBack',
 ];
@@ -83,7 +104,9 @@ const api = new Function(
   + `${srcs.join('\n')}; return { ${NAMES.join(', ')} };`
 )();
 const {
-  gameIds, liveCourtIds, gameReadiness, nextPlayableGame, waitMinutes,
+  gameIds, liveCourtIds, gameReadiness, waitMinutes,
+  queueCourtOf, laneOf, nextInLane, unshiftIntoLane, moveWithinLane, parkedLanes, queueRowState,
+  queueFromLaneOrder,
   playedGameCounts, waitHeatLevel, waitBandLabel, liveBoardRow, historicGamesOf,
   courtIsFree, takeNextGame, putGameBack,
 } = api;
@@ -130,21 +153,139 @@ check('gameIds tolerates a missing game', gameIds(null).length === 0);
     gameReadiness(game('a', 'b', '', 'x'), live, gone).state === 'short');
 }
 
-// ── nextPlayableGame ──
+// ── lanes ──
 {
+  const onCourt = (c, a, b, x, y) => Object.assign(game(a, b, x, y), { court: c });
   const queue = [
-    game('a', 'b', 'c', 'x'),   // clash
-    game('a', 'b', 'c', ''),    // short
-    game('m', 'n', 'o', 'p'),   // ready
+    onCourt(0, 'a', 'b', 'c', 'd'),
+    onCourt(1, 'e', 'f', 'g', 'h'),
+    onCourt(0, 'i', 'j', 'k', 'l'),
+    onCourt(2, 'm', 'n', 'o', 'p'),
   ];
-  const pick = nextPlayableGame(queue, new Set(['x']), new Set());
-  check('it takes the first game that can start', pick.index === 2);
-  check('it reports what it passed over', pick.skipped.length === 2);
-  check('it says why each was passed over',
-    pick.skipped[0].state === 'clash' && pick.skipped[1].state === 'short');
-  check('nothing playable answers -1',
-    nextPlayableGame([game('a', 'b', 'c', 'x')], new Set(['x']), new Set()).index === -1);
-  check('an empty queue answers -1', nextPlayableGame([], new Set(), new Set()).index === -1);
+
+  check('a game with no court belongs to court 0 — the one every venue has',
+    queueCourtOf(game('a', 'b', 'c', 'd')) === 0 && queueCourtOf(null) === 0);
+  check('a junk court reads as 0, never as NaN',
+    queueCourtOf({ court: 'left one' }) === 0 && queueCourtOf({ court: -3 }) === 0);
+  check('a real court index comes through', queueCourtOf({ court: 2 }) === 2);
+
+  const lane0 = laneOf(queue, 0);
+  check('a lane holds only its own court\'s games, in order',
+    lane0.length === 2 && lane0[0].game.team1[0] === 'a' && lane0[1].game.team1[0] === 'i');
+  check('a lane carries each game\'s index in the FLAT queue',
+    lane0[0].index === 0 && lane0[1].index === 2);
+  check('a court with nothing queued has an empty lane', laneOf(queue, 3).length === 0);
+  check('laneOf survives junk', laneOf(null, 0).length === 0 && laneOf(queue, 'x').length === 0);
+
+  // THE RULE: a court takes the top of its own lane. It does not scan, it does
+  // not skip, and a clash with another court is not its business.
+  check('nextInLane takes the top of that court\'s lane',
+    nextInLane(queue, 0).index === 0 && nextInLane(queue, 1).index === 1);
+  check('an empty lane answers -1', nextInLane(queue, 3).index === -1);
+  check('a clash does NOT make a lane skip its own top game',
+    nextInLane([onCourt(0, 'a', 'b', 'c', 'x'), onCourt(0, 'm', 'n', 'o', 'p')], 0).game.team2[1] === 'x');
+  check('a short game does not make a lane skip it either',
+    nextInLane([onCourt(0, 'a', 'b', '', ''), onCourt(0, 'm', 'n', 'o', 'p')], 0).game.team2[0] === '');
+
+  // unshiftIntoLane — what undo uses.
+  const un = unshiftIntoLane(queue, 0, game('z', 'z', 'z', 'z'));
+  check('a game goes to the FRONT of its own lane, not the front of the queue',
+    laneOf(un, 0)[0].game.team1[0] === 'z' && un.length === 5);
+  check('and it does not disturb any other lane',
+    JSON.stringify(laneOf(un, 1).map(x => x.game)) === JSON.stringify(laneOf(queue, 1).map(x => x.game)));
+  check('the court is stamped on the way in', queueCourtOf(laneOf(un, 0)[0].game) === 0);
+  const empty = unshiftIntoLane(queue, 3, game('z', 'z', 'z', 'z'));
+  check('into an empty lane it simply joins the queue',
+    empty.length === 5 && queueCourtOf(empty[4]) === 3);
+
+  // moveWithinLane — reordering must never reach across courts.
+  const moved = moveWithinLane(queue, 2, -1);
+  check('moving up swaps with the game above it IN THE SAME LANE',
+    laneOf(moved, 0)[0].game.team1[0] === 'i' && laneOf(moved, 0)[1].game.team1[0] === 'a');
+  check('the other lanes are untouched by a move',
+    moved[1].team1[0] === 'e' && moved[3].team1[0] === 'm');
+  check('the top of a lane cannot move up', 
+    JSON.stringify(moveWithinLane(queue, 0, -1)) === JSON.stringify(queue));
+  check('the bottom of a lane cannot move down',
+    JSON.stringify(moveWithinLane(queue, 2, 1)) === JSON.stringify(queue));
+  check('a lone game in a lane cannot move at all',
+    JSON.stringify(moveWithinLane(queue, 3, -1)) === JSON.stringify(queue)
+    && JSON.stringify(moveWithinLane(queue, 3, 1)) === JSON.stringify(queue));
+  check('moveWithinLane survives an out-of-range index',
+    JSON.stringify(moveWithinLane(queue, 99, 1)) === JSON.stringify(queue));
+
+  // parkedLanes — switching a court off must never look like data loss.
+  const parked = parkedLanes(queue, 2);
+  check('games for a court that is switched off are reported, not dropped',
+    parked.length === 1 && parked[0].court === 2 && parked[0].count === 1);
+  check('nothing is parked while every court is on', parkedLanes(queue, 3).length === 0);
+  check('parked lanes come back in court order',
+    JSON.stringify(parkedLanes([...queue, onCourt(4, 'q', 'r', 's', 't')], 2).map(p => p.court)) === '[2,4]');
+}
+
+// ── dragging a row ──
+// A drag can only report what the lanes look like afterwards, so the commit has
+// to turn "these flat indexes, in this order, in this lane" back into a queue.
+// Dropping a row in another lane IS moving it to that court — same operation.
+{
+  const at = (c, a, b, x, y) => Object.assign(game(a, b, x, y), { court: c });
+  const q = [at(0, 'a', 'b', 'c', 'd'), at(1, 'e', 'f', 'g', 'h'), at(0, 'i', 'j', 'k', 'l')];
+
+  const same = queueFromLaneOrder(q, [{ court: 0, indexes: [0, 2] }, { court: 1, indexes: [1] }]);
+  check('a drag that changed nothing rebuilds the same queue',
+    JSON.stringify(same.map(g => [g.court, g.team1[0]])) === '[[0,"a"],[0,"i"],[1,"e"]]');
+
+  const reordered = queueFromLaneOrder(q, [{ court: 0, indexes: [2, 0] }, { court: 1, indexes: [1] }]);
+  check('reordering inside a lane comes back in the new order',
+    laneOf(reordered, 0).map(x => x.game.team1[0]).join(',') === 'i,a');
+
+  const crossed = queueFromLaneOrder(q, [{ court: 0, indexes: [0] }, { court: 1, indexes: [2, 1] }]);
+  check('a row dropped in another lane is re-stamped with that court',
+    laneOf(crossed, 1).map(x => x.game.team1[0]).join(',') === 'i,e'
+    && laneOf(crossed, 0).length === 1);
+  check('and it keeps everything else about the game',
+    laneOf(crossed, 1)[0].game.team2[1] === 'l');
+
+  // The DOM only draws the lanes for courts that are switched ON. Games parked
+  // on a court that is off are invisible to a drag and must survive it.
+  const parkedQ = [...q, at(5, 'm', 'n', 'o', 'p')];
+  const kept = queueFromLaneOrder(parkedQ, [{ court: 0, indexes: [0, 2] }, { court: 1, indexes: [1] }]);
+  check('a drag never drops the games parked on a switched-off court',
+    kept.length === 4 && laneOf(kept, 5).length === 1);
+
+  check('an index named twice is only placed once',
+    queueFromLaneOrder(q, [{ court: 0, indexes: [0, 0, 2] }]).length === 3);
+  check('junk indexes and junk lanes are ignored, never thrown',
+    queueFromLaneOrder(q, [{ court: 0, indexes: [99, 'x', null] }]).length === 3
+    && queueFromLaneOrder(q, null).length === 3
+    && queueFromLaneOrder(null, [{ court: 0, indexes: [0] }]).length === 0);
+}
+
+// ── what a queue row says ──
+// A warning you learn to ignore is worse than no warning. The third game down a
+// lane will not be played for half an hour, so telling the organiser its players
+// are "on court" every time they look is noise they will train themselves past —
+// and then miss the one that mattered.
+{
+  const ctx = { live: new Set(['x']), gone: new Set(['z']) };
+  const clash = game('a', 'b', 'c', 'x');
+  check('a clash is said about the game that is about to go on',
+    queueRowState(clash, 0, ctx).state === 'clash');
+  check('and NOT about the ones further down the lane',
+    queueRowState(clash, 1, ctx).state === 'ready'
+    && queueRowState(clash, 5, ctx).state === 'ready');
+  check('a silenced clash names nobody either', queueRowState(clash, 1, ctx).ids.length === 0);
+  // These two are wrong at any depth: nobody un-goes-home, and a game three
+  // names long is still three names long when its turn comes.
+  check('gone home is said at any depth',
+    queueRowState(game('a', 'b', 'c', 'z'), 0, ctx).state === 'gone'
+    && queueRowState(game('a', 'b', 'c', 'z'), 4, ctx).state === 'gone');
+  check('short is said at any depth',
+    queueRowState(game('a', 'b', '', ''), 0, ctx).state === 'short'
+    && queueRowState(game('a', 'b', '', ''), 4, ctx).state === 'short');
+  check('a clean game says nothing wherever it sits',
+    queueRowState(game('a', 'b', 'c', 'd'), 0, ctx).state === 'ready'
+    && queueRowState(game('a', 'b', 'c', 'd'), 3, ctx).state === 'ready');
 }
 
 // ── takeNextGame ──
@@ -156,7 +297,7 @@ check('gameIds tolerates a missing game', gameIds(null).length === 0);
     courtLive: [1000, 2000],
     wentHome: [],
     rounds: [{ label: 'Live', courts: [game('a', 'b', 'c', 'd'), game('e', 'f', 'g', 'h')] }],
-    queue: [game('m', 'n', 'o', 'p'), game('q', 'r', 's', 't')],
+    queue: [game('m', 'n', 'o', 'p'), game('q', 'r', 's', 't')],   // both court 0 by default
     played: [],
   });
 
@@ -175,22 +316,51 @@ check('gameIds tolerates a missing game', gameIds(null).length === 0);
   check('every court points at the live row',
     JSON.stringify(r.courtRounds) === '[0,0]');
 
-  // The four walking off must not block the game replacing them.
+  // A court only ever reaches into its OWN lane.
+  const lanes = base();
+  lanes.queue = [
+    Object.assign(game('1', '2', '3', '4'), { court: 1 }),
+    Object.assign(game('5', '6', '7', '8'), { court: 0 }),
+  ];
+  const mine = takeNextGame(lanes, 0, 9000);
+  check('a court takes from its own lane, not the top of the array',
+    JSON.stringify(mine.rounds[0].courts[0]) === JSON.stringify(game('5', '6', '7', '8')));
+  check('the other lane is left completely alone',
+    mine.queue.length === 1 && mine.queue[0].team1[0] === '1' && mine.queue[0].court === 1);
+
+  // The four walking off must not be reported as a clash against their own
+  // replacement — they are leaving the court this game is going onto.
   const s = base();
   s.queue = [game('a', 'b', 'c', 'd')];
   const own = takeNextGame(s, 0, 9000);
-  check('a court is not blocked by its own outgoing players',
-    own && !own.empty && own.queue.length === 0);
+  check('a court is not warned about its own outgoing players',
+    own && !own.empty && own.queue.length === 0 && own.warn.state === 'ready');
 
-  // ...but the OTHER court's players are a clash, and the game stays put.
+  // THE CHANGE: a clash with another court is said, not obeyed.
   const t = base();
   t.queue = [game('e', 'f', 'g', 'h'), game('m', 'n', 'o', 'p')];
-  const skip = takeNextGame(t, 0, 9000);
-  check('a game clashing with another court is skipped',
-    JSON.stringify(skip.rounds[0].courts[0]) === JSON.stringify(game('m', 'n', 'o', 'p')));
-  check('the skipped game keeps its place in the queue',
-    skip.queue.length === 1 && skip.queue[0].team1[0] === 'e');
-  check('the skip is reported', skip.skipped.length === 1 && skip.skipped[0].state === 'clash');
+  const clash = takeNextGame(t, 0, 9000);
+  check('a game clashing with another court STILL goes on',
+    JSON.stringify(clash.rounds[0].courts[0]) === JSON.stringify(game('e', 'f', 'g', 'h')));
+  check('it leaves the queue like any other game',
+    clash.queue.length === 1 && clash.queue[0].team1[0] === 'm');
+  check('and the clash is reported so the organiser can swap a name',
+    clash.warn.state === 'clash' && clash.warn.ids.join(',') === 'e,f,g,h');
+
+  // A game short of names is not refused either. The organiser queued it.
+  const sh = base();
+  sh.queue = [game('m', 'n', '', '')];
+  const short = takeNextGame(sh, 0, 9000);
+  check('a short game goes on and says so',
+    !short.empty && short.warn.state === 'short');
+
+  // Someone who has gone home is worth saying out loud, and still not a veto.
+  const gh = base();
+  gh.queue = [game('m', 'n', 'o', 'p')];
+  gh.wentHome = ['o'];
+  const goneRes = takeNextGame(gh, 0, 9000);
+  check('a game with someone gone home goes on and names them',
+    !goneRes.empty && goneRes.warn.state === 'gone' && goneRes.warn.ids.join() === 'o');
 
   // A court with nothing on it records nothing.
   const u = base();
@@ -198,12 +368,12 @@ check('gameIds tolerates a missing game', gameIds(null).length === 0);
   const fresh = takeNextGame(u, 0, 9000);
   check('an empty court records no finished game', fresh.played.length === 0);
 
-  // Nothing playable at all.
+  // An empty lane is the ONLY thing that stops a court now.
   const v = base();
-  v.queue = [game('e', 'f', 'g', 'h')];
+  v.queue = [Object.assign(game('e', 'f', 'g', 'h'), { court: 1 })];
   const none = takeNextGame(v, 0, 9000);
-  check('nothing playable answers empty', none && none.empty === true);
-  check('and says what it looked at', none.skipped.length === 1);
+  check('an empty lane answers empty', none && none.empty === true);
+  check('and says which court is waiting', none.court === 0);
 
   check('an out-of-range court is refused', takeNextGame(base(), 5, 9000) === null);
 }
@@ -222,7 +392,7 @@ check('gameIds tolerates a missing game', gameIds(null).length === 0);
       { label: 'Round 2', courts: [game('i', 'j', 'k', 'l'), game('m', 'n', 'o', 'p')] },
       { label: 'Round 3', courts: [game('q', 'r', 's', 't'), game('u', 'v', 'w', 'x')] },
     ],
-    queue: [game('1', '2', '3', '4')],
+    queue: [Object.assign(game('1', '2', '3', '4'), { court: 1 })],
     played: [],
   };
 
@@ -239,6 +409,12 @@ check('gameIds tolerates a missing game', gameIds(null).length === 0);
     hist.every(g => g.startedAt === 0 && g.endedAt === 0));
   check('a one-row night has nothing to recover',
     historicGamesOf([{ label: 'Live', courts: [game('a', 'b', 'c', 'd')] }], [0], 1).length === 0);
+
+  // A night saved before lanes existed has a queue with no `court` on anything,
+  // so every game reads as court 0's lane. Nothing is lost and nothing has to be
+  // migrated — it just all belongs to the first court until it is moved.
+  check('a pre-lane queue all lands in court 0\'s lane',
+    laneOf([game('a', 'b', 'c', 'd'), game('e', 'f', 'g', 'h')], 0).length === 2);
 
   const moved = takeNextGame(old, 1, 9000);
   check('advancing an old night folds its history in, and does not lose it',
@@ -356,12 +532,14 @@ check('gameIds tolerates a missing game', gameIds(null).length === 0);
 }
 
 // ── report ──
-console.log('\ntest-game-queue — the shared queue, the skip rule and the clock\n');
+console.log('\ntest-game-queue — one queue per court, and the clock\n');
 const groups = [
   'the four ids and who is on a court',
-  'a game is ready, short, gone or clashing',
-  'the queue hands out the first game that can start',
-  'taking a game moves it onto the court and records the last one',
+  'a game is ready, short, gone or clashing — as advice, not a veto',
+  'a clash is only worth saying about the game that is next',
+  'a drag rebuilds the queue, across lanes, without losing parked games',
+  'each court owns a lane: take, reorder, undo and park stay inside it',
+  'a court takes its own next game and never skips it',
   'an old multi-round night collapses without losing its history',
   'undo puts the game back and the court back',
   'waiting is measured in minutes, from the last game that ended',

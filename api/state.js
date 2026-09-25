@@ -108,11 +108,13 @@ const DEFAULT_STATE = {
   // Legacy: every court sits on row 0 now. Kept so an old saved night, whose
   // courtRounds point across many rows, still restores exactly as it was.
   currentRound: 0,
-  // The shared queue of games waiting to go on. Belongs to NO court: whichever
-  // court frees up first takes the top game that can actually start. That is
-  // the whole point — a court that went to deuce for twenty minutes no longer
-  // drags the other three along behind it, it just takes its next game later.
-  // [{ id, team1:[id,id], team2:[id,id] }]
+  // Games waiting to go on. One flat array, but every game carries `court` —
+  // the 0-based index of the court it is planned for — so court i's queue is
+  // simply the games with court === i, in order. Each court takes the top of its
+  // own lane and nothing else: a court that went to deuce for twenty minutes
+  // drags nobody along, and no court can be blocked by another court's plan.
+  // A game with no `court` (saved before lanes) belongs to court 1.
+  // [{ id, court, team1:[id,id], team2:[id,id] }]
   queue: [],
   // Append-only record of games finished tonight, in its own key because it has
   // to be immutable and inside `rounds` it would not be: applyCourtDrop filters
@@ -445,9 +447,15 @@ const MAX_PLAYED = 400;
 
 // Pure: coerce an arbitrary value into a clean list of games. A game needs four
 // slots; each slot is a player id string or '' for an empty seat, because a
-// half-arranged game is a legitimate thing to have in the queue (it is simply
-// skipped when a court asks for it). Anything else in the entry is dropped.
-// `keepPlayed` also carries the court and the two timestamps a finished game has.
+// half-arranged game is a legitimate thing to have in the queue (a court takes
+// it anyway and the organiser is told it is short). Anything else is dropped.
+//
+// `court` is kept for BOTH lists. On a played game it records where the game
+// happened; on a queued one it is the lane the game is waiting in, which is the
+// whole plan — stripping it here (as this did while the queue was shared) drops
+// every queued game onto court 1 the moment it is saved.
+//
+// `keepPlayed` adds only the two timestamps, which a waiting game has no use for.
 // Unit tested in scripts/test-game-queue.js.
 function normalizeGameList(value, cap, keepPlayed) {
   if (!Array.isArray(value)) return [];
@@ -471,11 +479,11 @@ function normalizeGameList(value, cap, keepPlayed) {
     if (!raw || typeof raw !== 'object') continue;
     const game = {
       id: typeof raw.id === 'string' && raw.id ? raw.id.slice(0, 64) : 'g' + out.length,
+      court: courtIdx(raw.court),
       team1: pair(raw.team1),
       team2: pair(raw.team2),
     };
     if (keepPlayed) {
-      game.court = courtIdx(raw.court);
       game.startedAt = stamp(raw.startedAt);
       game.endedAt = stamp(raw.endedAt);
     }

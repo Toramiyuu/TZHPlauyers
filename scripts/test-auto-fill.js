@@ -232,12 +232,18 @@ check('a full game is refused rather than rearranged',
   afSrc.includes('Matchmaking.emptySlotsOf(asRound, known).length') && afSrc.includes('Every seat in that game is taken'));
 check('it fills through the pure helper', afSrc.includes('Matchmaking.fillRound(asRound, ranked.map(x => x.id)'));
 check('candidates come from the wait ranking', afSrc.includes('autoFillCandidates()'));
-// Anybody on a court, or already in an EARLIER queued game, is spoken for.
-// Without this the auto-fill builds a clash by hand and guarantees one of the
-// two games is skipped when a court asks for it.
-check('it leaves out anyone already on a court', afSrc.includes('liveCourtIds('));
-check('it leaves out anyone in an earlier queued game',
-  afSrc.includes('spokenFor') && afSrc.includes('if (j < i)'));
+// Anybody on a court, already ahead of this game in its own lane, or queued on
+// ANOTHER court, is spoken for — and since lanes arrived that demotes them to
+// the back of the ranking instead of striking them off it. With one lane per
+// court the queue routinely holds more seats than there are people, and a
+// refusal to fill would leave the organiser typing names by hand all night.
+check('it knows who is already on a court', afSrc.includes('liveCourtIds('));
+check('it prefers whoever is genuinely free, rather than refusing',
+  afSrc.includes('spokenFor') && afSrc.includes('aheadOfMe')
+  && afSrc.includes('all.filter(x => !spokenFor.has(x.id))')
+  && afSrc.includes('all.filter(x => spokenFor.has(x.id))'));
+check('being ahead in the SAME lane counts as spoken for',
+  afSrc.includes('laneOf(state.queue, queueCourtOf(cur))'));
 check('the toast names who went in and how long they waited',
   afSrc.includes('Longest waits in:') && afSrc.includes('waitOf[s.id]'));
 check('the wait it reports is in minutes', afSrc.includes("waitOf[s.id] || 0}m"));
@@ -249,8 +255,8 @@ check('it sits beside Save game', html.includes('class="rl-actions"') && html.in
 
 // ── a hand-added game is genuinely empty ─────────────────────────────
 const addSrc = extractFn('addQueueGame', html) || '';
-check('a hand-added game starts with four blank seats',
-  addSrc.includes("{ id: newGameId(), team1: ['', ''], team2: ['', ''] }"));
+check('a hand-added game starts with four blank seats, in one court\'s lane',
+  addSrc.includes("{ id: newGameId(), court, team1: ['', ''], team2: ['', ''] }"));
 check('it still opens the new game for editing', addSrc.includes('expandedQueue = queue.length - 1'));
 
 // The round-era helpers must stay deleted.
