@@ -339,7 +339,12 @@ function arenaGameLabel(state, courtIdx){
     var c = played[k] && played[k].court;
     if (c === courtIdx || (courtIdx === 0 && !c)) n++;
   }
-  return 'Game ' + (n + 1);
+  // Plus the organiser's typed correction for this court, when there is one —
+  // the arena must not call it Game 3 while the wall screen calls it Game 7.
+  var base = state && state.courtGameBase;
+  var off = Array.isArray(base) ? Math.floor(Number(base[courtIdx])) : 0;
+  if (!isFinite(off)) off = 0;
+  return 'Game ' + Math.max(1, n + 1 + off);
 }
 
 // state → [{ court, round, roundLabel, t1:[names], t2:[names], photos1, photos2 }]

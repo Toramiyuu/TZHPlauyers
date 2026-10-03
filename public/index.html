@@ -308,6 +308,15 @@ body.in-3d #joinModal{z-index:1300}
 .crt-next .crt-prev,.crt-next .btn-primary{white-space:nowrap}
 .crt-next .btn:disabled{opacity:.4;cursor:default}
 .crt-gamelbl{font-size:var(--fs-sm);color:var(--muted);white-space:nowrap;margin-right:2px}
+/* The game number is typed, not just read — so it carries a box, the same way
+   the roster's PTS total does. A hover-only affordance would be invisible on
+   the phone this board is actually run from. */
+.crt-gameset{display:inline-flex;align-items:center;gap:4px;cursor:text}
+.crt-game-inp{width:38px;background:var(--dark);border:1px solid var(--border2);color:var(--text-2);font-size:var(--fs-sm);font-weight:700;font-family:inherit;padding:3px 2px;border-radius:7px;text-align:center;font-variant-numeric:tabular-nums;appearance:textfield;-moz-appearance:textfield;transition:border-color .15s,color .15s}
+/* No stepper arrows. An up/down pair sitting next to "Next game" would read as
+   a second way to advance the court, which is exactly what it is not. */
+.crt-game-inp::-webkit-outer-spin-button,.crt-game-inp::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.crt-game-inp:focus{outline:none;color:var(--text);border-color:var(--a-blue,#0071e3)}
 .round-row{background:var(--dark);border:none;border-bottom:1px solid var(--border);border-left:3px solid transparent;overflow:hidden;transition:border-left-color .15s,background .15s}
 .round-row:last-child{border-bottom:none}
 .round-row.live{border-left-color:var(--green);background:rgba(0,113,227,.04)}
@@ -3386,7 +3395,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
          rebuilt to remove. The only bulk control left cannot touch a court that
          has a game on it. -->
     <div class="admin-subsection-label">On the courts now</div>
-    <div class="admin-helper-text">One card per court, and each one moves on its own. <b>Next game</b> takes the top game from the queue below that can actually start, skipping any whose players are still on another court. Tap a slot to swap a player, or drag a name from the bench. <b>Live</b> starts a game clock &mdash; tap it to stop, tap again to start it fresh. The clock button tells viewers the court is ending soon, and the padlock keeps those four together when you generate.</div>
+    <div class="admin-helper-text">One card per court, and each one moves on its own. <b>Next game</b> takes the top game from the queue below that can actually start, skipping any whose players are still on another court. Tap a slot to swap a player, or drag a name from the bench. <b>Live</b> starts a game clock &mdash; tap it to stop, tap again to start it fresh. The clock button tells viewers the court is ending soon, and the padlock keeps those four together when you generate. <b>Game 1</b> counts itself &mdash; type over the number if the court is really on a different game, and the rest of the night counts on from there.</div>
     <div class="court-ctrl-grid" id="courtCtrlGrid"></div>
 
     <div class="admin-btn-row admin-mt">
@@ -4702,20 +4711,69 @@ function courtIsFree(rounds, courtRounds, courtIdx) {
 // opened late did that, because the others shared a round number; with the
 // courts running independently there is no shared number left to share, so the
 // special case became the only case.
-function courtGameNumber(played, courtIdx, onCourt) {
+//
+// `base` is the organiser's correction for this court (see courtGameBaseFor) —
+// nothing to do with the record, and 0 for every court that was never corrected.
+function courtGameNumber(played, courtIdx, onCourt, base) {
   let n = 0;
   for (const g of (Array.isArray(played) ? played : [])) {
     if ((g && g.court) === courtIdx || (courtIdx === 0 && !(g && g.court))) n++;
   }
-  return n + (onCourt ? 1 : 0);
+  const off = Math.floor(Number(base));
+  n += (onCourt ? 1 : 0) + (Number.isFinite(off) ? off : 0);
+  // A game on a court is never Game 0 or below, whatever the correction says.
+  return Math.max(onCourt ? 1 : 0, n);
 }
 
 // Pure: the label on a court card, on the admin board and the hall screen
 // alike. A court between games says so rather than showing the number of a
 // game that has finished.
-function courtGameLabel(played, courtIdx, onCourt) {
+function courtGameLabel(played, courtIdx, onCourt, base) {
   if (!onCourt) return 'Free';
-  return 'Game ' + courtGameNumber(played, courtIdx, true);
+  return 'Game ' + courtGameNumber(played, courtIdx, true, base);
+}
+
+// ── GAME-NUMBER CORRECTION ────────────────────
+// The number on a card is counted out of the record, which is right until the
+// record and the hall disagree: the night was two games old before anyone
+// opened this page, or a game went in twice. The organiser types the number
+// they can see on the court and only the DIFFERENCE is stored, so every game
+// after it counts on from the corrected number by itself.
+
+// Pure: coerce an arbitrary stored value into an int[] of length numCourts, the
+// same shape (and tolerance) as the other per-court arrays. A correction can be
+// negative — the card may be counting too high.
+function normalizeCourtGameBase(courtGameBase, numCourts) {
+  const n = Math.max(0, numCourts || 0);
+  const out = new Array(n).fill(0);
+  if (Array.isArray(courtGameBase)) {
+    for (let i = 0; i < n; i++) {
+      const v = Math.floor(Number(courtGameBase[i]));
+      out[i] = Number.isFinite(v) ? v : 0;
+    }
+  }
+  return out;
+}
+
+// Pure: a NEW normalized correction[] with court `courtIdx` set to `base`.
+// Out-of-range courtIdx is a no-op.
+function setCourtGameBaseAt(courtGameBase, courtIdx, numCourts, base) {
+  const out = normalizeCourtGameBase(courtGameBase, numCourts);
+  if (courtIdx < 0 || courtIdx >= out.length) return out;
+  const v = Math.floor(Number(base));
+  out[courtIdx] = Number.isFinite(v) ? v : 0;
+  return out;
+}
+
+const MAX_GAME_NUMBER = 999;
+
+// Pure: the correction that makes court `courtIdx`'s current game read `want` —
+// the inverse of courtGameNumber with the correction taken back out. Returns
+// null for a number that isn't one, so the caller can refuse it.
+function courtGameBaseFor(played, courtIdx, want) {
+  const n = Math.floor(Number(want));
+  if (!Number.isFinite(n) || n < 1 || n > MAX_GAME_NUMBER) return null;
+  return n - courtGameNumber(played, courtIdx, true, 0);
 }
 
 // Pure: take one game off the queue and put it on court `courtIdx`, recording
@@ -4989,6 +5047,7 @@ function applyCourtDrop(src, courtIdx) {
     courtStatus: drop(normalizeCourtStatus(s.courtStatus, n)),
     courtLocks: drop(normalizeCourtLocks(s.courtLocks, n)),
     courtLive: drop(normalizeCourtLive(s.courtLive, n)),
+    courtGameBase: drop(normalizeCourtGameBase(s.courtGameBase, n)),
     rounds: (Array.isArray(s.rounds) ? s.rounds : []).map(r => ({
       ...r, courts: (Array.isArray(r?.courts) ? r.courts : []).filter((_, i) => i !== courtIdx),
     })),
@@ -5057,10 +5116,11 @@ function renderViewer() {
   // `q` and `pl` are here because the Up Next panel is drawn from the queue and
   // every court card's game number is counted out of the record. Without them a
   // queue edit, or a game finishing, would not repaint the hall screen at all.
-  const courtSig = stateSig({ nc: numCourts, cn: state.courtNumbers, crs: courtRounds, rounds: state.rounds, players: state.players, snu: state.showNextUp, es: state.endingSoon, cs: state.courtStatus, up: state.upcoming, soon: comingSoonOn(), adm: !!sessionStorage.getItem('adminPwd'), q: computeUpNext(state.queue, UPNEXT_SHOWN), pl: (state.played || []).length });
+  const courtSig = stateSig({ nc: numCourts, cn: state.courtNumbers, crs: courtRounds, rounds: state.rounds, players: state.players, snu: state.showNextUp, es: state.endingSoon, cs: state.courtStatus, up: state.upcoming, soon: comingSoonOn(), adm: !!sessionStorage.getItem('adminPwd'), q: computeUpNext(state.queue, UPNEXT_SHOWN), pl: (state.played || []).length, gb: state.courtGameBase });
   if (courtSig !== __lastCourtSig) {
     __lastCourtSig = courtSig;
     const statuses = normalizeCourtStatus(state.courtStatus, numCourts);
+    const gameBase = normalizeCourtGameBase(state.courtGameBase, numCourts);
     const container = document.getElementById('courtsDisplay');
     container.innerHTML = '';
     // "Coming soon" takes the hall screen over completely: no court cards, no
@@ -5075,12 +5135,12 @@ function renderViewer() {
         const round = state.rounds?.[courtRounds[i]];
         const court = round?.courts?.[i];
         if (court) {
-          // Each court counts its own games, the same helper the admin board
-          // uses, so the hall screen and the organiser's phone cannot disagree
-          // about which game a court is on.
+          // Each court counts its own games, the same helper — and the same
+          // typed correction — the admin board uses, so the hall screen and the
+          // organiser's phone cannot disagree about which game a court is on.
           const onCourt = gameIds(court).some(Boolean);
           container.appendChild(buildCourtCard(courtLabel(i), court,
-            courtGameLabel(state.played, i, onCourt), !!state.endingSoon?.[i], statuses[i]));
+            courtGameLabel(state.played, i, onCourt, gameBase[i]), !!state.endingSoon?.[i], statuses[i]));
         }
       }
       // No schedule at all: the loop built nothing and the screen used to go
@@ -6189,6 +6249,7 @@ function renderCourtControls() {
   const statuses = normalizeCourtStatus(state.courtStatus, numCourts);
   const locks = normalizeCourtLocks(state.courtLocks, numCourts);
   const liveAt = normalizeCourtLive(state.courtLive, numCourts);
+  const gameBase = normalizeCourtGameBase(state.courtGameBase, numCourts);
   // Repeat-pairing notes on the card itself, over the whole night — what is on
   // the courts now and everything already played. The card is where a pairing
   // is actually edited, so it is where the warning has to appear.
@@ -6231,15 +6292,24 @@ function renderCourtControls() {
     const ri = courtRounds[i] ?? 0;
     const court = state.rounds?.[ri]?.courts?.[i];
     const onCourt = gameIds(court).some(Boolean);
-    const gameLbl = courtGameLabel(state.played, i, onCourt);
+    const gameLbl = courtGameLabel(state.played, i, onCourt, gameBase[i]);
     const ending = !!state.endingSoon?.[i];
+    // The number is typed, not just read: a court whose count has drifted from
+    // what the hall is calling the game is corrected here, on the card it is
+    // wrong on. A court between games has no number to correct — it says Free.
+    const gameBox = onCourt
+      ? `<label class="crt-gamelbl crt-gameset" title="Which game Court ${courtLabel(i)} is on — type the right number if it has drifted">Game`
+        + `<input type="number" class="crt-game-inp" min="1" max="${MAX_GAME_NUMBER}" step="1" inputmode="numeric"`
+        + ` value="${courtGameNumber(state.played, i, true, gameBase[i])}" onfocus="this.select()"`
+        + ` onchange="setCourtGameNumber(${i},this.value)" aria-label="Game number on court ${courtLabel(i)}"></label>`
+      : `<span class="crt-gamelbl">${escHtml(gameLbl)}</span>`;
     const card = document.createElement('div');
     card.className = 'court-ctrl-card fr-matchup';
     card.innerHTML = `
       <div class="fr-mu-top">
         <div class="fr-mu-court">Court ${courtPicker(i)}</div>
         <div class="crt-next" role="group" aria-label="Games on court ${courtLabel(i)}">
-          <span class="crt-gamelbl">${escHtml(gameLbl)}</span>
+          ${gameBox}
           <button class="btn btn-primary btn-sm crt-prev" onclick="undoCourtGame(${i})" ${onCourt ? '' : 'disabled'}
             title="Put this game back at the top of this court's queue and bring the previous one back"
             aria-label="Previous game on court ${courtLabel(i)}">&larr; Previous game</button>
@@ -6855,6 +6925,33 @@ async function toggleCourtLock(courtIdx) {
   notify(courtLocks[courtIdx]
     ? `Court ${courtLabel(courtIdx)} locked — these four stay together`
     : `Court ${courtLabel(courtIdx)} unlocked`);
+}
+
+// Type the game number this court is actually on. Only the difference from the
+// counted number is stored (see courtGameBaseFor), so the correction sticks:
+// Previous/Next game keep counting from it for the rest of the night, and the
+// hall screen reads the same number as the card it was typed on.
+async function setCourtGameNumber(courtIdx, value) {
+  const numCourts = state.numCourts || 1;
+  const base = courtGameBaseFor(state.played, courtIdx, value);
+  if (base === null) {
+    renderCourtControls(); // put the box back to the number it was showing
+    return notify(`Give a game number between 1 and ${MAX_GAME_NUMBER}.`, 'warn');
+  }
+  const courtGameBase = setCourtGameBaseAt(state.courtGameBase, courtIdx, numCourts, base);
+  // apiPost resolves on a 4xx, so a refused write has to be checked or the box
+  // would sit there showing a number the server never took. (null = a 401 that
+  // has already bounced to the login — nothing to put back.)
+  const res = await apiPost({ courtGameBase });
+  if (res === null) return;
+  if (res.error || res.ok === false) {
+    renderCourtControls();
+    return notify('Could not save the game number.', 'warn');
+  }
+  state.courtGameBase = courtGameBase;
+  renderCourtControls();
+  renderViewer();
+  notify(`Court ${courtLabel(courtIdx)} is on Game ${Math.floor(Number(value))}`);
 }
 
 // Pick which physical court this card is played on. Court numbers are display

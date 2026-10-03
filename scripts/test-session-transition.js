@@ -40,6 +40,7 @@ function baseState(overrides) {
     courtStatus: ['final', 'next', 'live'],
     courtLocks: [true, false, true],
     courtLive: [1700000000000, 0, 1700000000000],
+    courtGameBase: [4, 0, -1],
     sessions: {},
   }, overrides || {});
 }
@@ -79,6 +80,12 @@ if (typeof applySessionDateChange !== 'function') {
     check('fresh day: court statuses reset', Array.isArray(r.state.courtStatus) && r.state.courtStatus.length === 0);
     check('fresh day: court locks reset', Array.isArray(r.state.courtLocks) && r.state.courtLocks.length === 0);
     check('fresh day: court game clocks reset', Array.isArray(r.state.courtLive) && r.state.courtLive.length === 0);
+    // A typed game-number correction is part of how ITS night counted, so it
+    // does not carry: a new night's first game is Game 1 again.
+    check('fresh day: game-number correction reset',
+      Array.isArray(r.state.courtGameBase) && r.state.courtGameBase.length === 0);
+    check('snapshot keeps the leaving day game-number correction',
+      JSON.stringify((r.state.sessions['2026-07-01'] || {}).courtGameBase) === JSON.stringify([4, 0, -1]));
     check('fresh day: numCourts carried over', r.state.numCourts === 3);
     check('fresh day: courtNumbers carried over', JSON.stringify(r.state.courtNumbers) === JSON.stringify([5, 6, 7]));
     check('leaving day snapshotted into sessions', !!(r.state.sessions && r.state.sessions['2026-07-01']));
@@ -98,6 +105,10 @@ if (typeof applySessionDateChange !== 'function') {
     check('B: rounds RESTORED', Array.isArray(back.state.rounds) && back.state.rounds.length === 1);
     check('B: numCourts RESTORED', back.state.numCourts === 3);
     check('B: courtNumbers RESTORED', JSON.stringify(back.state.courtNumbers) === JSON.stringify([5, 6, 7]));
+    // Reopening a night must show the numbers that night's cards actually had,
+    // so the correction comes back with `played` rather than being cleared.
+    check('B: game-number correction RESTORED',
+      JSON.stringify(back.state.courtGameBase) === JSON.stringify([4, 0, -1]));
     // The restored day is now the LIVE day, so it must not linger in the
     // sessions map (else the history calendar shows the active day as history).
     check('B: restored day removed from sessions map', !(back.state.sessions || {})['2026-07-01']);

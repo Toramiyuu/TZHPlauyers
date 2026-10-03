@@ -444,6 +444,11 @@ const MAX_ROSTER_NAME = 40;
 // and small enough that a malformed client cannot grow the blob without bound.
 const MAX_QUEUE = 200;
 const MAX_PLAYED = 400;
+// The typed game-number correction (state.courtGameBase) rides the same merge:
+// one integer per court slot. The venue has four courts; the cap is only there
+// so a malformed client cannot post an array of a million of them.
+const MAX_COURT_SLOTS = 16;
+const MAX_GAME_NUMBER = 999;
 
 // Pure: coerce an arbitrary value into a clean list of games. A game needs four
 // slots; each slot is a player id string or '' for an empty seat, because a
@@ -654,6 +659,10 @@ function applySessionDateChange(state, newDate, today) {
       numCourts: state.numCourts || 1,
       courtNumbers: state.courtNumbers || [],
       courtRounds: state.courtRounds || [],
+      // How the night numbered its games, if the organiser corrected it. It
+      // rides with `played` for the same reason `played` rides with `rounds`:
+      // the numbers on the cards were the numbers on THAT night's courts.
+      courtGameBase: state.courtGameBase || [],
       feeTier: Payments.tierOf(state.feeTier),
       drawAt: SD.scheduledDrawAt(state.sessionDate),
     };
@@ -675,6 +684,7 @@ function applySessionDateChange(state, newDate, today) {
       next.numCourts = saved.numCourts || state.numCourts || 1;
       next.courtNumbers = Array.isArray(saved.courtNumbers) ? saved.courtNumbers : [];
       next.courtRounds = Array.isArray(saved.courtRounds) ? saved.courtRounds : [];
+      next.courtGameBase = Array.isArray(saved.courtGameBase) ? saved.courtGameBase : [];
       next.feeTier = Payments.tierOf(saved.feeTier);
       delete sessions[newDate]; // it's the live day now, not a saved past day
     } else {
@@ -687,6 +697,7 @@ function applySessionDateChange(state, newDate, today) {
       next.queue = [];
       next.played = [];
       next.courtRounds = [];
+      next.courtGameBase = [];
       next.feeTier = Payments.DEFAULT_TIER; // a fresh night starts on the default fee
     }
     next.currentRound = 0;
@@ -697,6 +708,9 @@ function applySessionDateChange(state, newDate, today) {
     next.courtStatus = [];
     next.courtLocks = [];
     next.courtLive = [];
+    // A typed game-number correction is NOT one of those flags: it is part of
+    // how its night counted, so it travels with `played` — cleared for a fresh
+    // day, restored with the rest when a saved day is reopened (both above).
     // Same reasoning for "gone home": having left at 10pm on Friday says nothing
     // about whether someone is playing on Sunday.
     next.wentHome = [];
@@ -1446,6 +1460,19 @@ const handler = async function handler(req, res) {
         return res.status(400).json({ error: 'Invalid played list.' });
       }
       updates.played = normalizeGameList(updates.played, MAX_PLAYED, true);
+    }
+    // The per-court game-number correction rides the merge too: one small
+    // signed integer per court slot, so a card can be told which game it is
+    // really on. Same treatment as the lists above — clean the shape, keep the
+    // blob from growing, and never trust the size of the number.
+    if (updates.courtGameBase !== undefined) {
+      if (!Array.isArray(updates.courtGameBase)) {
+        return res.status(400).json({ error: 'Invalid game numbering.' });
+      }
+      updates.courtGameBase = updates.courtGameBase.slice(0, MAX_COURT_SLOTS).map((v) => {
+        const n = Math.trunc(Number(v));
+        return Number.isFinite(n) ? Math.max(-MAX_GAME_NUMBER, Math.min(MAX_GAME_NUMBER, n)) : 0;
+      });
     }
     // Phone bottom-bar shortcuts ride the generic merge, but only as a clean list of
     // 1–4 known, unique tab ids (canonical order is enforced server-side).
