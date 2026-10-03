@@ -628,13 +628,10 @@ body.in-3d #joinModal{z-index:1300}
 .reg-day-count{min-width:18px;padding:0 5px;border-radius:100px;background:var(--green-tint);color:var(--green-light);font-size:11px;font-weight:700;line-height:18px;text-align:center}
 .reg-day.on .reg-day-count{background:rgba(255,255,255,.28);color:#fff}
 .reg-search{width:100%;max-width:340px;margin-bottom:12px}
-.reg-players{display:flex;gap:8px;flex-wrap:wrap}
-.reg-chip{display:flex;align-items:center;gap:7px;border:1px solid var(--border2);background:var(--card);color:var(--text);border-radius:100px;padding:5px 13px 5px 6px;font-size:var(--fs-sm);cursor:pointer;font-family:inherit;min-height:40px;transition:var(--transition)}
-.reg-chip:hover{border-color:var(--green-line)}
-.reg-chip.on{background:var(--green-tint);border-color:var(--green-line);color:var(--green-light);font-weight:600}
-.reg-chip-tick{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;transition:var(--transition)}
-.reg-chip.on .reg-chip-tick{background:var(--green);border-color:var(--green)}
-.reg-empty{color:var(--muted);font-size:13px;padding:6px 0}
+/* Player cards reuse the Session grid's .roster-grid/.rc look; .reg-card only
+   strips the native <button> chrome so the card matches the Session <div>. */
+.reg-card{font:inherit;color:inherit;text-align:center;width:100%;min-width:0}
+.reg-empty{grid-column:1/-1;color:var(--muted);font-size:13px;padding:6px 0}
 /* Session tab: "Add regulars" prompt banner */
 .reg-prompt{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between;background:var(--green-tint);border:1px solid var(--green-line);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:12px}
 .reg-prompt-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -3880,7 +3877,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
       placeholder="Search players..." autocomplete="off" aria-label="Search players"
       oninput="renderRegularChips()"
       onkeydown="if(event.key==='Escape'){this.value='';renderRegularChips();}">
-    <div class="reg-players" id="regPlayers"></div>
+    <div class="roster-grid reg-players" id="regPlayers"></div>
     <div class="admin-btn-row admin-mt">
       <button class="btn btn-primary btn-sm" onclick="saveRegulars()">Save regulars</button>
     </div>
@@ -8867,11 +8864,34 @@ function renderRegularChips() {
     return;
   }
   const chosen = new Set((regularsDraft && regularsDraft[regDaySel]) || []);
-  wrap.innerHTML = list.map(rp => {
+  // Same card wall as the Session grid: ticked regulars first, an "Everyone
+  // else" divider, then the rest; names A→Z within each group.
+  const ordered = regularsOrder(list, chosen);
+  const nOn = ordered.filter(rp => chosen.has(rp.id)).length;
+  const cards = [];
+  ordered.forEach((rp, i) => {
     const on = chosen.has(rp.id);
-    return `<button type="button" class="reg-chip${on ? ' on' : ''}" onclick="toggleRegularChip('${rp.id}')">
-      <span class="reg-chip-tick">${on ? '✓' : ''}</span>${escHtml(rp.name)}</button>`;
-  }).join('');
+    if (!on && nOn > 0 && i === nOn) {
+      cards.push(`<div class="roster-divider" aria-hidden="true"><span class="roster-divider-label">Everyone else</span></div>`);
+    }
+    cards.push(`<button type="button" class="rc reg-card${on ? ' in-session' : ''}" aria-pressed="${on}" onclick="toggleRegularChip('${rp.id}')">
+      <span class="rc-check">✓</span>
+      <span class="rc-photo">${avatarHTML(rp, 54)}</span>
+      <span class="rc-name">${escHtml(rp.name)}</span>
+      <span class="rc-sessions-ref">${sessionsAttended(rp.id)} sessions</span>
+    </button>`);
+  });
+  wrap.innerHTML = cards.join('');
+}
+
+// Ticked players first, then the rest; A→Z (case-insensitive) within each.
+function regularsOrder(list, chosen) {
+  const byName = (a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' });
+  return [...list].sort((a, b) => {
+    const aOn = chosen.has(a.id), bOn = chosen.has(b.id);
+    if (aOn !== bOn) return aOn ? -1 : 1;
+    return byName(a, b);
+  });
 }
 
 function selectRegularDay(wd) {

@@ -115,5 +115,23 @@ const ROSTER = ['p0', 'p1', 'p2', 'p5', 'p6'];
   check('restored saved Monday keeps its own players, not regulars', eq(r.state.players, [{ id: 'p5', name: 'Alex' }]));
 }
 
+// ── Settings editor order (index.html regularsOrder): ticked first, A→Z within ──
+{
+  const html = require('fs').readFileSync(require('path').join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  const start = html.indexOf('function regularsOrder(');
+  const end = html.indexOf('\n}\n', start);
+  check('regularsOrder exists in index.html', start !== -1 && end !== -1);
+  const regularsOrder = new Function(html.slice(start, end + 2) + '\nreturn regularsOrder;')();
+  const list = [
+    { id: 'a', name: 'Thomas' }, { id: 'b', name: 'dean' }, { id: 'c', name: 'Alex' },
+    { id: 'd', name: 'Kuan Ming' }, { id: 'e', name: 'Eric' }, { id: 'f', name: 'Chuin Han' },
+  ];
+  const ids = (arr) => arr.map(p => p.id).join('');
+  check('ticked float to the top, both groups A-Z (case-insensitive)',
+    ids(regularsOrder(list, new Set(['a', 'e', 'f']))) === 'feacbd');
+  check('nobody ticked -> plain A-Z', ids(regularsOrder(list, new Set())) === 'cfbeda');
+  check('input list is not mutated', ids(list) === 'abcdef');
+}
+
 console.log(`\nregulars tests: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
