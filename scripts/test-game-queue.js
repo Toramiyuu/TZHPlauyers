@@ -80,7 +80,7 @@ const NAMES = [
   'gameIds', 'liveCourtIds', 'gameReadiness',
   'queueCourtOf', 'laneOf', 'nextInLane', 'unshiftIntoLane', 'moveWithinLane', 'parkedLanes',
   'queueRowState', 'queueFromLaneOrder',
-  'waitMinutes', 'playedGameCounts', 'waitHeatLevel', 'waitBandLabel',
+  'waitMinutes', 'playedGameCounts', 'roundsRested', 'restBand', 'restBandLabel', 'restHeatClass',
   'liveBoardRow', 'historicGamesOf', 'courtIsFree', 'takeNextGame', 'putGameBack',
 ];
 const srcs = NAMES.map(n => {
@@ -88,26 +88,26 @@ const srcs = NAMES.map(n => {
   if (!s) { console.error(`FAIL: ${n}() not found in public/index.html`); process.exit(1); }
   return s;
 });
-// The band constants are top-level `const`s, so extractFn cannot see them.
-// Reading them out of the source keeps this test honest: retune them in
-// index.html and the expectations below follow rather than silently diverging.
-const bandMatch = html.match(/const WAIT_BAND_MINUTES\s*=\s*(\d+)/);
-const capMatch = html.match(/const WAIT_MAX_BAND\s*=\s*(\d+)/);
-if (!bandMatch || !capMatch) {
-  console.error('FAIL: WAIT_BAND_MINUTES / WAIT_MAX_BAND not found in public/index.html');
+// The cap is a top-level `const`, so extractFn cannot see it. Reading it out of
+// the source keeps this test honest: retune it in index.html and the
+// expectations below follow rather than silently diverging.
+const capMatch = html.match(/const REST_MAX_BAND\s*=\s*(\d+)/);
+const dangerMatch = html.match(/const REST_DANGER\s*=\s*(\d+)/);
+if (!capMatch || !dangerMatch) {
+  console.error('FAIL: REST_MAX_BAND / REST_DANGER not found in public/index.html');
   process.exit(1);
 }
-const BAND = Number(bandMatch[1]);
 const CAP = Number(capMatch[1]);
+const DANGER = Number(dangerMatch[1]);
 const api = new Function(
-  `const WAIT_BAND_MINUTES = ${BAND}; const WAIT_MAX_BAND = ${CAP};\n`
+  `const REST_MAX_BAND = ${CAP}; const REST_DANGER = ${DANGER};\n`
   + `${srcs.join('\n')}; return { ${NAMES.join(', ')} };`
 )();
 const {
   gameIds, liveCourtIds, gameReadiness, waitMinutes,
   queueCourtOf, laneOf, nextInLane, unshiftIntoLane, moveWithinLane, parkedLanes, queueRowState,
   queueFromLaneOrder,
-  playedGameCounts, waitHeatLevel, waitBandLabel, liveBoardRow, historicGamesOf,
+  playedGameCounts, roundsRested, restBand, restBandLabel, restHeatClass, liveBoardRow, historicGamesOf,
   courtIsFree, takeNextGame, putGameBack,
 } = api;
 
@@ -520,15 +520,37 @@ check('gameIds tolerates a missing game', gameIds(null).length === 0);
   check('a player with no games is absent', counts.zzz === undefined);
 }
 
-// ── the redness ramp ──
+// ── rounds rested, on the court they last played on ──
 {
-  check('a fresh player has no tint', waitHeatLevel(0) === 0 && waitHeatLevel(BAND - 1) === 0);
-  check('the ramp starts at one band', waitHeatLevel(BAND) === 1);
-  check('and deepens by band', waitHeatLevel(BAND * 3) === Math.min(CAP, 3));
-  check('and caps', waitHeatLevel(BAND * 99) === CAP);
-  check('junk reads as no tint', waitHeatLevel('nope') === 0);
-  check('the top band is open ended', waitBandLabel(CAP) === `${CAP * BAND}+ MIN`);
-  check('a middle band names its range', waitBandLabel(1) === `${BAND}–${BAND * 2 - 1} MIN`);
+  const g = (court, t1, t2, endedAt) => ({ court, team1: t1, team2: t2, startedAt: 1, endedAt });
+  // a,b,c,d play court 0 round 1; court 0 then runs round 2 (ends) and round 3 (live).
+  // Court 1 games never count for them.
+  const played = [
+    g(0, ['a', 'b'], ['c', 'd'], 100),
+    g(1, ['e', 'f'], ['g', 'h'], 150),
+    g(0, ['i', 'j'], ['k', 'l'], 200),
+  ];
+  const ps = ['a', 'e', 'i', 'z', 'm'].map(id => ({ id }));
+  const busyBoth = roundsRested(played, ps, new Set(['m']), new Set([0, 1]));
+  check('round 3 live on their court = rested 2', busyBoth.a === 2);
+  check('only their own court counts', busyBoth.e === 1);
+  check('court started its next game = rested 1', busyBoth.i === 1);
+  check('nobody on a court is resting', busyBoth.m === 0);
+  check('not played yet reads null', busyBoth.z === null);
+  check('an empty court adds nothing', roundsRested(played, ps, new Set(), new Set()).i === 0);
+}
+
+// ── the bench groups, and red from 3 ──
+{
+  check('zero is its own group', restBand(0) === 0);
+  check('and caps', restBand(99) === CAP);
+  check('junk reads as group zero', restBand('nope') === 0);
+  check('group zero says they just played', restBandLabel(0) === 'JUST PLAYED');
+  check('one round is singular', restBandLabel(1) === 'RESTED 1 ROUND');
+  check('two rounds is plural', restBandLabel(2) === 'RESTED 2 ROUNDS');
+  check('the top group is open ended', restBandLabel(CAP) === `RESTED ${CAP}+ ROUNDS`);
+  check('below the danger line is not red', restHeatClass(DANGER - 1) === '');
+  check('the danger line is red', restHeatClass(DANGER) !== '');
 }
 
 // ── report ──

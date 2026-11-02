@@ -75,16 +75,17 @@ for (const [fn, what] of READERS) {
   check(`${what} does not rank by rounds`, !/computeRestStreaks|uptoRound/.test(src));
 }
 
-// ── the bench shows minutes, and says so ──
+// ── the bench groups by rounds not played, and says so ──
+// Asked for by the organiser (2026-11-02): the bench reads in rounds rested on
+// the court each player last played on (roundsRested), red from 3. The minutes
+// still break ties inside a group, and every OTHER reader still ranks by minutes.
 {
   const src = extractFn('renderRestingPlayers', html) || '';
-  check('the bench groups by the redness band', /waitHeatLevel\s*\(/.test(src));
-  check('the bench labels each band', /waitBandLabel\s*\(/.test(src));
-  // "3 ROUNDS" was the old caps label. A stale one would be a lie about a
-  // number that is now minutes.
-  check('no ROUNDS label survives on the bench', !/ROUND\$\{|ROUNDS?'/.test(src));
-  // Somebody who has not played at all is measured from the start of the night,
-  // which ranks them correctly but must not be shown as though they had a game.
+  check('the bench counts rounds rested', /roundsRested\s*\(/.test(src));
+  check('the bench groups by round count', /restBand\s*\(/.test(src));
+  check('the bench labels each group', /restBandLabel\s*\(/.test(src));
+  check('no minute band label survives on the bench', !/MIN`|waitBandLabel/.test(src));
+  // Somebody who has not played at all must not be shown as though they had a game.
   check('somebody who has not played yet is said to have not played',
     /hasn't had a game yet|NOT PLAYED YET/.test(src));
 }
@@ -121,7 +122,7 @@ if (failures.length) {
 } else {
   console.log('  PASS  the round-counting helpers stay deleted');
   console.log('  PASS  bench, slot picker, auto-fill and queue picker all read waitMinutes');
-  console.log('  PASS  the bench groups and labels by minutes, not rounds');
+  console.log('  PASS  the bench groups and labels by rounds rested');
   console.log('  PASS  a player on a court is never counted as waiting');
   console.log('\nRESULT: PASS — all bench-watch assertions green.');
   process.exit(0);

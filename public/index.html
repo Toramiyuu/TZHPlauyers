@@ -4523,10 +4523,10 @@ function parkedLanes(queue, numCourts) {
   return [...counts.entries()].sort((a, b) => a[0] - b[0]).map(([court, count]) => ({ court, count }));
 }
 
-// How long a wait has to be to move up one redness band on the bench, and the
-// band the ramp stops at. Five minutes is about a third of a game here.
-const WAIT_BAND_MINUTES = 5;
-const WAIT_MAX_BAND = 4;
+// The bench groups by rounds rested; the group the count stops at ("4+"), and
+// the count that turns a player red because they have sat too long.
+const REST_MAX_BAND = 4;
+const REST_DANGER = 3;
 
 // Pure: the four ids in a game, in seat order, empties included.
 function gameIds(game) {
@@ -4636,21 +4636,51 @@ function pairCountsAll(rounds, played) {
   return out;
 }
 
-// Pure: minutes -> redness band 0..4, the same ramp restHeatLevel drove off
-// round counts. One band per WAIT_BAND_MINUTES, capped.
-function waitHeatLevel(minutes) {
-  const m = Math.floor(Number(minutes));
-  if (!Number.isFinite(m) || m < WAIT_BAND_MINUTES) return 0;
-  return Math.min(WAIT_MAX_BAND, Math.floor(m / WAIT_BAND_MINUTES));
+// Pure: rounds rested, counted on the court each player LAST played on. Played
+// court 1's round 1: when court 1 starts round 2 they have rested 1 round, at
+// round 3 it is 2. So it is the games finished on that court since theirs, plus
+// the one on it now. Somebody on a court reads 0; somebody who has not played
+// at all reads null (the bench says "not played yet" for them).
+function roundsRested(played, players, liveIds, busyCourts) {
+  const out = {};
+  const log = Array.isArray(played) ? played : [];
+  const live = liveIds instanceof Set ? liveIds : new Set(liveIds || []);
+  const busy = busyCourts instanceof Set ? busyCourts : new Set(busyCourts || []);
+  const last = {};
+  for (const g of log) {
+    const e = Math.floor(Number(g && g.endedAt)) || 0;
+    if (!e) continue;
+    for (const id of gameIds(g)) if (id && (!last[id] || e > last[id].e)) last[id] = { e, c: g.court };
+  }
+  for (const p of (Array.isArray(players) ? players : [])) {
+    if (!p || !p.id) continue;
+    if (live.has(p.id)) { out[p.id] = 0; continue; }
+    const l = last[p.id];
+    if (!l) { out[p.id] = null; continue; }
+    const since = log.filter(g => g && g.court === l.c && (Math.floor(Number(g.endedAt)) || 0) > l.e).length;
+    out[p.id] = since + (busy.has(l.c) ? 1 : 0);
+  }
+  return out;
 }
 
-// Pure: the caps label over a bench band. The top band is open-ended, so it
-// says "20+ MIN" rather than claiming an upper bound it does not have.
-function waitBandLabel(level) {
-  const l = Math.max(0, Math.min(WAIT_MAX_BAND, Math.floor(Number(level)) || 0));
-  const from = l * WAIT_BAND_MINUTES;
-  if (l >= WAIT_MAX_BAND) return `${from}+ MIN`;
-  return `${from}–${from + WAIT_BAND_MINUTES - 1} MIN`;
+// Pure: rounds rested -> bench group 0..REST_MAX_BAND, capped ("4+").
+function restBand(rounds) {
+  const n = Math.floor(Number(rounds));
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.min(REST_MAX_BAND, n);
+}
+
+// Pure: the caps label over a bench group. The top group is open-ended.
+function restBandLabel(level) {
+  const l = restBand(level);
+  if (l === 0) return 'JUST PLAYED';
+  return `RESTED ${l}${l >= REST_MAX_BAND ? '+' : ''} ROUND${l === 1 ? '' : 'S'}`;
+}
+
+// Pure: red from REST_DANGER rounds; nothing below it.
+function restHeatClass(level) {
+  const l = restBand(level);
+  return l < REST_DANGER ? '' : (l >= REST_MAX_BAND ? ' heat-4' : ' heat-3');
 }
 
 // Pure: the live board is ONE row holding what is on each court right now.
@@ -6458,49 +6488,42 @@ function renderRestingPlayers(courtRounds) {
   const gone = wentHomeSet();
   const resting = (state.players || []).filter(p => !activePlayers.has(p.id) && !gone.has(p.id));
 
-  // How long each resting player has actually been sitting, in minutes since
-  // their last game ended. This used to count ROUNDS, which stopped meaning
-  // anything the moment courts stopped sharing them: sitting out one long deuce
-  // game is a longer wait than sitting out two quick ones, and only a clock can
-  // say so. Longest wait first.
+  // Grouped by rounds rested on the court they last played on (roundsRested).
+  // Not played yet first, then most rounds; minutes since they came off break
+  // ties inside a group.
+  const busyCourts = new Set();
+  for (let c = 0; c < numCourts; c++) {
+    if (gameIds(state.rounds?.[courtRounds?.[c] ?? 0]?.courts?.[c]).some(Boolean)) busyCourts.add(c);
+  }
+  const rested = roundsRested(state.played, state.players, activePlayers, busyCourts);
   const mins = waitMinutes(state.played, state.players, activePlayers, Date.now());
-  const counts = playedGameCounts(state.played);
   const withCount = resting
-    .map(p => ({ p, n: mins[p.id] || 0, fresh: !counts[p.id] }))
-    .sort((a, b) => b.n - a.n || (a.p.name || '').localeCompare(b.p.name || ''));
+    .map(p => ({ p, r: rested[p.id], n: mins[p.id] || 0 }))
+    .map(x => Object.assign(x, { fresh: x.r === null || x.r === undefined }))
+    .sort((a, b) => (b.fresh - a.fresh) || ((b.r || 0) - (a.r || 0)) || b.n - a.n
+      || (a.p.name || '').localeCompare(b.p.name || ''));
 
   // Same bench as the Friendly board (.frb-bench reused directly): a caps group
-  // label per wait length (like the bench's RED/BLUE) over rails of chips that
+  // label per round count (like the bench's RED/BLUE) over rails of chips that
   // tap-to-arm or drag onto a court slot. Dropping a playing player here rests them.
-  // Grouped by redness band rather than by exact minute: one group per distinct
-  // number would be a dozen groups of one on a busy night. The exact minutes
-  // stay on each chip, where the organiser looks when deciding between two
-  // people in the same band.
   const groups = [];
-  for (const { p, n, fresh } of withCount) {
-    const level = waitHeatLevel(n);
+  for (const x of withCount) {
+    const level = x.fresh ? 'fresh' : restBand(x.r);
     const g = groups[groups.length - 1];
-    if (g && g.level === level) g.players.push({ p, n, fresh });
-    else groups.push({ level, players: [{ p, n, fresh }] });
+    if (g && g.level === level) g.players.push(x);
+    else groups.push({ level, players: [x] });
   }
   const blocks = groups.map(({ level, players }) => {
-    const heat = level ? ` heat-${level}` : '';
-    const chips = players.map(({ p, n, fresh }) => {
-      // Somebody who has not played at all is measured from the start of the
-      // night, which is the right way to rank them but the wrong thing to show:
-      // a bare number reads as though they played and have sat since.
+    const heat = level === 'fresh' ? '' : restHeatClass(level);
+    const chips = players.map(({ p, r, fresh }) => {
       const title = fresh
         ? `${p.name} hasn't had a game yet tonight`
-        : `${p.name} came off ${n} minute${n === 1 ? '' : 's'} ago`;
-      // The chip still drags and taps as before; the trailing button is the
+        : `${p.name} has rested ${r} round${r === 1 ? '' : 's'}`;
+    // The chip still drags and taps as before; the trailing button is the
       // one-tap "they've left" so it can be done from the board being watched.
       return `<span class="frb-chip rest-chip${heat}${__crtSel.pid === p.id ? ' picked' : ''}" draggable="true" onclick="crtPickPlayer('${p.id}')" ondragstart="crtDragStart(event,'${p.id}')" title="${escHtml(title)}">${avatarHTML(p, 22)} ${escHtml(p.name)}${goneHomeBtnHTML(p, false)}</span>`;
     }).join('');
-    // Everyone in the top band who has not played yet is the group the label
-    // should name, because "20+ MIN" beside somebody who has never been on is
-    // technically true and reads as though they had a game at nine o'clock.
-    const allFresh = players.every(x => x.fresh);
-    const label = allFresh ? 'NOT PLAYED YET' : waitBandLabel(level);
+    const label = level === 'fresh' ? 'NOT PLAYED YET' : restBandLabel(level);
     return `<div class="frb-side rest-side${heat}">${label}</div><div class="frb-rail">${chips}</div>`;
   }).join('');
 
@@ -6517,7 +6540,7 @@ function renderRestingPlayers(courtRounds) {
 
   strip.innerHTML = `
     <div class="frb-bench" ondragover="frBenchDragOver(event,this)" ondragleave="this.classList.remove('frb-bench-drop')" ondrop="crtDropToBench(event,this)">
-      <div class="frb-bench-hint">Bench: waiting now, longest wait first, in minutes since their last game came off. Open a queued game and drag a name into a seat, or tap a name then a court slot up top. Drop a name here to take them off a court. The house button marks someone gone home.</div>
+      <div class="frb-bench-hint">Bench: waiting now, grouped by rounds rested on the court they last played on. Red from 3 rounds. Drag a name into a queued game's seat, or tap a name then a court slot up top. Drop a name here to take them off a court. The house button marks someone gone home.</div>
       ${blocks || `<div class="frb-rail empty">Everyone's on a court.</div>`}
       ${goneBlock}
     </div>
