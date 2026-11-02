@@ -708,6 +708,7 @@ function applySessionDateChange(state, newDate, today) {
     next.courtStatus = [];
     next.courtLocks = [];
     next.courtLive = [];
+    next.courtWinner = [];
     // A typed game-number correction is NOT one of those flags: it is part of
     // how its night counted, so it travels with `played` — cleared for a fresh
     // day, restored with the rest when a saved day is reopened (both above).

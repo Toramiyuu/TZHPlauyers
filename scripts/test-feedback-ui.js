@@ -33,13 +33,14 @@ const escHtml = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt
 check('feedback.js is served to the page', html.includes('<script src="/feedback.js"></script>'));
 
 // ── member card: render it for each state ──
-// `fbNight` is the night on screen; '' means "whatever the payload leads with".
+// `fbNight` is the OPEN night; '' means every night is closed (how the card opens).
+// Left out, it opens the fixtures' latest night, so the form/read-back can be checked.
 function makeCard(fbEditing, fbNight) {
   return new Function('escHtml', 'window', 'Feedback',
     'let fbEditing = ' + (fbEditing ? 'true' : 'false') + ';'
-    + 'let fbNight = ' + JSON.stringify(fbNight || '') + ';'
+    + 'let fbNight = ' + JSON.stringify(fbNight === undefined ? '2026-09-18' : fbNight) + ';'
     + fn('fbNightLabel') + ';' + fn('fbChipsHtml') + ';' + fn('fbLabelOf') + ';'
-    + fn('fbNightsOf') + ';' + fn('fbSelectedNight') + ';' + fn('fbNightPickerHtml') + ';' + fn('mbFeedbackHtml')
+    + fn('fbNightsOf') + ';' + fn('fbSelectedNight') + ';' + fn('fbNightStateHtml') + ';' + fn('fbNightBodyHtml') + ';' + fn('mbFeedbackHtml')
     + '; return mbFeedbackHtml;')(escHtml, { Feedback: FB }, FB);
 }
 // One night, unanswered — the shape a member sees the first time they look.
@@ -58,7 +59,7 @@ check('no card when the payload claims to be open but lists no nights',
   card({ feedback: payload({ open: true }, []) }) === '');
 
 const form = card({ feedback: OPEN });
-check('the night IS the title, named and dated ("Friday 18/9/26")', form.includes('<b>Friday 18/9/26</b>'));
+check('the open night is its row, named and dated ("Friday 18/9/26")', form.includes('>Friday 18/9/26<') && form.includes('aria-expanded="true"'));
 check('the latest night says so, so they know which one they are answering',
   form.includes('Your latest session.'));
 check('fbNightLabel spells out every weekday and a 2-digit year', (() => {
@@ -94,7 +95,7 @@ const answered = (over) => payload(null, [night(Object.assign({ mine: MINE, awar
 const done = card({ feedback: answered() });
 check('an existing reply shows the summary, not the form', done.includes('Thanks')
   && !done.includes('id="fbSendBtn"') && !done.includes('id="fbGoodNote"'));
-check('the answered night keeps the date as its title', done.includes('<b>Friday 18/9/26</b>'));
+check('the answered night keeps its dated row', done.includes('>Friday 18/9/26<'));
 check('the summary reads back the chosen options with their labels',
   done.includes('Games were at a good level') && done.includes('Waited too long between games'));
 check('good and bad read-backs are distinguishable', done.includes('<li class="good">') && done.includes('<li class="bad">'));
@@ -138,32 +139,25 @@ check('a label from the payload is escaped too', (() => {
 const OLDER = night({ date: '2026-09-13', latest: false, awardable: false });
 const THREE = payload(null, [night(), OLDER, night({ date: '2026-09-11', latest: false, awardable: false, mine: MINE })]);
 
-check('one night on the list means no picker at all (nothing to pick between)',
-  !card({ feedback: OPEN }).includes('fb-more'));
-const picked = card({ feedback: THREE });
-check('the picker is a collapsed row, not an always-open list',
-  /<details class="fb-more"><summary>[^<]*<\/summary>/.test(picked) && picked.includes('Pick another night'));
-check('the collapsed row is closed by default (the latest night is the point of the card)',
-  !/<details class="fb-more" open/.test(picked));
-check('every night they played is a row, the current one included and marked',
-  (picked.match(/class="fb-night"/g) || []).length === 3
-  && /aria-current="true"[^>]*onclick="fbPickNight\('2026-09-18'\)"/.test(picked)
-  && picked.includes("fbPickNight('2026-09-13')") && picked.includes("fbPickNight('2026-09-11')"));
-check('each row says where it stands: showing, sent, on offer, or not yet',
-  picked.includes('>Showing<') && picked.includes('fb-night-state done">Sent<')
-  && picked.includes('>Not yet<'));
-check('a night still worth points advertises them in the row', (() => {
+const closed = makeCard(false, '')({ feedback: THREE });
+check('the card opens collapsed: every night a row, no form until one is picked',
+  (closed.match(/class="fb-night"/g) || []).length === 3 && !closed.includes('fbSendBtn')
+  && !closed.includes('aria-expanded="true"'));
+check('a single night is still a row they open (the list is the card)',
+  (makeCard(false, '')({ feedback: OPEN }).match(/class="fb-night"/g) || []).length === 1);
+check('each row opens its own night',
+  closed.includes("fbPickNight('2026-09-18')") && closed.includes("fbPickNight('2026-09-13')") && closed.includes("fbPickNight('2026-09-11')"));
+check('each row says where it stands: sent, on offer, or not yet',
+  closed.includes('fb-night-state done">Sent<') && closed.includes('>+5 points<') && closed.includes('>Not yet<'));
+check('the rows are dated', closed.includes('>Friday 18/9/26<') && closed.includes('>Sunday 13/9/26<') && closed.includes('>Friday 11/9/26<'));
+check('opening a night puts its form right under its row, and only its', (() => {
   const c = makeCard(false, '2026-09-13')({ feedback: THREE });
-  return c.includes('>+5 points<');
+  const i = c.indexOf("fbPickNight('2026-09-13')"), body = c.indexOf('fb-night-body');
+  return (c.match(/fb-night-body/g) || []).length === 1 && body > i && body < c.indexOf("fbPickNight('2026-09-11')");
 })());
-check('the rows are dated the same way as the title', picked.includes('>Sunday 13/9/26<') && picked.includes('>Friday 11/9/26<'));
-check('the picker rides along on both faces of the card, so it is never a dead end',
-  picked.includes('fb-more') && card({ feedback: payload(null, [night({ mine: MINE, awardable: false }), OLDER]) }).includes('fb-more'));
-
-check('picking an older night retitles the card and drops the points promise', (() => {
+check('an older night drops the points promise from its form', (() => {
   const c = makeCard(false, '2026-09-13')({ feedback: THREE });
-  return c.includes('<b>Sunday 13/9/26</b>') && !c.includes('class="fb-pts"')
-    && !c.includes('Your latest session.') && c.includes('Send feedback</button>');
+  return !c.includes('class="fb-pts"') && !c.includes('Your latest session.') && c.includes('Send feedback</button>');
 })());
 check('an older night explains why there are no points, rather than going quiet', (() => {
   const c = makeCard(false, '2026-09-13')({ feedback: THREE });
@@ -171,17 +165,16 @@ check('an older night explains why there are no points, rather than going quiet'
 })());
 check('an older night that was already answered reads back, with no points excuse', (() => {
   const c = makeCard(false, '2026-09-11')({ feedback: THREE });
-  return c.includes('<b>Friday 11/9/26</b>') && c.includes('sat out three rounds')
-    && !/Points are for your latest session/.test(c);
+  return c.includes('sat out three rounds') && !/Points are for your latest session/.test(c);
 })());
-check('a stale pick falls back to the latest night instead of blanking the card', (() => {
+check('a stale pick leaves every night closed instead of opening the wrong one', (() => {
   const c = makeCard(false, '2026-08-01')({ feedback: THREE });
-  return c.includes('<b>Friday 18/9/26</b>');
+  return !c.includes('fb-night-body') && (c.match(/class="fb-night"/g) || []).length === 3;
 })());
 check('a night with no date is dropped rather than rendered as an empty row',
-  !card({ feedback: payload(null, [night(), { date: '', mine: null }]) }).includes('fb-more'));
-check('picking a night repaints in place and never leaves the edit form open',
-  fn('fbPickNight').includes('fbNight = iso') && fn('fbPickNight').includes('fbEditing = false')
+  (makeCard(false, '')({ feedback: payload(null, [night(), { date: '', mine: null }]) }).match(/class="fb-night"/g) || []).length === 1);
+check('tapping a night opens it, tapping it again closes it, and never leaves the edit form open',
+  fn('fbPickNight').includes("fbNight = (iso && iso !== fbNight) ? iso : ''") && fn('fbPickNight').includes('fbEditing = false')
   && fn('fbPickNight').includes('fbRepaint()'));
 
 check('fbLabelOf prefers the payload catalogue, then the module, then the raw id', (() => {

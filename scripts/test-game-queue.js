@@ -76,7 +76,7 @@ function extractFn(name, src) {
 // takeNextGame/putGameBack call setCourtLiveAt, which calls normalizeCourtLive,
 // so the clock helpers load alongside them — same pattern as test-court-games.
 const NAMES = [
-  'normalizeCourtLive', 'setCourtLiveAt',
+  'normalizeCourtLive', 'setCourtLiveAt', 'normalizeCourtWinner', 'setCourtWinnerAt',
   'gameIds', 'liveCourtIds', 'gameReadiness',
   'queueCourtOf', 'laneOf', 'nextInLane', 'unshiftIntoLane', 'moveWithinLane', 'parkedLanes',
   'queueRowState', 'queueFromLaneOrder',
@@ -308,6 +308,14 @@ check('gameIds tolerates a missing game', gameIds(null).length === 0);
     JSON.stringify(r.rounds[0].courts[1]) === JSON.stringify(game('e', 'f', 'g', 'h')));
   check('the game leaves the queue', r.queue.length === 1);
   check('the finished game is recorded', r.played.length === 1 && r.played[0].court === 0);
+  // The winner the admin called rides into the record and clears for the new game.
+  const w = takeNextGame(Object.assign(base(), { courtWinner: ['blue', 'red'] }), 0, 9000);
+  check('a called winner is written into the finished game', w.played[0].winner === 'blue');
+  check('and cleared for the game that goes on, other courts untouched',
+    JSON.stringify(w.courtWinner) === JSON.stringify(['', 'red']));
+  check('no winner called means no winner field', !('winner' in r.played[0]));
+  const undone = putGameBack(Object.assign(base(), w, { numCourts: 2 }), 0);
+  check('undo brings the previous game back with its winner', undone.courtWinner[0] === 'blue');
   check('the record carries the real start and end',
     r.played[0].startedAt === 1000 && r.played[0].endedAt === 9000);
   check('the new game restarts that court clock only',

@@ -2057,6 +2057,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .fb-night[aria-current="true"]{border-color:var(--green);color:var(--green);font-weight:600}
 .fb-night-state{font-size:var(--fs-xs);font-weight:600;color:var(--muted);white-space:nowrap}
 .fb-night-state.done{color:var(--green-light)}
+.fb-night-state.pts{color:#b07a00}
+/* Collapsed list of nights: a row per night, the open one shows its form under it. */
+.fb-night-item{border-radius:var(--radius-sm)}
+.fb-night::after{content:"+";color:var(--muted);font-size:17px;font-weight:400;line-height:1;margin-left:8px;flex-shrink:0}
+.fb-night[aria-expanded="true"]::after{content:"\2013"}
+.fb-night-date{margin-right:auto}
+.fb-night[aria-expanded="true"]{border-color:var(--green);color:var(--green);font-weight:600;border-bottom-left-radius:0;border-bottom-right-radius:0}
+.fb-night-body{background:var(--card);border:1px solid var(--green);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);padding:10px 12px 12px}
 /* ── admin Feedback tab ── */
 .fb-stats{margin-top:4px}
 .fbt-block{margin-top:12px}
@@ -2328,6 +2336,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .fr-mu-courts .court-chip{min-width:36px;height:36px;font-size:var(--fs-base)}
 /* Clock + status + flags + × travel together: on a phone the top bar wraps, and
    a loose auto-margin would strand the clock on the row above its own group. */
+.crt-win{display:inline-flex;align-items:center;gap:3px;padding:3px;border-radius:var(--radius-sm);background:var(--card);border:1px solid var(--border2)}
+.crt-win-lbl{font-size:var(--fs-xs);font-weight:600;color:var(--muted);padding:0 4px 0 5px}
+.crt-win-btn{font:inherit;font-size:var(--fs-xs);font-weight:700;border:none;border-radius:6px;padding:5px 10px;min-height:28px;cursor:pointer;background:transparent}
+.crt-win-btn.red{color:#c4262e}.crt-win-btn.blue{color:var(--a-blue,#0071e3)}
+.crt-win-btn.red:hover{background:rgba(229,72,77,.10)}.crt-win-btn.blue:hover{background:rgba(0,113,227,.10)}
+.crt-win-btn.red.on{background:#e5484d;color:#fff}.crt-win-btn.blue.on{background:var(--a-blue,#0071e3);color:#fff}
+.frb-row.red.won{box-shadow:inset 0 0 0 2px #e5484d}.frb-row.blue.won{box-shadow:inset 0 0 0 2px var(--a-blue,#0071e3)}
 .fr-mu-ctrls{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
 .fr-mu-status{background:var(--dark);border:1px solid var(--border2);color:var(--text);padding:5px 8px;border-radius:7px;font-size:var(--fs-sm);font-family:inherit}
 .fr-mu-del{border:none;background:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 6px}
@@ -4874,6 +4889,8 @@ function takeNextGame(src, courtIdx, at) {
         endedAt: stamp,
       }
     : null;
+  const won = normalizeCourtWinner(s.courtWinner, numCourts)[courtIdx];
+  if (finished && won) finished.winner = won;
   if (finished) played.push(finished);
 
   row.courts[courtIdx] = {
@@ -4888,6 +4905,7 @@ function takeNextGame(src, courtIdx, at) {
     played,
     courtRounds: new Array(numCourts).fill(0),
     courtLive: setCourtLiveAt(s.courtLive, courtIdx, numCourts, stamp),
+    courtWinner: setCourtWinnerAt(s.courtWinner, courtIdx, numCourts, ''),
     took: pick.game,
     finished,
     warn,
@@ -4937,6 +4955,7 @@ function putGameBack(src, courtIdx) {
     played,
     courtRounds: new Array(numCourts).fill(0),
     courtLive: setCourtLiveAt(s.courtLive, courtIdx, numCourts, restoredAt),
+    courtWinner: setCourtWinnerAt(s.courtWinner, courtIdx, numCourts, back ? back.winner : ''),
     restored: back,
   };
 }
@@ -5051,6 +5070,24 @@ function setCourtLiveAt(courtLive, courtIdx, numCourts, at) {
   return out;
 }
 
+// Pure: who won the game on each court right now — 'red' (team1), 'blue'
+// (team2) or '' (not called yet). The admin calls it from the court card; it
+// rides into the played record when the next game goes on, then clears.
+function normalizeCourtWinner(courtWinner, numCourts) {
+  const n = Math.max(0, numCourts || 0);
+  const out = new Array(n).fill('');
+  if (Array.isArray(courtWinner)) {
+    for (let i = 0; i < n; i++) out[i] = (courtWinner[i] === 'red' || courtWinner[i] === 'blue') ? courtWinner[i] : '';
+  }
+  return out;
+}
+function setCourtWinnerAt(courtWinner, courtIdx, numCourts, side) {
+  const out = normalizeCourtWinner(courtWinner, numCourts);
+  if (courtIdx < 0 || courtIdx >= out.length) return out;
+  out[courtIdx] = (side === 'red' || side === 'blue') ? side : '';
+  return out;
+}
+
 // Pure: how long a game has been on, as M:SS (H:MM:SS once past the hour).
 // A missing, invalid or future stamp reads 0:00 — the clock never runs backwards.
 function formatElapsed(ms) {
@@ -5098,6 +5135,7 @@ function applyCourtDrop(src, courtIdx) {
     courtStatus: drop(normalizeCourtStatus(s.courtStatus, n)),
     courtLocks: drop(normalizeCourtLocks(s.courtLocks, n)),
     courtLive: drop(normalizeCourtLive(s.courtLive, n)),
+    courtWinner: drop(normalizeCourtWinner(s.courtWinner, n)),
     courtGameBase: drop(normalizeCourtGameBase(s.courtGameBase, n)),
     rounds: (Array.isArray(s.rounds) ? s.rounds : []).map(r => ({
       ...r, courts: (Array.isArray(r?.courts) ? r.courts : []).filter((_, i) => i !== courtIdx),
@@ -6300,6 +6338,7 @@ function renderCourtControls() {
   const statuses = normalizeCourtStatus(state.courtStatus, numCourts);
   const locks = normalizeCourtLocks(state.courtLocks, numCourts);
   const liveAt = normalizeCourtLive(state.courtLive, numCourts);
+  const winners = normalizeCourtWinner(state.courtWinner, numCourts);
   const gameBase = normalizeCourtGameBase(state.courtGameBase, numCourts);
   // Repeat-pairing notes on the card itself, over the whole night — what is on
   // the courts now and everything already played. The card is where a pairing
@@ -6369,6 +6408,7 @@ function renderCourtControls() {
         </div>
         <div class="fr-mu-ctrls">
         ${liveClockHTML(statuses[i], liveAt[i], `toggleCourtClock(${i})`)}
+        ${onCourt ? courtWinnerHTML(i, winners[i]) : ''}
         <select class="fr-mu-status" onchange="setCourtStatus(${i},this.value)" aria-label="Court ${courtLabel(i)} status">
           <option value="live"${statuses[i] === 'live' ? ' selected' : ''}>Live</option>
           <option value="next"${statuses[i] === 'next' ? ' selected' : ''}>Up Next</option>
@@ -6380,8 +6420,8 @@ function renderCourtControls() {
         </div>
       </div>
       <div class="frb-body">
-        <div class="frb-row red no-score">${slot(court, i, 'team1', 0)}${slot(court, i, 'team1', 1)}</div>
-        <div class="frb-row blue no-score">${slot(court, i, 'team2', 0)}${slot(court, i, 'team2', 1)}</div>
+        <div class="frb-row red no-score${winners[i] === 'red' ? ' won' : ''}">${slot(court, i, 'team1', 0)}${slot(court, i, 'team1', 1)}</div>
+        <div class="frb-row blue no-score${winners[i] === 'blue' ? ' won' : ''}">${slot(court, i, 'team2', 0)}${slot(court, i, 'team2', 1)}</div>
       </div>
       <div class="pair-warn">${court ? pairWarnHTML(court, sessionPairCounts) : ''}</div>
     `;
@@ -6768,6 +6808,7 @@ async function commitBoard(build, onDone) {
     rounds: res.rounds, queue: res.queue, played: res.played,
     courtRounds: res.courtRounds, courtLive: res.courtLive, currentRound: 0,
   };
+  if (res.courtWinner) updates.courtWinner = res.courtWinner;
   const saved = await apiPost(updates).catch(() => ({ error: 'Network error. Nothing saved.' }));
   if (saved === null) return null;
   if (!saved || saved.error || saved.ok === false) {
@@ -6966,6 +7007,28 @@ async function toggleCourtClock(courtIdx) {
   state.courtLive = courtLive;
   renderCourtControls();
   notify(`Court ${courtLabel(courtIdx)} clock ${running ? 'stopped' : 'started'}`);
+}
+
+// "Won: Red | Blue" beside the clock. Calling a winner ends the game, so it
+// stops the clock too; tapping the same side again takes the call back.
+function courtWinnerHTML(i, winner) {
+  const b = (side, label) => `<button type="button" class="crt-win-btn ${side}${winner === side ? ' on' : ''}" aria-pressed="${winner === side}"`
+    + ` onclick="setCourtWinner(${i},'${side}')" title="${winner === side ? 'Undo: ' + label + ' won' : label + ' won — stops the clock'}">${label}</button>`;
+  return `<div class="crt-win" role="group" aria-label="Who won on court ${courtLabel(i)}"><span class="crt-win-lbl">Won</span>${b('red', 'Red')}${b('blue', 'Blue')}</div>`;
+}
+async function setCourtWinner(courtIdx, side) {
+  const numCourts = state.numCourts || 1;
+  const cur = normalizeCourtWinner(state.courtWinner, numCourts)[courtIdx];
+  const next = cur === side ? '' : side;
+  const courtWinner = setCourtWinnerAt(state.courtWinner, courtIdx, numCourts, next);
+  const updates = { courtWinner };
+  if (next) updates.courtLive = setCourtLiveAt(state.courtLive, courtIdx, numCourts, 0);
+  const saved = await apiPost(updates).catch(() => ({ error: 'Network error. Nothing saved.' }));
+  if (saved === null) return;
+  if (!saved || saved.error || saved.ok === false) return notify((saved && saved.error) || 'Could not save that.', 'warn');
+  Object.assign(state, updates);
+  renderCourtControls();
+  notify(next ? `Court ${courtLabel(courtIdx)}: ${next === 'red' ? 'Red' : 'Blue'} won. Clock stopped.` : `Court ${courtLabel(courtIdx)}: winner cleared.`);
 }
 
 // Lock = keep this court's four players together when a new schedule is
@@ -14865,62 +14928,38 @@ function fbLabelOf(fb, kind, id) {
   return hit ? hit.label : ((window.Feedback && Feedback.labelOf(id)) || id);
 }
 
-// The nights on the payload, and the one the card is currently showing. `fbNight` is a
-// date they were offered; anything else (a stale pick, an empty string) falls back to the
-// latest, which is what a fresh open always lands on.
+// The nights on the payload, and the one that is open. `fbNight` is a date they were
+// offered; anything else (a stale pick, an empty string) means every night is closed,
+// which is how the card always opens: a list of the nights, nothing expanded.
 function fbNightsOf(fb) { return (fb && Array.isArray(fb.nights)) ? fb.nights.filter(n => n && n.date) : []; }
 function fbSelectedNight(fb) {
-  const list = fbNightsOf(fb);
-  return list.find(n => n.date === fbNight) || list[0] || null;
+  return fbNightsOf(fb).find(n => n.date === fbNight) || null;
 }
 
-// Every night they played, as one tappable row each — the selected one included and
-// marked, so the list does not reshuffle under the finger as they move through it.
-function fbNightPickerHtml(fb, sel) {
-  const list = fbNightsOf(fb);
-  if (list.length < 2) return '';
-  const rows = list.map(n => {
-    const on = n.date === sel.date;
-    const state = n.mine ? '<span class="fb-night-state done">Sent</span>'
-      : (n.awardable ? '<span class="fb-night-state">+' + (Number(fb.points) || 0) + ' points</span>'
-        : '<span class="fb-night-state">Not yet</span>');
-    return '<button type="button" class="fb-night" aria-current="' + (on ? 'true' : 'false') + '"'
-      + ' onclick="fbPickNight(\'' + escHtml(n.date) + '\')"><span>' + escHtml(fbNightLabel(n.date)) + '</span>'
-      + (on ? '<span class="fb-night-state">Showing</span>' : state) + '</button>';
-  }).join('');
-  return '<details class="fb-more"><summary>Pick another night you played</summary>'
-    + '<div class="fb-nights">' + rows + '</div></details>';
+// What a night's row says about it, at a glance.
+function fbNightStateHtml(fb, n) {
+  return n.mine ? '<span class="fb-night-state done">Sent</span>'
+    : (n.awardable ? '<span class="fb-night-state pts">+' + (Number(fb.points) || 0) + ' points</span>'
+      : '<span class="fb-night-state">Not yet</span>');
 }
 
-function mbFeedbackHtml(d) {
-  const fb = (d && d.feedback) || null;
-  if (!fb || !fb.open) return '';
-  const sel = fbSelectedNight(fb);
-  if (!sel) return '';
+// The open night's own face: the read-back if they have answered (and are not
+// editing), otherwise the form. It sits under that night's row.
+function fbNightBodyHtml(fb, sel) {
   const pts = Number(fb.points) || 0;
   const mine = sel.mine || null;
-  const when = fbNightLabel(sel.date);
-  const picker = fbNightPickerHtml(fb, sel);
-
   if (mine && !fbEditing) {
     const lines = []
       .concat((mine.good || []).map(id => '<li class="good"><span>✓</span>' + escHtml(fbLabelOf(fb, 'good', id)) + '</li>'))
       .concat((mine.bad || []).map(id => '<li class="bad"><span>✕</span>' + escHtml(fbLabelOf(fb, 'bad', id)) + '</li>'));
-    return '<div class="fb-card">'
-      + '<div class="fb-head"><b>' + escHtml(when) + '</b>'
-      + (mine.awardedPoints > 0 ? '<span class="fb-pts">+' + mine.awardedPoints + ' points</span>' : '') + '</div>'
-      + '<div class="fb-sub">Thanks &mdash; this is what you told us about that night.</div>'
+    return '<div class="fb-sub">Thanks &mdash; this is what you told us about that night.'
+      + (mine.awardedPoints > 0 ? ' <span class="fb-pts">+' + mine.awardedPoints + ' points</span>' : '') + '</div>'
       + (lines.length ? '<ul class="fb-done-list">' + lines.join('') + '</ul>' : '')
       + (mine.goodNote ? '<div class="fb-quote good">' + escHtml(mine.goodNote) + '</div>' : '')
       + (mine.badNote ? '<div class="fb-quote bad">' + escHtml(mine.badNote) + '</div>' : '')
-      + '<div class="fb-actions"><button class="btn btn-secondary btn-sm" onclick="fbStartEdit()">Edit my feedback</button></div>'
-      + picker + '</div>';
+      + '<div class="fb-actions"><button class="btn btn-secondary btn-sm" onclick="fbStartEdit()">Edit my feedback</button></div>';
   }
-
-  return '<div class="fb-card">'
-    + '<div class="fb-head"><b>' + escHtml(when) + '</b>'
-    + (sel.awardable ? '<span class="fb-pts">+' + pts + ' points</span>' : '') + '</div>'
-    + '<div class="fb-sub">' + (sel.latest ? 'Your latest session. ' : '') + 'How was it? Tap whatever fits &mdash; it only goes to the organiser.</div>'
+  return '<div class="fb-sub">' + (sel.latest ? 'Your latest session. ' : '') + 'How was it? Tap whatever fits &mdash; it only goes to the organiser.</div>'
     + '<div class="fb-secs">'
     + '<div class="fb-sec"><div class="fb-sec-lbl">What went well</div>'
     + fbChipsHtml(fb.goodOptions, mine && mine.good, 'good')
@@ -14934,11 +14973,34 @@ function mbFeedbackHtml(d) {
     + (mine ? 'Update my feedback' : 'Send feedback' + (sel.awardable ? ' · +' + pts + ' points' : '')) + '</button>'
     + (mine ? '<button class="btn btn-ghost btn-sm" onclick="fbCancelEdit()">Cancel</button>' : '')
     + '</div>'
-    // Only the latest night pays, so say so where an older one is on screen rather than
+    // Only the latest night pays, so say so where an older one is open rather than
     // leaving them to wonder why the points chip went missing.
     + (pts > 0 && !sel.latest && !(mine && mine.awarded)
-      ? '<div class="fb-hint">Points are for your latest session, but older nights still help us fix things.</div>' : '')
-    + picker + '</div>';
+      ? '<div class="fb-hint">Points are for your latest session, but older nights still help us fix things.</div>' : '');
+}
+
+// Every night they played, collapsed: one row each, newest first. Tapping a row
+// opens that night's form (or what they sent) right under it; tapping it again
+// closes it. Nothing is open until they pick, so a long season is a short list.
+function mbFeedbackHtml(d) {
+  const fb = (d && d.feedback) || null;
+  if (!fb || !fb.open) return '';
+  const list = fbNightsOf(fb);
+  if (!list.length) return '';
+  const sel = fbSelectedNight(fb);
+  const rows = list.map(n => {
+    const on = !!sel && n.date === sel.date;
+    return '<div class="fb-night-item' + (on ? ' open' : '') + '">'
+      + '<button type="button" class="fb-night" aria-expanded="' + (on ? 'true' : 'false') + '"'
+      + ' onclick="fbPickNight(\'' + escHtml(n.date) + '\')"><span class="fb-night-date">' + escHtml(fbNightLabel(n.date)) + '</span>'
+      + fbNightStateHtml(fb, n) + '</button>'
+      + (on ? '<div class="fb-night-body">' + fbNightBodyHtml(fb, n) + '</div>' : '')
+      + '</div>';
+  }).join('');
+  return '<div class="fb-card">'
+    + '<div class="fb-head"><b>Feedback</b></div>'
+    + '<div class="fb-sub">Pick a night to tell the organiser how it went.</div>'
+    + '<div class="fb-nights">' + rows + '</div></div>';
 }
 
 // Which night is on screen, and whether it is showing the form or the read-back. Both are
@@ -14949,7 +15011,8 @@ let fbNight = '';
 function fbStartEdit() { fbEditing = true; fbRepaint(); }
 function fbCancelEdit() { fbEditing = false; fbRepaint(); }
 function fbPickNight(iso) {
-  fbNight = iso || '';
+  // Tapping the open night again closes it.
+  fbNight = (iso && iso !== fbNight) ? iso : '';
   fbEditing = false;
   fbRepaint();
   const host = document.getElementById('mbFeedback');
