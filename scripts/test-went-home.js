@@ -65,7 +65,7 @@ check('never mutates its input', (() => {
 
 // ── the bench drops them and lists them separately ───────────────────
 check('resting is filtered by the gone-home set',
-  /const resting = \(state\.players \|\| \[\]\)\.filter\(p => !activePlayers\.has\(p\.id\) && !gone\.has\(p\.id\)\)/.test(html));
+  /const resting = \(state\.players \|\| \[\]\)\.filter\(p => !activePlayers\.has\(p\.id\) && !gone\.has\(p\.id\)/.test(html));
 check('a "Gone home" rail is rendered', html.includes('GONE HOME') && html.includes('gone-chip'));
 check('every bench chip carries the house button', html.includes('goneHomeBtnHTML(p, false)'));
 check('a gone-home chip carries the undo', html.includes('goneHomeBtnHTML(p, true)'));

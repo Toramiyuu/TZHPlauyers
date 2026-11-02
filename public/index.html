@@ -61,7 +61,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
 /* ── VIEWER · Apple-minimal (light) ─────── */
 #viewer{display:flex;flex-direction:column;min-height:100vh;padding:clamp(28px,4vw,56px) clamp(24px,5vw,80px) clamp(20px,2.5vw,36px);gap:clamp(24px,3.5vw,46px);background:var(--a-bg);font-family:var(--font-apple);color:var(--a-ink);letter-spacing:-.01em}
 /* header */
-.viewer-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.viewer-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;position:relative}
+/* EN | 中文 — top right of the court display and the lock screen. Each device
+   remembers its own choice (public/i18n.js). The admin panel stays English. */
+.lang-toggle{position:absolute;top:0;right:0;z-index:2;display:inline-flex;padding:3px;gap:2px;border-radius:980px;background:var(--a-card-2,#e8eefb);font-family:var(--font-apple)}
+.lang-toggle button{border:none;background:transparent;color:var(--a-ink-3,#6e6e73);font:inherit;font-size:13px;font-weight:600;padding:5px 11px;border-radius:980px;cursor:pointer;min-height:30px;line-height:1}
+.lang-toggle button.on{background:#fff;color:var(--a-ink,#1d1d1f);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+#siteGate > .lang-toggle{top:max(16px,env(safe-area-inset-top));right:16px}
+/* In the court display it rides at the end of the title row: the row grows to
+   fill the line, so the toggle sits right of the title and the nav buttons
+   flow beside or below it, never under it. Growing does not change wrapping. */
+.viewer-header > .vh-left{flex:1 1 auto}
+.vh-left > .lang-toggle{position:static;margin-left:auto;align-self:flex-start;flex-shrink:0}
 .vh-left{display:flex;flex-direction:row;align-items:center;gap:clamp(12px,1.4vw,18px);min-width:0}
 .vh-logo{height:clamp(40px,4.4vw,58px);width:auto;display:block;flex-shrink:0}
 .vh-titles{display:flex;flex-direction:column;gap:5px;min-width:0}
@@ -2350,6 +2361,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 .frb-bench{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-md);padding:11px 12px;margin-bottom:14px;transition:border-color .13s,background .13s}
 .frb-bench.frb-bench-drop{border-color:var(--a-blue,#0071e3);background:var(--a-blue-tint,rgba(0,113,227,.14))}
 .frb-bench-hint{font-size:var(--fs-xs);color:var(--muted);margin-bottom:9px}
+.bench-search{width:100%;box-sizing:border-box;min-height:38px;padding:8px 12px;margin-bottom:10px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--card);color:var(--text);font:inherit;font-size:var(--fs-sm)}
+.bench-search:focus{outline:none;border-color:var(--a-blue,#0071e3)}
 .frb-side{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.08em;margin-bottom:6px}
 .frb-side.r{color:var(--fv-red)} .frb-side.b{color:var(--fv-blue)}
 .frb-rail{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
@@ -2933,6 +2946,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 <!-- Site gate -->
 <div id="siteGate">
   <span class="gate-beam" aria-hidden="true"></span>
+  <div class="lang-toggle" role="group" aria-label="Language"><button type="button" data-lang="en" onclick="I18N.set('en')">EN</button><button type="button" data-lang="zh" onclick="I18N.set('zh')">中文</button></div>
   <div class="gate-content">
     <div class="gate-brand">
       <div class="gate-logo gate-reveal" style="--d:.05s"><img src="/logo.png" alt="TZH Badminton logo"></div>
@@ -3079,6 +3093,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
         <h1 class="vh-title">TZH Badminton</h1>
         <span id="viewerDate" class="vh-date"></span>
       </div>
+      <div class="lang-toggle" role="group" aria-label="Language"><button type="button" data-lang="en" onclick="I18N.set('en')">EN</button><button type="button" data-lang="zh" onclick="I18N.set('zh')">中文</button></div>
     </div>
     <div class="vh-right">
       <span class="vh-live" id="viewerLive"><span class="status-dot"></span>Live</span>
@@ -4083,6 +4098,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 <script src="/session-draw.js"></script>
 <script src="/night.js"></script>
 <script src="/monthly-lucky.js"></script>
+<script src="/i18n.js"></script>
 <script src="/draw-video.js"></script>
 <script src="/draw-hub.js"></script>
 <script src="/knockout.js"></script>
@@ -6487,7 +6503,10 @@ function renderRestingPlayers(courtRounds) {
 
   // Gone-home players leave the waiting list entirely — they are not waiting.
   const gone = wentHomeSet();
-  const resting = (state.players || []).filter(p => !activePlayers.has(p.id) && !gone.has(p.id));
+  // The bench search narrows both lists by name; the groups and order stay.
+  const q = __benchQuery.trim().toLowerCase();
+  const matches = p => !q || (p.name || '').toLowerCase().includes(q);
+  const resting = (state.players || []).filter(p => !activePlayers.has(p.id) && !gone.has(p.id) && matches(p));
 
   // Grouped by rounds rested on the court they last played on (roundsRested).
   // Not played yet first, then most rounds; minutes since they came off break
@@ -6530,7 +6549,7 @@ function renderRestingPlayers(courtRounds) {
 
   // Everyone who has left, kept visible so the count is honest and a mistake is
   // one tap from undone. They are out of the wait ranking above by definition.
-  const goneList = (state.players || []).filter(p => gone.has(p.id))
+  const goneList = (state.players || []).filter(p => gone.has(p.id) && matches(p))
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   const goneBlock = goneList.length
     ? `<div class="frb-side rest-side gone-side">GONE HOME</div><div class="frb-rail">`
@@ -6539,14 +6558,21 @@ function renderRestingPlayers(courtRounds) {
       + `</div>`
     : '';
 
+  const list = (blocks || `<div class="frb-rail empty">${q ? 'No one on the bench matches.' : 'Everyone\'s on a court.'}</div>`) + goneBlock;
+  // The search box is built once and kept: rebuilding it on every render would
+  // drop the cursor mid-word. Only the lists under it are repainted.
+  const listEl = strip.querySelector('.bench-list');
+  if (listEl) { listEl.innerHTML = list; return; }
   strip.innerHTML = `
     <div class="frb-bench" ondragover="frBenchDragOver(event,this)" ondragleave="this.classList.remove('frb-bench-drop')" ondrop="crtDropToBench(event,this)">
+      <input type="search" class="bench-search" id="benchSearch" placeholder="Search the bench" aria-label="Search the bench by name"
+        value="${escHtml(__benchQuery)}" oninput="__benchQuery=this.value;renderRestingPlayers(getCourtRounds())" autocomplete="off" spellcheck="false">
       <div class="frb-bench-hint">Bench: waiting now, grouped by rounds rested on the court they last played on. Red from 3 rounds. Drag a name into a queued game's seat, or tap a name then a court slot up top. Drop a name here to take them off a court. The house button marks someone gone home.</div>
-      ${blocks || `<div class="frb-rail empty">Everyone's on a court.</div>`}
-      ${goneBlock}
+      <div class="bench-list">${list}</div>
     </div>
   `;
 }
+var __benchQuery = '';
 
 // The house button on a bench chip. `back` flips it into the undo on a
 // gone-home chip. stopPropagation so it never counts as arming the chip.
