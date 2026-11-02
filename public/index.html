@@ -1372,8 +1372,8 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .ap-name-inp:hover{border-color:var(--border)}
 .ap-name-inp:focus{outline:none;border-color:var(--green);background:var(--card)}
 .ap-chips{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:var(--fs-xs);color:var(--muted);font-weight:600}
-.ap-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:18px}
-@media(max-width:560px){.ap-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.ap-hero{flex-wrap:wrap}}
+.ap-tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:18px}
+@media(max-width:560px){.ap-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.ap-hero{flex-wrap:wrap}}
 .ap-tile{text-align:center;padding:10px 6px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md)}
 .ap-tile b{display:block;font-family:var(--font-apple);font-size:var(--fs-xl);font-weight:700;letter-spacing:-.02em;color:var(--text);line-height:1.15}
 .ap-tile span{display:block;font-size:var(--fs-xs);color:var(--muted);font-weight:600;margin-top:2px}
@@ -1472,6 +1472,7 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .pm-fee-custom-lbl{font-size:var(--fs-xs);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .pm-name{font-weight:600;color:var(--text);font-size:var(--fs-base);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pm-phone{font-size:var(--fs-xs);color:var(--muted)}
+.pm-games{font-size:var(--fs-xs);color:var(--text-2);font-weight:600}
 .pm-meta{grid-area:meta;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:28px}
 .pm-fee{position:relative;background:var(--card2);border:1px solid var(--border);border-radius:100px;padding:4px 11px;font-size:var(--fs-xs);font-weight:600;color:var(--text-2);cursor:pointer;font-family:inherit;transition:var(--transition)}
 .pm-fee::after{content:"";position:absolute;inset:-8px}
@@ -11738,6 +11739,8 @@ function pmRowHtml(e) {
   const name = e.name || pid;
   const busy = pmBusy.has(pmDate + '|' + pid) ? ' disabled' : '';
   const phone = phoneForPlayer(pid);
+  // Games they played that night, so "I hardly played today" can be checked.
+  const games = gamesPlayedIn(nightGames(pmDate), pid);
   const seg = (tap, label, on, extra) => '<button type="button" class="rl-seg-btn' + (on ? ' on' : '') + (extra ? ' ' + extra : '') + '"' + busy + ' onclick="' + pmCall('pmTap', pid, tap) + '">' + escHtml(label) + '</button>';
   let ctrl = seg('unpaid', 'Unpaid', !e.paid, 'unpaid');
   Payments.METHODS.forEach(m => { ctrl += seg(m, Payments.methodLabel(m), !!e.paid && p.method === m); });
@@ -11755,7 +11758,7 @@ function pmRowHtml(e) {
       + '</div>';
   }
   return '<div class="pm-row' + (e.paid ? ' paid' : '') + '" data-pid="' + escHtml(pid) + '">'
-    + '<div class="pm-main"><div class="pm-name' + (!e.paid && pmFilter === 'unpaid' ? ' owing' : '') + '">' + escHtml(name) + '</div>' + (phone ? '<div class="pm-phone">' + escHtml(phone) + '</div>' : '') + '</div>'
+    + '<div class="pm-main"><div class="pm-name' + (!e.paid && pmFilter === 'unpaid' ? ' owing' : '') + '">' + escHtml(name) + '</div>' + (phone ? '<div class="pm-phone">' + escHtml(phone) + '</div>' : '') + '<div class="pm-games">' + games + (games === 1 ? ' game' : ' games') + '</div></div>'
     + '<div class="pm-tier"><div class="rl-seg pm-tier-seg" role="group" aria-label="Hours played by ' + escHtml(name) + '">' + tierSeg + '</div></div>'
     + '<div class="pm-ctrl"><div class="rl-seg pm-seg" role="group" aria-label="Payment status for ' + escHtml(name) + '">' + ctrl + '</div></div>'
     + '<div class="pm-meta"><button type="button" class="pm-fee' + (p.feeOverridden ? ' custom' : '') + '" aria-expanded="' + (editing ? 'true' : 'false') + '" onclick="' + pmCall('pmToggleFeeEditor', pid) + '">' + escHtml(Payments.feeLabel(p)) + '</button>'
@@ -12894,6 +12897,7 @@ function acctProfileHtml(a) {
   const m = (window.Payments && pid) ? Payments.memberSummary((adminOps && adminOps.attendance) || {}, pid, name) : null;
   const owe = !!(m && m.outstanding > 0);
   const nights = pid ? sessionsAttended(pid) : 0;
+  const games = pid ? totalGamesPlayed(pid) : 0;
   return `<div class="ap-hero">
       <label class="ap-avatar" title="${rp ? 'Change photo' : 'Link a player first'}">
         ${avatarHTML({ id: pid || a.id, name, photo: (rp && rp.photo) || a.photo }, 64)}
@@ -12916,6 +12920,7 @@ function acctProfileHtml(a) {
       <div class="ap-tile"><b>${lifetimePointsLabel(pid)}</b><span>Lifetime</span></div>
       <div class="ap-tile${owe ? ' owe' : ''}"><b>${m ? escHtml(Payments.fmtRM(m.outstanding)) : '&ndash;'}</b><span>${m && owe ? 'Owing · ' + pmNights(m.unpaidCount) : 'Owing'}</span></div>
       <div class="ap-tile"><b>${nights}</b><span>${nights === 1 ? 'Night played' : 'Nights played'}</span></div>
+      <div class="ap-tile"><b>${games}</b><span>${games === 1 ? 'Game played' : 'Games played'}</span></div>
     </div>
     ${acctProfPointsHtml(a, rp, pts)}
     ${acctProfPayHtml(a, m)}
@@ -13384,6 +13389,33 @@ function sessionsAttended(playerId) {
   return Object.values(state.sessions || {}).filter(s =>
     (s.players || []).some(p => p.id === playerId)
   ).length;
+}
+
+// Every game one night holds: the finished ones, any an old multi-round night
+// kept in its rows, and whatever was still on the courts when it closed (or is
+// on them now, for tonight). Takes a saved session or the live state itself.
+function nightGamesOf(night) {
+  if (!night) return [];
+  const n = night.numCourts || 1;
+  return [...(night.played || []),
+    ...historicGamesOf(night.rounds, night.courtRounds, n),
+    ...liveBoardRow(night.rounds, night.courtRounds, n).courts];
+}
+// One night's games by date: tonight is the live state, older nights are the
+// saved sessions (kept for 31 days).
+function nightGames(date) {
+  return date === state.sessionDate ? nightGamesOf(state) : nightGamesOf((state.sessions || {})[date]);
+}
+function gamesPlayedIn(games, playerId) {
+  return playerId ? games.filter(g => gameIds(g).includes(playerId)).length : 0;
+}
+// Games played across tonight and every saved night on record.
+function totalGamesPlayed(playerId) {
+  let n = gamesPlayedIn(nightGamesOf(state), playerId);
+  for (const [d, night] of Object.entries(state.sessions || {})) {
+    if (d !== state.sessionDate) n += gamesPlayedIn(nightGamesOf(night), playerId);
+  }
+  return n;
 }
 
 // ── ROSTER SORT ───────────────────────────────
