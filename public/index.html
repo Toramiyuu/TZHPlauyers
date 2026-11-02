@@ -280,6 +280,13 @@ body.in-3d #joinModal{z-index:1300}
 .qlane-list .round-row-header{flex-wrap:wrap;row-gap:4px}
 .qlane-list .rsummary{min-width:140px}
 .q-why{font-size:var(--fs-xs);color:var(--muted);flex-basis:100%;padding-left:38px}
+/* A queued game has no summary row above it: its editor is always open, and
+   the grip, the up/down and the delete ride on its "Game N" line. */
+.qlane-list .round-editor{display:block;border-top:none}
+.qlane-list .court-editor h4 .q-pos{min-width:0;font-size:inherit;color:inherit;text-align:left}
+.qlane-list .court-editor h4 .q-move{flex-direction:row;gap:3px}
+.qlane-list .court-editor h4{flex-wrap:nowrap}
+.qlane-list .court-editor h4 .q-del{margin-left:auto;flex-shrink:0}
 .queue-empty{margin-top:10px}
 /* Tonight's results. A <details>, shut by default: it is a record, not
    something to act on, but it is what every waiting time is measured from. */
@@ -7569,57 +7576,16 @@ async function generateLane(courtIdx) {
   const court = Math.max(0, Math.floor(Number(courtIdx)) || 0);
   const input = document.getElementById(`qgen_${court}`);
   const want = Math.max(1, Math.min(30, parseInt(input && input.value, 10) || QUEUE_GEN_DEFAULT));
-  const players = state.players || [];
-  if (players.length < 4) return notify('Need at least 4 players.');
 
-  const metaById = buildMetaById();
-  // Longest waiting first, so the front of the lane goes to the people who have
-  // been sitting. smartSchedule breaks its own ties by position in this list, so
-  // the order it is handed is the order it favours.
-  const gone = wentHomeSet();
-  const ranked = autoFillCandidates();
-  let ordered = ranked.map(x => players.find(p => p.id === x.id)).filter(Boolean);
-  for (const p of players) if (!gone.has(p.id) && !ordered.some(o => o.id === p.id)) ordered.push(p);
-  if (ordered.length < 4) return notify('Need at least 4 players who have not gone home.');
-
-  // Anyone mid-match, or already spoken for by another court's lane, drops to
-  // the BACK of the ranking rather than out of it. Preferred, not enforced: with
-  // four lanes and twenty people the lanes would run dry after one pass, and the
-  // organiser asked for a court's worth of games, not a lecture about overlap.
-  // Without this the generator hands out the people standing on the courts and
-  // every row it produces carries a warning it caused itself.
-  const spokenFor = new Set(liveCourtIds(state.rounds, getCourtRounds(), state.numCourts || 1));
-  for (const g of (state.queue || [])) {
-    if (queueCourtOf(g) !== court) for (const id of gameIds(g)) if (id) spokenFor.add(id);
-  }
-  if (spokenFor.size) {
-    ordered = [...ordered.filter(p => !spokenFor.has(p.id)), ...ordered.filter(p => spokenFor.has(p.id))];
-  }
-
-  const rounds = Matchmaking.smartSchedule(ordered, 1, want, metaById);
-  const fresh = [];
-  for (const rd of rounds) {
-    for (const c of (rd.courts || [])) {
-      if (fresh.length >= want) break;
-      fresh.push({ id: newGameId(), court, team1: [...c.team1], team2: [...c.team2] });
-    }
-  }
-  if (!fresh.length) return notify('Could not plan a game from who is available.', 'warn');
+  // Generate lays out EMPTY games, the same as "+ Add a game": the organiser
+  // picks the names, or fills each one with Auto-fill empty.
+  const fresh = Array.from({ length: want }, () => ({ id: newGameId(), court, team1: ['', ''], team2: ['', ''] }));
 
   // This lane is replaced; every other lane is left exactly as it was.
   const queue = [...(state.queue || []).filter(g => queueCourtOf(g) !== court), ...fresh];
   expandedQueue = null;
   if (!await saveQueue(queue)) return;
-
-  // Count games outside ±0.5 so the organiser knows how many want a hand-tweak
-  // (those chips are tinted amber in the queue).
-  let over = 0;
-  for (const g of fresh) {
-    if (Matchmaking.courtBalanceInfo({ team1: g.team1, team2: g.team2 }, metaById).gap > Matchmaking.TOL + 1e-9) over++;
-  }
-  notify(over
-    ? `${fresh.length} games queued for Court ${courtLabel(court)}. ${over} over ±0.5 (marked amber).`
-    : `${fresh.length} games queued for Court ${courtLabel(court)}.`);
+  notify(`${fresh.length} empty game${fresh.length === 1 ? '' : 's'} queued for Court ${courtLabel(court)}.`);
 }
 
 // ── WHO GETS THE NEXT SEAT ────────────────────
@@ -7660,6 +7626,7 @@ async function saveQueue(queue, note) {
     return false;
   }
   state.queue = queue;
+  expandedQueue = null;   // saved, so nothing is mid-edit any more
   renderQueue();
   renderCourtControls();
   renderViewer();
@@ -7929,25 +7896,27 @@ function queueRowHTML(game, i, pos, laneLen, ctx) {
   const label = { ready: 'Ready', short: 'Short', gone: 'Gone home', clash: 'On court' }[r.state];
   const moveTo = ctx.courts.filter(c => c !== queueCourtOf(game))
     .map(c => `<button class="q-tocourt" onclick="moveQueueGameToCourt(${i},${c})" title="Move this game to Court ${courtLabel(c)}">&rarr; C${courtLabel(c)}</button>`).join('');
+  // No summary line above the editor: the editor is always open and IS the
+  // game. "Short" is left unsaid because the "N to fill" chip already says it;
+  // only a gone-home or on-court clash earns a marker, with the names on hover.
+  const flag = (r.state === 'gone' || r.state === 'clash')
+    ? `<span class="q-state ${r.state}" title="${escHtml(why)}">${label}</span>` : '';
   return `
-      <div class="round-row-header" onclick="toggleQueueExpand(${i})">
-        <span class="q-grip" onpointerdown="qDragStart(event,${i})" onclick="event.stopPropagation()"
-          title="Drag to reorder, or onto another court" aria-hidden="true">
-          <svg viewBox="0 0 10 16"><circle cx="3" cy="3" r="1.2"/><circle cx="7" cy="3" r="1.2"/><circle cx="3" cy="8" r="1.2"/><circle cx="7" cy="8" r="1.2"/><circle cx="3" cy="13" r="1.2"/><circle cx="7" cy="13" r="1.2"/></svg>
-        </span>
-        <span class="q-pos">${pos + 1}</span>
-        <div class="q-move" onclick="event.stopPropagation()">
-          <button onclick="moveQueueGame(${i},-1)" ${pos === 0 ? 'disabled' : ''} aria-label="Move up" title="Move up">▲</button>
-          <button onclick="moveQueueGame(${i},1)" ${pos === laneLen - 1 ? 'disabled' : ''} aria-label="Move down" title="Move down">▼</button>
-        </div>
-        <span class="rsummary">${gameSummary(game)}</span>
-        <span class="q-state ${r.state}">${label}</span>
-        <button class="btn btn-ghost btn-sm rl-delete" onclick="event.stopPropagation();deleteQueueGame(${i})" title="Remove this game" aria-label="Remove this game">✕</button>
-        ${why ? `<span class="q-why">${escHtml(why)}</span>` : ''}
-      </div>
       <div class="round-editor">
         <div class="court-editor">
-          <h4>Game ${pos + 1} <span id="chip_q_${i}">${courtChipHTML(court, ctx.metaById)}</span></h4>
+          <h4>
+            <span class="q-grip" onpointerdown="qDragStart(event,${i})"
+              title="Drag to reorder, or onto another court" aria-hidden="true">
+              <svg viewBox="0 0 10 16"><circle cx="3" cy="3" r="1.2"/><circle cx="7" cy="3" r="1.2"/><circle cx="3" cy="8" r="1.2"/><circle cx="7" cy="8" r="1.2"/><circle cx="3" cy="13" r="1.2"/><circle cx="7" cy="13" r="1.2"/></svg>
+            </span>
+            <span class="q-move">
+              <button onclick="moveQueueGame(${i},-1)" ${pos === 0 ? 'disabled' : ''} aria-label="Move up" title="Move up">▲</button>
+              <button onclick="moveQueueGame(${i},1)" ${pos === laneLen - 1 ? 'disabled' : ''} aria-label="Move down" title="Move down">▼</button>
+            </span>
+            Game <span class="q-pos">${pos + 1}</span> <span id="chip_q_${i}">${courtChipHTML(court, ctx.metaById)}</span>
+            ${flag}
+            <button class="btn btn-ghost btn-sm rl-delete q-del" onclick="deleteQueueGame(${i})" title="Remove this game" aria-label="Remove this game">✕</button>
+          </h4>
           ${selectorsRowHTML(`q_${i}`, i, 0, court, { id: `pw_q_${i}`, html: pairWarnHTML(court, ctx.pairs) })}
         </div>
         <div class="rl-actions">
@@ -7990,11 +7959,10 @@ function renderQueue() {
         <div class="qlane-gen">
           <label for="qgen_${c}">Plan</label>
           <input id="qgen_${c}" class="qlane-n" type="number" min="1" max="30" value="${QUEUE_GEN_DEFAULT}" aria-label="How many games to plan for Court ${courtLabel(c)}">
-          <button class="btn ${genPendingLane === c ? 'btn-danger' : 'btn-secondary'} btn-sm" onclick="handleGenerateLane(${c})" title="Replace this court's queue with freshly balanced games">${genPendingLane === c ? 'Replace queue?' : 'Generate'}</button>
+          <button class="btn ${genPendingLane === c ? 'btn-danger' : 'btn-secondary'} btn-sm" onclick="handleGenerateLane(${c})" title="Replace this court's queue with empty games">${genPendingLane === c ? 'Replace queue?' : 'Generate'}</button>
         </div>
       </div>
       <div class="round-list-wrap">
-        ${lane.length ? `<div class="round-list-header"><div class="rl-hdr-round">Next</div><div class="rl-hdr-match">Match</div></div>` : ''}
         <div class="qlane-list" id="queueList_${c}" data-court="${c}"></div>
       </div>
       <button class="btn btn-ghost btn-sm qlane-add" onclick="addQueueGame(${c})">+ Add a game to Court ${courtLabel(c)}</button>`;
@@ -8382,6 +8350,11 @@ function commitPslotValue(btn, id) {
   btn.setAttribute('draggable', val ? 'true' : 'false');
   btn.innerHTML = playerSlotFace(val) + pslotChevSVG();
   refreshCourtChip(btn);
+  // Queue editors are always open, so "expanded" no longer means anything by
+  // itself. A pick that has not been saved yet is what marks the game as being
+  // edited, and holds the poll until Save (saveQueue clears it).
+  const qrow = btn.closest('.qlane-list .round-row');
+  if (qrow && qrow.dataset.qi !== undefined) expandedQueue = Number(qrow.dataset.qi);
 }
 function pickPslot(id) {
   // Custom commit path (Friendly board): hand the pick to the opener's callback.
