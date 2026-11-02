@@ -76,7 +76,7 @@ function extractFn(name, src) {
 // takeNextGame/putGameBack call setCourtLiveAt, which calls normalizeCourtLive,
 // so the clock helpers load alongside them — same pattern as test-court-games.
 const NAMES = [
-  'normalizeCourtLive', 'setCourtLiveAt', 'normalizeCourtWinner', 'setCourtWinnerAt',
+  'normalizeCourtLive', 'setCourtLiveAt', 'normalizeCourtWinner', 'setCourtWinnerAt', 'winLossIn',
   'gameIds', 'liveCourtIds', 'gameReadiness',
   'queueCourtOf', 'laneOf', 'nextInLane', 'unshiftIntoLane', 'moveWithinLane', 'parkedLanes',
   'queueRowState', 'queueFromLaneOrder',
@@ -108,7 +108,7 @@ const {
   queueCourtOf, laneOf, nextInLane, unshiftIntoLane, moveWithinLane, parkedLanes, queueRowState,
   queueFromLaneOrder,
   playedGameCounts, roundsRested, restBand, restBandLabel, restHeatClass, liveBoardRow, historicGamesOf,
-  courtIsFree, takeNextGame, putGameBack,
+  courtIsFree, takeNextGame, putGameBack, winLossIn,
 } = api;
 
 const failures = [];
@@ -316,6 +316,14 @@ check('gameIds tolerates a missing game', gameIds(null).length === 0);
   check('no winner called means no winner field', !('winner' in r.played[0]));
   const undone = putGameBack(Object.assign(base(), w, { numCourts: 2 }), 0);
   check('undo brings the previous game back with its winner', undone.courtWinner[0] === 'blue');
+  const night = [
+    { team1: ['a', 'b'], team2: ['c', 'd'], winner: 'red' },
+    { team1: ['c', 'a'], team2: ['e', 'f'], winner: 'blue' },
+    { team1: ['a', 'e'], team2: ['g', 'h'] },             // nobody called it
+  ];
+  const wa = winLossIn(night, 'a'), wc = winLossIn(night, 'c');
+  check('won and lost follow the side the winner was on', wa.won === 1 && wa.lost === 1 && wc.won === 0 && wc.lost === 2);
+  check('a game with no winner called is neither won nor lost', winLossIn(night, 'g').won === 0 && winLossIn(night, 'g').lost === 0);
   check('the record carries the real start and end',
     r.played[0].startedAt === 1000 && r.played[0].endedAt === 9000);
   check('the new game restarts that court clock only',

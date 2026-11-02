@@ -1484,6 +1484,15 @@ input[type=number]::-webkit-inner-spin-button{opacity:.5}
 .pm-name{font-weight:600;color:var(--text);font-size:var(--fs-base);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pm-phone{font-size:var(--fs-xs);color:var(--muted)}
 .pm-games{font-size:var(--fs-xs);color:var(--text-2);font-weight:600}
+.pm-games .w{color:var(--a-blue,#0071e3)}.pm-games .l{color:#c4262e}
+.pm-main{display:flex;align-items:center;gap:12px}
+.pm-who{min-width:0}
+.wr-ring{position:relative;width:40px;height:40px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center}
+.wr-ring svg{position:absolute;inset:0;width:100%;height:100%}
+.wr-ring circle,.wr-ring path{fill:none;stroke-width:5}
+.wr-track{stroke:var(--border)}.wr-track.lost{stroke:#f2a3a6}
+.wr-won{stroke:var(--a-blue,#0071e3);stroke-linecap:butt}
+.wr-ring b{position:relative;font-size:10px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
 .pm-meta{grid-area:meta;display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:28px}
 .pm-fee{position:relative;background:var(--card2);border:1px solid var(--border);border-radius:100px;padding:4px 11px;font-size:var(--fs-xs);font-weight:600;color:var(--text-2);cursor:pointer;font-family:inherit;transition:var(--transition)}
 .pm-fee::after{content:"";position:absolute;inset:-8px}
@@ -11829,7 +11838,9 @@ function pmRowHtml(e) {
   const busy = pmBusy.has(pmDate + '|' + pid) ? ' disabled' : '';
   const phone = phoneForPlayer(pid);
   // Games they played that night, so "I hardly played today" can be checked.
-  const games = gamesPlayedIn(nightGames(pmDate), pid);
+  const nightList = nightGames(pmDate);
+  const games = gamesPlayedIn(nightList, pid);
+  const wl = winLossIn(nightList, pid);
   const seg = (tap, label, on, extra) => '<button type="button" class="rl-seg-btn' + (on ? ' on' : '') + (extra ? ' ' + extra : '') + '"' + busy + ' onclick="' + pmCall('pmTap', pid, tap) + '">' + escHtml(label) + '</button>';
   let ctrl = seg('unpaid', 'Unpaid', !e.paid, 'unpaid');
   Payments.METHODS.forEach(m => { ctrl += seg(m, Payments.methodLabel(m), !!e.paid && p.method === m); });
@@ -11847,7 +11858,8 @@ function pmRowHtml(e) {
       + '</div>';
   }
   return '<div class="pm-row' + (e.paid ? ' paid' : '') + '" data-pid="' + escHtml(pid) + '">'
-    + '<div class="pm-main"><div class="pm-name' + (!e.paid && pmFilter === 'unpaid' ? ' owing' : '') + '">' + escHtml(name) + '</div>' + (phone ? '<div class="pm-phone">' + escHtml(phone) + '</div>' : '') + '<div class="pm-games">' + games + (games === 1 ? ' game' : ' games') + '</div></div>'
+    + '<div class="pm-main"><div class="pm-who"><div class="pm-name' + (!e.paid && pmFilter === 'unpaid' ? ' owing' : '') + '">' + escHtml(name) + '</div>' + (phone ? '<div class="pm-phone">' + escHtml(phone) + '</div>' : '') + '<div class="pm-games">' + games + (games === 1 ? ' game' : ' games') + ' · <span class="w">' + wl.won + ' won</span> · <span class="l">' + wl.lost + ' lost</span></div></div>'
+    + winRateRingHTML(wl.won, wl.lost) + '</div>'
     + '<div class="pm-tier"><div class="rl-seg pm-tier-seg" role="group" aria-label="Hours played by ' + escHtml(name) + '">' + tierSeg + '</div></div>'
     + '<div class="pm-ctrl"><div class="rl-seg pm-seg" role="group" aria-label="Payment status for ' + escHtml(name) + '">' + ctrl + '</div></div>'
     + '<div class="pm-meta"><button type="button" class="pm-fee' + (p.feeOverridden ? ' custom' : '') + '" aria-expanded="' + (editing ? 'true' : 'false') + '" onclick="' + pmCall('pmToggleFeeEditor', pid) + '">' + escHtml(Payments.feeLabel(p)) + '</button>'
@@ -13486,9 +13498,11 @@ function sessionsAttended(playerId) {
 function nightGamesOf(night) {
   if (!night) return [];
   const n = night.numCourts || 1;
-  return [...(night.played || []),
-    ...historicGamesOf(night.rounds, night.courtRounds, n),
-    ...liveBoardRow(night.rounds, night.courtRounds, n).courts];
+  // A game still on court carries the winner already called on its card.
+  const won = normalizeCourtWinner(night.courtWinner, n);
+  const live = liveBoardRow(night.rounds, night.courtRounds, n).courts
+    .map((g, i) => (won[i] ? Object.assign({}, g, { winner: won[i] }) : g));
+  return [...(night.played || []), ...historicGamesOf(night.rounds, night.courtRounds, n), ...live];
 }
 // One night's games by date: tonight is the live state, older nights are the
 // saved sessions (kept for 31 days).
@@ -13497,6 +13511,37 @@ function nightGames(date) {
 }
 function gamesPlayedIn(games, playerId) {
   return playerId ? games.filter(g => gameIds(g).includes(playerId)).length : 0;
+}
+// Won and lost, from the Red/Blue winner called on the court card (red = team1).
+// A game nobody called counts as played but neither won nor lost.
+function winLossIn(games, playerId) {
+  let won = 0, lost = 0;
+  if (!playerId) return { won, lost };
+  for (const g of games) {
+    if (g.winner !== 'red' && g.winner !== 'blue') continue;
+    const onRed = (g.team1 || []).includes(playerId), onBlue = (g.team2 || []).includes(playerId);
+    if (!onRed && !onBlue) continue;
+    if ((g.winner === 'red') === onRed) won++; else lost++;
+  }
+  return { won, lost };
+}
+// A small ring: the blue share is the win rate over the games with a winner
+// called, red is the losses. Nothing called yet draws an empty grey ring.
+function winRateRingHTML(won, lost) {
+  const total = won + lost;
+  const pct = total ? Math.round(100 * won / total) : 0;
+  // The win arc runs clockwise from 12 o'clock, drawn as a path so nothing has
+  // to be rotated into place.
+  const R = 15.5, f = total ? won / total : 0;
+  let arc = '';
+  if (f >= 1) arc = `<circle cx="20" cy="20" r="${R}" class="wr-won"/>`;
+  else if (f > 0) {
+    const a = 2 * Math.PI * f, x = (20 + R * Math.sin(a)).toFixed(2), y = (20 - R * Math.cos(a)).toFixed(2);
+    arc = `<path class="wr-won" d="M20 ${20 - R} A${R} ${R} 0 ${f > 0.5 ? 1 : 0} 1 ${x} ${y}"/>`;
+  }
+  return `<span class="wr-ring" title="${total ? `Win rate ${pct}% (${won} won, ${lost} lost)` : 'No winners called yet'}">`
+    + `<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="${R}" class="wr-track${total ? ' lost' : ''}"/>${arc}</svg>`
+    + `<b>${total ? pct + '%' : '–'}</b></span>`;
 }
 // Games played across tonight and every saved night on record.
 function totalGamesPlayed(playerId) {

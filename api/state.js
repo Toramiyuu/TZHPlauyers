@@ -663,6 +663,8 @@ function applySessionDateChange(state, newDate, today) {
       // rides with `played` for the same reason `played` rides with `rounds`:
       // the numbers on the cards were the numbers on THAT night's courts.
       courtGameBase: state.courtGameBase || [],
+      // Winners called on games still on court when the night closed.
+      courtWinner: state.courtWinner || [],
       feeTier: Payments.tierOf(state.feeTier),
       drawAt: SD.scheduledDrawAt(state.sessionDate),
     };
