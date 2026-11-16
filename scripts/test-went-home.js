@@ -90,7 +90,7 @@ check('marking someone never touches the round they are playing',
 
 // ── the picker tells you why they are missing ────────────────────────
 check('the picker builds a gone-home group', (html.match(/goneHome = \[\]/g) || []).length === 2);
-check('both pickers pass it through', (html.match(/\{ free, resting, onCourt, goneHome, selectedId, levelOf \}/g) || []).length === 2);
+check('both pickers pass it through', (html.match(/\{ free, resting, onCourt, goneHome, selectedId, levelOf(, labels)? \}/g) || []).length === 2);
 check('the group is labelled', html.includes("goneHome: 'Gone home'"));
 check('the group is dimmed and last', /goneF\.length\) html \+= `<div class="pslot-group">\$\{labels\.goneHome\}<\/div>`[\s\S]{0,140}dim: true/.test(html));
 check('the count includes them', html.includes('freeF.length + restF.length + courtF.length + goneF.length'));

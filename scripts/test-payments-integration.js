@@ -24,14 +24,18 @@ function call(method, query, body) {
 }
 const P = 'TZH123';
 const post = (b) => call('POST', {}, b);
-const DATE = '2026-09-07';
+// Relative to today: saved nights older than the history window are pruned on
+// every date change, so fixed September dates started failing in October.
+const isoDaysAgo = (n) => new Date(Date.now() + 8 * 3600e3 - n * 86400e3).toISOString().slice(0, 10);
+const DATE = isoDaysAgo(5);
+const DATE2 = isoDaysAgo(3);
 
 (async () => {
   STORE = {
     roster: [{ id: 'p0', name: 'Thomas', photo: null, points: 0 }, { id: 'p1', name: 'Desmond', photo: null, points: 0 }],
     players: [{ id: 'p0', name: 'Thomas' }, { id: 'p1', name: 'Desmond' }],
     sessions: {}, signups: [], regulars: {}, sessionDate: DATE, rounds: [], numCourts: 2,
-    monthlyDraw: { month: '2026-09', participants: [], prizes: [], results: [], history: [], spin: null },
+    monthlyDraw: { month: DATE.slice(0, 7), participants: [], prizes: [], results: [], history: [], spin: null },
     accounts: [], attendance: {}, audit: [],
     // no feeTier on purpose: an old blob must normalise to the default
   };
@@ -79,7 +83,7 @@ const DATE = '2026-09-07';
   check('GET shows feeTier 2h', g.body.feeTier === '2h');
 
   // session date change snapshots the tier, fresh day resets, revisit restores
-  r = await post({ password: P, sessionDate: '2026-09-09' });
+  r = await post({ password: P, sessionDate: DATE2 });
   check('date change ok', r.status === 200 && r.body.ok === true);
   check('outgoing day snapshot carries feeTier 2h', STORE.sessions[DATE] && STORE.sessions[DATE].feeTier === '2h');
   check('fresh day resets feeTier to 3h', STORE.feeTier === '3h');
@@ -88,9 +92,9 @@ const DATE = '2026-09-07';
   check('revisit restores feeTier 2h', STORE.feeTier === '2h' && STORE.sessions[DATE] === undefined);
 
   // generating for a PAST date uses the snapshot's players + tier
-  await post({ password: P, sessionDate: '2026-09-09' });
+  await post({ password: P, sessionDate: DATE2 });
   await post({ password: P, players: [{ id: 'p1', name: 'Desmond' }] });
-  r = await post({ password: P, action: 'generatePayments', date: '2026-09-09' });
+  r = await post({ password: P, action: 'generatePayments', date: DATE2 });
   check('generate for live day (1 player)', r.body.created === 1);
   r = await post({ password: P, action: 'generatePayments', date: DATE });
   check('generate for past date → idempotent against its existing records', r.body.created === 0 && r.body.existed === 2);

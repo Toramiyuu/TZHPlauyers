@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-/* test-auto-fill — filling the empty seats in one queued game with whoever has
- * waited longest, genuinely empty hand-added games, and dragging a name from
- * one seat to another.
+/* test-auto-fill — filling the empty seats in a court's next game with whoever
+ * has waited longest, and dragging a name from one seat to another.
  *
  * The "Generate" button re-derives its own rotation from scratch, so it cannot
  * know who walked in late or who has been sitting on the bench for half an hour
@@ -11,14 +10,14 @@
  * that already has someone in it.
  *
  * It used to be a per-ROUND button, filling four courts at once. Rounds are
- * gone: a game is queued on its own now and gets a court only when one frees
- * up, so the fill is one game at a time and has to leave out anybody already
- * spoken for by a game ahead of it in the queue.
+ * gone: each court has one next game, on its card's Next game view, so the
+ * fill is one game at a time and has to put anybody already spoken for (on a
+ * court now, or in another court's next game) at the back.
  *
  *   Matchmaking.emptySlotsOf / fillRound      — public/matchmaking.js (pure)
  *   playedGameCounts / waitMinutes            — public/index.html (pure)
  *   autoFillCandidates                        — public/index.html (pure-ish)
- *   autoFillQueueGame / addQueueGame          — public/index.html (DOM + write)
+ *   autoFillNextGame                          — public/index.html (write)
  */
 'use strict';
 const fs = require('fs');
@@ -224,40 +223,40 @@ check('before the first game nobody has waited, so it is stable and deterministi
   return c0.every(c => c.wait === 0 && c.games === 0) && c0[0].name === 'Alice';
 })());
 
-// ── autoFillQueueGame: reads the screen, saves, reports ──────────────
-const afSrc = extractFn('autoFillQueueGame', html) || '';
-check('it reads the UNSAVED picks off the editor, not the last save',
-  afSrc.includes('queueGameFromDom(i,'));
+// ── autoFillNextGame: fills the card's next game, saves, reports ─────
+const afSrc = extractFn('autoFillNextGame', html) || '';
+check('it fills the court\'s next game as it stands, empty or half-picked',
+  afSrc.includes('nextGameFor(i)'));
 check('a full game is refused rather than rearranged',
   afSrc.includes('Matchmaking.emptySlotsOf(asRound, known).length') && afSrc.includes('Every seat in that game is taken'));
 check('it fills through the pure helper', afSrc.includes('Matchmaking.fillRound(asRound, ranked.map(x => x.id)'));
 check('candidates come from the wait ranking', afSrc.includes('autoFillCandidates()'));
-// Anybody on a court, already ahead of this game in its own lane, or queued on
-// ANOTHER court, is spoken for — and since lanes arrived that demotes them to
-// the back of the ranking instead of striking them off it. With one lane per
-// court the queue routinely holds more seats than there are people, and a
-// refusal to fill would leave the organiser typing names by hand all night.
+// Anybody on a court, or in ANOTHER court's next game, is spoken for — which
+// demotes them to the back of the ranking instead of striking them off it. On
+// a busy night there are more seats planned than people free, and a refusal to
+// fill would leave the organiser typing names by hand all night. Somebody
+// already in another court's next game is the very last resort: they cannot
+// play two courts at once, whereas somebody on a court now will be off it.
 check('it knows who is already on a court', afSrc.includes('liveCourtIds('));
-check('it prefers whoever is genuinely free, rather than refusing',
-  afSrc.includes('spokenFor') && afSrc.includes('aheadOfMe')
-  && afSrc.includes('all.filter(x => !spokenFor.has(x.id))')
-  && afSrc.includes('all.filter(x => spokenFor.has(x.id))'));
-check('being ahead in the SAME lane counts as spoken for',
-  afSrc.includes('laneOf(state.queue, queueCourtOf(cur))'));
+check('free first, then another court now, then this court, then another next game',
+  afSrc.includes("tier = id => (elsewhereNext.has(id) ? 3 : own.has(id) ? 2 : live.has(id) ? 1 : 0)")
+  && afSrc.includes('autoFillCandidates().sort((a, b) => tier(a.id) - tier(b.id))'));
+check('another court\'s next game counts as spoken for',
+  afSrc.includes('oneNextPerCourt(state.queue)') && afSrc.includes('queueCourtOf(g) !== i'));
 check('the toast names who went in and how long they waited',
   afSrc.includes('Longest waits in:') && afSrc.includes('waitOf[s.id]'));
 check('the wait it reports is in minutes', afSrc.includes("waitOf[s.id] || 0}m"));
 check('a short fill warns instead of claiming success', afSrc.includes("res.short ? 'warn' : undefined"));
-check('every queued game gets its own button', html.includes('onclick="autoFillQueueGame(${i})"'));
+check('it saves through the one next-game write', afSrc.includes('editNextGame(i,'));
+const cardsSrc = extractFn('renderCourtControls', html) || '';
+check('every court card\'s Next game view gets its own button', cardsSrc.includes('onclick="autoFillNextGame(${i})"'));
 check('the button explains that placed players stay put',
-  /Fill only the empty seats/.test(html));
-check('it sits beside Save game', html.includes('class="rl-actions"') && html.includes('.rl-actions{'));
+  /Anyone already placed stays put/.test(cardsSrc));
 
-// ── a hand-added game is genuinely empty ─────────────────────────────
-const addSrc = extractFn('addQueueGame', html) || '';
-check('a hand-added game starts with four blank seats, in one court\'s lane',
-  addSrc.includes("{ id: newGameId(), court, team1: ['', ''], team2: ['', ''] }"));
-check('it still opens the new game for editing', addSrc.includes('expandedQueue = queue.length - 1'));
+// The queue-era editors must stay deleted: a court's next game is its card.
+for (const dead of ['autoFillQueueGame', 'addQueueGame', 'generateLane', 'queueGameFromDom']) {
+  check(`${dead}() stays deleted`, extractFn(dead, html) === null);
+}
 
 // The round-era helpers must stay deleted.
 for (const dead of ['gamesPlayedUpTo', 'autoFillRound', 'addEmptyRound']) {

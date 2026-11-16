@@ -85,7 +85,7 @@ check('addRosterPlayers is dispatched before the unknown-action 400', src.indexO
 check('a refused build answers 400 with the reason', src.includes('if (!built.ok) return res.status(400).json({ error: built.error });'));
 check('the branch appends to the freshly-read server roster', src.includes('state.roster = [...(Array.isArray(state.roster) ? state.roster : []), ...built.players];'));
 check('a failed KV write answers 500 instead of pretending to succeed', /KV write error \(addRosterPlayers\)[\s\S]{0,140}res\.status\(500\)/.test(src));
-check('the branch returns the count and the new roster', src.includes("return res.json({ ok: true, added: built.players.length, roster: state.roster });"));
+check('the branch returns the count, the skipped names and the new roster', src.includes("return res.json({ ok: true, added: built.players.length, skipped: built.skipped || [], roster: state.roster });"));
 check('server.js mirrors the branch for local dev', (() => {
   const srv = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
   return srv.includes("updates.action === 'addRosterPlayers'") && srv.includes('buildRosterAdditions');
@@ -98,14 +98,16 @@ check('the client no longer builds player ids itself', !c.includes("'r' + Date.n
 check('a server error is shown and the modal stays open with the typing intact', c.includes("if (!r.ok || r.error) return notify(r.error || 'Could not add those players.', 'warn');") && c.indexOf('return notify(r.error') < c.indexOf('closeBulkModal()'));
 check('a network error is reported instead of a success toast', c.includes("notify('Network error. Nobody was added. Your names are still here.', 'warn')"));
 check('a 401 (apiPost returned null) exits quietly — the password prompt is already up', c.includes('if (!r) return;'));
-check('the success toast uses the count the SERVER confirmed', c.includes('notify(`Added ${r.added} player${r.added === 1 ? \'\' : \'s\'} to roster!`)'));
+check('the success toast uses the count the SERVER confirmed', c.includes('notify(`Added ${r.added} player${r.added === 1 ? \'\' : \'s\'} to roster!`'));
 check('the roster comes back from the server, not from a local guess', c.includes('state.roster = r.roster;'));
 check('the submit button shows progress and is re-enabled on every path', c.includes("btn.disabled = true; btn.textContent = 'Adding…'") && c.includes("const restore = () =>") && (c.match(/restore\(\);/g) || []).length >= 2);
 check('the submit button has the id the handler looks up', html.includes('<button class="btn btn-primary" id="bulkSubmitBtn" onclick="confirmBulkImport()">Add Players</button>'));
 
 // the same silent-success bug lived in the single-player and guest paths
-check('single add now reports a refused write', fn('confirmAddRoster').includes("if (r.error) return notify(r.error, 'warn');") && fn('confirmAddRoster').indexOf('if (r.error)') < fn('confirmAddRoster').indexOf('closeAddRosterModal()'));
-check('guest add now reports a refused write', fn('confirmAddGuest').includes("if (r.error) return notify(r.error, 'warn');") && fn('confirmAddGuest').indexOf('if (r.error)') < fn('confirmAddGuest').indexOf('closeGuestModal()'));
+// Since 2026-11-10 both go through commitFresh, which returns false for a
+// refused write (apiPost has already shown the error) — the modal stays open.
+check('single add now reports a refused write', fn('addRosterPlayer').includes('commitFresh(') && fn('addRosterPlayer').includes('if (!r) {') && fn('addRosterPlayer').indexOf('if (!r) {') < fn('addRosterPlayer').indexOf('closeAddRosterModal()'));
+check('guest add now reports a refused write', fn('addGuestPlayer').includes('commitFresh(') && fn('addGuestPlayer').includes('if (!r) {') && fn('addGuestPlayer').indexOf('if (!r) {') < fn('addGuestPlayer').indexOf('closeGuestModal()'));
 
 console.log(`\ntest-roster-add: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

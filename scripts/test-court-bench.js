@@ -101,10 +101,18 @@ const court = (t1, t2) => ({ team1: t1, team2: t2 });
         out[0].courts[1] && out[0].courts[1].team1[0] === 'x'
         && out[0].courts[1].team2.join('') === '');
     }
-    // 5. Missing target round → null (no crash, no write).
+    // 5. A fresh night has no board row yet (rounds: []). Placing a name by
+    //    hand starts it — this used to return null, so on a new night tapping
+    //    a court slot did nothing at all (reported 2026-11-10).
     {
-      const out = applyCourtPlacement([], [0], 1, 0, 'team1', 0, 'x');
-      check('placement: missing round returns null', out === null);
+      const out = applyCourtPlacement([], [0, 0], 2, 1, 'team2', 0, 'x');
+      check('placement: fresh night starts the live row', Array.isArray(out) && out.length === 1
+        && out[0].courts[1].team2[0] === 'x' && out[0].courts[0].team1.join('') === '');
+    }
+    // 6. A pointer past the end of an existing board is still refused.
+    {
+      const out = applyCourtPlacement([{ label: 'R1', courts: [] }], [3], 1, 0, 'team1', 0, 'x');
+      check('placement: missing (non-first) round returns null', out === null);
     }
   }
 }
@@ -161,14 +169,13 @@ const court = (t1, t2) => ({ team1: t1, team2: t2 });
   check('wait-length group labels reuse the bench label class', benchSrc.includes('frb-side rest-side'));
   const pickerSrc = extractFn('openCourtSlotPicker', html) || '';
   check('slot tap opens the shared picker popover', pickerSrc.includes('openPslotAt'));
-  // Bench placement: beside the QUEUE (sticky side panel), not the court cards.
-  // It sits with the queue because that is where a waiting name gets dragged
-  // into a seat; the cards above are the games already under way.
+  // Bench placement: its own board under the court cards. The queue lanes it
+  // used to sit beside are gone — a court's next game is edited on its card.
   const boardAt = html.indexOf('<div class="crt-board">');
-  check('bench board wraps the queue lanes',
+  check('bench board sits in the Courts tab, with no queue lanes left in it',
     boardAt > -1 && html.indexOf('id="restingStrip"', boardAt) > -1
-    && html.indexOf('id="queueLanes"', boardAt) > -1
-    && html.indexOf('id="queueLanes"', boardAt) < html.indexOf('</div><!-- /courts tab -->'));
+    && boardAt < html.indexOf('</div><!-- /courts tab -->')
+    && !html.includes('id="queueLanes"'));
   check('court cards grid is no longer inside the bench board',
     html.indexOf('id="courtCtrlGrid"') < boardAt);
   // Bench chips drop onto round/Up Next editor slots via the shared commit.

@@ -37,12 +37,12 @@ const footAt = html.indexOf('class="crt-foot');
 const courtsEnd = html.indexOf('<!-- /courts tab -->');
 const foot = footAt > -1 ? html.slice(footAt, courtsEnd) : '';
 check('Courts footer exists inside the Courts tab', footAt > -1 && footAt < courtsEnd);
-// "+ Add a game" left this footer when the queue became one lane per court:
-// adding a game means choosing a court, so the button belongs to a lane.
+// "+ Add a game" left this footer when the queue became one lane per court,
+// and left the app when each court got one Next game, edited on its card.
 check('footer holds End of the day', foot.includes('id="eodBtn"'));
-check('adding a game is per lane now, not in the footer',
-  !foot.includes('addQueueGame()') && html.includes('onclick="addQueueGame(${c})"'));
-check('footer status line jumps to the Payments tab', foot.includes('id="eodStatus"') && foot.includes("setAdminTab('payments')"));
+check('no "+ Add a game" anywhere: a court\'s next game lives on its card',
+  !foot.includes('addQueueGame') && !html.includes('addQueueGame('));
+check('footer status line jumps to TONIGHT on the Payments tab', foot.includes('id="eodStatus"') && foot.includes("openPaymentsForNight(state.sessionDate || todayISO())"));
 check('.crt-foot flex row, right column', /\.crt-foot\{[^}]*justify-content:space-between/.test(html) && /\.crt-foot-end\{[^}]*align-items:flex-end/.test(html));
 
 // ── Payments tab wired into every nav surface ──
@@ -129,7 +129,7 @@ check('paid history is collapsed by default and its open state survives the 2s r
 check('every night in the popup has the one-tap Unpaid/Cash/TnG/DuitNow control', fn('pmMemSessHtml').includes("seg('unpaid', 'Unpaid'") && fn('pmMemSessHtml').includes('Payments.METHODS.forEach') && fn('pmMemSessHtml').includes("pmCall('pmMemTap', pid, x.date, tap)"));
 check('popup tap writes to THAT night through the shared writer', fn('pmMemTap').includes('Payments.nextPaymentPatch(e, tap)') && fn('pmMemTap').includes('Payments.isNoopPatch(e, patch)') && /pmWrite\(pid, patch, [^;]*, date\);/.test(fn('pmMemTap')) && fn('pmWrite').includes('const date = atDate || pmDate'));
 check('busy state keyed per night in both lists', fn('pmRowHtml').includes("pmBusy.has(pmDate + '|' + pid)") && fn('pmMemSessHtml').includes("pmBusy.has(x.date + '|' + pid)"));
-check('autosave indicator reaches the member view and the popup', fn('pmShowSave').includes("querySelectorAll('.pm-save-state')") && html.includes('id="pmMemSaveState"') && /<span class="pm-save-state pm-modal-save" id="pmModalSave"/.test(html));
+check('autosave indicator reaches the member view and the popup — and only Payments\' own', fn('pmShowSave').includes("querySelectorAll('#pmSaveState, #pmMemSaveState, #pmModalSave')") && html.includes('id="pmMemSaveState"') && /<span class="pm-save-state pm-modal-save" id="pmModalSave"/.test(html));
 check('popup eyebrow: nights on record + their number (tier shows once, next to the points)',
   fn('renderPmMemberModal').includes("put('pmModalEyebrow', 'Member · ' + (m.sessions ? pmNights(m.sessions) + ' on record' : 'no records yet')")
   && fn('renderPmMemberModal').includes("(memPhone ? ' · ' + memPhone : '')")

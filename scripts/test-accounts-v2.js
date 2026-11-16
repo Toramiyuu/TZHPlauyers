@@ -121,7 +121,7 @@ const admin = (s, body) => A.handleAdminAccountAction(s, body, { adminPassword: 
   const s = freshState();
   reg(s, '0123456789', 'topsecret', 'Harvey');
   const id = s.accounts[0].id;
-  check('reveal: wrong admin password -> 401', admin(s, { action: 'adminRevealPassword', id, confirmPassword: 'WRONGADMIN' }).status === 401);
+  check('reveal: wrong admin password -> 403 (not 401: that would sign the admin out)', admin(s, { action: 'adminRevealPassword', id, confirmPassword: 'WRONGADMIN' }).status === 403);
   const rv = admin(s, { action: 'adminRevealPassword', id, confirmPassword: ADMIN_PW });
   check('reveal: correct admin password -> plaintext', rv.status === 200 && rv.body.password === 'topsecret');
   check('reveal: audit logged WITHOUT plaintext',

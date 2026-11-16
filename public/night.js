@@ -124,16 +124,20 @@
 
   /**
    * Has this game day's session started yet? Drives the "Start tonight" button:
-   * true when today is a game day, its start hour has not arrived, and the live
-   * session is still sitting on the previous night.
+   * true when today is a game day and the live session is still sitting on the
+   * previous night — before the start hour, or after it while the cron is late.
+   * (`startHour` is kept in the signature for callers; it no longer gates this.)
    */
   function canStartTonight(sessionDate, nowMs, offsetHours, startHour) {
     const p = localParts(nowMs, offsetHours);
     if (!isGameDay(p.date)) return false;
     if (sessionDate === p.date) return false;      // already started
     if (sessionDate && sessionDate > p.date) return false; // scheduled ahead
-    const start = startHour == null ? GAME_START_HOUR : Number(startHour);
-    return p.hour < start;                          // after start the cron has it
+    // Before the start hour this starts the night early. After it the cron
+    // should already have moved the date, but a Hobby cron can fire any time in
+    // its hour: until it does, the Session tab sat on last night with no button
+    // and the night's first ticks landed on the old date. So offer it then too.
+    return true;
   }
 
   /** Malaysia-local ISO date of an instant — the raw calendar day, NOT the night. */

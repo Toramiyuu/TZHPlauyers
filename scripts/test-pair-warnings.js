@@ -104,14 +104,16 @@ const ok = (label, conds) => {
     }
     return null;
   }
-  // The queue editor replaced the round editor. Its counts come from
-  // pairCountsAll, which adds the games already PLAYED to the ones on the
-  // courts — counting only the live board would let the third time two people
-  // are put together go unremarked, because the first two are in the record.
-  ok('the queue seeds .pair-warn blocks from whole-night pair counts', [
-    (extractFn('renderQueue', html) || '').includes('pairCountsAll'),
-    (extractFn('queueRowHTML', html) || '').includes('pw_q_${i}'),
-    (extractFn('selectorsRowHTML', html) || '').includes('pair-warn'),
+  // The court cards carry the warnings, for the live game AND the next game.
+  // Their counts come from pairCountsAll, which adds the games already PLAYED
+  // to the ones on the courts — counting only the live board would let the
+  // third time two people are put together go unremarked, because the first
+  // two are in the record.
+  const cardsSrc = extractFn('renderCourtControls', html) || '';
+  ok('court cards seed .pair-warn from whole-night pair counts, next game included', [
+    cardsSrc.includes('pairCountsAll(state.rounds, state.played)'),
+    cardsSrc.includes('pairWarnHTML(next, sessionPairCounts)'),
+    cardsSrc.includes('<div class="pair-warn">'),
   ]);
   ok('whole-night counts include the finished games, not just the live courts', [
     (extractFn('pairCountsAll', html) || '').includes('Matchmaking.pairCounts'),

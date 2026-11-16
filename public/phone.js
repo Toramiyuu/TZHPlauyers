@@ -43,6 +43,11 @@
     const cleaned = cleanRaw(raw);
     let d = cleaned.charAt(0) === '+' ? cleaned.slice(1) : cleaned;
     if (!d) return { ok: false, canonical: '', display: '', error: 'Please enter a phone number.' };
+    // International dialling prefix typed out ("0060 12…"), and the local trunk
+    // 0 kept after the country code ("+60 012-…") — both common, both the same
+    // number, both used to be refused.
+    if (d.slice(0, 4) === '0060') d = d.slice(2);
+    if (d.slice(0, 3) === '600') d = '60' + d.slice(3);
 
     let canonical;
     if (d.charAt(0) === '0') {

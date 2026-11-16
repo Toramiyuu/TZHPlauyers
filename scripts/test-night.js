@@ -127,6 +127,7 @@ check('Monday 16:00 on Sunday\'s night can start tonight', Night.canStartTonight
 check('Saturday 16:00 cannot (not a game day)', !Night.canStartTonight(FRI, myt(SAT, 16, 0)));
 check('Sunday 20:00 cannot (cron already rolled it)', !Night.canStartTonight(SUN, myt(SUN, 20, 0)));
 check('already on tonight cannot start again', !Night.canStartTonight(SUN, myt(SUN, 16, 0)));
+check('Sunday 20:15 still on Friday (the cron is late) CAN start tonight', Night.canStartTonight(FRI, myt(SUN, 20, 15)));
 check('a future scheduled session cannot start tonight', !Night.canStartTonight(FRI2, myt(SUN, 16, 0)));
 
 // ── 7. month edge: a Friday night that runs into the 1st ─────────────

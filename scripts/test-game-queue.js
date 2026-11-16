@@ -12,12 +12,13 @@
  * games held somebody still mid-match, so "Next game" reported eight skips and
  * put nothing on.
  *
- * Now every court has its OWN lane. state.queue is still one flat array, but
- * each game carries `court` and lane i is the games with court === i, in order.
- * "Next game" on court i takes the top of lane i and puts it on — no scan, no
- * skip, no refusal; a clash is REPORTED, never obeyed. A lane whose court is
- * switched off is parked, not deleted. state.rounds is a one-row live board,
- * state.played is the record.
+ * Now every court has its OWN lane, one game deep: the court card's "Next game"
+ * view. state.queue is still one flat array, but each game carries `court` and
+ * lane i is the games with court === i. "Put on court" takes the top of lane i
+ * and puts it on — no scan, no skip, no refusal; a clash is REPORTED, never
+ * obeyed. A lane whose court is switched off is parked, not deleted.
+ * state.rounds is a one-row live board, state.played is the record, and the
+ * card's "Previous" view is the last game in it for that court.
  *
  * PURE helpers in public/index.html:
  *
@@ -30,15 +31,12 @@
  *   queueCourtOf(game)                 -> the court a game is planned for
  *   laneOf(queue, court)               -> [{ index, game }] for one court
  *   nextInLane(queue, court)           -> { index, game } — the top of a lane
- *   unshiftIntoLane(queue, court, g)   -> g at the FRONT of that lane (undo)
- *   moveWithinLane(queue, index, d)    -> reorder inside one lane only
- *   parkedLanes(queue, numCourts)      -> [{ court, count }] for courts now off
- *   queueRowState(game, pos, ctx)      -> what a row SAYS, which is not what is
- *                                         true of it: a clash only matters for
- *                                         the game about to go on
- *   queueFromLaneOrder(queue, orders)  -> the queue rebuilt from a drag: lanes
- *                                         in their new DOM order, each game
- *                                         re-stamped with the lane it landed in
+ *   oneNextPerCourt(queue)             -> only the top game of every lane
+ *   withNextGame(queue, court, game)   -> that court's next game set (or, with
+ *                                         nobody in it, removed)
+ *   setGameSeat(game, team, k, id)     -> one seat set; never the same person twice
+ *   swapGameSeats(game, a, b)          -> two seats of one game swapped
+ *   lastPlayedIndex(played, court)     -> the court's Previous game in the record
  *   waitMinutes(played, players, live, now) -> { id: whole minutes waiting }
  *   playedGameCounts(played)           -> { id: games tonight }
  *   waitHeatLevel(min) / waitBandLabel(level)
@@ -47,7 +45,6 @@
  *   courtIsFree(rounds, cr, i)
  *   takeNextGame(state, courtIdx, at)  -> { rounds, queue, played, courtRounds,
  *                                           courtLive, took, finished, skipped }
- *   putGameBack(state, courtIdx)       -> the undo
  *
  * Exit 0 = green, exit 1 = red.
  */
@@ -73,15 +70,16 @@ function extractFn(name, src) {
   return null;
 }
 
-// takeNextGame/putGameBack call setCourtLiveAt, which calls normalizeCourtLive,
+// takeNextGame calls setCourtLiveAt, which calls normalizeCourtLive,
 // so the clock helpers load alongside them — same pattern as test-court-games.
 const NAMES = [
   'normalizeCourtLive', 'setCourtLiveAt', 'normalizeCourtWinner', 'setCourtWinnerAt', 'winLossIn',
+  'normalizeCourtStatus', 'setCourtStatusAt', 'normalizeEndingSoon', 'clearEndingSoonForCourt',
   'gameIds', 'liveCourtIds', 'gameReadiness',
-  'queueCourtOf', 'laneOf', 'nextInLane', 'unshiftIntoLane', 'moveWithinLane', 'parkedLanes',
-  'queueRowState', 'queueFromLaneOrder',
+  'queueCourtOf', 'laneOf', 'nextInLane', 'oneNextPerCourt', 'withNextGame',
+  'setGameSeat', 'swapGameSeats', 'seatsOf', 'lastPlayedIndex',
   'waitMinutes', 'playedGameCounts', 'roundsRested', 'restBand', 'restBandLabel', 'restHeatClass',
-  'liveBoardRow', 'historicGamesOf', 'courtIsFree', 'takeNextGame', 'putGameBack',
+  'liveBoardRow', 'historicGamesOf', 'courtIsFree', 'lastEndOnCourt', 'takeNextGame',
 ];
 const srcs = NAMES.map(n => {
   const s = extractFn(n, html);
@@ -99,16 +97,17 @@ if (!capMatch || !dangerMatch) {
 }
 const CAP = Number(capMatch[1]);
 const DANGER = Number(dangerMatch[1]);
+const statusConst = (html.match(/const COURT_STATUSES = \[[^\]]*\];/) || [''])[0];
 const api = new Function(
-  `const REST_MAX_BAND = ${CAP}; const REST_DANGER = ${DANGER};\n`
+  `${statusConst}\nconst REST_MAX_BAND = ${CAP}; const REST_DANGER = ${DANGER};\n`
   + `${srcs.join('\n')}; return { ${NAMES.join(', ')} };`
 )();
 const {
   gameIds, liveCourtIds, gameReadiness, waitMinutes,
-  queueCourtOf, laneOf, nextInLane, unshiftIntoLane, moveWithinLane, parkedLanes, queueRowState,
-  queueFromLaneOrder,
+  queueCourtOf, laneOf, nextInLane, oneNextPerCourt, withNextGame, setGameSeat, swapGameSeats,
+  lastPlayedIndex,
   playedGameCounts, roundsRested, restBand, restBandLabel, restHeatClass, liveBoardRow, historicGamesOf,
-  courtIsFree, takeNextGame, putGameBack, winLossIn,
+  courtIsFree, takeNextGame, winLossIn,
 } = api;
 
 const failures = [];
@@ -187,105 +186,60 @@ check('gameIds tolerates a missing game', gameIds(null).length === 0);
   check('a short game does not make a lane skip it either',
     nextInLane([onCourt(0, 'a', 'b', '', ''), onCourt(0, 'm', 'n', 'o', 'p')], 0).game.team2[0] === '');
 
-  // unshiftIntoLane — what undo uses.
-  const un = unshiftIntoLane(queue, 0, game('z', 'z', 'z', 'z'));
-  check('a game goes to the FRONT of its own lane, not the front of the queue',
-    laneOf(un, 0)[0].game.team1[0] === 'z' && un.length === 5);
-  check('and it does not disturb any other lane',
-    JSON.stringify(laneOf(un, 1).map(x => x.game)) === JSON.stringify(laneOf(queue, 1).map(x => x.game)));
-  check('the court is stamped on the way in', queueCourtOf(laneOf(un, 0)[0].game) === 0);
-  const empty = unshiftIntoLane(queue, 3, game('z', 'z', 'z', 'z'));
-  check('into an empty lane it simply joins the queue',
-    empty.length === 5 && queueCourtOf(empty[4]) === 3);
-
-  // moveWithinLane — reordering must never reach across courts.
-  const moved = moveWithinLane(queue, 2, -1);
-  check('moving up swaps with the game above it IN THE SAME LANE',
-    laneOf(moved, 0)[0].game.team1[0] === 'i' && laneOf(moved, 0)[1].game.team1[0] === 'a');
-  check('the other lanes are untouched by a move',
-    moved[1].team1[0] === 'e' && moved[3].team1[0] === 'm');
-  check('the top of a lane cannot move up', 
-    JSON.stringify(moveWithinLane(queue, 0, -1)) === JSON.stringify(queue));
-  check('the bottom of a lane cannot move down',
-    JSON.stringify(moveWithinLane(queue, 2, 1)) === JSON.stringify(queue));
-  check('a lone game in a lane cannot move at all',
-    JSON.stringify(moveWithinLane(queue, 3, -1)) === JSON.stringify(queue)
-    && JSON.stringify(moveWithinLane(queue, 3, 1)) === JSON.stringify(queue));
-  check('moveWithinLane survives an out-of-range index',
-    JSON.stringify(moveWithinLane(queue, 99, 1)) === JSON.stringify(queue));
-
-  // parkedLanes — switching a court off must never look like data loss.
-  const parked = parkedLanes(queue, 2);
-  check('games for a court that is switched off are reported, not dropped',
-    parked.length === 1 && parked[0].court === 2 && parked[0].count === 1);
-  check('nothing is parked while every court is on', parkedLanes(queue, 3).length === 0);
-  check('parked lanes come back in court order',
-    JSON.stringify(parkedLanes([...queue, onCourt(4, 'q', 'r', 's', 't')], 2).map(p => p.court)) === '[2,4]');
 }
 
-// ── dragging a row ──
-// A drag can only report what the lanes look like afterwards, so the commit has
-// to turn "these flat indexes, in this order, in this lane" back into a queue.
-// Dropping a row in another lane IS moving it to that court — same operation.
+// ── one next game per court ──
+// The card's Next game view IS the lane now, so a lane is one game deep.
 {
   const at = (c, a, b, x, y) => Object.assign(game(a, b, x, y), { court: c });
-  const q = [at(0, 'a', 'b', 'c', 'd'), at(1, 'e', 'f', 'g', 'h'), at(0, 'i', 'j', 'k', 'l')];
+  const old = [at(0, 'a', 'b', 'c', 'd'), at(1, 'e', 'f', 'g', 'h'), at(0, 'i', 'j', 'k', 'l'), at(5, 'm', 'n', 'o', 'p'), at(5, 'q', 'r', 's', 't')];
+  const one = oneNextPerCourt(old);
+  check('a night saved with whole queues keeps the top game of each lane',
+    one.map(g => g.team1[0]).join(',') === 'a,e,m');
+  check('a parked lane is trimmed, not dropped', one.some(g => g.court === 5));
+  check('oneNextPerCourt survives junk', oneNextPerCourt(null).length === 0);
 
-  const same = queueFromLaneOrder(q, [{ court: 0, indexes: [0, 2] }, { court: 1, indexes: [1] }]);
-  check('a drag that changed nothing rebuilds the same queue',
-    JSON.stringify(same.map(g => [g.court, g.team1[0]])) === '[[0,"a"],[0,"i"],[1,"e"]]');
+  const set = withNextGame(old, 0, { id: 'n0', team1: ['z', ''], team2: ['', ''] });
+  check('setting a next game replaces that court\'s game in place',
+    laneOf(set, 0).length === 1 && laneOf(set, 0)[0].game.team1.join() === 'z,' && set[0].id === 'n0');
+  check('and trims every other lane to one game too', set.length === 3);
+  check('the court is stamped on the game', queueCourtOf(laneOf(set, 0)[0].game) === 0);
+  const added = withNextGame([at(1, 'e', 'f', 'g', 'h')], 2, { id: 'n2', team1: ['z', 'y'], team2: ['x', 'w'] });
+  check('a court with nothing planned gets its game added',
+    added.length === 2 && laneOf(added, 2)[0].game.id === 'n2');
+  const kept = withNextGame(old, 1, { team1: ['z', 'f'], team2: ['g', 'h'] });
+  check('an edit with no id keeps the game\'s own id', laneOf(kept, 1)[0].game.id === undefined || laneOf(kept, 1)[0].game.id === '');
+  const cleared = withNextGame(old, 0, { id: 'n0', team1: ['', ''], team2: ['', ''] });
+  check('emptying every seat removes the next game rather than saving four blanks',
+    laneOf(cleared, 0).length === 0 && laneOf(cleared, 1).length === 1);
+  check('clearing a court with nothing planned changes nothing else',
+    withNextGame(old, 3, EMPTY()).length === 3);
 
-  const reordered = queueFromLaneOrder(q, [{ court: 0, indexes: [2, 0] }, { court: 1, indexes: [1] }]);
-  check('reordering inside a lane comes back in the new order',
-    laneOf(reordered, 0).map(x => x.game.team1[0]).join(',') === 'i,a');
+  const g = { id: 'g', court: 1, team1: ['a', 'b'], team2: ['c', ''], startedAt: 5, winner: 'red' };
+  const placed = setGameSeat(g, 'team2', 1, 'a');
+  check('a name moved into an empty seat of its own game leaves its old one',
+    placed.team1.join() === ',b' && placed.team2.join() === 'c,a');
+  const traded = setGameSeat(g, 'team2', 0, 'a');
+  check('a name moved onto a taken seat of its own game trades places — nobody drops out',
+    traded.team1.join() === 'c,b' && traded.team2.join() === 'a,');
+  check('picking the person already in that seat changes nothing',
+    JSON.stringify(setGameSeat(g, 'team1', 0, 'a').team1) === '["a","b"]');
+  check('everything else about the game rides through',
+    placed.id === 'g' && placed.court === 1 && placed.startedAt === 5 && placed.winner === 'red');
+  check('setting a seat never edits the game it was given', g.team1.join() === 'a,b');
+  check('an empty id empties just that seat', setGameSeat(g, 'team1', 0, '').team1.join() === ',b');
+  check('a short game is padded to two seats a side',
+    setGameSeat({ team1: ['a'] }, 'team2', 0, 'b').team2.join() === 'b,');
+  check('a junk seat changes nothing', JSON.stringify(setGameSeat(g, 'team3', 0, 'z').team1) === '["a","b"]');
+  const sw = swapGameSeats(g, { team: 'team1', k: 0 }, { team: 'team2', k: 1 });
+  check('two seats of one game swap, empties included', sw.team1.join() === ',b' && sw.team2.join() === 'c,a');
 
-  const crossed = queueFromLaneOrder(q, [{ court: 0, indexes: [0] }, { court: 1, indexes: [2, 1] }]);
-  check('a row dropped in another lane is re-stamped with that court',
-    laneOf(crossed, 1).map(x => x.game.team1[0]).join(',') === 'i,e'
-    && laneOf(crossed, 0).length === 1);
-  check('and it keeps everything else about the game',
-    laneOf(crossed, 1)[0].game.team2[1] === 'l');
-
-  // The DOM only draws the lanes for courts that are switched ON. Games parked
-  // on a court that is off are invisible to a drag and must survive it.
-  const parkedQ = [...q, at(5, 'm', 'n', 'o', 'p')];
-  const kept = queueFromLaneOrder(parkedQ, [{ court: 0, indexes: [0, 2] }, { court: 1, indexes: [1] }]);
-  check('a drag never drops the games parked on a switched-off court',
-    kept.length === 4 && laneOf(kept, 5).length === 1);
-
-  check('an index named twice is only placed once',
-    queueFromLaneOrder(q, [{ court: 0, indexes: [0, 0, 2] }]).length === 3);
-  check('junk indexes and junk lanes are ignored, never thrown',
-    queueFromLaneOrder(q, [{ court: 0, indexes: [99, 'x', null] }]).length === 3
-    && queueFromLaneOrder(q, null).length === 3
-    && queueFromLaneOrder(null, [{ court: 0, indexes: [0] }]).length === 0);
-}
-
-// ── what a queue row says ──
-// A warning you learn to ignore is worse than no warning. The third game down a
-// lane will not be played for half an hour, so telling the organiser its players
-// are "on court" every time they look is noise they will train themselves past —
-// and then miss the one that mattered.
-{
-  const ctx = { live: new Set(['x']), gone: new Set(['z']) };
-  const clash = game('a', 'b', 'c', 'x');
-  check('a clash is said about the game that is about to go on',
-    queueRowState(clash, 0, ctx).state === 'clash');
-  check('and NOT about the ones further down the lane',
-    queueRowState(clash, 1, ctx).state === 'ready'
-    && queueRowState(clash, 5, ctx).state === 'ready');
-  check('a silenced clash names nobody either', queueRowState(clash, 1, ctx).ids.length === 0);
-  // These two are wrong at any depth: nobody un-goes-home, and a game three
-  // names long is still three names long when its turn comes.
-  check('gone home is said at any depth',
-    queueRowState(game('a', 'b', 'c', 'z'), 0, ctx).state === 'gone'
-    && queueRowState(game('a', 'b', 'c', 'z'), 4, ctx).state === 'gone');
-  check('short is said at any depth',
-    queueRowState(game('a', 'b', '', ''), 0, ctx).state === 'short'
-    && queueRowState(game('a', 'b', '', ''), 4, ctx).state === 'short');
-  check('a clean game says nothing wherever it sits',
-    queueRowState(game('a', 'b', 'c', 'd'), 0, ctx).state === 'ready'
-    && queueRowState(game('a', 'b', 'c', 'd'), 3, ctx).state === 'ready');
+  const played = [at(0, 'a', 'b', 'c', 'd'), at(1, 'e', 'f', 'g', 'h'), at(0, 'i', 'j', 'k', 'l')];
+  check('Previous is the LAST game finished on that court', lastPlayedIndex(played, 0) === 2);
+  check('each court has its own Previous', lastPlayedIndex(played, 1) === 1);
+  check('a court with nothing finished has no Previous', lastPlayedIndex(played, 2) === -1);
+  check('a record from before courts were stamped belongs to court 0',
+    lastPlayedIndex([game('a', 'b', 'c', 'd')], 0) === 0 && lastPlayedIndex(null, 0) === -1);
 }
 
 // ── takeNextGame ──
@@ -314,8 +268,6 @@ check('gameIds tolerates a missing game', gameIds(null).length === 0);
   check('and cleared for the game that goes on, other courts untouched',
     JSON.stringify(w.courtWinner) === JSON.stringify(['', 'red']));
   check('no winner called means no winner field', !('winner' in r.played[0]));
-  const undone = putGameBack(Object.assign(base(), w, { numCourts: 2 }), 0);
-  check('undo brings the previous game back with its winner', undone.courtWinner[0] === 'blue');
   const night = [
     { team1: ['a', 'b'], team2: ['c', 'd'], winner: 'red' },
     { team1: ['c', 'a'], team2: ['e', 'f'], winner: 'blue' },
@@ -442,59 +394,6 @@ check('gameIds tolerates a missing game', gameIds(null).length === 0);
     JSON.stringify(moved.rounds[0].courts[0]) === JSON.stringify(game('q', 'r', 's', 't')));
 }
 
-// ── putGameBack ──
-{
-  const src = {
-    numCourts: 2,
-    courtRounds: [0, 0],
-    courtLive: [9000, 2000],
-    rounds: [{ label: 'Live', courts: [game('m', 'n', 'o', 'p'), game('e', 'f', 'g', 'h')] }],
-    queue: [game('q', 'r', 's', 't')],
-    played: [{ id: 'x1', court: 0, team1: ['a', 'b'], team2: ['c', 'd'], startedAt: 1000, endedAt: 9000 }],
-  };
-  const back = putGameBack(src, 0);
-  check('the current game returns to the FRONT of the queue',
-    back.queue.length === 2 && back.queue[0].team1[0] === 'm');
-  check('the previous game comes back onto the court',
-    JSON.stringify(back.rounds[0].courts[0]) === JSON.stringify(game('a', 'b', 'c', 'd')));
-  check('it leaves the record', back.played.length === 0);
-  check('the clock goes back to when that game started', back.courtLive[0] === 1000);
-  check('the other court is untouched',
-    JSON.stringify(back.rounds[0].courts[1]) === JSON.stringify(game('e', 'f', 'g', 'h')));
-
-  // Undo on a court with no earlier game leaves it empty rather than inventing one.
-  const first = putGameBack({
-    numCourts: 1, courtRounds: [0], courtLive: [9000],
-    rounds: [{ label: 'Live', courts: [game('m', 'n', 'o', 'p')] }], queue: [], played: [],
-  }, 0);
-  check('undoing the first game of the night empties the court',
-    !gameIds(first.rounds[0].courts[0]).some(Boolean) && first.queue.length === 1);
-  check('and stops its clock', first.courtLive[0] === 0);
-
-  check('undo on an empty court does nothing', putGameBack({
-    numCourts: 1, courtRounds: [0], courtLive: [0],
-    rounds: [{ label: 'Live', courts: [EMPTY()] }], queue: [], played: [],
-  }, 0) === null);
-}
-
-// ── takeNextGame then putGameBack is a round trip ──
-{
-  const before = {
-    numCourts: 2, courtRounds: [0, 0], courtLive: [1000, 2000], wentHome: [],
-    rounds: [{ label: 'Live', courts: [game('a', 'b', 'c', 'd'), game('e', 'f', 'g', 'h')] }],
-    queue: [game('m', 'n', 'o', 'p'), game('q', 'r', 's', 't')],
-    played: [],
-  };
-  const took = takeNextGame(before, 0, 9000);
-  const undone = putGameBack({ ...before, ...took }, 0);
-  check('undo restores the court exactly',
-    JSON.stringify(undone.rounds[0].courts[0]) === JSON.stringify(game('a', 'b', 'c', 'd')));
-  check('undo restores the queue exactly',
-    JSON.stringify(undone.queue.map(g => g.team1[0])) === JSON.stringify(['m', 'q']));
-  check('undo restores the clock', undone.courtLive[0] === 1000);
-  check('undo leaves nothing in the record', undone.played.length === 0);
-}
-
 // ── courtIsFree ──
 {
   const rounds = [{ label: 'Live', courts: [game('a', 'b', 'c', 'd'), EMPTY()] }];
@@ -570,16 +469,14 @@ check('gameIds tolerates a missing game', gameIds(null).length === 0);
 }
 
 // ── report ──
-console.log('\ntest-game-queue — one queue per court, and the clock\n');
+console.log('\ntest-game-queue — one next game per court, and the clock\n');
 const groups = [
   'the four ids and who is on a court',
   'a game is ready, short, gone or clashing — as advice, not a veto',
-  'a clash is only worth saying about the game that is next',
-  'a drag rebuilds the queue, across lanes, without losing parked games',
-  'each court owns a lane: take, reorder, undo and park stay inside it',
+  'each court owns a lane, one game deep: old queues keep only their top game',
+  'next and previous games are edited seat by seat, never one person twice',
   'a court takes its own next game and never skips it',
   'an old multi-round night collapses without losing its history',
-  'undo puts the game back and the court back',
   'waiting is measured in minutes, from the last game that ended',
 ];
 if (!failures.length) {

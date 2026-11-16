@@ -15,11 +15,10 @@
  *      '' (empty), never silently to the first player.
  *
  *   2. The 2s poll rebuilt the round editor (renderRoundList) whenever no form
- *      control was focused, discarding an in-progress manual arrangement. The
- *      fix: shouldHoldAdminRender(adminOpen, editing, expandedRound) — poll must
- *      hold (skip the state overwrite + re-render) while a round editor is open
- *      (expandedRound !== null), not only while a field is focused. The wider
- *      edit window on a slow machine is exactly what let a poll tick land mid-edit.
+ *      control was focused, discarding an in-progress manual arrangement. Those
+ *      editors are gone: every court-card seat now saves the moment it is
+ *      picked, so shouldHoldAdminRender(adminOpen, editing) holds only while
+ *      something is being edited (see isEditing), and never on a viewer.
  *
  * Both helpers are PURE and extracted from public/index.html. Exit 0 = green.
  */
@@ -134,24 +133,17 @@ const countSelected = (s) => (s.match(/ selected/g) || []).length;
     // Viewer device (admin panel not open) must NEVER hold — the live screen
     // has to keep polling regardless of focus/expansion state.
     check('shouldHoldAdminRender: viewer never holds (no admin)',
-      shouldHoldAdminRender(false, false, null) === false);
-    check('shouldHoldAdminRender: viewer never holds even if expanded flag set',
-      shouldHoldAdminRender(false, true, 3) === false);
+      shouldHoldAdminRender(false, false) === false);
+    check('shouldHoldAdminRender: viewer never holds even mid-edit',
+      shouldHoldAdminRender(false, true) === false);
 
-    // Admin open, idle (no field focused, no round expanded) -> poll proceeds.
+    // Admin open, idle (nothing being edited) -> poll proceeds.
     check('shouldHoldAdminRender: admin idle -> does not hold',
-      shouldHoldAdminRender(true, false, null) === false);
+      shouldHoldAdminRender(true, false) === false);
 
-    // Admin open + a field focused -> hold (existing B1 behaviour preserved).
-    check('shouldHoldAdminRender: focused field -> holds',
-      shouldHoldAdminRender(true, true, null) === true);
-
-    // THE FIX: admin open + a round editor expanded (even with nothing focused)
-    // -> hold, so a poll tick can't wipe the in-progress manual arrangement.
-    check('shouldHoldAdminRender: round 0 expanded -> holds',
-      shouldHoldAdminRender(true, false, 0) === true);
-    check('shouldHoldAdminRender: round 2 expanded -> holds',
-      shouldHoldAdminRender(true, false, 2) === true);
+    // Admin open + something being edited -> hold (B1 behaviour preserved).
+    check('shouldHoldAdminRender: editing -> holds',
+      shouldHoldAdminRender(true, true) === true);
   }
 }
 
@@ -163,7 +155,7 @@ if (failures.length) {
   process.exit(1);
 } else {
   console.log('  PASS  playerSelectOptions: empty/unknown slot resolves to "" (never the first player)');
-  console.log('  PASS  shouldHoldAdminRender: poll holds while a round editor is open');
+  console.log('  PASS  shouldHoldAdminRender: poll holds mid-edit, never on a viewer');
   console.log('\nRESULT: PASS — court-editor assertions green.');
   process.exit(0);
 }

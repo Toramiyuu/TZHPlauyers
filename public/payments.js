@@ -63,6 +63,7 @@
    * (an existing paidAt is preserved), and clears paidAt / markedBy / method on the way to
    * unpaid ("method is nullable until paid"). Without a record only the flag changes.
    */
+  const UNDO_PAID_MS = 10 * 60 * 1000;
   function applyPaid(entry, paid, nowMs, by) {
     const e = clone(entry);
     const next = !!paid;
@@ -70,8 +71,18 @@
     if (e.payment) {
       const p = e.payment;
       if (next) {
-        if (!p.paidAt) { p.paidAt = ms(nowMs); p.markedBy = by || 'admin'; }
+        if (!p.paidAt) {
+          // Paid → Unpaid → Paid again within a few minutes is a mis-tap being
+          // fixed: keep the ORIGINAL time. A fresh stamp could land after the
+          // draw time and quietly make someone who paid on the night ineligible.
+          const back = Number(p.unpaidFromAt) || 0;
+          const recent = back && Number(p.unpaidAt) && ms(nowMs) - Number(p.unpaidAt) <= UNDO_PAID_MS;
+          p.paidAt = recent ? back : ms(nowMs);
+          p.markedBy = recent ? (p.unpaidFromBy || by || 'admin') : (by || 'admin');
+        }
+        delete p.unpaidFromAt; delete p.unpaidFromBy; delete p.unpaidAt;
       } else {
+        if (p.paidAt) { p.unpaidFromAt = p.paidAt; p.unpaidFromBy = p.markedBy || null; p.unpaidAt = ms(nowMs); }
         p.paidAt = null; p.markedBy = null; p.method = null;
       }
       p.updatedAt = ms(nowMs);
@@ -170,18 +181,23 @@
   // ── reads ────────────────────────────────────────────────────────────
   function listOf(entries) { return Array.isArray(entries) ? entries : Object.values(entries || {}); }
   function withPayment(entries) { return listOf(entries).filter((e) => e && e.payment); }
+  /** Does this record still owe money? Unpaid AND a fee above zero. A night set to
+   *  RM0 (a helper, a free night) owes nothing: By night used to count it Unpaid —
+   *  badge, never pruned, the tab kept opening on it — while By member said Settled. */
+  function owes(e) { return !!(e && e.payment) && !e.paid && (Number(e.payment.fee) || 0) > 0; }
 
   /** Running totals for the list header. Only entries with a payment record count.
    *  expected = sum of every fee owed tonight; collected = the paid part; outstanding = the rest. */
   function summarize(entries) {
-    let players = 0, paid = 0, collected = 0, expected = 0;
+    let players = 0, paid = 0, collected = 0, expected = 0, settledFree = 0;
     for (const e of withPayment(entries)) {
       players++;
       const fee = Number(e.payment.fee) || 0;
       expected += fee;
       if (e.paid) { paid++; collected += fee; }
+      else if (!owes(e)) settledFree++;
     }
-    return { players, paid, unpaid: players - paid, collected: roundFee(collected), expected: roundFee(expected), outstanding: roundFee(expected - collected) };
+    return { players, paid, unpaid: players - paid - settledFree, collected: roundFee(collected), expected: roundFee(expected), outstanding: roundFee(expected - collected) };
   }
 
   /** List filters, in display order: all / unpaid / paid / one per method. */
@@ -190,7 +206,7 @@
   function isFilter(f) { return FILTERS.indexOf(f) !== -1; }
   function filterLabel(f) { return FILTER_LABELS[f] || methodLabel(f); }
   function matchesFilter(e, f) {
-    if (f === 'unpaid') return !e.paid;
+    if (f === 'unpaid') return owes(e);
     if (f === 'paid') return !!e.paid;
     if (isMethod(f)) return !!e.paid && e.payment.method === f;
     return true; // 'all' / unknown
@@ -205,7 +221,7 @@
     const f = opts && opts.unpaidOnly ? 'unpaid' : ((opts && opts.filter) || 'all');
     return withPayment(entries)
       .filter((e) => matchesFilter(e, f))
-      .sort((a, b) => (!!a.paid - !!b.paid) || compareNames(a, b));
+      .sort((a, b) => (owes(b) - owes(a)) || compareNames(a, b));
   }
 
   /** Paid players grouped by method, in METHODS order (+ 'other' when a paid row has no method). */
@@ -266,7 +282,12 @@
   function nightToOpen(attendance, liveDate) {
     const att = attendance && typeof attendance === 'object' ? attendance : {};
     const dates = datesWithPayments(att); // newest first
+    // Only the last week: unpaid nights are kept forever (so a debt is never
+    // lost), and one old debt used to win every time tonight had no records yet,
+    // opening the tab on a night from months ago. Old debts live in By member.
+    const floor = liveDate ? addDaysISO(liveDate, -7) : '';
     for (const d of dates) {
+      if (floor && d < floor) break;
       if (dayHasOutstanding(att[d])) return d;
     }
     return liveDate || dates[0] || null;
@@ -293,7 +314,7 @@
   /** True when any payment record on this attendance day is still unpaid. Such a night must
    *  never be pruned by the retention window — the debt would silently vanish. */
   function dayHasOutstanding(day) {
-    return withPayment(day && day.entries).some((e) => !e.paid);
+    return withPayment(day && day.entries).some(owes);
   }
 
   /** Every payment record for one player across all nights, newest first: { date, entry }. */
@@ -321,7 +342,7 @@
       const fee = Number(p.fee) || 0;
       if (!nm && e.name) nm = e.name;
       const row = { date: s.date, fee, tier: p.tier, feeOverridden: !!p.feeOverridden, method: p.method || null, paidAt: p.paidAt || null, paid: !!e.paid };
-      if (e.paid) { settled.push(row); paidTotal += fee; } else { owing.push(row); outstanding += fee; }
+      if (e.paid) { settled.push(row); paidTotal += fee; } else if (owes(e)) { owing.push(row); outstanding += fee; } else settled.push(row);
     }
     return {
       playerId, name: nm || playerId, sessions: sessions.length, owing, settled,
@@ -486,7 +507,7 @@
     isTier, isMethod, tierOf, feeForTier, methodLabel, isValidFee,
     newPayment, applyPaid, applyMethod, applyTier, applyFeeOverride, resetFee, generateInto,
     summarize, rowsOf, nextPaymentPatch, isNoopPatch, datesWithPayments, nightToOpen, stepDate, feeTierForDate,
-    FILTERS, isFilter, filterLabel, matchesFilter, breakdownByMethod, unpaidNames,
+    FILTERS, isFilter, filterLabel, matchesFilter, breakdownByMethod, unpaidNames, owes,
     dayHasOutstanding, memberSessions, memberSummary, memberLedger, compareMembers,
     MEMBER_FILTERS, isMemberFilter, memberFilterLabel, matchesMemberFilter, filterMembers, ledgerTotals, memberOweLabel,
     addDaysISO, endOfDayMs, paidWithin, fmtMYT, fmtMYTDateTime,

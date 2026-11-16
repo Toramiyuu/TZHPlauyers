@@ -163,6 +163,8 @@
     'No account found for that phone number, or no password set. Contact the administrator.': '找不到这个手机号的账户，或还没设置密码。请联系管理员。',
     'Account limit reached. Please contact the administrator.': '账户数量已达上限，请联系管理员。',
     'Image is too large.': '图片太大。', 'Invalid image.': '图片无效。', 'Please enter a name.': '请输入名字。',
+    'Names can\'t contain < > or " characters.': '名字不能包含 < > 或 " 符号。',
+    'That picture could not be read. Try a JPG or PNG.': '无法读取这张图片，请换一张 JPG 或 PNG。',
   };
 
   // Words that only mean one thing in one place.

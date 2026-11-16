@@ -78,7 +78,7 @@ const post = (b) => call('POST', {}, b);
   r = await post({ password: P, action: 'adminRevealPassword', id, confirmPassword: P });
   check('reveal via dispatcher -> plaintext (confirmPassword survives strip)', r.status === 200 && r.body.password === 'secret1');
   r = await post({ password: P, action: 'adminRevealPassword', id, confirmPassword: 'WRONG' });
-  check('reveal wrong confirm -> 401', r.status === 401);
+  check('reveal wrong confirm -> 403 (the admin stays signed in)', r.status === 403);
 
   // CREATE — newPassword must survive the strip (not collide with admin auth).
   r = await post({ password: P, action: 'adminCreateAccount', phone: '0129999999', name: 'Thomas', playerId: 'p0', newPassword: 'brandnew1' });

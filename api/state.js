@@ -49,11 +49,69 @@ const kv = {
   },
 };
 
+// ── One writer at a time ─────────────────────────────────────────────
+// Every write here is read-modify-write of ONE blob: load the whole club state,
+// change a corner of it, store it all back. Two of those overlapping on
+// different serverless instances (the treasurer ticking a payment while the
+// organiser puts a game on) each stored a copy without the other's change, and
+// one was lost without a word. A short Redis lock (SET NX PX) puts them in a
+// line. It degrades rather than fails: if the lock cannot be had within a few
+// seconds, or this Redis has no lock commands (the test stubs), the write goes
+// ahead exactly as it always did.
+const LOCK_WAIT_MS = 3000;
+const LOCK_TTL_MS = 8000;
+function canLock() { return !!(redis && typeof redis.set === 'function' && typeof redis.del === 'function'); }
+async function withStateLock(fn) {
+  let token = null;
+  let released = null;
+  // Idempotent. Called before a response goes out (see lockedResponse) — a
+  // serverless function can be frozen the moment it has answered, and a lock
+  // left behind would stall the next save for its whole TTL.
+  const release = () => {
+    if (!released) {
+      released = (async () => {
+        if (!token) return;
+        try { if (String(await redis.get(LOCK_KEY)) === token) await redis.del(LOCK_KEY); } catch (e) { /* expires by itself */ }
+      })();
+    }
+    return released;
+  };
+  if (canLock()) {
+    // Prefixed: Upstash JSON-parses what it reads back, so an all-digit token
+    // would come back as a number and never match for the release.
+    const mine = 'lk-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    const deadline = Date.now() + LOCK_WAIT_MS;
+    while (Date.now() < deadline) {
+      let r;
+      try { r = await redis.set(LOCK_KEY, mine, { nx: true, px: LOCK_TTL_MS }); } catch (e) { break; }
+      if (r === 'OK' || r === true) { token = mine; break; }
+      await new Promise((res) => setTimeout(res, 30 + Math.floor(Math.random() * 50)));
+    }
+  }
+  try {
+    return await fn(release);
+  } finally {
+    // Release only our own lock; after the TTL it may already belong to someone else.
+    await release();
+  }
+}
+// The response object, with the lock let go just before anything is sent.
+function lockedResponse(res, release) {
+  const out = {
+    setHeader: (...a) => res.setHeader(...a),
+    status: (c) => { res.status(c); return out; },
+    json: async (o) => { await release(); return res.json(o); },
+    end: async (...a) => { await release(); return res.end(...a); },
+  };
+  return out;
+}
+
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'TZH123';
 // A demo/sandbox deployment can point the whole app at a throwaway set of keys
 // (TZH_KEY_PREFIX=demo-) so it can never read or write the live data.
 const KEY_PREFIX = process.env.TZH_KEY_PREFIX || '';
 const STATE_KEY = KEY_PREFIX + 'court-state';
+const LOCK_KEY = KEY_PREFIX + 'court-state:lock';
 // Session draw results: a separate Redis hash (`court-draws`, field = ISO date),
 // never pruned, never rewritten — see lib/session-draw.js.
 const drawStore = redisDrawStore(kv);
@@ -202,7 +260,10 @@ const DEFAULT_STATE = {
 // viewer screen polls this payload every 2 seconds. `feedbackSettings` stays — it is
 // only { enabled, points }.
 function publicProjection(current) {
-  const { attendance, audit, feedback, monthlyDraw, monthlyEligibility, weeklyDraws, weeklySettings, ...safe } = redactState(current);
+  // `signups` carries every applicant's phone number. The viewer only needs the
+  // places-left count, which rides separately as `upcoming`; the admin's own poll
+  // gets the list back in the GET handler (see adminGetKey).
+  const { attendance, audit, feedback, monthlyDraw, monthlyEligibility, weeklyDraws, weeklySettings, signups, ...safe } = redactState(current);
   // The competition holds entrants' phone numbers and (encrypted) IC numbers.
   // Knockout.publicKnockout is the ONLY shape allowed out of the public GET:
   // it keeps the bracket a hall screen needs and drops every phone, every IC,
@@ -460,7 +521,7 @@ const MAX_GAME_NUMBER = 999;
 // whole plan — stripping it here (as this did while the queue was shared) drops
 // every queued game onto court 1 the moment it is saved.
 //
-// `keepPlayed` adds only the two timestamps, which a waiting game has no use for.
+// `keepPlayed` adds the two timestamps and the winner call, which a waiting game has no use for.
 // Unit tested in scripts/test-game-queue.js.
 function normalizeGameList(value, cap, keepPlayed) {
   if (!Array.isArray(value)) return [];
@@ -488,9 +549,18 @@ function normalizeGameList(value, cap, keepPlayed) {
       team1: pair(raw.team1),
       team2: pair(raw.team2),
     };
+    // A parked game (its court switched off) keeps the court NUMBER it was
+    // planned for, so switching that court back on returns its queue.
+    if (!keepPlayed) {
+      const from = Math.floor(Number(raw.parkedFrom));
+      if (Number.isFinite(from) && from > 0 && from < 100) game.parkedFrom = from;
+    }
     if (keepPlayed) {
       game.startedAt = stamp(raw.startedAt);
       game.endedAt = stamp(raw.endedAt);
+      // The "Won: Red | Blue" call rides the finished game (red = team1). It
+      // was dropped here, so every result was lost the moment Next game saved.
+      if (raw.winner === 'red' || raw.winner === 'blue') game.winner = raw.winner;
     }
     out.push(game);
   }
@@ -509,10 +579,23 @@ function normalizeGameList(value, cap, keepPlayed) {
  */
 function buildRosterAdditions(roster, names, nowMs) {
   if (!Array.isArray(names)) return { ok: false, error: 'No names supplied.' };
-  const clean = names
+  const typed = names
     .map((n) => String(n == null ? '' : n).trim().replace(/\s+/g, ' ').slice(0, MAX_ROSTER_NAME))
     .filter((n) => n.length > 0);
-  if (!clean.length) return { ok: false, error: 'No names entered.' };
+  if (!typed.length) return { ok: false, error: 'No names entered.' };
+  // Pasting the night's WhatsApp list is the usual way in, and most of it is
+  // people already on the roster: they are skipped (and named back), never
+  // added a second time. Same for a name repeated within the paste.
+  const key = (n) => n.toLowerCase();
+  const seen = new Set((Array.isArray(roster) ? roster : []).map((r) => key(String((r && r.name) || '').trim().replace(/\s+/g, ' '))));
+  const clean = [];
+  const skipped = [];
+  for (const n of typed) {
+    if (seen.has(key(n))) { if (!skipped.includes(n)) skipped.push(n); continue; }
+    seen.add(key(n));
+    clean.push(n);
+  }
+  if (!clean.length) return { ok: false, error: 'Everyone in that list is already on the roster.', skipped };
   if (clean.length > MAX_BULK_ADD) {
     return { ok: false, error: 'Add at most ' + MAX_BULK_ADD + ' players at a time.' };
   }
@@ -529,7 +612,7 @@ function buildRosterAdditions(roster, names, nowMs) {
     photo: null,
     points: 0,
   }));
-  return { ok: true, players };
+  return { ok: true, players, skipped };
 }
 
 // Manual points edit. Points drive Monthly-draw eligibility and are wiped at
@@ -650,7 +733,11 @@ function applySessionDateChange(state, newDate, today) {
     if (award.awardedSessions !== undefined) next.awardedSessions = award.awardedSessions;
     if (award.lifetimePoints !== undefined) next.lifetimePoints = award.lifetimePoints;
     const snapshot = {
-      players: (state.players || []).map((p) => ({ id: p.id, name: p.name })),
+      // Guests are not on the roster, so their flag (and photo) only lives
+      // here — without it a reopened night lost them from the Session tab.
+      players: (state.players || []).map((p) => (p && p.guest
+        ? Object.assign({ id: p.id, name: p.name, guest: true }, p.photo ? { photo: p.photo } : {})
+        : { id: p.id, name: p.name })),
       rounds: state.rounds || [],
       // The night's games waiting and the night's games played. Both belong to
       // the day, not to the club, so both ride the snapshot with `rounds`.
@@ -665,6 +752,8 @@ function applySessionDateChange(state, newDate, today) {
       courtGameBase: state.courtGameBase || [],
       // Winners called on games still on court when the night closed.
       courtWinner: state.courtWinner || [],
+      // Who had gone home — the night's own fact, so it comes back with it.
+      wentHome: Array.isArray(state.wentHome) ? state.wentHome : [],
       feeTier: Payments.tierOf(state.feeTier),
       drawAt: SD.scheduledDrawAt(state.sessionDate),
     };
@@ -688,6 +777,10 @@ function applySessionDateChange(state, newDate, today) {
       next.courtRounds = Array.isArray(saved.courtRounds) ? saved.courtRounds : [];
       next.courtGameBase = Array.isArray(saved.courtGameBase) ? saved.courtGameBase : [];
       next.feeTier = Payments.tierOf(saved.feeTier);
+      // Saved above but never read back, so a night reopened by mistake lost its
+      // winner calls and its gone-home list.
+      next.courtWinner = Array.isArray(saved.courtWinner) ? saved.courtWinner : [];
+      next.wentHome = Array.isArray(saved.wentHome) ? saved.wentHome : [];
       delete sessions[newDate]; // it's the live day now, not a saved past day
     } else {
       // Fresh day — start empty but auto-add the weekly regulars for this
@@ -710,13 +803,14 @@ function applySessionDateChange(state, newDate, today) {
     next.courtStatus = [];
     next.courtLocks = [];
     next.courtLive = [];
-    next.courtWinner = [];
+    if (!saved) next.courtWinner = [];
     // A typed game-number correction is NOT one of those flags: it is part of
     // how its night counted, so it travels with `played` — cleared for a fresh
     // day, restored with the rest when a saved day is reopened (both above).
     // Same reasoning for "gone home": having left at 10pm on Friday says nothing
-    // about whether someone is playing on Sunday.
-    next.wentHome = [];
+    // about whether someone is playing on Sunday. (A reopened night got its own
+    // list back above.)
+    if (!saved) next.wentHome = [];
     next.sessions = sessions;
   }
   next.sessionDate = newDate;
@@ -756,7 +850,8 @@ function currentNight(nowMs) {
  * a no-op when the date is already the current night or in the future, so on
  * the four non-game days it does nothing at all.
  */
-async function rolloverSessionDate() {
+async function rolloverSessionDate() { return withStateLock(() => rolloverSessionDateUnlocked()); }
+async function rolloverSessionDateUnlocked() {
   let state;
   try {
     state = (await kv.get(STATE_KEY)) || { ...DEFAULT_STATE };
@@ -834,7 +929,8 @@ async function loadState() {
  * never advances the session date — at 09:00 on a Saturday the current night is
  * still Friday, and it stays Friday until Sunday evening.
  */
-async function autoCloseNight(opts) {
+async function autoCloseNight(opts) { return withStateLock(() => autoCloseNightUnlocked(opts)); }
+async function autoCloseNightUnlocked(opts) {
   const o = opts || {};
   const night = o.night || currentNight(o.nowMs);
   if (!night) return { ok: true, changed: false, reason: 'no night' };
@@ -891,7 +987,8 @@ async function runSessionDrawSweep() {
  * Closes a due month first (that DOES write the state blob: points reset), then
  * runs the idempotent sweep over the separate `court-monthly-draws` hash.
  */
-async function runMonthlyDrawSweep() {
+async function runMonthlyDrawSweep() { return withStateLock(() => runMonthlyDrawSweepUnlocked()); }
+async function runMonthlyDrawSweepUnlocked() {
   let state;
   try {
     state = await loadState();
@@ -1007,10 +1104,24 @@ function buildSignups(body, ctx) {
   return { ok: true, list };
 }
 
+// The admin password, when the admin panel's poll sends it. A header rather
+// than the query string so it never lands in access logs or browser history.
+function adminGetKey(req) {
+  const h = (req && req.headers) || {};
+  const v = h['x-admin-key'] || h['X-Admin-Key'] || '';
+  return typeof v === 'string' ? v : '';
+}
+
+// POSTs are the writers; GETs only read and never wait for the lock.
 const handler = async function handler(req, res) {
+  if (req && req.method === 'POST') return withStateLock((release) => handleRequest(req, lockedResponse(res, release)));
+  return handleRequest(req, res);
+};
+
+const handleRequest = async function handleRequest(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Key');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -1080,8 +1191,12 @@ const handler = async function handler(req, res) {
       // card, where an empty court grid used to be). Computed here rather than
       // on the client so the card carries counts only — never a sign-up name or
       // phone number. See MonthlyDraw.upcomingSession.
-      return res.json({ ...publicProjection(current), upcoming: MD.upcomingSession(current.socialGames, current.signups, todayISO()),
-        serverTime: Date.now(), today: todayISO() });
+      const out = { ...publicProjection(current), upcoming: MD.upcomingSession(current.socialGames, current.signups, todayISO()),
+        serverTime: Date.now(), today: todayISO() };
+      // The admin panel polls this same GET. With the admin key it also gets the
+      // sign-up list (names + phones) for the Sign-ups tab and its badge.
+      if (adminGetKey(req) === ADMIN_PASSWORD) out.signups = current.signups;
+      return res.json(out);
     } catch (e) {
       console.error('KV read error:', e.message);
       return res.json({ ...publicProjection(DEFAULT_STATE), serverTime: Date.now(), today: todayISO() });
@@ -1368,7 +1483,7 @@ const handler = async function handler(req, res) {
         console.error('KV write error (addRosterPlayers):', e.message);
         return res.status(500).json({ error: 'Storage error.' });
       }
-      return res.json({ ok: true, added: built.players.length, roster: state.roster });
+      return res.json({ ok: true, added: built.players.length, skipped: built.skipped || [], roster: state.roster });
     }
 
     // Manual points edit from the Players list (organiser override).

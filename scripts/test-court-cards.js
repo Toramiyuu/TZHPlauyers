@@ -14,8 +14,8 @@
  *   normalizeCourtStatus / setCourtStatusAt   per-court 'live'|'next'|'final'
  *   normalizeCourtLocks  / setCourtLockAt     per-court lock booleans
  *   normalizeCourtLive   / setCourtLiveAt     per-court game-start stamps (ms)
- *   takeNextGame / putGameBack                restart one court's clock
- *                                             whose round changed
+ *   takeNextGame                              restart one court's clock
+ *                                             when its next game goes on
  *   formatElapsed                             ms -> M:SS / H:MM:SS
  *   setCourtNumberAt                          pick a court number (swaps on clash)
  *   applyCourtDrop                            drop one court slot from the day
@@ -171,13 +171,13 @@ if (H.normalizeCourtStatus) {
   // restampCourtLive is GONE. It took a whole array of round indices and
   // restarted the clock of every court whose index had moved, because an
   // all-courts advance could restart several at once. Nothing moves more than
-  // one court now, so takeNextGame stamps the single court it touched and
-  // putGameBack winds that one back. Asserted against the source further down.
+  // one court now, so takeNextGame stamps the single court it touched.
+  // Asserted against the source further down.
 
   // applyLockedFirstRound is GONE. Generating used to replace round 1, which
   // WAS the live games, so a locked court's four had to be carried across by
-  // hand. Generating now only fills the queue and cannot touch a court that is
-  // playing, so the lock is honoured by construction.
+  // hand. A court's next game now lives on its own card and cannot touch a
+  // court that is playing, so the lock is honoured by construction.
 
   // ── liveClockHTML ───────────────────────────────────────────────
   {
@@ -231,15 +231,34 @@ if (H.normalizeCourtStatus) {
   check('Courts cards have a court-number chip picker', courtsRender.includes('pickCourtNumber('));
   check('Courts cards have a status select', courtsRender.includes('setCourtStatus(') && courtsRender.includes('>Up Next<'));
   check('Courts cards keep the ending-soon clock button', courtsRender.includes('frb-es') && courtsRender.includes('toggleEndingSoon('));
-  check('Courts cards have a lock', courtsRender.includes('frb-lock') && courtsRender.includes('toggleCourtLock('));
+  // The Courts lock kept four together through a schedule REGENERATE. Generate
+  // lays out empty games since 2026-11-02, so the padlock did nothing at all and
+  // was removed (2026-11-10 audit). Friendly keeps its own lock for Reshuffle.
+  check('Courts cards no longer carry the dead lock', !courtsRender.includes('frb-lock') && !courtsRender.includes('toggleCourtLock('));
   check('Courts cards have a drop (x) button', courtsRender.includes('fr-mu-del') && courtsRender.includes('dropCourt('));
   check('Courts cards use the pod team rows', courtsRender.includes('frb-row red') && courtsRender.includes('frb-row blue'));
-  // The round stepper is gone. A card takes its next game off the shared queue
-  // and can put it back; it no longer walks a shared round index, because
-  // moving a court that is still playing is the unfairness this replaced.
-  check('Courts cards take the next game from the queue',
-    courtsRender.includes('crt-next') && courtsRender.includes('nextGameOnCourt('));
-  check('Courts cards can undo the game they just took', courtsRender.includes('undoCourtGame('));
+  // The round stepper is gone, and so are the Previous/Next game buttons that
+  // replaced it. Each card switches between three views of its own court —
+  // Previous, Live, Next game — and only "Put on court" moves the court on.
+  check('Courts cards switch between Previous, Live and Next game',
+    courtsRender.includes('crt-views') && courtsRender.includes("viewBtn('prev', 'Previous'")
+    && courtsRender.includes("viewBtn('live', 'Live'") && courtsRender.includes("viewBtn('next', 'Next game'")
+    && courtsRender.includes('setCrtView('));
+  check('switching views saves nothing', !(extractFn('setCrtView', html) || '').includes('apiPost'));
+  check('the Next game view puts its game on court', courtsRender.includes('putNextOnCourt(')
+    && (extractFn('putNextOnCourt', html) || '').includes('nextGameOnCourt(courtIdx)'));
+  check('putting a game on flips the card back to Live, and stays on Next if refused',
+    /__crtView\[courtIdx\] = 'live'[\s\S]*__crtView\[courtIdx\] = 'next'/.test(extractFn('putNextOnCourt', html) || ''));
+  check('the old undo is gone with the old buttons',
+    !html.includes('undoCourtGame(') && extractFn('putGameBack', html) === null);
+  check('seats on Next and Previous edit THAT game, never the live board',
+    courtsRender.includes("crtSlotTap(${i},'${team}',${k},this,'${view}')")
+    && (extractFn('placeCardPlayer', html) || '').includes('editNextGame(i, edit)')
+    && (extractFn('placeCardPlayer', html) || '').includes('editPrevGame(i, edit)'));
+  check('a fix to the Previous game is built on a fresh copy of the record',
+    (extractFn('editPrevGame', html) || '').includes('commitFresh(') && (extractFn('editPrevGame', html) || '').includes('lastPlayedIndex('));
+  check('the Previous view carries its own winner fix', courtsRender.includes('prevWinnerHTML(i, prev.winner)')
+    && (extractFn('prevWinnerHTML', html) || '').includes('setPrevWinner('));
   check('Courts cards no longer step through rounds',
     !courtsRender.includes('crt-rnav') && !courtsRender.includes('advanceCourt('));
   check('Courts cards show repeat-pairing warnings', courtsRender.includes('pairWarnHTML('));
@@ -274,19 +293,17 @@ if (H.normalizeCourtStatus) {
   // court any more, so takeNextGame stamps the single court it touched.
   check('taking the next game restarts that court\'s clock',
     (extractFn('takeNextGame', html) || '').includes('setCourtLiveAt(s.courtLive, courtIdx'));
-  check('undoing a game puts the clock back to when that game started',
-    (extractFn('putGameBack', html) || '').includes('setCourtLiveAt(s.courtLive, courtIdx, numCourts, restoredAt)'));
   for (const dead of ['restampCourtLive', 'applyLockedFirstRound']) {
     check(`${dead}() stays deleted with the round model`, extractFn(dead, html) === null);
   }
-  // Generating only fills ONE COURT'S queue now, so it cannot disturb a game in
-  // progress at all — which is why locked courts need no special case in it.
-  check('generating never touches a live clock',
-    !(extractFn('generateLane', html) || '').includes('courtLive'));
-  check('generating only writes the queue',
-    (extractFn('generateLane', html) || '').includes('saveQueue(queue)'));
-  check('generating leaves every other court\'s queue alone',
-    (extractFn('generateLane', html) || '').includes('filter(g => queueCourtOf(g) !== court)'));
+  // Editing a court's next game only writes the queue, so it cannot disturb a
+  // game in progress at all — which is why locked courts need no special case.
+  check('editing a next game never touches a live clock',
+    !(extractFn('editNextGame', html) || '').includes('courtLive') && !(extractFn('saveQueue', html) || '').includes('courtLive'));
+  check('editing a next game only writes the queue',
+    (extractFn('saveQueue', html) || '').includes('apiPost({ queue })'));
+  check('editing a next game leaves every other court\'s next game alone',
+    (extractFn('editNextGame', html) || '').includes('withNextGame(state.queue, i,'));
 
   // Viewer: Up Next / Final show a pill; a Live court looks exactly as before.
   check('viewer court cards take a status', /function buildCourtCard\(num, court, roundLabel, endingSoon, status\)/.test(html));

@@ -207,8 +207,9 @@ check('the ledger is seeded once, before any admin branch can credit points', ((
   return seed !== -1 && seed < src.indexOf("updates.action === 'setRosterPoints'");
 })());
 check('the crons seed it before the day close and before the month close', (() => {
-  const roll = extractFn('rolloverSessionDate', src) || '';
-  const sweep = extractFn('runMonthlyDrawSweep', src) || '';
+  // The bodies live in the *Unlocked variants since the 2026-11-10 write lock.
+  const roll = extractFn('rolloverSessionDateUnlocked', src) || '';
+  const sweep = extractFn('runMonthlyDrawSweepUnlocked', src) || '';
   return roll.indexOf('ensureLifetimePoints(state)') !== -1 && roll.indexOf('ensureLifetimePoints(state)') < roll.indexOf('applySessionDateChange')
     && sweep.indexOf('ensureLifetimePoints(state)') !== -1 && sweep.indexOf('ensureLifetimePoints(state)') < sweep.indexOf('applyMonthClose');
 })());
@@ -241,7 +242,7 @@ check('a points edit updates the cached lifetime total in place', fn('writePlaye
 check('the Grid card steppers go through the audited action, not a whole-roster POST', (() => {
   const a = fn('adjustPoints'), p = fn('setPoints');
   return a.includes('await bumpPlayerPoints(id, delta);') && !a.includes('apiPost({ roster })')
-    && p.includes('await setPlayerPoints(id, n);') && !p.includes('apiPost({ roster })');
+    && p.includes('await setPlayerPoints(id, val);') && !p.includes('apiPost({ roster })');
 })());
 
 // ── client: markup ──

@@ -234,7 +234,7 @@ const server = http.createServer((req, res) => {
         json(obj) { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(obj)); return this; },
         end() { res.end(); return this; },
       };
-      apiHandler({ method: req.method, query, body }, shim);
+      apiHandler({ method: req.method, query, headers: req.headers, body }, shim);
     });
     return;
   }

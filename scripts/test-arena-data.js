@@ -205,13 +205,17 @@ check('nextUp numbers rows by queue position', nu[0].court === 1 && nu[1].court 
 check('nextUp text is the queued matchup', nu[0].text === 'Ann & Ben vs Cy & Di');
 check('nextUp keeps the queue order', nu[1].text === 'Ann & Cy vs Ben & Di');
 
-// It must agree with the 2D viewer, which is the whole reason both exist.
-check('nextUp caps at the same count the 2D viewer uses', (() => {
+// It must agree with the 2D viewer, which is the whole reason both exist. The
+// 2D viewer shows UPNEXT_SHOWN games per court (one: each court's next game),
+// and the queue holds no more than that, so the arena's flat list has to have
+// room for every court's game — and still caps.
+check('nextUp has room for every court\'s next game, and still caps', (() => {
   const many = { roster: nuState.roster, queue: [1,2,3,4,5,6].map(n => ({ id: 'g'+n, team1: ['a','b'], team2: ['c','d'] })) };
   const cap = Number((html.match(/ARENA_UPNEXT_SHOWN\s*=\s*(\d+)/) || [])[1]);
   const twoD = fs.readFileSync(path.join(path.resolve(__dirname, '..'), 'public', 'index.html'), 'utf8');
-  const cap2 = Number((twoD.match(/UPNEXT_SHOWN\s*=\s*(\d+)/) || [])[1]);
-  return cap === cap2 && H.buildNextUpFromState(many).length === cap;
+  const perCourt = Number((twoD.match(/UPNEXT_SHOWN\s*=\s*(\d+)/) || [])[1]);
+  const courts = Number((twoD.match(/const COURT_POOL\s*=\s*(\d+)/) || [])[1]);
+  return perCourt >= 1 && cap >= perCourt * courts && H.buildNextUpFromState(many).length === cap;
 })());
 
 // singles (missing partner) shows TBD — matches the 2D viewer's row text

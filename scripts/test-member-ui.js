@@ -103,7 +103,7 @@ check('member page + code chip styles exist and use tokens only', html.includes(
 check('Accounts tab has the Assign codes button + code-aware search', html.includes('id="assignCodesBtn" onclick="assignAllCodes()"') && html.includes('placeholder="Search by name, code or phone…"'));
 check('assignAllCodes posts adminAssignCodes and reloads', fn('assignAllCodes').includes("apiPost({ action: 'adminAssignCodes' })") && fn('assignAllCodes').includes('await loadAccountsTab()'));
 check('assignCodeFor / regenCode / saveCode / clearCode hit the right actions', fn('assignCodeFor').includes("action: 'adminSetCode', playerId") && fn('regenCode').includes("action: 'adminSetCode', id }") && fn('saveCode').includes("action: 'adminSetCode', id, code") && fn('clearCode').includes("action: 'adminClearCode', id"));
-check('blank Save regenerates instead of erroring', fn('saveCode').includes("if (!code) return regenCode(id);"));
+check('blank Save makes a code for a member who has none, and never silently replaces one', fn('saveCode').includes("if (!a || !a.code) return regenCode(id);"));
 // The code row moved out of the card's inline panel into the member profile
 // (Manage now opens that profile), so the chip is on the card and the editable
 // code row is in the profile's Sign-in section.
